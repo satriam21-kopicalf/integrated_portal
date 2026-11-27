@@ -152,34 +152,34 @@ export function BatchesTab() {
               const left = daysLeft(b.expiresOn);
               const pct = Math.round((b.sent / b.qty) * 100);
               return (
-                <li key={b.id} className="rounded-md border border-neutral-200 bg-white">
-                  <div className="flex flex-wrap items-start gap-2 border-b border-neutral-100 px-4 py-3">
+                <li key={b.id} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+                  <div className="flex flex-wrap items-start gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-neutral-900">{name(b.menu)} · {b.qty}</p>
-                      <p className="font-mono text-[11px] text-neutral-400">{b.batchNo} · {hubName(b.hub)}</p>
+                      <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{name(b.menu)} · {b.qty}</p>
+                      <p className="font-mono text-[11px] text-[color:var(--j-626F86)]">{b.batchNo} · {hubName(b.hub)}</p>
                     </div>
                     <ExpiryBadge days={left} date={b.expiresOn} />
                     {b.sent === 0 && <IconButton label={tr('Delete')} onClick={() => void remove(b)}><Trash2 size={15} /></IconButton>}
                   </div>
                   <div className="space-y-3 px-4 py-3">
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('Produced')}</p><p className="font-semibold">{dmy(b.producedOn)}</p></div>
-                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('Expires')}</p><p className="font-semibold">{dmy(b.expiresOn)}</p></div>
-                      <div className="rounded-lg bg-neutral-50 py-1.5"><p className="text-[10px] uppercase text-neutral-400">{tr('At the Hub')}</p><p className="font-semibold tabular-nums">{b.atHub}</p></div>
+                      <div className="rounded-[3px] bg-[color:var(--j-F7F8F9)] py-1.5"><p className="text-[10px] uppercase text-[color:var(--j-626F86)]">{tr('Produced')}</p><p className="font-semibold">{dmy(b.producedOn)}</p></div>
+                      <div className="rounded-[3px] bg-[color:var(--j-F7F8F9)] py-1.5"><p className="text-[10px] uppercase text-[color:var(--j-626F86)]">{tr('Expires')}</p><p className="font-semibold">{dmy(b.expiresOn)}</p></div>
+                      <div className="rounded-[3px] bg-[color:var(--j-F7F8F9)] py-1.5"><p className="text-[10px] uppercase text-[color:var(--j-626F86)]">{tr('At the Hub')}</p><p className="font-semibold tabular-nums">{b.atHub}</p></div>
                     </div>
                     <div>
-                      <div className="mb-1 flex justify-between text-[11px] text-neutral-500"><span>{tr('Sent {0} of {1}', b.sent, b.qty)}</span><span>{tr('{0} received', b.received)}</span></div>
-                      <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${pct}%` }} /></div>
+                      <div className="mb-1 flex justify-between text-[11px] text-[color:var(--j-626F86)]"><span>{tr('Sent {0} of {1}', b.sent, b.qty)}</span><span>{tr('{0} received', b.received)}</span></div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><div className="h-full rounded-full bg-[color:var(--j-388BFF)]" style={{ width: `${pct}%` }} /></div>
                     </div>
                     {b.transfers.length > 0 && (
                       <ul className="space-y-1 text-xs">
                         {b.transfers.map((t) => (
-                          <li key={t.id} className="flex items-center gap-2"><Truck size={12} className="text-neutral-400" /><span className="flex-1 truncate">{t.poolName}</span>
+                          <li key={t.id} className="flex items-center gap-2"><Truck size={12} className="text-[color:var(--j-626F86)]" /><span className="flex-1 truncate">{t.poolName}</span>
                             <span className="tabular-nums">{t.qty}</span>{t.status === 'received' ? <Badge tone="green">{tr('Received')}</Badge> : <Badge tone="amber">{tr('On the way')}</Badge>}</li>
                         ))}
                       </ul>
                     )}
-                    {(b.waste ?? 0) > 0 && <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">{tr('Production waste: {0} cups', b.waste ?? 0)}{b.wasteReason ? ` · ${b.wasteReason}` : ''}</p>}
+                    {(b.waste ?? 0) > 0 && <p className="rounded-[3px] bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">{tr('Production waste: {0} cups', b.waste ?? 0)}{b.wasteReason ? ` · ${b.wasteReason}` : ''}</p>}
                     <WasteLine batch={b} onSaved={() => setTick((t) => t + 1)} />
                     {b.atHub > 0 && (sending === b.id
                       ? <SendForm batch={b} pools={(pools.rows ?? []).filter((p) => p.code !== b.hub)} onClose={() => setSending(null)} onSent={() => { setSending(null); setTick((t) => t + 1); }} />
@@ -209,7 +209,7 @@ function WasteLine({ batch, onSaved }: { batch: Batch; onSaved: () => void }) {
     catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
   };
   return (
-    <div className="grid gap-2 rounded-md border border-amber-200 bg-amber-50/50 p-2.5 sm:grid-cols-[6rem_1fr_auto]">
+    <div className="grid gap-2 rounded-[3px] border border-amber-200 bg-amber-50/50 p-2.5 sm:grid-cols-[6rem_1fr_auto]">
       <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="h-10 text-right" aria-label={tr('Cups wasted')} />
       <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Reason (spilled, failed the taste …)')} className="h-10" />
       <div className="flex gap-2"><Button size="sm" variant="ghost" onClick={() => setOpen(false)}>{tr('Cancel')}</Button>
@@ -229,7 +229,7 @@ function SendForm({ batch, pools, onClose, onSent }: { batch: Batch; pools: Pool
     catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
   };
   return (
-    <div className="grid gap-2 rounded-md border border-brand-200 bg-brand-50/40 p-2.5 sm:grid-cols-[1fr_6rem_auto]">
+    <div className="grid gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] p-2.5 sm:grid-cols-[1fr_6rem_auto]">
       <Select value={pool} onChange={(e) => setPool(e.target.value)} className="h-10">{pools.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</Select>
       <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="h-10 text-right" aria-label={tr('Quantity')} />
       <div className="flex gap-2"><Button size="sm" variant="ghost" onClick={onClose}>{tr('Cancel')}</Button>
@@ -255,13 +255,13 @@ export function PoolBatches({ pool }: { pool: string }) {
   return (
     <Panel title={tr('Stock from the main hub')} description={tr('Batches of the pool, first expired first: hand the oldest to the drivers')}>
       {data.incoming.length > 0 && (
-        <div className="border-b border-neutral-100 p-3 sm:p-4">
+        <div className="border-b border-[color:var(--j-F1F2F4)] p-3 sm:p-4">
           <p className="mb-2 text-xs font-semibold text-amber-800">{tr('On the way to this pool ({0})', data.incoming.length)}</p>
           <ul className="grid gap-2 sm:grid-cols-2">
             {data.incoming.map((i) => (
-              <li key={i.transfer} className="flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50/50 px-3 py-2">
+              <li key={i.transfer} className="flex items-center gap-3 rounded-[3px] border border-amber-200 bg-amber-50/50 px-3 py-2">
                 <Truck size={16} className="flex-shrink-0 text-amber-700" />
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.menuName} · {i.qty}</span><span className="font-mono text-[11px] text-neutral-500">{i.batchNo} · {tr('exp')} {dmy(i.expiresOn)}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.menuName} · {i.qty}</span><span className="font-mono text-[11px] text-[color:var(--j-626F86)]">{i.batchNo} · {tr('exp')} {dmy(i.expiresOn)}</span></span>
                 <Button size="sm" onClick={() => void receive(i.transfer)}><PackageCheck size={14} /> {tr('Receive')}</Button>
               </li>
             ))}
@@ -271,10 +271,10 @@ export function PoolBatches({ pool }: { pool: string }) {
       {data.received.length > 0 && (
         <table className="m-cards w-full text-sm">
           <thead className={theadClass}><tr><th className="px-4 py-2">{tr('Product')}</th><th className="px-3 py-2">{tr('Batch')}</th><th className="px-3 py-2 text-right">{tr('Quantity')}</th><th className="px-3 py-2">{tr('Produced')}</th><th className="px-4 py-2">{tr('Expiry')}</th></tr></thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {data.received.map((i) => (
               <tr key={i.transfer} className={cx(i.daysLeft < 0 && 'bg-red-50/50')}>
-                <td className="px-4 py-2 font-medium text-neutral-900">{i.menuName}</td><td className="px-3 py-2 font-mono text-xs">{i.batchNo}</td>
+                <td className="px-4 py-2 font-medium text-[color:var(--j-172B4D)]">{i.menuName}</td><td className="px-3 py-2 font-mono text-xs">{i.batchNo}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{i.qty}</td><td className="px-3 py-2 text-xs">{dmy(i.producedOn)}</td>
                 <td className="px-4 py-2"><ExpiryBadge days={i.daysLeft} date={i.expiresOn} /></td>
               </tr>
@@ -303,7 +303,7 @@ function EsbBatches({ onDone }: { onDone: () => void }) {
   };
   if (!check) return <Button size="sm" variant="secondary" loading={busy} onClick={() => void run(false)}><Factory size={14} /> {tr('From ESB')}</Button>;
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-brand-200 bg-brand-50/60 px-3 py-1.5 text-xs text-brand-900">
+    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-3 py-1.5 text-xs text-[color:var(--j-0055CC)]">
       <span>{tr('Simple Manufacturing of ESB COTR, last 60 days: {0} batches, {1} cups', check.batches, check.cups.toLocaleString('id-ID'))}</span>
       <Button size="sm" variant="ghost" onClick={() => setCheck(null)}>{tr('Cancel')}</Button>
       <Button size="sm" loading={busy} onClick={() => void run(true)}>{tr('Apply')}</Button>

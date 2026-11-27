@@ -48,20 +48,20 @@ export function PayPanel({ driver, month, published, onChanged }: { driver: stri
   };
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-neutral-700">{tr("Bonus & deductions of the month")}</p>
-      {!rows ? <SkeletonList rows={2} /> : rows.length === 0 ? <p className="text-xs text-neutral-400">{tr("None yet")}</p> : (
-        <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200 bg-white text-xs">
+      <p className="text-xs font-semibold text-[color:var(--j-44546F)]">{tr("Bonus & deductions of the month")}</p>
+      {!rows ? <SkeletonList rows={2} /> : rows.length === 0 ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("None yet")}</p> : (
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-xs">
           {rows.map((a) => (
             <li key={a.id} className="flex items-center gap-2 px-3 py-1.5">
               <Badge tone={a.kind === "bonus" ? "green" : "red"}>{PAY_LABEL[a.kind]()}</Badge>
-              <span className="min-w-0 flex-1 truncate text-neutral-600" title={a.note ?? undefined}>{a.note ?? "—"}</span>
+              <span className="min-w-0 flex-1 truncate text-[color:var(--j-44546F)]" title={a.note ?? undefined}>{a.note ?? "—"}</span>
               <span className={`tabular-nums ${a.kind === "bonus" ? "text-emerald-700" : "text-red-700"}`}>{a.kind === "bonus" ? "+" : "−"}{rupiah(a.amount)}</span>
-              {!published && <button type="button" aria-label={tr("Delete")} onClick={() => void remove(a.id)} className="text-neutral-400 hover:text-red-600"><Trash2 size={13} /></button>}
+              {!published && <button type="button" aria-label={tr("Delete")} onClick={() => void remove(a.id)} className="text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={13} /></button>}
             </li>
           ))}
         </ul>
       )}
-      {published ? <p className="text-[11px] text-neutral-500">{tr("The payslips of this month are published: withdraw them to change.")}</p> : (
+      {published ? <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("The payslips of this month are published: withdraw them to change.")}</p> : (
         <div className="flex flex-wrap items-center gap-2">
           <Select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as PayKind })} className="h-9 w-36">
             {(Object.keys(PAY_LABEL) as PayKind[]).map((k) => <option key={k} value={k}>{PAY_LABEL[k]()}</option>)}
@@ -79,7 +79,7 @@ const monthText = (m: string) => new Date(`${m}-01T00:00:00`).toLocaleDateString
 
 function Row({ label, value, sign, strong }: { label: string; value: number; sign?: "+" | "−"; strong?: boolean }) {
   return (
-    <div className={`flex justify-between gap-3 py-1 ${strong ? "font-semibold text-neutral-900" : "text-neutral-700"}`}>
+    <div className={`flex justify-between gap-3 py-1 ${strong ? "font-semibold text-[color:var(--j-172B4D)]" : "text-[color:var(--j-44546F)]"}`}>
       <span>{label}</span><span className="tabular-nums">{sign && value ? sign : ""}{rupiah(value)}</span>
     </div>
   );
@@ -89,34 +89,34 @@ function Row({ label, value, sign, strong }: { label: string; value: number; sig
 export function SlipSheet({ slip }: { slip: Slip }) {
   const e = slip.employee;
   return (
-    <div className="payslip mx-auto max-w-xl space-y-4 rounded-md border border-neutral-200 bg-white p-5 text-sm">
-      <div className="flex items-start justify-between gap-3 border-b border-neutral-200 pb-3">
-        <div><p className="text-xs font-semibold uppercase tracking-wider text-brand-700">Calf On The Road</p>
-          <p className="text-lg font-bold text-neutral-900">{tr("Payslip")}</p><p className="text-xs text-neutral-500">{monthText(slip.month)}</p></div>
+    <div className="payslip mx-auto max-w-xl space-y-4 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-5 text-sm">
+      <div className="flex items-start justify-between gap-3 border-b border-[color:var(--j-DCDFE4)] pb-3">
+        <div><p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--j-0C66E4)]">Calf On The Road</p>
+          <p className="text-lg font-bold text-[color:var(--j-172B4D)]">{tr("Payslip")}</p><p className="text-xs text-[color:var(--j-626F86)]">{monthText(slip.month)}</p></div>
         {!slip.published && <Badge tone="amber">{tr("Not published yet")}</Badge>}
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-        <span className="text-neutral-500">{tr("Name")}</span><span className="font-medium text-neutral-900">{e.name}</span>
-        <span className="text-neutral-500">{tr("Employee code")}</span><span>{e.employeeId ?? e.code}</span>
-        <span className="text-neutral-500">{tr("Department / position")}</span><span>{[e.department, e.position].filter(Boolean).join(" · ") || "—"}</span>
-        <span className="text-neutral-500">{tr("Pool / HUB")}</span><span>{e.pool ?? "—"}</span>
-        {slip.attendance && <><span className="text-neutral-500">{tr("Attendance")}</span><span>{slip.attendance.worked}/{slip.attendance.scheduled} · {tr("{0} cups sold", slip.cups)}</span></>}
+        <span className="text-[color:var(--j-626F86)]">{tr("Name")}</span><span className="font-medium text-[color:var(--j-172B4D)]">{e.name}</span>
+        <span className="text-[color:var(--j-626F86)]">{tr("Employee code")}</span><span>{e.employeeId ?? e.code}</span>
+        <span className="text-[color:var(--j-626F86)]">{tr("Department / position")}</span><span>{[e.department, e.position].filter(Boolean).join(" · ") || "—"}</span>
+        <span className="text-[color:var(--j-626F86)]">{tr("Pool / HUB")}</span><span>{e.pool ?? "—"}</span>
+        {slip.attendance && <><span className="text-[color:var(--j-626F86)]">{tr("Attendance")}</span><span>{slip.attendance.worked}/{slip.attendance.scheduled} · {tr("{0} cups sold", slip.cups)}</span></>}
       </div>
       <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Income")}</p>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Income")}</p>
         <Row label={tr("Base salary")} value={slip.salary} />
         <Row label={tr("Allowance")} value={slip.allowance} />
         <Row label={tr("Incentive")} value={slip.incentive} />
         {slip.bonusItems.map((b) => <Row key={b.id} label={`${tr("Bonus")}${b.note ? ` · ${b.note}` : ""}`} value={b.amount} />)}
       </div>
       <div>
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">{tr("Deductions")}</p>
-        {slip.deductions.length === 0 ? <p className="py-1 text-neutral-400">—</p> : slip.deductions.map((d) => (
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Deductions")}</p>
+        {slip.deductions.length === 0 ? <p className="py-1 text-[color:var(--j-626F86)]">—</p> : slip.deductions.map((d) => (
           <Row key={d.id} label={`${PAY_LABEL[d.kind]()}${d.note ? ` · ${d.note}` : ""}`} value={d.amount} sign="−" />))}
       </div>
-      <div className="border-t border-neutral-200 pt-2">
+      <div className="border-t border-[color:var(--j-DCDFE4)] pt-2">
         <Row label={tr("Take home pay")} value={slip.takeHome} strong />
-        {e.account && <p className="text-xs text-neutral-500">{tr("Paid to")} {e.bank ?? ""} {e.account}{e.holder ? ` a.n. ${e.holder}` : ""}</p>}
+        {e.account && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Paid to")} {e.bank ?? ""} {e.account}{e.holder ? ` a.n. ${e.holder}` : ""}</p>}
       </div>
     </div>
   );

@@ -58,7 +58,7 @@ export default function TransferForm() {
       <div className="mx-auto max-w-5xl space-y-4">
         <Segmented label={tr("View")} value={tab} onChange={setTab} options={tabs} />
         {!data.branches.length ? (
-          <div className="rounded-2xl border border-neutral-200/70 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">{tr("No outlet is assigned to your account.")}</div>
+          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)] shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">{tr("No outlet is assigned to your account.")}</div>
         ) : tab === "request" ? (
           <RequestForm data={data} onDone={(t) => { toast(tr("Transfer {0} sent: waiting for Cost Control", t.number)); void load(); setTab("mine"); setOpen(t.id); }} />
         ) : (
@@ -109,22 +109,22 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
       <div className="space-y-4">
         <FormCard n={1} title={tr("Outlets")} hint={tr("Your outlet receives; the other outlet sends")}>
           <div className="grid gap-2 sm:grid-cols-[1fr_auto_1fr] sm:items-end sm:gap-3">
-            <label className="block text-xs font-medium text-neutral-600">{tr("My outlet (receives)")}
+            <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("My outlet (receives)")}
               {data.branches.length === 1 ? (
-                <span className="mt-1 flex h-11 items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 text-sm text-neutral-900"><Store size={15} className="text-neutral-400" /><span className="truncate">{data.branches[0].name}</span></span>
+                <span className="mt-1 flex h-11 items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 text-sm text-[color:var(--j-172B4D)]"><Store size={15} className="text-[color:var(--j-626F86)]" /><span className="truncate">{data.branches[0].name}</span></span>
               ) : (
                 <NativeSelect className={cx(inputClass, "mt-1 h-11")} value={to} onChange={(e) => { setTo(e.target.value); if (e.target.value === from) setFrom(""); }}>
                   <option value="">{tr("Choose")}</option>{data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
                 </NativeSelect>
               )}</label>
-            <span className="flex justify-center text-neutral-300 sm:pb-3" aria-hidden><ArrowDown size={18} className="sm:hidden" /><ArrowRight size={18} className="hidden rotate-180 sm:block" /></span>
-            <div className="text-xs font-medium text-neutral-600">{tr("Take from outlet")}
+            <span className="flex justify-center text-[color:var(--j-8590A2)] sm:pb-3" aria-hidden><ArrowDown size={18} className="sm:hidden" /><ArrowRight size={18} className="hidden rotate-180 sm:block" /></span>
+            <div className="text-xs font-medium text-[color:var(--j-44546F)]">{tr("Take from outlet")}
               <button type="button" disabled={!to} onClick={() => setPicking(true)}
-                className={cx("mt-1 flex h-11 w-full items-center gap-2 rounded-lg border px-3 text-left text-sm transition disabled:opacity-50",
-                  from ? "border-brand-300 bg-brand-50 text-brand-900" : "border-neutral-200 bg-white text-neutral-500 hover:border-brand-300")}>
-                <Store size={15} className={from ? "text-brand-600" : "text-neutral-400"} />
+                className={cx("mt-1 flex h-11 w-full items-center gap-2 rounded-[3px] border px-3 text-left text-sm transition disabled:opacity-50",
+                  from ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] hover:border-[color:var(--j-85B8FF)]")}>
+                <Store size={15} className={from ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-626F86)]"} />
                 <span className="min-w-0 flex-1 truncate">{from ? fromName : to ? tr("Choose the outlet to take from") : tr("Choose your outlet first")}</span>
-                <ChevronRight size={16} className="flex-shrink-0 text-neutral-400" />
+                <ChevronRight size={16} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
               </button>
             </div>
           </div>
@@ -132,25 +132,25 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
 
         <FormCard n={2} title={tr("Materials")} hint={stock ? (stock.so ? tr("In the whole units of the HUB stock opname. Stock of {0} from its SO of {1}: information for Cost Control, not a limit", fromName, stock.so.date) : tr("In the whole units of the HUB stock opname. This outlet has no SO in the portal: its stock is unknown.")) : tr("Choose the outlet to take from first")}
           aside={picked.length ? <Badge tone="blue">{tr("{0} chosen", picked.length)}</Badge> : undefined}>
-          {!from ? <p className="text-sm text-neutral-500">{tr("Choose the outlet to take from first")}</p>
+          {!from ? <p className="text-sm text-[color:var(--j-626F86)]">{tr("Choose the outlet to take from first")}</p>
             : loading ? <SkeletonList rows={3} />
-            : !stock?.items.length ? <p className="text-sm text-neutral-500">{tr("This outlet has no material in its last count.")}</p> : (
+            : !stock?.items.length ? <p className="text-sm text-[color:var(--j-626F86)]">{tr("This outlet has no material in its last count.")}</p> : (
               <>
-                <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <div className="relative"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
                   <input className={cx(searchClass, "pl-8")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search material")} /></div>
-                <ul className="max-h-[28rem] divide-y divide-neutral-100 overflow-auto rounded-lg border border-neutral-200">
+                <ul className="max-h-[28rem] divide-y divide-[color:var(--j-F1F2F4)] overflow-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                   {shown.map((i) => {
                     const v = num(qty[i.code] ?? "");
                     const bad = false;
                     return (
-                      <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-brand-50/50" : bad ? "bg-red-50" : "")}>
-                        <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug text-neutral-900">{i.name}</span>
-                          <span className="block text-[11px] text-neutral-500">{i.code}{i.category ? ` · ${i.category}` : ""}{i.factor && i.factor !== 1 ? ` · 1 ${i.unit} = ${qtyText(i.factor)} ${i.base}` : ""}</span>
+                      <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-[color:var(--j-E9F2FF)]" : bad ? "bg-red-50" : "")}>
+                        <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug text-[color:var(--j-172B4D)]">{i.name}</span>
+                          <span className="block text-[11px] text-[color:var(--j-626F86)]">{i.code}{i.category ? ` · ${i.category}` : ""}{i.factor && i.factor !== 1 ? ` · 1 ${i.unit} = ${qtyText(i.factor)} ${i.base}` : ""}</span>
                           <span className="mt-1 block"><StockBadge available={i.available} unit={i.unit} taking={v} /></span></span>
                         <span className="relative w-32 flex-shrink-0 sm:w-36">
                           <input inputMode="decimal" className={cx(inputClass, "h-11 pr-16 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
                             onChange={(e) => setQty({ ...qty, [i.code]: e.target.value })} aria-label={`${tr("Qty")} ${i.name}`} />
-                          <span className="pointer-events-none absolute right-2 top-1/2 max-w-[3.5rem] -translate-y-1/2 truncate text-[10px] text-neutral-400">{i.unit}</span>
+                          <span className="pointer-events-none absolute right-2 top-1/2 max-w-[3.5rem] -translate-y-1/2 truncate text-[10px] text-[color:var(--j-626F86)]">{i.unit}</span>
                         </span>
                       </li>
                     );
@@ -164,32 +164,32 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
           {photo ? (
             <div className="flex items-start gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element -- the photo just taken */}
-              <img src={photo.image} alt={tr("Photo evidence")} className="h-32 w-32 rounded-lg bg-neutral-100 object-cover" />
+              <img src={photo.image} alt={tr("Photo evidence")} className="h-32 w-32 rounded-[3px] bg-[color:var(--j-091E420F)] object-cover" />
               <Button variant="secondary" size="sm" onClick={() => setCamera(true)}><Camera size={14} />{tr("Retake")}</Button>
             </div>
           ) : <Button variant="secondary" disabled={!to} onClick={() => setCamera(true)}><Camera size={15} />{tr("Take photo")}</Button>}
-          <label className="block text-xs font-medium text-neutral-600">{tr("Note")} <span className="font-normal text-neutral-400">({tr("optional")})</span>
+          <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Note")} <span className="font-normal text-[color:var(--j-626F86)]">({tr("optional")})</span>
             <textarea className={cx(inputClass, "mt-1 py-2")} rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("e.g. the milk ran out before the delivery")} /></label>
         </FormCard>
       </div>
       <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-        <section className="hidden rounded-2xl border border-neutral-200/70 bg-white p-4 lg:block shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-          <p className="text-sm font-semibold text-neutral-900">{tr("Summary")}</p>
+        <section className="hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 lg:block shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Summary")}</p>
           <dl className="mt-2 space-y-1.5 text-sm">
-            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("From")}</dt><dd className="truncate text-right">{fromName ? fromName : "—"}</dd></div>
-            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("To")}</dt><dd className="truncate text-right">{(data.branches.find((b) => b.code === to)?.name ?? "—")}</dd></div>
-            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("Materials")}</dt><dd>{picked.length}</dd></div>
-            <div className="flex justify-between gap-2"><dt className="text-neutral-500">{tr("Photo")}</dt><dd>{photo ? tr("Attached") : "—"}</dd></div>
+            <div className="flex justify-between gap-2"><dt className="text-[color:var(--j-626F86)]">{tr("From")}</dt><dd className="truncate text-right">{fromName ? fromName : "—"}</dd></div>
+            <div className="flex justify-between gap-2"><dt className="text-[color:var(--j-626F86)]">{tr("To")}</dt><dd className="truncate text-right">{(data.branches.find((b) => b.code === to)?.name ?? "—")}</dd></div>
+            <div className="flex justify-between gap-2"><dt className="text-[color:var(--j-626F86)]">{tr("Materials")}</dt><dd>{picked.length}</dd></div>
+            <div className="flex justify-between gap-2"><dt className="text-[color:var(--j-626F86)]">{tr("Photo")}</dt><dd>{photo ? tr("Attached") : "—"}</dd></div>
           </dl>
           <Button className="mt-3 w-full" disabled={!ready} loading={busy} onClick={() => setSigning(true)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
-          {!ready && <p className="mt-2 text-center text-xs text-neutral-400">{tr("Choose the outlets, the materials and take the photo.")}</p>}
+          {!ready && <p className="mt-2 text-center text-xs text-[color:var(--j-626F86)]">{tr("Choose the outlets, the materials and take the photo.")}</p>}
         </section>
         <Note icon={<Info />}>{tr("After you submit, the request is pending until Cost Control approves it; Cost Control then makes the transfer in ESB. The other outlet does not need to approve.")}</Note>
       </aside>
       {/* phones & tablets: what is ready and the send button, at the bottom */}
-      <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-neutral-200/70 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden"
+      <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-        <p className="mb-2 truncate text-xs text-neutral-500">
+        <p className="mb-2 truncate text-xs text-[color:var(--j-626F86)]">
           {ready ? `${fromName} → ${(data.branches.find((b) => b.code === to)?.name ?? "")} · ${tr("{0} materials", picked.length)}` : tr("Choose the outlets, the materials and take the photo.")}
         </p>
         <Button className="h-11 w-full" disabled={!ready} loading={busy} onClick={() => setSigning(true)}><PenLine size={15} />{tr("Sign & Submit")}</Button>
@@ -210,27 +210,27 @@ function OutletPicker({ outlets, value, onPick, onClose }: { outlets: { code: st
   const shown = outlets.filter((o) => words.every((w) => `${o.name} ${o.code}`.toLowerCase().includes(w)));
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-neutral-900/40 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Take from outlet")} onClick={onClose}>
-      <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
-        <header className="flex items-center gap-2 border-b border-neutral-100 px-4 pb-3 pt-4">
-          <span className="min-w-0 flex-1"><span className="block text-base font-semibold text-neutral-900">{tr("Take from outlet")}</span>
-            <span className="block text-xs text-neutral-500">{tr("{0} outlets", outlets.length)}</span></span>
-          <button type="button" onClick={onClose} className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Close")}><X size={18} /></button>
+      <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white shadow-2xl sm:max-w-lg sm:rounded-[3px]" onClick={(e) => e.stopPropagation()}>
+        <header className="flex items-center gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 pb-3 pt-4">
+          <span className="min-w-0 flex-1"><span className="block text-base font-semibold text-[color:var(--j-172B4D)]">{tr("Take from outlet")}</span>
+            <span className="block text-xs text-[color:var(--j-626F86)]">{tr("{0} outlets", outlets.length)}</span></span>
+          <button type="button" onClick={onClose} className="rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Close")}><X size={18} /></button>
         </header>
-        <div className="border-b border-neutral-100 p-3">
-          <div className="relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <div className="border-b border-[color:var(--j-F1F2F4)] p-3">
+          <div className="relative"><Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input autoFocus className={cx(searchClass, "h-11 pl-9 text-base sm:text-sm")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet, e.g. kemang")} /></div>
         </div>
         <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-1" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
           {shown.map((o) => (
             <li key={o.code}>
-              <button type="button" onClick={() => onPick(o.code)} className={cx("flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left active:bg-neutral-100", o.code === value ? "bg-brand-50" : "hover:bg-neutral-50")}>
-                <Store size={16} className="flex-shrink-0 text-neutral-400" />
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-neutral-900">{o.name}</span><span className="block text-[11px] text-neutral-400">{tr("Code {0}", o.code)}</span></span>
-                {o.code === value && <Check size={16} className="text-brand-600" />}
+              <button type="button" onClick={() => onPick(o.code)} className={cx("flex min-h-12 w-full items-center gap-3 px-4 py-2.5 text-left active:bg-[color:var(--j-091E420F)]", o.code === value ? "bg-[color:var(--j-E9F2FF)]" : "hover:bg-[color:var(--j-F7F8F9)]")}>
+                <Store size={16} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{o.name}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("Code {0}", o.code)}</span></span>
+                {o.code === value && <Check size={16} className="text-[color:var(--j-0C66E4)]" />}
               </button>
             </li>
           ))}
-          {!shown.length && <li className="px-4 py-10 text-center text-sm text-neutral-400">{tr("No outlet matches")}</li>}
+          {!shown.length && <li className="px-4 py-10 text-center text-sm text-[color:var(--j-626F86)]">{tr("No outlet matches")}</li>}
         </ul>
       </div>
     </div>
@@ -248,18 +248,18 @@ function SignDialog({ busy, onSign, onClose }: { busy: boolean; onSign: (sig: st
 }
 
 function List({ rows, side, onOpen }: { rows: Transfer[]; side: "mine" | "incoming"; onOpen: (id: string) => void }) {
-  if (!rows.length) return <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No transfer out of your outlet")} /></div>;
+  if (!rows.length) return <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No transfer out of your outlet")} /></div>;
   return (
-    <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200 bg-white">
+    <ul className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       {rows.map((t) => {
         const todo = false;
         return (
           <li key={t.id}>
-            <button type="button" onClick={() => onOpen(t.id)} className={cx("flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-neutral-50", todo && "bg-amber-50/40")}>
+            <button type="button" onClick={() => onOpen(t.id)} className={cx("flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]", todo && "bg-amber-50/40")}>
               <span className="min-w-0 flex-1">
-                <span className="flex flex-wrap items-center gap-1.5"><span className="font-mono text-xs font-semibold text-neutral-900">{t.number}</span><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge></span>
-                <span className="mt-0.5 block truncate text-sm text-neutral-800">{shortBranch(t.fromName)} <ArrowRight size={12} className="inline text-neutral-400" /> {shortBranch(t.toName)}</span>
-                <span className="block text-xs text-neutral-500">{tr("{0} materials", t.lines)} · {wibDateTime(t.requested.at)} · {t.requested.by}</span>
+                <span className="flex flex-wrap items-center gap-1.5"><span className="font-mono text-xs font-semibold text-[color:var(--j-172B4D)]">{t.number}</span><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge></span>
+                <span className="mt-0.5 block truncate text-sm text-[color:var(--j-172B4D)]">{shortBranch(t.fromName)} <ArrowRight size={12} className="inline text-[color:var(--j-626F86)]" /> {shortBranch(t.toName)}</span>
+                <span className="block text-xs text-[color:var(--j-626F86)]">{tr("{0} materials", t.lines)} · {wibDateTime(t.requested.at)} · {t.requested.by}</span>
                 <MiniProgress t={t} />
               </span>
               {todo && <span className="mt-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{side === "mine" ? tr("Receive") : tr("Check")}</span>}
@@ -314,29 +314,29 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
       <div className="space-y-4 text-sm">
         <div className="flex flex-wrap items-center gap-2"><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge>
           {t.esbLabel && <Badge tone="slate">{tr("ESB label")}: {t.esbLabel.value === "esb" ? tr("To ESB") : tr("Portal only")}</Badge>}
-          <span className="ml-auto font-semibold tabular-nums text-neutral-900">{t.value != null ? rpText(t.value) : t.estimate != null ? `± ${rpText(t.estimate)}` : ""}</span></div>
-        <div className="overflow-hidden rounded-md border border-neutral-200">
+          <span className="ml-auto font-semibold tabular-nums text-[color:var(--j-172B4D)]">{t.value != null ? rpText(t.value) : t.estimate != null ? `± ${rpText(t.estimate)}` : ""}</span></div>
+        <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           <table className="w-full text-sm">
-            <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">{(t.items ?? []).map((i) => (
-              <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-neutral-900">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p>{i.available != null && <p className="mt-1 text-[11px] text-neutral-500">{tr("Stock of the outlet when asked")}: <span className="font-semibold tabular-nums text-neutral-700">{qtyText(i.available / (i.factor || 1))} {i.pack}</span></p>}</td>
+            <thead className="border-b-2 border-[color:var(--j-DCDFE4)] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]"><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{deciding ? tr("Approved Qty") : tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{(t.items ?? []).map((i) => (
+              <tr key={i.code}><td className="px-3 py-2"><p className="font-medium text-[color:var(--j-172B4D)]">{i.name}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{i.code}</p>{i.available != null && <p className="mt-1 text-[11px] text-[color:var(--j-626F86)]">{tr("Stock of the outlet when asked")}: <span className="font-semibold tabular-nums text-[color:var(--j-44546F)]">{qtyText(i.available / (i.factor || 1))} {i.pack}</span></p>}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
                   {deciding ? (
                     <span className="relative inline-block w-28 sm:w-32">
                       <input inputMode="decimal" className={cx(inputClass, "h-10 pr-10 text-right text-base tabular-nums sm:h-9 sm:text-sm", adjusted[i.code] !== undefined && "border-amber-400 bg-amber-50")}
                         value={adjust[i.code] ?? String(i.packQty).replace(".", ",")} onChange={(e) => setAdjust({ ...adjust, [i.code]: e.target.value })} aria-label={`${tr("Approved Qty")} ${i.name}`} />
-                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-neutral-400">{i.pack}</span>
+                      <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[color:var(--j-626F86)]">{i.pack}</span>
                     </span>
-                  ) : <>{qtyText(i.packQty)} <span className="text-neutral-400">{i.pack}</span></>}
-                  {i.factor !== 1 && <span className="block text-[11px] text-neutral-400">= {qtyText(i.qty)} {i.unit}</span>}
+                  ) : <>{qtyText(i.packQty)} <span className="text-[color:var(--j-626F86)]">{i.pack}</span></>}
+                  {i.factor !== 1 && <span className="block text-[11px] text-[color:var(--j-626F86)]">= {qtyText(i.qty)} {i.unit}</span>}
                   {i.requestedPack != null && Math.abs(i.requestedPack - i.packQty) > 1e-9 && <span className="block text-[11px] text-amber-700">{tr("asked {0}, adjusted by Cost Control", qtyText(i.requestedPack))}</span>}
                   {deciding && adjusted[i.code] !== undefined && <span className="block text-[11px] text-amber-700">{tr("asked {0}", qtyText(i.requestedPack ?? i.packQty))}</span>}
                 </td>
-                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-neutral-700">{rpText(i.value)}</td></tr>))}</tbody>
+                <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{rpText(i.value)}</td></tr>))}</tbody>
           </table>
         </div>
-        <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-          <p className="mb-3 text-xs font-semibold capitalize text-neutral-500">{tr("Process")}</p>
+        <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <p className="mb-3 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Process")}</p>
           <Tracker steps={steps} />
         </section>
         {t.esb && <Note tone="ok" icon={<CheckCircle2 />} title={tr("ESB document {0}", t.esb.number)}>{[t.esb.by, t.esb.at ? wibDateTime(t.esb.at) : null, t.esb.note].filter(Boolean).join(" · ")}</Note>}
@@ -345,8 +345,8 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
           {([["photo", tr("Request photo")], ["signature", tr("Signature")], ["receive", tr("Goods received")]] as const).filter(([k]) => k !== "receive" || t.received).map(([k, label]) => (
             <a key={k} href={fileUrl(t.id, k)} target="_blank" rel="noreferrer" className="block">
               {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-              <img src={thumb(fileUrl(t.id, k), 320)} alt={label} loading="lazy" className={cx("aspect-square w-full rounded-lg bg-neutral-100 ring-1 ring-neutral-200", k === "signature" ? "object-contain p-2" : "object-cover")} />
-              <span className="mt-1 block text-center text-[11px] text-neutral-500">{label}</span>
+              <img src={thumb(fileUrl(t.id, k), 320)} alt={label} loading="lazy" className={cx("aspect-square w-full rounded-[3px] bg-[color:var(--j-091E420F)] ring-1 ring-[color:var(--j-DCDFE4)]", k === "signature" ? "object-contain p-2" : "object-cover")} />
+              <span className="mt-1 block text-center text-[11px] text-[color:var(--j-626F86)]">{label}</span>
             </a>
           ))}
         </div>
@@ -375,7 +375,7 @@ function ProcessDialog({ busy, onSave, onClose }: { busy: boolean; onSave: (esbN
     <Dialog open title={tr("Processed in ESB")} description={tr("Make it in ESB as usual (PR > PO > SL > GD > GR through the virtual warehouse) with the approved quantities, then enter the GR number of the destination outlet: the portal matches it with ESB.")} onClose={onClose}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!no.trim()} onClick={() => onSave(no.trim(), note)}><PackageCheck size={15} />{tr("Mark Processed")}</Button></>}>
       <div className="space-y-3">
-        <label className="block text-xs font-medium text-neutral-600">{tr("ESB GR number at the destination")} <span className="text-red-500">*</span>
+        <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("ESB GR number at the destination")} <span className="text-red-500">*</span>
           <input className={cx(inputClass, "mt-1 h-11 text-base uppercase sm:h-10 sm:text-sm")} value={no} maxLength={60} onChange={(e) => setNo(e.target.value)} autoCapitalize="characters" /></label>
         <textarea className={cx(inputClass, "py-2")} rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (optional)")} />
       </div>
@@ -406,7 +406,7 @@ function MiniProgress({ t }: { t: Transfer }) {
     <span className="mt-2 flex items-center gap-1" aria-label={tr("Process")}>
       {steps.map((s, i) => (
         <span key={i} title={s.label} className={cx("h-1.5 flex-1 rounded-full", s.state === "done" ? "bg-emerald-500" : s.state === "failed" ? "bg-red-500"
-          : s.state === "current" ? "bg-brand-400" : "bg-neutral-200")} />
+          : s.state === "current" ? "bg-brand-400" : "bg-[color:var(--j-DCDFE4)]")} />
       ))}
     </span>
   );

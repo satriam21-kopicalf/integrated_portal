@@ -10,18 +10,18 @@ import { qtyText } from "./transfer";
 
 /** "Available 1.200 GR", and what is left once `taking` goes out (red below zero). */
 export function StockBadge({ available, unit, taking }: { available: number | null | undefined; unit: string; taking?: number | null }) {
-  if (available == null) return <span className="inline-flex items-center rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-500">{tr("Stock unknown")}</span>;
+  if (available == null) return <span className="inline-flex items-center rounded-[3px] bg-[color:var(--j-091E420F)] px-1.5 py-0.5 text-[11px] font-medium text-[color:var(--j-626F86)]">{tr("Stock unknown")}</span>;
   const left = taking ? available - taking : null;
   const empty = available <= 0;
   return (
     <span className="inline-flex flex-wrap items-center gap-1">
-      <span className={cx("inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ring-1 ring-inset",
+      <span className={cx("inline-flex items-center gap-1 rounded-[3px] px-1.5 py-0.5 text-[11px] font-semibold tabular-nums ring-1 ring-inset",
         empty ? "bg-red-50 text-red-700 ring-red-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200")}>
         <span className={cx("h-1.5 w-1.5 rounded-full", empty ? "bg-red-500" : "bg-emerald-500")} aria-hidden />
         {tr("Available {0} {1}", qtyText(available), unit)}
       </span>
       {left !== null && (
-        <span className={cx("rounded-md px-1.5 py-0.5 text-[11px] font-medium tabular-nums", left < 0 ? "bg-red-50 text-red-700" : "bg-neutral-100 text-neutral-600")}>
+        <span className={cx("rounded-[3px] px-1.5 py-0.5 text-[11px] font-medium tabular-nums", left < 0 ? "bg-red-50 text-red-700" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>
           {left < 0 ? tr("{0} over the stock", qtyText(-left)) : tr("{0} left", qtyText(left))}
         </span>
       )}
@@ -40,18 +40,18 @@ export function Tracker({ steps }: { steps: Step[] }) {
         const Icon = s.state === "done" ? Check : s.state === "failed" ? X : Clock3;
         return (
           <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
-            {!last && <span className={cx("absolute left-[13px] top-7 h-[calc(100%-1.5rem)] w-0.5", s.state === "done" ? "bg-emerald-300" : "bg-neutral-200")} aria-hidden />}
+            {!last && <span className={cx("absolute left-[13px] top-7 h-[calc(100%-1.5rem)] w-0.5", s.state === "done" ? "bg-emerald-300" : "bg-[color:var(--j-DCDFE4)]")} aria-hidden />}
             <span className={cx("relative z-[1] flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ring-4 ring-white",
               s.state === "done" ? "bg-emerald-500 text-white" : s.state === "failed" ? "bg-red-500 text-white"
-                : s.state === "current" ? "bg-brand-50 text-brand-700 ring-brand-100" : "bg-neutral-100 text-neutral-400")}>
+                : s.state === "current" ? "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] ring-[color:var(--j-388BFF)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
               {s.state === "todo" ? <span className="text-[11px] font-bold">{i + 1}</span> : <Icon size={14} strokeWidth={2.5} />}
             </span>
             <div className={cx("min-w-0 flex-1 pt-0.5", s.state === "todo" && "opacity-60")}>
-              <p className={cx("text-sm font-semibold", s.state === "failed" ? "text-red-700" : "text-neutral-900")}>{s.label}</p>
-              <p className="text-xs text-neutral-500">
+              <p className={cx("text-sm font-semibold", s.state === "failed" ? "text-red-700" : "text-[color:var(--j-172B4D)]")}>{s.label}</p>
+              <p className="text-xs text-[color:var(--j-626F86)]">
                 {s.at || s.by ? [s.by, s.at ? wibDateTime(s.at) : null].filter(Boolean).join(" · ") : s.state === "current" ? tr("In process") : tr("Not yet")}
               </p>
-              {s.note && <p className="mt-1 rounded-lg bg-neutral-50 px-2.5 py-1.5 text-xs text-neutral-700 ring-1 ring-neutral-100">“{s.note}”</p>}
+              {s.note && <p className="mt-1 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-2.5 py-1.5 text-xs text-[color:var(--j-44546F)] ring-1 ring-neutral-100">“{s.note}”</p>}
             </div>
           </li>
         );

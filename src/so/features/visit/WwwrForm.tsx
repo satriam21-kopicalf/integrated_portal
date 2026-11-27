@@ -79,18 +79,18 @@ export default function WwwrForm() {
   );
   return (
     <Page title="WW-WR" subtitle={tr("SWAT audit of the outlet: Product and Outlet in one form")}>
-      {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={4} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && (
-            <p className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <p className="flex items-start gap-3 rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <span><b>{tr("Audit sent for {0}", sent.branchName)}</b><br /><span className="text-xs">{wibDateTime(sent.submittedAt)} · {tr("Follow the action plans until the revisit")}</span></span>
             </p>
           )}
-          <p className="flex items-start gap-2 rounded-md border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-xs leading-relaxed text-brand-900">
-            <ShieldCheck size={15} className="mt-px flex-shrink-0 text-brand-700" />
+          <p className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2.5 text-xs leading-relaxed text-[color:var(--j-0055CC)]">
+            <ShieldCheck size={15} className="mt-px flex-shrink-0 text-[color:var(--j-0C66E4)]" />
             <span>{tr("Only the members of an audit open it. Everyone in the team fills the same form (each item shows who filled it); the lead reviews and sends it.")}</span>
           </p>
 
@@ -111,11 +111,11 @@ export default function WwwrForm() {
 
 function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-      <p className="flex items-center gap-2 border-b border-neutral-100 px-4 py-2.5 text-sm font-semibold text-neutral-900 sm:px-5">
-        {title}<span className="rounded-full bg-neutral-100 px-1.5 text-[11px] tabular-nums text-neutral-600">{count}</span>
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <p className="flex items-center gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-sm font-semibold text-[color:var(--j-172B4D)] sm:px-5">
+        {title}<span className="rounded-full bg-[color:var(--j-091E420F)] px-1.5 text-[11px] tabular-nums text-[color:var(--j-44546F)]">{count}</span>
       </p>
-      <ul className="divide-y divide-neutral-100">{children}</ul>
+      <ul className="divide-y divide-[color:var(--j-F1F2F4)]">{children}</ul>
     </section>
   );
 }
@@ -126,11 +126,11 @@ function AuditCard({ a, me, busy, onOpen, onTeam, onFollow }: { a: Audit; me: st
   const sent = a.status === "follow_up" || a.status === "completed";
   return (
     <li className="flex flex-wrap items-start gap-3 px-4 py-3.5 sm:px-5">
-      <span className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><Store size={18} /></span>
+      <span className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]"><Store size={18} /></span>
       <div className="min-w-0 flex-1 basis-56">
-        <p className="truncate text-sm font-semibold text-neutral-900">{a.branchName}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-neutral-500"><CalendarClock size={12} /> {dayLabel(a.day)}</p>
-        <p className="mt-1 flex items-start gap-1 text-xs text-neutral-600"><UsersRound size={12} className="mt-0.5 flex-shrink-0" />
+        <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{a.branchName}</p>
+        <p className="mt-0.5 flex items-center gap-1 text-xs text-[color:var(--j-626F86)]"><CalendarClock size={12} /> {dayLabel(a.day)}</p>
+        <p className="mt-1 flex items-start gap-1 text-xs text-[color:var(--j-44546F)]"><UsersRound size={12} className="mt-0.5 flex-shrink-0" />
           <span>{a.members.map((m) => m.name).join(", ")}</span></p>
         <p className="mt-1.5 flex flex-wrap gap-1.5">
           {lead ? <Badge tone="blue" icon={<Crown size={11} />}>{tr("You lead")}</Badge> : <Badge>{tr("Lead: {0}", a.lead.name)}</Badge>}
@@ -139,7 +139,7 @@ function AuditCard({ a, me, busy, onOpen, onTeam, onFollow }: { a: Audit; me: st
           {a.status === "follow_up" && a.revisitOn && <Badge>{tr("Revisit {0}", dayShort(a.revisitOn))}</Badge>}
           {a.status === "completed" && <Badge tone="green">{tr("Completed {0}", wibDateTime(a.completedAt))}</Badge>}
         </p>
-        {a.note && <p className="mt-1.5 rounded-lg bg-neutral-50 px-2.5 py-1.5 text-xs text-neutral-600">{a.note}</p>}
+        {a.note && <p className="mt-1.5 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-2.5 py-1.5 text-xs text-[color:var(--j-44546F)]">{a.note}</p>}
       </div>
       <div className="flex flex-shrink-0 items-center gap-1.5">
         {lead && a.status !== "completed" && <Button size="sm" variant="secondary" onClick={onTeam}><UserPlus size={14} /> {tr("Team")}</Button>}
@@ -184,33 +184,33 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button><Button disabled={!pick.size} loading={busy} onClick={() => void add()}><UserPlus size={15} /> {tr("Add {0}", pick.size)}</Button></>}>
       <div className="space-y-4 text-sm">
         <section>
-          <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("In the Team")} ({audit.members.length})</h3>
-          <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+          <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("In the Team")} ({audit.members.length})</h3>
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {audit.members.map((m) => (
               <li key={m.id} className="flex items-center gap-2.5 px-3 py-2">
-                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-neutral-800">{m.name}</span><span className="text-[11px] text-neutral-400">{m.jobTitle ?? `@${m.username ?? ""}`}</span></span>
+                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{m.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{m.jobTitle ?? `@${m.username ?? ""}`}</span></span>
                 {m.id === audit.lead.id ? <Badge tone="amber" icon={<Crown size={11} />}>{tr("Lead")}</Badge>
-                  : audit.lead.id === me && <button type="button" onClick={() => void remove(m)} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><X size={15} /></button>}
+                  : audit.lead.id === me && <button type="button" onClick={() => void remove(m)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><X size={15} /></button>}
               </li>
             ))}
           </ul>
         </section>
         <section>
-          <h3 className="mb-1 text-xs font-semibold capitalize text-neutral-500">{tr("Add Colleagues")}</h3>
-          <p className="mb-2 text-xs text-neutral-500">{tr("Accounts assigned Form WW-WR (User Accounts). They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
-          <div className="overflow-hidden rounded-md border border-neutral-200">
-            <div className="relative border-b border-neutral-100 p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <h3 className="mb-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Add Colleagues")}</h3>
+          <p className="mb-2 text-xs text-[color:var(--j-626F86)]">{tr("Accounts assigned Form WW-WR (User Accounts). They see this audit in Form WW-WR and fill it with you; only you send it.")}</p>
+          <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+            <div className="relative border-b border-[color:var(--j-F1F2F4)] p-2"><Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search colleague")} className={cx(searchClass, "h-9 pl-8")} /></div>
-            <ul className="max-h-72 divide-y divide-neutral-100 overflow-y-auto">
+            <ul className="max-h-72 divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto">
               {colleagues === null ? <li><SkeletonList rows={3} /></li> : shown.map((c) => (
                 <li key={c.id}>
-                  <label className={cx("flex cursor-pointer items-center gap-2.5 px-3 py-2", pick.has(c.id) && "bg-brand-50/60")}>
+                  <label className={cx("flex cursor-pointer items-center gap-2.5 px-3 py-2", pick.has(c.id) && "bg-[color:var(--j-E9F2FF)]")}>
                     <input type="checkbox" checked={pick.has(c.id)} onChange={() => setPick((s) => { const n = new Set(s); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })} />
-                    <span className="min-w-0 flex-1"><span className="block truncate text-neutral-800">{c.name}</span><span className="text-[11px] text-neutral-400">{c.jobTitle ?? `@${c.username}`}</span></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-[color:var(--j-172B4D)]">{c.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{c.jobTitle ?? `@${c.username}`}</span></span>
                   </label>
                 </li>
               ))}
-              {colleagues && shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr("No colleague to add")}</li>}
+              {colleagues && shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-[color:var(--j-626F86)]">{tr("No colleague to add")}</li>}
             </ul>
           </div>
         </section>
@@ -251,57 +251,57 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
   return (
     <div className="space-y-4">
       <div className="px-1">
-        <p className="text-xs font-semibold capitalize text-brand-700">{tr("Before sending")}</p>
-        <p className="text-lg font-semibold text-neutral-900">{tr("Evaluation & Action Plan")}</p>
-        <p className="text-xs text-neutral-500">{tr("The team writes what it found, what the outlet must do, who of the team follows it and when the team comes back.")}</p>
+        <p className="text-xs font-semibold capitalize text-[color:var(--j-0C66E4)]">{tr("Before sending")}</p>
+        <p className="text-lg font-semibold text-[color:var(--j-172B4D)]">{tr("Evaluation & Action Plan")}</p>
+        <p className="text-xs text-[color:var(--j-626F86)]">{tr("The team writes what it found, what the outlet must do, who of the team follows it and when the team comes back.")}</p>
       </div>
-      {!dirty && missing.length > 0 && <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
+      {!dirty && missing.length > 0 && <p className="rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
 
-      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold text-neutral-900">{tr("Team")}</h3>
+          <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Team")}</h3>
           {audit.lead.id === me && <Button size="sm" variant="secondary" onClick={() => setTeamOpen(true)}><UserPlus size={14} /> {tr("Add Colleagues")}</Button>}
         </div>
         <p className="flex flex-wrap gap-1.5">{members.map((m) => <Badge key={m.id} tone={m.id === audit.lead.id ? "amber" : "slate"}>{m.name}{m.id === audit.lead.id ? ` · ${tr("lead")}` : ""}</Badge>)}</p>
       </section>
 
-      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-        <label className="block text-sm font-semibold text-neutral-900">{tr("General Evaluation")} <span className="text-red-500">*</span>
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <label className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("General Evaluation")} <span className="text-red-500">*</span>
           <textarea rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} className={cx(inputClass, "mt-2 py-2 font-normal")}
             placeholder={tr("e.g. Bar clean, but the stock of premix is under par and two shelf-life labels are missing …")} /></label>
       </section>
 
-      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <div><h3 className="text-sm font-semibold text-neutral-900">{tr("Action Plans")} <span className="text-red-500">*</span></h3><p className="text-xs text-neutral-500">{tr("What must be done, who of the team handles it and by when")}</p></div>
+          <div><h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Action Plans")} <span className="text-red-500">*</span></h3><p className="text-xs text-[color:var(--j-626F86)]">{tr("What must be done, who of the team handles it and by when")}</p></div>
           <Button size="sm" variant="secondary" onClick={() => setActions((a) => [...a, { title: "", detail: "", assigneeId: "", dueOn: revisit }])}><Plus size={14} /> {tr("Action plan")}</Button>
         </div>
         <ol className="space-y-2">
           {actions.map((x, i) => (
-            <li key={x.id ?? `n${i}`} className="rounded-md border border-neutral-200 bg-neutral-50/50 p-3">
+            <li key={x.id ?? `n${i}`} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-3">
               <div className="flex items-start gap-2">
-                <span className="mt-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">{i + 1}</span>
+                <span className="mt-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] text-[10px] font-bold text-white">{i + 1}</span>
                 <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-6">
                   <input value={x.title} onChange={(e) => set(i, { title: e.target.value })} maxLength={300} placeholder={tr("What to do, e.g. Restock premix and relabel shelf life")} className={cx(inputClass, "h-9 sm:col-span-6")} />
                   <input value={x.detail} onChange={(e) => set(i, { detail: e.target.value })} maxLength={2000} placeholder={tr("Detail (optional)")} className={cx(inputClass, "h-9 sm:col-span-6")} />
-                  <label className="text-[11px] font-medium text-neutral-500 sm:col-span-4">{tr("Handled by")}
+                  <label className="text-[11px] font-medium text-[color:var(--j-626F86)] sm:col-span-4">{tr("Handled by")}
                     <NativeSelect value={x.assigneeId} onChange={(e) => set(i, { assigneeId: e.target.value })} className={cx(inputClass, "mt-1 h-9")}>
                       <option value="">{tr("— Choose —")}</option>{members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                     </NativeSelect></label>
-                  <label className="text-[11px] font-medium text-neutral-500 sm:col-span-2">{tr("Due")}
+                  <label className="text-[11px] font-medium text-[color:var(--j-626F86)] sm:col-span-2">{tr("Due")}
                     <input type="date" value={x.dueOn} min={audit.day} onChange={(e) => set(i, { dueOn: e.target.value })} className={cx(inputClass, "mt-1 h-9")} /></label>
                 </div>
-                <button type="button" onClick={() => setActions((a) => a.filter((_, j) => j !== i))} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={15} /></button>
+                <button type="button" onClick={() => setActions((a) => a.filter((_, j) => j !== i))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={15} /></button>
               </div>
             </li>
           ))}
-          {actions.length === 0 && <li className="rounded-md border border-dashed border-neutral-200 px-3 py-5 text-center text-xs text-neutral-400">{tr("No action plan yet")}</li>}
+          {actions.length === 0 && <li className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-5 text-center text-xs text-[color:var(--j-626F86)]">{tr("No action plan yet")}</li>}
         </ol>
       </section>
 
-      <section className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-        <label className="block text-sm font-semibold text-neutral-900">{tr("Revisit")} <span className="text-red-500">*</span>
-          <span className="block text-xs font-normal text-neutral-500">{tr("When the team comes back to check the progress; the audit stays open until then")}</span>
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <label className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Revisit")} <span className="text-red-500">*</span>
+          <span className="block text-xs font-normal text-[color:var(--j-626F86)]">{tr("When the team comes back to check the progress; the audit stays open until then")}</span>
           <input type="date" value={revisit} min={audit.day} onChange={(e) => setRevisit(e.target.value)} className={cx(inputClass, "mt-2 h-10 max-w-[14rem] font-normal")} /></label>
       </section>
 
@@ -350,34 +350,34 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
         <Button onClick={onClose}>{tr("Close")}</Button>
       </>}>
       <div className="space-y-4 text-sm">
-        <div className={cx("rounded-md border px-4 py-3", done ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
+        <div className={cx("rounded-[3px] border px-4 py-3", done ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
           <p className="font-semibold">{done ? tr("Completed {0}", wibDateTime(audit.completedAt)) : tr("Follow-up: {0} of {1} action plans open", left, audit.actions.length)}</p>
           <p className="text-xs">{tr("Revisit {0}", dayShort(audit.revisitOn))}{audit.revisitNote ? ` · ${audit.revisitNote}` : ""}</p>
         </div>
-        {audit.summary && <section><h3 className="mb-1 text-xs font-semibold capitalize text-neutral-500">{tr("General Evaluation")}</h3><p className="whitespace-pre-line rounded-xl bg-neutral-50 p-3 text-neutral-700">{audit.summary}</p></section>}
+        {audit.summary && <section><h3 className="mb-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("General Evaluation")}</h3><p className="whitespace-pre-line rounded-[3px] bg-[color:var(--j-F7F8F9)] p-3 text-[color:var(--j-44546F)]">{audit.summary}</p></section>}
         <section>
-          <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Action Plans")}</h3>
+          <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Action Plans")}</h3>
           <ul className="space-y-2">
             {audit.actions.map((x) => (
-              <li key={x.id} className={cx("flex items-start gap-3 rounded-md border p-3", x.status === "done" ? "border-emerald-200 bg-emerald-50/50" : "border-neutral-200")}>
+              <li key={x.id} className={cx("flex items-start gap-3 rounded-[3px] border p-3", x.status === "done" ? "border-emerald-200 bg-emerald-50/50" : "border-[color:var(--j-DCDFE4)]")}>
                 <button type="button" disabled={done || busy === x.id} onClick={() => void toggle(x)} aria-pressed={x.status === "done"}
-                  className={cx("mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border", x.status === "done" ? "border-emerald-600 bg-emerald-600 text-white" : "border-neutral-300 bg-white hover:border-brand-500")}>
+                  className={cx("mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border", x.status === "done" ? "border-emerald-600 bg-emerald-600 text-white" : "border-[color:var(--j-8590A2)] bg-white hover:border-[color:var(--j-388BFF)]")}>
                   {x.status === "done" && <CheckCircle2 size={13} />}</button>
                 <div className="min-w-0 flex-1">
-                  <p className={cx("font-medium", x.status === "done" ? "text-neutral-500 line-through" : "text-neutral-900")}>{x.title}</p>
-                  {x.detail && <p className="text-xs text-neutral-500">{x.detail}</p>}
-                  <p className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-neutral-500"><span>{tr("Handled by {0}", x.assignee ?? "—")}</span><span>{tr("Due {0}", dayShort(x.dueOn))}</span>
+                  <p className={cx("font-medium", x.status === "done" ? "text-[color:var(--j-626F86)] line-through" : "text-[color:var(--j-172B4D)]")}>{x.title}</p>
+                  {x.detail && <p className="text-xs text-[color:var(--j-626F86)]">{x.detail}</p>}
+                  <p className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-[color:var(--j-626F86)]"><span>{tr("Handled by {0}", x.assignee ?? "—")}</span><span>{tr("Due {0}", dayShort(x.dueOn))}</span>
                     {x.status === "done" && <span className="text-emerald-700">{tr("Done by {0} · {1}", x.doneBy ?? "—", wibDateTime(x.doneAt))}</span>}</p>
-                  {x.doneNote && <p className="mt-1 text-xs text-neutral-600">“{x.doneNote}”</p>}
+                  {x.doneNote && <p className="mt-1 text-xs text-[color:var(--j-44546F)]">“{x.doneNote}”</p>}
                 </div>
               </li>
             ))}
           </ul>
         </section>
         {!done && lead && (
-          <section className="rounded-md border border-neutral-200 p-3">
-            <h3 className="text-sm font-semibold text-neutral-900">{tr("Close the Revisit")}</h3>
-            <p className="mb-2 text-xs text-neutral-500">{left ? tr("Mark every action plan done first ({0} open)", left) : tr("Every action plan is done: close the revisit to complete the audit")}</p>
+          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
+            <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Close the Revisit")}</h3>
+            <p className="mb-2 text-xs text-[color:var(--j-626F86)]">{left ? tr("Mark every action plan done first ({0} open)", left) : tr("Every action plan is done: close the revisit to complete the audit")}</p>
             <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Result of the revisit (optional)")} className={cx(inputClass, "py-2")} />
             <div className="mt-2 flex justify-end"><Button disabled={left > 0} loading={busy === "complete"} onClick={() => void complete()}><CheckCircle2 size={15} /> {tr("Complete the audit")}</Button></div>
           </section>

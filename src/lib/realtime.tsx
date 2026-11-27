@@ -177,10 +177,10 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
     ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: tr('Live') }
     : status === 'connecting'
     ? { dot: 'bg-amber-400', ring: 'bg-amber-300', text: 'text-amber-700', label: tr('Connecting') }
-    : { dot: 'bg-neutral-400', ring: '', text: 'text-neutral-500', label: tr('Reconnecting') };
+    : { dot: 'bg-neutral-400', ring: '', text: 'text-[color:var(--j-626F86)]', label: tr('Reconnecting') };
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs shadow-sm ${className}`}
+      className={`inline-flex items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2.5 text-xs ${className}`}
       title={status === 'live'
         ? tr('Connected: data updates automatically after every POS sync (every 15 minutes, 06:00-24:00 WIB)')
         : tr('Realtime connection lost: retrying, data still updates every minute')}
@@ -191,9 +191,9 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
       </span>
       <span className={`font-semibold ${tone.text}`}>{tone.label}</span>
       {syncTime && (
-        <span className="hidden items-center gap-1.5 border-l border-neutral-200 pl-2 text-neutral-500 sm:inline-flex">
-          {tr('Data Synced')} <span className="font-semibold tabular-nums text-neutral-800">{syncTime}</span>
-          {syncAgo && <span className="text-neutral-400">· {syncAgo}</span>}
+        <span className="hidden items-center gap-1.5 border-l border-[color:var(--j-DCDFE4)] pl-2 text-[color:var(--j-626F86)] sm:inline-flex">
+          {tr('Data Synced')} <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{syncTime}</span>
+          {syncAgo && <span className="text-[color:var(--j-626F86)]">· {syncAgo}</span>}
         </span>
       )}
     </span>

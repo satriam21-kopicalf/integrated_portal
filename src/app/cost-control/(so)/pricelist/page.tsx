@@ -113,8 +113,8 @@ export default function PricelistPage() {
         <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search item")} filters={chips} onOpen={() => setSheet(true)}
           onClear={() => { setCategory(""); setOnlyMissing(false); }} />
         {/* the new prices: from which day, filled from the purchase average, saved together */}
-        <div className="flex flex-col gap-2 rounded-md border border-neutral-200 bg-neutral-50/60 p-2.5 sm:flex-row sm:items-center">
-          <label className="flex items-center gap-2 whitespace-nowrap text-xs font-medium text-neutral-600"><CalendarDays size={14} className="text-neutral-400" />{tr("Valid from")}
+        <div className="flex flex-col gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-2.5 sm:flex-row sm:items-center">
+          <label className="flex items-center gap-2 whitespace-nowrap text-xs font-medium text-[color:var(--j-44546F)]"><CalendarDays size={14} className="text-[color:var(--j-626F86)]" />{tr("Valid from")}
             <input type="date" className={cx(inputClass, "h-9 w-40 bg-white")} value={from} onChange={(e) => setFrom(e.target.value)} aria-label={tr("Valid from")} /></label>
           <span className="hidden flex-1 sm:block" />
           <div className="grid grid-cols-2 gap-2 sm:flex">
@@ -134,28 +134,28 @@ export default function PricelistPage() {
                 <SortTh k="hpp" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("ESB HPP")}</SortTh>
                 <SortTh k="price" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Current Price")}</SortTh>
                 <th className="px-3 py-2">{tr("New Price")}</th><th className="px-3 py-2">{tr("Status")}</th><th /></tr></thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {paged.rows.map((i) => (
-                  <tr key={i.code} className={cx(draft[i.code] && "bg-brand-50/40", i.active === false && "bg-neutral-50/70")}>
-                    <td className="px-4 py-2"><span className="block font-medium text-neutral-900">{i.name}</span><span className="text-[11px] text-neutral-400">{i.code}</span></td>
-                    <td className="px-4 py-2 text-xs text-neutral-600">{i.category ?? "—"}</td>
+                  <tr key={i.code} className={cx(draft[i.code] && "bg-[color:var(--j-E9F2FF)]", i.active === false && "bg-[color:var(--j-F7F8F9)]")}>
+                    <td className="px-4 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{i.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{i.code}</span></td>
+                    <td className="px-4 py-2 text-xs text-[color:var(--j-44546F)]">{i.category ?? "—"}</td>
                     <td className="px-4 py-2 text-xs">{i.unit}</td>
-                    <td className="px-4 py-2 text-right text-xs tabular-nums text-neutral-500">{rp(i.purchaseAvg, 4)}</td>
-                    <td className="px-4 py-2 text-right text-xs tabular-nums text-neutral-500" title={i.esbHppLocations ? tr("Median of {0} outlets", i.esbHppLocations) : undefined}>{rp(i.esbHpp ?? null, 4)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{i.price === null ? <Badge tone="amber">{tr("No price")}</Badge> : <>{rp(i.price, 4)}<span className="block text-[10px] text-neutral-400">{tr("from {0}", i.validFrom ?? "")}</span></>}</td>
+                    <td className="px-4 py-2 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{rp(i.purchaseAvg, 4)}</td>
+                    <td className="px-4 py-2 text-right text-xs tabular-nums text-[color:var(--j-626F86)]" title={i.esbHppLocations ? tr("Median of {0} outlets", i.esbHppLocations) : undefined}>{rp(i.esbHpp ?? null, 4)}</td>
+                    <td className="px-4 py-2 text-right tabular-nums">{i.price === null ? <Badge tone="amber">{tr("No price")}</Badge> : <>{rp(i.price, 4)}<span className="block text-[10px] text-[color:var(--j-626F86)]">{tr("from {0}", i.validFrom ?? "")}</span></>}</td>
                     <td className="w-40 px-4 py-2"><input inputMode="decimal" className={cx(inputClass, "h-9 text-right")} placeholder={i.price !== null ? String(i.price) : "0"} value={draft[i.code] ?? ""}
                       onChange={(e) => setDraft({ ...draft, [i.code]: e.target.value })} aria-label={`${tr("New price")} ${i.name}`} /></td>
                     <td className="px-4 py-2">
                       <button type="button" role="switch" aria-checked={i.active !== false} onClick={() => setToggling(i)}
                         aria-label={i.active !== false ? tr("Deactivate {0}", i.name) : tr("Activate {0}", i.name)}
-                        className="inline-flex items-center gap-2 text-xs font-medium text-neutral-600">
+                        className="inline-flex items-center gap-2 text-xs font-medium text-[color:var(--j-44546F)]">
                         <span className={cx("relative h-5 w-9 rounded-full transition-colors", i.active !== false ? "bg-emerald-500" : "bg-neutral-300")}>
                           <span className={cx("absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all", i.active !== false ? "left-[18px]" : "left-0.5")} />
                         </span>
                         {i.active !== false ? tr("Active") : tr("Inactive")}
                       </button>
                     </td>
-                    <td className="px-2"><button type="button" onClick={() => setHistory(i)} className="rounded p-1.5 text-neutral-400 hover:text-brand-700" aria-label={tr("Price History")}><History size={15} /></button></td>
+                    <td className="px-2"><button type="button" onClick={() => setHistory(i)} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-0055CC)]" aria-label={tr("Price History")}><History size={15} /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -197,20 +197,20 @@ function Unpriced({ reload, onPick }: { reload: unknown; onPick: (code: string) 
     <Panel className="mb-4" title={tr("Used without a price")}
       description={tr("{0} items used by recipe cards, WIP or waste have no price: the HPP of their menus and the value of their waste stay empty.", none)
         + (rows.length > none ? ` ${tr("{0} more use the ESB HPP only.", rows.length - none)}` : "")}>
-      <ul className="divide-y divide-neutral-100 border-t border-neutral-100">
+      <ul className="divide-y divide-[color:var(--j-F1F2F4)] border-t border-[color:var(--j-F1F2F4)]">
         {shown.map((r) => (
           <li key={r.code} className="flex flex-col gap-2 px-4 py-2.5 sm:flex-row sm:items-center sm:px-5">
             <span className="min-w-0 flex-1">
-              <span className="flex flex-wrap items-center gap-2 font-medium text-neutral-900">{r.name}
+              <span className="flex flex-wrap items-center gap-2 font-medium text-[color:var(--j-172B4D)]">{r.name}
                 {r.level === "none" ? <Badge tone="red">{tr("No price")}</Badge> : <Badge tone="amber">{tr("ESB HPP {0}", rp(r.esbHpp, 4))}</Badge>}
                 {!r.active && <Badge>{tr("Inactive")}</Badge>}</span>
-              <span className="block text-[11px] text-neutral-500">{r.code} · {r.unit ?? "—"} · {where(r)}</span>
+              <span className="block text-[11px] text-[color:var(--j-626F86)]">{r.code} · {r.unit ?? "—"} · {where(r)}</span>
             </span>
             <Button size="sm" variant="secondary" onClick={() => onPick(r.code)}>{tr("Set price")}</Button>
           </li>
         ))}
       </ul>
-      {rows.length > 6 && <button type="button" onClick={() => setAll(!all)} className="w-full border-t border-neutral-100 py-2 text-xs font-medium text-brand-700">
+      {rows.length > 6 && <button type="button" onClick={() => setAll(!all)} className="w-full border-t border-[color:var(--j-F1F2F4)] py-2 text-xs font-medium text-[color:var(--j-0C66E4)]">
         {all ? tr("Show less") : tr("Show all {0}", rows.length)}</button>}
     </Panel>
   );
@@ -222,11 +222,11 @@ function HistoryDrawer({ item, onClose }: { item: Item; onClose: () => void }) {
   return (
     <Drawer open onClose={onClose} icon={<Tags size={18} />} title={item.name} description={`${item.code} · ${tr("price per {0}", item.unit)}`}>
       {!rows ? <SkeletonList rows={4} /> : rows.length === 0 ? <Empty title={tr("No price yet")} /> : (
-        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
           {rows.map((r) => (
             <li key={r.validFrom} className="flex items-center justify-between gap-3 px-3 py-2">
-              <span><span className="font-medium">{rp(r.price, 4)}</span><span className="block text-[11px] text-neutral-400">{tr("from {0}", r.validFrom)} · {r.by ?? ""} · {wibDateTime(r.at)}</span></span>
-              {r.note && <span className="text-xs text-neutral-500">{r.note}</span>}
+              <span><span className="font-medium">{rp(r.price, 4)}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("from {0}", r.validFrom)} · {r.by ?? ""} · {wibDateTime(r.at)}</span></span>
+              {r.note && <span className="text-xs text-[color:var(--j-626F86)]">{r.note}</span>}
             </li>
           ))}
         </ul>

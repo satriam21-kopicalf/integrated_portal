@@ -50,11 +50,11 @@ const full = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale(
 /** A strip of figures in one ruled row (the summary of a drawer). */
 function Figures({ items }: { items: [string, React.ReactNode][] }) {
   return (
-    <div className={cx("grid divide-x divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white", items.length === 4 ? "grid-cols-2 sm:grid-cols-4 max-sm:[&>*:nth-child(3)]:border-l-0 max-sm:[&>*:nth-child(n+3)]:border-t" : "grid-cols-3")}>
+    <div className={cx("grid divide-x divide-[color:var(--j-DCDFE4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white", items.length === 4 ? "grid-cols-2 sm:grid-cols-4 max-sm:[&>*:nth-child(3)]:border-l-0 max-sm:[&>*:nth-child(n+3)]:border-t" : "grid-cols-3")}>
       {items.map(([k, v]) => (
         <div key={k} className="px-3 py-2.5">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{k}</p>
-          <p className="mt-0.5 text-lg font-semibold tabular-nums text-neutral-900">{v}</p>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--j-626F86)]">{k}</p>
+          <p className="mt-0.5 text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{v}</p>
         </div>
       ))}
     </div>
@@ -64,7 +64,7 @@ function Figures({ items }: { items: [string, React.ReactNode][] }) {
 function Section({ title, children, aside }: { title: string; children: React.ReactNode; aside?: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <div className="flex items-center justify-between gap-2"><h3 className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{title}</h3>{aside}</div>
+      <div className="flex items-center justify-between gap-2"><h3 className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--j-626F86)]">{title}</h3>{aside}</div>
       {children}
     </section>
   );
@@ -91,7 +91,7 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
     <Drawer open iconPlain onClose={onClose} onBack={onBack} size="lg" icon={pf ? logo(pf.file, 18) : <Megaphone size={18} />} title={d?.author ?? (pf?.label ?? platform)}
       description={d ? `${pf?.label ?? platform} · ${(SOURCE[d.source] ?? (() => d.source))()} · ${contentDate(d.createdAt, d.dateApprox)}` : undefined}
       footer={d?.url ? <a href={d.url} target="_blank" rel="noreferrer"><Button><ExternalLink size={15} /> {tr("Open on {0}", pf?.label ?? platform)}</Button></a> : undefined}>
-      {error ? <ErrorState message={error} /> : !d ? <div className="space-y-3"><div className="skeleton h-48 rounded-lg" /><div className="skeleton h-24 rounded-lg" /></div> : (
+      {error ? <ErrorState message={error} /> : !d ? <div className="space-y-3"><div className="skeleton h-48 rounded-[3px]" /><div className="skeleton h-24 rounded-[3px]" /></div> : (
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-1.5">
             {d.sentiment && <Lozenge tone={FEEL[d.sentiment].tone}>{FEEL[d.sentiment].label()}</Lozenge>}
@@ -101,32 +101,32 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
             platform === "tiktok" ? (
               // the official TikTok player (the URL TikTok's own oEmbed gives, player/v1; embed/v2 could show another video),
               // at its own size 325 x 578
-              <div className="mx-auto w-full max-w-[325px] overflow-hidden rounded-lg border border-neutral-200 bg-white">
+              <div className="mx-auto w-full max-w-[325px] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
                 <iframe src={video} title={title || tr("Video")} width="325" height="578" className="block h-[578px] w-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
               </div>
             ) : (
-              <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+              <div className="aspect-video w-full overflow-hidden rounded-[3px] bg-black">
                 <iframe src={video} title={title || tr("Video")} className="h-full w-full" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen loading="lazy" />
               </div>
             )
           )}
           {platform !== "news" && <Figures items={[[tr("Views"), num(d.views)], [tr("Likes"), num(d.likes)], [tr("Comments"), num(d.comments)], [tr("Shares"), num(d.shares)]]} />}
           <Section title={platform === "news" ? tr("Article") : tr("Caption")}>
-            <div className="rounded-lg border border-neutral-200 bg-neutral-50/60 p-4">
-              {title && <p className="text-[15px] font-semibold leading-snug text-neutral-900">{title}</p>}
-              {body.join("\n").trim() && <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-neutral-700">{body.join("\n").trim()}</p>}
+            <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-4">
+              {title && <p className="text-[15px] font-semibold leading-snug text-[color:var(--j-172B4D)]">{title}</p>}
+              {body.join("\n").trim() && <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-[color:var(--j-44546F)]">{body.join("\n").trim()}</p>}
             </div>
           </Section>
           {platform === "tiktok" && d.source !== "comment" && (
-            <Section title={tr("What is said in the video")} aside={<span className="text-[11px] text-neutral-500">{tr("Transcribed on our server")}</span>}>
-              <div className="rounded-lg border border-neutral-200 bg-white p-4">
-                {d.transcript ? <p className="whitespace-pre-line break-words text-sm leading-relaxed text-neutral-700">{d.transcript}</p>
-                  : <p className="text-sm text-neutral-500">{d.transcriptError ? tr("The audio of this video could not be read.") : tr("Not transcribed yet: the newest videos are done first, a few every minute.")}</p>}
+            <Section title={tr("What is said in the video")} aside={<span className="text-[11px] text-[color:var(--j-626F86)]">{tr("Transcribed on our server")}</span>}>
+              <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
+                {d.transcript ? <p className="whitespace-pre-line break-words text-sm leading-relaxed text-[color:var(--j-44546F)]">{d.transcript}</p>
+                  : <p className="text-sm text-[color:var(--j-626F86)]">{d.transcriptError ? tr("The audio of this video could not be read.") : tr("Not transcribed yet: the newest videos are done first, a few every minute.")}</p>}
               </div>
             </Section>
           )}
           <Section title={tr("Details")}>
-            <dl className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200 text-sm">
+            <dl className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
               {([
                 [tr("Platform"), <span key="p" className="flex items-center gap-1.5">{pf && logo(pf.file, 14)}{pf?.label ?? platform}</span>],
                 [tr("Account / source"), d.author ?? "—"],
@@ -136,10 +136,10 @@ export function PostPreview({ platform, id, onClose, onBack }: { platform: strin
                 [tr("First found"), full(d.firstSeen)],
                 [tr("Figures updated"), full(d.lastSeen)],
               ] as [string, React.ReactNode][]).map(([k, v]) => (
-                <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-3 px-3 py-2"><dt className="text-neutral-500">{k}</dt><dd className="min-w-0 break-words text-neutral-900">{v}</dd></div>
+                <div key={k} className="grid grid-cols-[9.5rem_1fr] gap-3 px-3 py-2"><dt className="text-[color:var(--j-626F86)]">{k}</dt><dd className="min-w-0 break-words text-[color:var(--j-172B4D)]">{v}</dd></div>
               ))}
             </dl>
-            {platform === "youtube" && <p className="text-[11px] text-neutral-500">{tr("YouTube likes and comments need a login from our server: only the views are collected.")}</p>}
+            {platform === "youtube" && <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("YouTube likes and comments need a login from our server: only the views are collected.")}</p>}
           </Section>
         </div>
       )}
@@ -176,39 +176,39 @@ export function DrillDrawer({ drill, onClose }: { drill: Drill; onClose: () => v
   return (
     <Drawer open iconPlain onClose={onClose} size="lg" icon={drill.icon ?? <Megaphone size={18} />} title={drill.title}
       description={drill.description ?? `${day(drill.dateFrom)} – ${day(drill.dateTo)}`}>
-      {error ? <ErrorState message={error} /> : !rows ? <div className="space-y-3"><div className="skeleton h-16 rounded-lg" /><div className="skeleton h-64 rounded-lg" /></div> : (
+      {error ? <ErrorState message={error} /> : !rows ? <div className="space-y-3"><div className="skeleton h-16 rounded-[3px]" /><div className="skeleton h-64 rounded-[3px]" /></div> : (
         <div className="space-y-5">
           <Figures items={[[tr("Mentions"), num(rows.total)], [tr("Views"), compactNumber(sum("views"))], [tr("Likes"), compactNumber(sum("likes"))],
             [tr("Comments"), compactNumber(sum("comments"))]]} />
           {rows.total > 0 && (
             <div>
-              <div className="flex h-2 overflow-hidden rounded-full bg-neutral-100" title={tr("Sentiment of the mentions")}>
+              <div className="flex h-2 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]" title={tr("Sentiment of the mentions")}>
                 {(["positive", "neutral", "negative"] as Feel[]).map((k) => <span key={k} style={{ width: `${(feel(k) / rows.total) * 100}%`, background: FEEL[k].color }} />)}
               </div>
-              <p className="mt-1.5 flex flex-wrap gap-x-4 text-xs text-neutral-600">{(["positive", "neutral", "negative"] as Feel[]).map((k) => (
+              <p className="mt-1.5 flex flex-wrap gap-x-4 text-xs text-[color:var(--j-44546F)]">{(["positive", "neutral", "negative"] as Feel[]).map((k) => (
                 <span key={k} className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: FEEL[k].color }} />{FEEL[k].label()} {num(feel(k))}</span>))}</p>
             </div>
           )}
-          <Section title={tr("Mentions")} aside={<span className="text-xs text-neutral-500">{tr("{0} of {1}", rows.data.length, rows.total)}</span>}>
-            {rows.data.length === 0 ? <p className="rounded-lg border border-dashed border-neutral-200 px-4 py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
-              <ul className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200">
+          <Section title={tr("Mentions")} aside={<span className="text-xs text-[color:var(--j-626F86)]">{tr("{0} of {1}", rows.data.length, rows.total)}</span>}>
+            {rows.data.length === 0 ? <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-4 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No mention in this period")}</p> : (
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                 {rows.data.map((p) => {
                   const pf = PLATFORM[p.platform];
                   const [first] = (p.text ?? "").split("\n");
                   return (
                     <li key={`${p.platform}:${p.post_id}`}>
-                      <button type="button" onClick={() => setOpen(p)} className="flex w-full gap-3 px-3 py-2.5 text-left hover:bg-neutral-50">
+                      <button type="button" onClick={() => setOpen(p)} className="flex w-full gap-3 px-3 py-2.5 text-left hover:bg-[color:var(--j-F7F8F9)]">
                         <span className="pt-0.5">{pf ? logo(pf.file, 16) : <Megaphone size={16} />}</span>
                         <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-2 text-[11px] text-neutral-500"><span className="truncate font-semibold text-neutral-700">{p.author ?? "—"}</span><span>· {contentDate(p.createdAt, p.dateApprox)}</span></span>
-                          <span className="line-clamp-2 text-sm text-neutral-900">{first || "—"}</span>
-                          <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-neutral-500">
+                          <span className="flex items-center gap-2 text-[11px] text-[color:var(--j-626F86)]"><span className="truncate font-semibold text-[color:var(--j-44546F)]">{p.author ?? "—"}</span><span>· {contentDate(p.createdAt, p.dateApprox)}</span></span>
+                          <span className="line-clamp-2 text-sm text-[color:var(--j-172B4D)]">{first || "—"}</span>
+                          <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[color:var(--j-626F86)]">
                             {p.sentiment && <Lozenge tone={FEEL[p.sentiment].tone}>{FEEL[p.sentiment].label()}</Lozenge>}
                             {p.views !== null && <span>{tr("{0} views", compactNumber(p.views))}</span>}
                             {p.likes !== null && <span>· {tr("{0} likes", compactNumber(p.likes))}</span>}
                           </span>
                         </span>
-                        <ArrowLeft size={14} className="mt-1 rotate-180 text-neutral-300" />
+                        <ArrowLeft size={14} className="mt-1 rotate-180 text-[color:var(--j-8590A2)]" />
                       </button>
                     </li>
                   );

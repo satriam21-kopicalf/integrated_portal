@@ -14,7 +14,7 @@ export function PreferenceSwitches({ className = '' }: { className?: string }) {
   const { dark, setMode } = useTheme();
   const { lang, setLang } = useLang();
   const next = LANGS.find(l => l.value !== lang)!;
-  const btn = 'inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs font-semibold text-neutral-600 transition-colors hover:border-neutral-300 hover:text-neutral-900';
+  const btn = 'inline-flex h-9 items-center justify-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2.5 text-xs font-semibold text-[color:var(--j-44546F)] transition-colors hover:border-[color:var(--j-8590A2)] hover:text-[color:var(--j-172B4D)]';
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <button type="button" onClick={() => setLang(next.value)} className={btn}

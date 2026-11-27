@@ -36,26 +36,26 @@ export function Picker({ value, options, onPick, placeholder }: {
   return (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} className={cx(inputClass, "flex h-9 items-center justify-between gap-2 text-left")}>
-        <span className={cx("truncate", !current && "text-neutral-400")}>{current ? current.label : placeholder}</span>
-        <ChevronDown size={15} className="flex-shrink-0 text-neutral-400" />
+        <span className={cx("truncate", !current && "text-[color:var(--j-626F86)]")}>{current ? current.label : placeholder}</span>
+        <ChevronDown size={15} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
       </button>
       {open && (
-        <div className="absolute left-0 z-30 mt-1 w-[min(26rem,85vw)] overflow-hidden rounded-md border border-neutral-200 bg-white shadow-xl">
-          <div className="relative border-b border-neutral-100 p-2">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <div className="absolute left-0 z-30 mt-1 w-[min(26rem,85vw)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-xl">
+          <div className="relative border-b border-[color:var(--j-F1F2F4)] p-2">
+            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search name or code")} className={cx(searchClass, "h-9 pl-8")} />
           </div>
           <ul className="max-h-72 overflow-y-auto py-1">
             {shown.map((o) => (
               <li key={o.value}>
                 <button type="button" onClick={() => { onPick(o.value); setOpen(false); setQ(""); }}
-                  className={cx("flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-neutral-50", o.value === value && "bg-brand-50 text-brand-800")}>
-                  <span className="truncate">{o.label}</span>{o.hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{o.hint}</span>}
+                  className={cx("flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-[color:var(--j-F7F8F9)]", o.value === value && "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]")}>
+                  <span className="truncate">{o.label}</span>{o.hint && <span className="flex-shrink-0 text-[11px] text-[color:var(--j-626F86)]">{o.hint}</span>}
                 </button>
               </li>
             ))}
-            {!shown.length && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr("No match")}</li>}
-            {all.length > shown.length && <li className="px-3 py-2 text-center text-[11px] text-neutral-400">{tr("{0} more — type to narrow down", all.length - shown.length)}</li>}
+            {!shown.length && <li className="px-3 py-4 text-center text-xs text-[color:var(--j-626F86)]">{tr("No match")}</li>}
+            {all.length > shown.length && <li className="px-3 py-2 text-center text-[11px] text-[color:var(--j-626F86)]">{tr("{0} more — type to narrow down", all.length - shown.length)}</li>}
           </ul>
         </div>
       )}

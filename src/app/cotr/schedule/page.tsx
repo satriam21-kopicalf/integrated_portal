@@ -36,7 +36,7 @@ const ATT: Record<Attendance, { label: () => string; tone: Tone } | null> = {
 };
 const OTHER: Record<Exclude<Status, "work">, () => string> = { off: () => tr("Off"), leave: () => tr("Leave"), sick: () => tr("Sick") };
 const TEMPLATE_TONE: Record<string, string> = {
-  amber: "bg-amber-50 text-amber-800 border-amber-200", blue: "bg-brand-50 text-brand-800 border-brand-200",
+  amber: "bg-amber-50 text-amber-800 border-amber-200", blue: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] border-[color:var(--j-85B8FF)]",
   violet: "bg-violet-50 text-violet-800 border-violet-200", green: "bg-emerald-50 text-emerald-800 border-emerald-200",
   cyan: "bg-cyan-50 text-cyan-800 border-cyan-200", red: "bg-red-50 text-red-800 border-red-200",
 };
@@ -46,7 +46,7 @@ function SlotLine({ slots, onOpen, compact }: { slots?: Slot[]; onOpen: () => vo
   const n = slots?.length ?? 0;
   return (
     <button type="button" onClick={onOpen} title={slotsText(slots) || tr("Assign areas and times")}
-      className={cx("mt-1 flex w-full items-center gap-1 rounded-md text-left text-[11px] font-medium", n ? "text-brand-700 hover:underline" : "text-neutral-400 hover:text-brand-700", compact ? "truncate" : "")}>
+      className={cx("mt-1 flex w-full items-center gap-1 rounded-[3px] text-left text-[11px] font-medium", n ? "text-[color:var(--j-0C66E4)] hover:underline" : "text-[color:var(--j-626F86)] hover:text-[color:var(--j-0055CC)]", compact ? "truncate" : "")}>
       <MapPinned size={11} className="flex-shrink-0" />
       <span className="truncate">{n ? (compact ? tr("{0} slots", n) : slotsText(slots)) : tr("Areas & times")}</span>
     </button>
@@ -138,8 +138,8 @@ function RosterView() {
   };
 
   const templates = (data?.templates ?? []).filter((t) => t.is_active);
-  const choices = [...templates.map((t) => ({ key: t.code, label: t.code, title: `${t.name} ${t.start_time}–${t.end_time}`, tone: TEMPLATE_TONE[t.color ?? ""] ?? "bg-neutral-50 text-neutral-700 border-neutral-200" })),
-    ...(Object.keys(OTHER) as (keyof typeof OTHER)[]).map((s) => ({ key: `@${s}`, label: OTHER[s](), title: OTHER[s](), tone: "bg-neutral-100 text-neutral-600 border-neutral-200" }))];
+  const choices = [...templates.map((t) => ({ key: t.code, label: t.code, title: `${t.name} ${t.start_time}–${t.end_time}`, tone: TEMPLATE_TONE[t.color ?? ""] ?? "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] border-[color:var(--j-DCDFE4)]" })),
+    ...(Object.keys(OTHER) as (keyof typeof OTHER)[]).map((s) => ({ key: `@${s}`, label: OTHER[s](), title: OTHER[s](), tone: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] border-[color:var(--j-DCDFE4)]" }))];
   const dayLabel = (d: string, opts: Intl.DateTimeFormatOptions) => new Date(`${d}T00:00:00Z`).toLocaleDateString(locale(), { ...opts, timeZone: "UTC" });
   const filled = (d: string) => people.filter((p) => valueOf(p.code, d).status).length;
   const recap = (code: string) => data?.recap.find((r) => r.driver === code);
@@ -173,16 +173,16 @@ function RosterView() {
         toolbar={
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center rounded-lg border border-neutral-200 bg-white shadow-sm">
-                <button type="button" aria-label={tr("Previous Week")} onClick={() => setWeek(addDays(week, -7))} className="rounded-l-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronLeft size={16} /></button>
-                <span className="min-w-[9.5rem] px-1 text-center text-[13px] font-semibold tabular-nums text-neutral-800">{dayLabel(week, { day: "numeric", month: "short" })} – {dayLabel(addDays(week, 6), { day: "numeric", month: "short" })}</span>
-                <button type="button" aria-label={tr("Next Week")} onClick={() => setWeek(addDays(week, 7))} className="rounded-r-lg p-2 text-neutral-500 hover:bg-neutral-50"><ChevronRight size={16} /></button>
+              <div className="flex items-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+                <button type="button" aria-label={tr("Previous Week")} onClick={() => setWeek(addDays(week, -7))} className="rounded-l-lg p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-F7F8F9)]"><ChevronLeft size={16} /></button>
+                <span className="min-w-[9.5rem] px-1 text-center text-[13px] font-semibold tabular-nums text-[color:var(--j-172B4D)]">{dayLabel(week, { day: "numeric", month: "short" })} – {dayLabel(addDays(week, 6), { day: "numeric", month: "short" })}</span>
+                <button type="button" aria-label={tr("Next Week")} onClick={() => setWeek(addDays(week, 7))} className="rounded-r-lg p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-F7F8F9)]"><ChevronRight size={16} /></button>
               </div>
               {week !== mondayOf(today) && <Button size="sm" variant="ghost" onClick={() => { setWeek(mondayOf(today)); setDay(today); }}>{tr("This week")}</Button>}
               <div role="radiogroup" aria-label={tr("View")} className="ml-auto flex gap-1">
                 {(["day", "week"] as const).map((m) => (
                   <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-                    className={cx("rounded-md px-3 py-1 text-xs font-semibold", mode === m ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "text-neutral-500")}>
+                    className={cx("rounded-[3px] px-3 py-1 text-xs font-semibold", mode === m ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "text-[color:var(--j-626F86)]")}>
                     {m === "day" ? tr("Per Day") : tr("Weekly")}
                   </button>
                 ))}
@@ -201,34 +201,34 @@ function RosterView() {
         ) : mode === "day" ? (
           <div>
             {/* the days of the week: tap one to fill it */}
-            <div className="flex gap-1.5 overflow-x-auto border-b border-neutral-100 px-3 py-3 [scrollbar-width:none]">
+            <div className="flex gap-1.5 overflow-x-auto border-b border-[color:var(--j-F1F2F4)] px-3 py-3 [scrollbar-width:none]">
               {days.map((d) => {
                 const on = d === shownDay;
                 const n = filled(d);
                 return (
                   <button key={d} type="button" onClick={() => setDay(d)} aria-pressed={on}
-                    className={cx("flex min-w-[3.6rem] flex-shrink-0 flex-col items-center rounded-md border px-2 py-1.5",
-                      on ? "border-brand-600 bg-brand-600 text-white" : d === today ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-700")}>
+                    className={cx("flex min-w-[3.6rem] flex-shrink-0 flex-col items-center rounded-[3px] border px-2 py-1.5",
+                      on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : d === today ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)]")}>
                     <span className="text-[10px] font-semibold uppercase">{dayLabel(d, { weekday: "short" })}</span>
                     <span className="text-lg font-bold leading-tight tabular-nums">{dayLabel(d, { day: "numeric" })}</span>
-                    <span className={cx("text-[10px] tabular-nums", on ? "text-white/80" : "text-neutral-400")}>{n}/{people.length}</span>
+                    <span className={cx("text-[10px] tabular-nums", on ? "text-white/80" : "text-[color:var(--j-626F86)]")}>{n}/{people.length}</span>
                   </button>
                 );
               })}
             </div>
-            <ul className="divide-y divide-neutral-100">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
               {people.map((p) => {
                 const v = valueOf(p.code, shownDay);
                 const c = cellOf(p.code, shownDay);
                 const att = c ? ATT[c.attendance] : null;
                 const changed = `${p.code}|${shownDay}` in edits;
                 return (
-                  <li key={p.code} className={cx("px-4 py-3", changed && "bg-brand-50/40")}>
+                  <li key={p.code} className={cx("px-4 py-3", changed && "bg-[color:var(--j-E9F2FF)]")}>
                     <div className="flex items-start gap-3">
-                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-bold text-neutral-600">{initials(p.nickname || p.name)}</span>
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-091E420F)] text-xs font-bold text-[color:var(--j-44546F)]">{initials(p.nickname || p.name)}</span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-neutral-900">{p.name}</p>
-                        <p className="truncate text-[11px] text-neutral-500">{[p.nickname, p.department, p.pool_code].filter(Boolean).join(" · ")}</p>
+                        <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{p.name}</p>
+                        <p className="truncate text-[11px] text-[color:var(--j-626F86)]">{[p.nickname, p.department, p.pool_code].filter(Boolean).join(" · ")}</p>
                       </div>
                       {att && !changed && <Badge tone={att.tone}>{att.label()}{c?.started ? ` ${c.started}` : ""}</Badge>}
                     </div>
@@ -238,8 +238,8 @@ function RosterView() {
                         const on = keyOf(v) === o.key;
                         return (
                           <button key={o.key} type="button" title={o.title} onClick={() => setCell(p.code, shownDay, on ? "" : o.key)}
-                            className={cx("h-9 min-w-[3rem] flex-shrink-0 rounded-lg border px-2.5 text-xs font-semibold transition",
-                              on ? cx(o.tone, "ring-2 ring-brand-600") : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300")}>{o.label}</button>
+                            className={cx("h-9 min-w-[3rem] flex-shrink-0 rounded-[3px] border px-2.5 text-xs font-semibold transition",
+                              on ? cx(o.tone, "ring-2 ring-[color:var(--j-388BFF)]") : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] hover:border-[color:var(--j-8590A2)]")}>{o.label}</button>
                         );
                       })}
                     </div>
@@ -252,14 +252,14 @@ function RosterView() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[960px] text-sm">
               <thead className={kcTable.thead}>
-                <tr><th className="sticky left-0 z-[1] bg-neutral-50 px-3 py-2">{tr("Name")}</th>
-                  {days.map((d) => <th key={d} className={cx("px-2 py-2 text-center", d === today && "bg-brand-50 text-brand-800")}>{dayLabel(d, { weekday: "short", day: "numeric" })}</th>)}
+                <tr><th className="sticky left-0 z-[1] bg-[color:var(--j-F7F8F9)] px-3 py-2">{tr("Name")}</th>
+                  {days.map((d) => <th key={d} className={cx("px-2 py-2 text-center", d === today && "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]")}>{dayLabel(d, { weekday: "short", day: "numeric" })}</th>)}
                   <th className="px-2 py-2 text-center">{tr("Whole Week")}</th></tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {people.map((p) => (
                   <tr key={p.code}>
-                    <td className="sticky left-0 z-[1] bg-white px-3 py-2"><span className="block font-medium text-neutral-900">{p.name}</span><span className="text-[11px] text-neutral-400">{[p.nickname, p.department].filter(Boolean).join(" · ") || p.code}</span></td>
+                    <td className="sticky left-0 z-[1] bg-white px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{p.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{[p.nickname, p.department].filter(Boolean).join(" · ") || p.code}</span></td>
                     {days.map((d) => {
                       const v = valueOf(p.code, d);
                       const c = cellOf(p.code, d);
@@ -267,16 +267,16 @@ function RosterView() {
                       const att = c ? ATT[c.attendance] : null;
                       const changed = `${p.code}|${d}` in edits;
                       return (
-                        <td key={d} className={cx("px-1.5 py-1.5 align-top", d === today && "bg-brand-50/40")}>
+                        <td key={d} className={cx("px-1.5 py-1.5 align-top", d === today && "bg-[color:var(--j-E9F2FF)]")}>
                           <NativeSelect value={keyOf(v)} onChange={(e) => setCell(p.code, d, e.target.value)} aria-label={`${p.name} ${d}`}
-                            className={cx("h-8 w-full rounded-lg border px-1.5 text-xs font-semibold outline-none", t ? TEMPLATE_TONE[t.color ?? ""] ?? "border-neutral-200 bg-neutral-50" : v.status ? "border-neutral-200 bg-neutral-100 text-neutral-500" : "border-dashed border-neutral-200 text-neutral-400", changed && "ring-2 ring-brand-300")}>
+                            className={cx("h-8 w-full rounded-[3px] border px-1.5 text-xs font-semibold outline-none", t ? TEMPLATE_TONE[t.color ?? ""] ?? "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]" : v.status ? "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]" : "border-dashed border-[color:var(--j-DCDFE4)] text-[color:var(--j-626F86)]", changed && "ring-2 ring-[color:var(--j-85B8FF)]")}>
                             <option value="">—</option>
                             {templates.map((x) => <option key={x.code} value={x.code}>{x.code} · {x.start_time}–{x.end_time}</option>)}
                             {(Object.keys(OTHER) as (keyof typeof OTHER)[]).map((s) => <option key={s} value={`@${s}`}>{OTHER[s]()}</option>)}
                           </NativeSelect>
                           <SlotLine compact slots={c?.slots} onOpen={() => setSlotOf({ driver: p.code, day: d })} />
                           {(att || c?.started) && !changed && (
-                            <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-neutral-500">
+                            <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-[color:var(--j-626F86)]">
                               {att && <Badge tone={att.tone}>{att.label()}</Badge>}
                               {c?.started && <span className="tabular-nums">{c.started}{c.ended ? `–${c.ended}` : ""}</span>}
                             </div>
@@ -285,7 +285,7 @@ function RosterView() {
                       );
                     })}
                     <td className="px-1.5 py-1.5 align-top">
-                      <NativeSelect value="" onChange={(e) => e.target.value !== "#" && days.forEach((d) => setCell(p.code, d, e.target.value))} aria-label={tr("Whole Week")} className="h-8 w-full rounded-lg border border-neutral-200 px-1.5 text-xs text-neutral-500 outline-none">
+                      <NativeSelect value="" onChange={(e) => e.target.value !== "#" && days.forEach((d) => setCell(p.code, d, e.target.value))} aria-label={tr("Whole Week")} className="h-8 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-1.5 text-xs text-[color:var(--j-626F86)] outline-none">
                         <option value="#">{tr("Fill…")}</option>
                         {templates.map((x) => <option key={x.code} value={x.code}>{x.code} · {x.name}</option>)}
                         <option value="@off">{tr("Off")}</option><option value="">{tr("Clear")}</option>
@@ -299,8 +299,8 @@ function RosterView() {
         )}
         {/* the legend of the shifts */}
         {templates.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 border-t border-neutral-100 px-4 py-2.5 text-[11px] text-neutral-500">
-            {templates.map((t) => <span key={t.code} className={cx("rounded-md border px-1.5 py-0.5", TEMPLATE_TONE[t.color ?? ""] ?? "border-neutral-200")}><b>{t.code}</b> {t.name} {t.start_time}–{t.end_time}{t.pay_rate != null ? ` · ${rupiah(Number(t.pay_rate))}` : ""}</span>)}
+          <div className="flex flex-wrap gap-1.5 border-t border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-[11px] text-[color:var(--j-626F86)]">
+            {templates.map((t) => <span key={t.code} className={cx("rounded-[3px] border px-1.5 py-0.5", TEMPLATE_TONE[t.color ?? ""] ?? "border-[color:var(--j-DCDFE4)]")}><b>{t.code}</b> {t.name} {t.start_time}–{t.end_time}{t.pay_rate != null ? ` · ${rupiah(Number(t.pay_rate))}` : ""}</span>)}
           </div>
         )}
       </Panel>
@@ -312,9 +312,9 @@ function RosterView() {
           onClose={() => setSlotOf(null)} onSaved={() => { setSlotOf(null); setTick((t) => t + 1); }} />;
       })()}
       {dirty > 0 && (
-        <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-5 flex items-center gap-3 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mb-6 lg:px-8"
+        <div className="action-bar sticky bottom-0 z-20 -mx-4 -mb-5 flex items-center gap-3 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 pt-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:-mb-6 lg:px-8"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-          <p className="min-w-0 flex-1 text-xs text-neutral-600">{tr("{0} changes not saved yet", dirty)}</p>
+          <p className="min-w-0 flex-1 text-xs text-[color:var(--j-44546F)]">{tr("{0} changes not saved yet", dirty)}</p>
           <Button variant="ghost" size="sm" onClick={() => setEdits({})}>{tr("Undo")}</Button>
           <Button loading={busy} onClick={() => void save()}><Save size={15} /> {tr("Save ({0})", dirty)}</Button>
         </div>
@@ -325,9 +325,9 @@ function RosterView() {
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Name")}</th>
               {[tr("Scheduled"), tr("Worked"), tr("On Time"), tr("Late"), tr("Absent"), tr("Off"), tr("Leave"), tr("Sick"), tr("Base Pay")].map((h) => <th key={h} className="px-3 py-2.5 text-right">{h}</th>)}</tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {people.map((p) => { const r = recap(p.code); return (
-                <tr key={p.code}><td className="px-4 py-2"><span className="font-medium text-neutral-900">{p.name}</span>{p.department && <span className="block text-[11px] text-neutral-400">{p.department}</span>}</td>
+                <tr key={p.code}><td className="px-4 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{p.name}</span>{p.department && <span className="block text-[11px] text-[color:var(--j-626F86)]">{p.department}</span>}</td>
                   {(["scheduled", "worked", "on_time", "late", "absent", "off", "leave", "sick"] as const).map((k) => (
                     <td key={k} className={cx("px-3 py-2 text-right tabular-nums", k === "late" && r?.late ? "text-amber-700" : k === "absent" && r?.absent ? "text-red-700" : "")}>{r?.[k] ?? 0}</td>
                   ))}<td className="px-3 py-2 text-right font-semibold tabular-nums">{r?.pay ? rupiah(r.pay) : "—"}</td></tr>
@@ -349,11 +349,11 @@ function TemplatesView() {
       description={tr("The working hours of a shift; a check in later than the start plus the tolerance is late")}
       blank={(): Partial<Template> => ({ code: "", name: "", start_time: "06:00", end_time: "14:00", break_min: 60, grace_min: 15, color: "blue", is_active: true, sort: 0 })}
       columns={[
-        { label: tr("Shift"), render: (t) => <><span className="block font-medium text-neutral-900">{t.name}</span><span className="text-[11px] text-neutral-400">{t.code}</span></> },
-        { label: tr("Hours"), render: (t) => <span className={cx("rounded-md border px-2 py-0.5 text-xs tabular-nums", TEMPLATE_TONE[t.color ?? ""] ?? "border-neutral-200")}>{t.start_time}–{t.end_time}</span> },
+        { label: tr("Shift"), render: (t) => <><span className="block font-medium text-[color:var(--j-172B4D)]">{t.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{t.code}</span></> },
+        { label: tr("Hours"), render: (t) => <span className={cx("rounded-[3px] border px-2 py-0.5 text-xs tabular-nums", TEMPLATE_TONE[t.color ?? ""] ?? "border-[color:var(--j-DCDFE4)]")}>{t.start_time}–{t.end_time}</span> },
         { label: tr("Break"), render: (t) => `${t.break_min} ${tr("min")}` },
         { label: tr("Tolerance"), render: (t) => `${t.grace_min} ${tr("min")}` },
-        { label: tr("Day Rate"), render: (t) => t.pay_rate != null ? <span className="tabular-nums">{rupiah(Number(t.pay_rate))}</span> : <span className="text-neutral-400">—</span> },
+        { label: tr("Day Rate"), render: (t) => t.pay_rate != null ? <span className="tabular-nums">{rupiah(Number(t.pay_rate))}</span> : <span className="text-[color:var(--j-626F86)]">—</span> },
         { label: tr("Status"), render: (t) => t.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge> },
       ]}
       fields={[

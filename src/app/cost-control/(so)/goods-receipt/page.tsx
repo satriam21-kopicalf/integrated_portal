@@ -147,18 +147,18 @@ export default function GoodsReceiptPage() {
                 <SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Lines")}</SortTh>
                 <SortTh k="correction" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5" first="desc">{tr("Correction")}</SortTh>
               </tr></thead>
-              <tbody className="divide-y divide-neutral-100">{paged.rows.map((d) => (
-                <tr key={d.docNum} className={cx("cursor-pointer", d.dateCorrected || d.qtyCorrected ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-neutral-50/70")} onClick={() => setOpen(d.docNum)}>
-                  <td className="py-2.5 pl-5 pr-3"><p className="font-mono text-[13px] font-medium text-neutral-900">{d.docNum}</p><p className="text-[11px] text-neutral-400">{tr("PO")} {d.poNum ?? "—"}</p></td>
-                  <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">{d.date ? dmy(d.date) : "—"}{d.dateCorrected && <p className="text-[11px] text-neutral-400 line-through">{d.esbDate ? dmy(d.esbDate) : ""}</p>}</td>
-                  <td className="max-w-[14rem] px-3 py-2.5"><p className="truncate text-neutral-800">{d.branchName ?? "—"}</p>{d.location && <p className="truncate text-[11px] text-neutral-400">{d.location}</p>}</td>
-                  <td className="max-w-[14rem] px-3 py-2.5"><p className="truncate text-neutral-700">{d.supplier ?? "—"}</p></td>
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((d) => (
+                <tr key={d.docNum} className={cx("cursor-pointer", d.dateCorrected || d.qtyCorrected ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => setOpen(d.docNum)}>
+                  <td className="py-2.5 pl-5 pr-3"><p className="font-mono text-[13px] font-medium text-[color:var(--j-172B4D)]">{d.docNum}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{tr("PO")} {d.poNum ?? "—"}</p></td>
+                  <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">{d.date ? dmy(d.date) : "—"}{d.dateCorrected && <p className="text-[11px] text-[color:var(--j-626F86)] line-through">{d.esbDate ? dmy(d.esbDate) : ""}</p>}</td>
+                  <td className="max-w-[14rem] px-3 py-2.5"><p className="truncate text-[color:var(--j-172B4D)]">{d.branchName ?? "—"}</p>{d.location && <p className="truncate text-[11px] text-[color:var(--j-626F86)]">{d.location}</p>}</td>
+                  <td className="max-w-[14rem] px-3 py-2.5"><p className="truncate text-[color:var(--j-44546F)]">{d.supplier ?? "—"}</p></td>
                   <td className="px-3 py-2.5">{d.status ? <Badge tone="slate">{d.status}</Badge> : "—"}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{d.lines}</td>
                   <td className="px-3 py-2.5 pr-5">
                     {d.dateCorrected && <Badge tone="amber">{tr("Date")}</Badge>} {d.qtyCorrected > 0 && <Badge tone="amber">{tr("{0} qty", d.qtyCorrected)}</Badge>}
                     {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished ? <Badge tone="green">{tr("Finished")}</Badge> : <Badge tone="slate">{tr("Draft · not counted yet")}</Badge>)}
-                    {!d.dateCorrected && !d.qtyCorrected && <span className="text-neutral-300">—</span>}
+                    {!d.dateCorrected && !d.qtyCorrected && <span className="text-[color:var(--j-8590A2)]">—</span>}
                   </td>
                 </tr>
               ))}</tbody>
@@ -289,80 +289,80 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !d ? <SkeletonList rows={4} /> : (
         <div className="space-y-4">
           {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished ? (
-            <p className="flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
               <span>{tr("Finished by {0} · {1}: the corrections count in the Stock List and the COGS.", d.finished.by, wibDateTime(d.finished.at))}{d.finished.note ? ` “${d.finished.note}”` : ""}</span></p>
           ) : (
-            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Draft: the corrections do not count yet. Mark the GR Finished once the date and quantities are right.")}</p>
+            <p className="rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Draft: the corrections do not count yet. Mark the GR Finished once the date and quantities are right.")}</p>
           ))}
-          <dl className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 p-3 text-sm sm:grid-cols-4">
-            <div><dt className="text-xs text-neutral-500">{tr("Received")}</dt><dd className="font-medium">
+          <dl className="grid grid-cols-2 gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm sm:grid-cols-4">
+            <div><dt className="text-xs text-[color:var(--j-626F86)]">{tr("Received")}</dt><dd className="font-medium">
               {editing ? <input type="date" className={inputClass + " mt-1"} value={date} onChange={(e) => setDate(e.target.value)} /> : d.date ? dmy(d.date) : "—"}</dd></div>
-            <div><dt className="text-xs text-neutral-500">{tr("ESB date")}</dt><dd>{d.esbDate ? dmy(d.esbDate) : "—"}</dd></div>
-            <div><dt className="text-xs text-neutral-500">{tr("Location")}</dt><dd>{d.location ?? "—"}</dd></div>
-            <div><dt className="text-xs text-neutral-500">{tr("Status")}</dt><dd>{d.status ?? "—"}</dd></div>
+            <div><dt className="text-xs text-[color:var(--j-626F86)]">{tr("ESB date")}</dt><dd>{d.esbDate ? dmy(d.esbDate) : "—"}</dd></div>
+            <div><dt className="text-xs text-[color:var(--j-626F86)]">{tr("Location")}</dt><dd>{d.location ?? "—"}</dd></div>
+            <div><dt className="text-xs text-[color:var(--j-626F86)]">{tr("Status")}</dt><dd>{d.status ?? "—"}</dd></div>
           </dl>
 
-          <div className="overflow-x-auto rounded-md border border-neutral-200"><table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]"><table className="w-full text-sm">
             <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Item")}</th><th className="px-3 py-2 text-right">{tr("ESB Qty")}</th>
               <th className="px-3 py-2 text-right">{tr("Qty Used")}</th><th className="px-3 py-2">{tr("Unit")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">{d.items.map((l) => (
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{d.items.map((l) => (
               <tr key={l.lineNo}>
-                <td className="px-3 py-2"><p className="text-neutral-800">{l.name}</p><p className="text-[11px] text-neutral-400">{l.code}</p></td>
-                <td className="px-3 py-2 text-right tabular-nums text-neutral-500">{qty(l.esbQty)}</td>
+                <td className="px-3 py-2"><p className="text-[color:var(--j-172B4D)]">{l.name}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{l.code}</p></td>
+                <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-626F86)]">{qty(l.esbQty)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">
                   {editing ? <input inputMode="decimal" className={inputClass + " w-24 text-right"} value={draft[l.lineNo] ?? ""}
                     onChange={(e) => setDraft((x) => ({ ...x, [l.lineNo]: e.target.value }))} />
                     : <span className={l.corrected ? "font-semibold text-amber-700" : ""}>{qty(l.qty)}</span>}
                 </td>
-                <td className="px-3 py-2 text-neutral-600">{l.unit}</td>
+                <td className="px-3 py-2 text-[color:var(--j-44546F)]">{l.unit}</td>
               </tr>
             ))}</tbody>
           </table></div>
 
           {editing && (
-            <div className="space-y-3 rounded-md border border-amber-200 bg-amber-50/60 p-3">
-              <label className="block text-xs font-medium text-neutral-700">{tr("Reason (required)")}
+            <div className="space-y-3 rounded-[3px] border border-amber-200 bg-amber-50/60 p-3">
+              <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Reason (required)")}
                 <textarea className={inputClass + " mt-1 h-20 w-full"} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)}
                   placeholder={tr("e.g. the goods arrived on 3/11, the delivery note says 3 bottles")} />
               </label>
               <div>
-                <p className="text-xs font-medium text-neutral-700">{tr("Evidence (required, photo or PDF, at most 5 files, 4 MB together)")}</p>
+                <p className="text-xs font-medium text-[color:var(--j-44546F)]">{tr("Evidence (required, photo or PDF, at most 5 files, 4 MB together)")}</p>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {files.map((f, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs">
+                    <span key={i} className="inline-flex items-center gap-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2 py-1 text-xs">
                       <Paperclip size={12} />{f.name}<button type="button" aria-label={tr("Remove")} onClick={() => setFiles((x) => x.filter((_, j) => j !== i))}><X size={12} /></button>
                     </span>
                   ))}
                   {files.length < 5 && (
-                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-dashed border-neutral-300 bg-white px-2 py-1 text-xs text-brand-700">
+                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] bg-white px-2 py-1 text-xs text-[color:var(--j-0C66E4)]">
                       <Paperclip size={12} />{tr("Attach")}
                       <input type="file" className="hidden" multiple accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(e) => { void addFiles(e.target.files); e.target.value = ""; }} />
                     </label>
                   )}
                 </div>
               </div>
-              <p className="text-[11px] text-neutral-500">{tr("{0} lines changed", changedLines.length)}{dateChanged ? ` · ${tr("date {0} → {1}", d.date ? dmy(d.date) : "—", dmy(date))}` : ""}</p>
+              <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("{0} lines changed", changedLines.length)}{dateChanged ? ` · ${tr("date {0} → {1}", d.date ? dmy(d.date) : "—", dmy(date))}` : ""}</p>
             </div>
           )}
 
           <section>
-            <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-neutral-800"><History size={14} />{tr("Correction History")}</h3>
-            {!d.corrections.length ? <p className="text-sm text-neutral-400">{tr("No correction yet: the figures are ESB's")}</p> : (
+            <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><History size={14} />{tr("Correction History")}</h3>
+            {!d.corrections.length ? <p className="text-sm text-[color:var(--j-626F86)]">{tr("No correction yet: the figures are ESB's")}</p> : (
               <ul className="space-y-2">{d.corrections.map((c) => {
                 const line = c.lineNo ? d.items.find((l) => l.lineNo === c.lineNo) : null;
                 return (
-                  <li key={c.id} className="rounded-md border border-neutral-200 p-3 text-sm">
+                  <li key={c.id} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-neutral-900">{c.kind === "date"
+                      <span className="font-medium text-[color:var(--j-172B4D)]">{c.kind === "date"
                         ? tr("Date {0} → {1}", c.oldDate ? dmy(c.oldDate) : "—", c.newDate ? dmy(c.newDate) : "—")
                         : `${line?.name ?? c.code}: ${qty(c.oldQty)} → ${qty(c.newQty)} ${c.unit ?? ""}`}</span>
                       <Badge tone={c.state === "active" ? "green" : "slate"}>{c.state === "active" ? tr("Active") : c.state === "replaced" ? tr("Replaced") : tr("Cancelled")}</Badge>
                       {c.state === "active" && <button type="button" className="ml-auto inline-flex items-center gap-1 text-xs text-red-600 hover:underline" onClick={() => setUndo(c)}><Undo2 size={12} />{tr("Cancel")}</button>}
                     </div>
-                    <p className="mt-0.5 text-neutral-700">{c.reason}</p>
-                    <p className="text-[11px] text-neutral-500">{c.by} · {wibDateTime(c.at)}{c.cancelledBy ? ` · ${tr("cancelled by {0}", c.cancelledBy)}` : ""}</p>
+                    <p className="mt-0.5 text-[color:var(--j-44546F)]">{c.reason}</p>
+                    <p className="text-[11px] text-[color:var(--j-626F86)]">{c.by} · {wibDateTime(c.at)}{c.cancelledBy ? ` · ${tr("cancelled by {0}", c.cancelledBy)}` : ""}</p>
                     {c.files.length > 0 && <div className="mt-1 flex flex-wrap gap-2">{c.files.map((f) => (
-                      <a key={f.id} href={fileUrl(docNum, f.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-brand-700 hover:underline"><Paperclip size={12} />{f.name}</a>
+                      <a key={f.id} href={fileUrl(docNum, f.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[color:var(--j-0C66E4)] hover:underline"><Paperclip size={12} />{f.name}</a>
                     ))}</div>}
                   </li>
                 );

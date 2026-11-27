@@ -250,11 +250,11 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             const Icon = v.icon;
             const count = !res ? null : v.value === "entries" ? res.data.length : v.value === "items" ? res.byItem.length
               : v.value === "branches" ? res.byBranch.length : v.value === "categories" ? res.byCategory.length : null;
-            return { key: v.value, label: <><Icon size={15} className={view === v.value ? "text-brand-700" : "text-neutral-400"} />{v.label()}</>, count: count === null ? undefined : fmtNumber(count) };
+            return { key: v.value, label: <><Icon size={15} className={view === v.value ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-626F86)]"} />{v.label()}</>, count: count === null ? undefined : fmtNumber(count) };
           })} />
           {canFix && view === "entries" && rows.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-md border border-brand-100 bg-brand-50/60 px-3 py-2 text-sm">
-              <label className="flex items-center gap-2 text-neutral-700">
+            <div className="flex flex-wrap items-center gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-sm">
+              <label className="flex items-center gap-2 text-[color:var(--j-44546F)]">
                 <input type="checkbox" checked={picked.size > 0 && picked.size === rows.length}
                   onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((x) => x.id)) : new Set())} />
                 {tr("{0} of {1} selected", picked.size, rows.length)}
@@ -295,29 +295,29 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                   <SortTh k="category" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Waste category")}</SortTh><SortTh k="by" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Entered by")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh>
                   {canFix && <th className="w-24 py-2.5 pr-5" aria-label={tr("Correct")} />}
                 </tr></thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {paged.rows.map((e) => {
                     const pick = canFix;
                     return (
-                      <tr key={e.id} onClick={() => setOpen(e)} className={cx("cursor-pointer", picked.has(e.id) ? "bg-brand-50/60" : "hover:bg-neutral-50/70")}>
+                      <tr key={e.id} onClick={() => setOpen(e)} className={cx("cursor-pointer", picked.has(e.id) ? "bg-[color:var(--j-E9F2FF)]" : "hover:bg-[color:var(--j-F7F8F9)]")}>
                         {canFix && <td className="py-2.5 pl-5" onClick={(x) => x.stopPropagation()}>{pick && <input type="checkbox" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}</td>}
                         <td className={cx("py-2 pr-3", canFix ? "pl-2" : "pl-5")}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={thumb(photoUrl(e.id), 96)} decoding="async" alt="" loading="lazy" className="h-11 w-11 rounded-lg bg-neutral-100 object-cover" />
+                          <img src={thumb(photoUrl(e.id), 96)} decoding="async" alt="" loading="lazy" className="h-11 w-11 rounded-[3px] bg-[color:var(--j-091E420F)] object-cover" />
                         </td>
-                        <td className="max-w-[16rem] px-3 py-2"><p className="truncate font-medium text-neutral-900">{e.itemName}</p>
-                          <p className="truncate text-[11px] text-neutral-400">{e.itemCode} · {scopeLabel(e.scope)}</p></td>
-                        <td className="max-w-[12rem] px-3 py-2"><p className="truncate text-neutral-700">{e.branchName}</p></td>
-                        <td className="whitespace-nowrap px-3 py-2 tabular-nums text-neutral-700">{dmy(e.businessDate)}</td>
-                        <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(e.qty)} <span className="text-neutral-400">{e.unit}</span></td>
-                        <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", e.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{e.value == null ? tr("No price") : fmtRp(e.value)}</td>
-                        <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-600">{e.category || "—"}</p>{e.note && <p className="truncate text-[11px] text-neutral-400" title={e.note}>“{e.note}”</p>}</td>
-                        <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-neutral-700">{e.name}</p><p className="text-[11px] text-neutral-400">{wibDateTime(e.createdAt)}</p></td>
+                        <td className="max-w-[16rem] px-3 py-2"><p className="truncate font-medium text-[color:var(--j-172B4D)]">{e.itemName}</p>
+                          <p className="truncate text-[11px] text-[color:var(--j-626F86)]">{e.itemCode} · {scopeLabel(e.scope)}</p></td>
+                        <td className="max-w-[12rem] px-3 py-2"><p className="truncate text-[color:var(--j-44546F)]">{e.branchName}</p></td>
+                        <td className="whitespace-nowrap px-3 py-2 tabular-nums text-[color:var(--j-44546F)]">{dmy(e.businessDate)}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(e.qty)} <span className="text-[color:var(--j-626F86)]">{e.unit}</span></td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", e.value == null ? "text-amber-700" : "font-medium text-[color:var(--j-172B4D)]")}>{e.value == null ? tr("No price") : fmtRp(e.value)}</td>
+                        <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-[color:var(--j-44546F)]">{e.category || "—"}</p>{e.note && <p className="truncate text-[11px] text-[color:var(--j-626F86)]" title={e.note}>“{e.note}”</p>}</td>
+                        <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-[color:var(--j-44546F)]">{e.name}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{wibDateTime(e.createdAt)}</p></td>
                         <td className="px-3 py-2"><span className="flex flex-wrap items-center gap-1"><Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
                           {!!e.corrections && <Badge tone="amber" title={tr("Corrected by Cost Control")}><PencilLine size={11} />{tr("Corrected")}</Badge>}</span></td>
                         {canFix && <td className="py-2 pr-5 text-right" onClick={(x) => x.stopPropagation()}>
                           <button type="button" onClick={() => setQuick(e)} title={tr("Correct {0}", e.itemName)}
-                            className="inline-flex items-center gap-1 rounded-[4px] border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-700 hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800">
+                            className="inline-flex items-center gap-1 rounded-[4px] border border-[color:var(--j-DCDFE4)] bg-white px-2 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-E9F2FF)] hover:text-[color:var(--j-0055CC)]">
                             <PencilLine size={12} />{tr("Correct")}</button></td>}
                       </tr>
                     );
@@ -325,24 +325,24 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 </tbody>
               </table>
             </div>
-            <ul className="divide-y divide-neutral-100 md:hidden">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
               {paged.rows.map((e) => (
-                <li key={e.id} className="flex items-start gap-3 px-4 py-3 hover:bg-neutral-50">
+                <li key={e.id} className="flex items-start gap-3 px-4 py-3 hover:bg-[color:var(--j-F7F8F9)]">
                   {canFix && <input type="checkbox" className="mt-4" checked={picked.has(e.id)} onChange={() => toggle(e.id)} aria-label={e.itemName} />}
                   <button type="button" onClick={() => setOpen(e)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={thumb(photoUrl(e.id), 160)} decoding="async" alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
+                    <img src={thumb(photoUrl(e.id), 160)} decoding="async" alt="" loading="lazy" className="h-14 w-14 flex-shrink-0 rounded-[3px] bg-[color:var(--j-091E420F)] object-cover" />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-1.5">
-                        <span className="truncate text-sm font-semibold text-neutral-900">{e.itemName}</span>
+                        <span className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{e.itemName}</span>
                         <Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
                       </span>
-                      <span className="block text-xs text-neutral-600">{fmtQty(e.qty)} {e.unit} · {fmtRp(e.value)} · {scopeLabel(e.scope)} · {e.category}</span>
-                      <span className="block truncate text-xs text-neutral-500">{e.branchName} · {dmy(e.businessDate)} · {e.name}{e.note ? ` · “${e.note}”` : ""}</span>
+                      <span className="block text-xs text-[color:var(--j-44546F)]">{fmtQty(e.qty)} {e.unit} · {fmtRp(e.value)} · {scopeLabel(e.scope)} · {e.category}</span>
+                      <span className="block truncate text-xs text-[color:var(--j-626F86)]">{e.branchName} · {dmy(e.businessDate)} · {e.name}{e.note ? ` · “${e.note}”` : ""}</span>
                     </span>
                   </button>
                   {canFix && <button type="button" onClick={() => setQuick(e)} aria-label={tr("Correct {0}", e.itemName)}
-                    className="mt-3 flex-shrink-0 rounded-[4px] border border-neutral-200 bg-white p-2 text-neutral-600 hover:bg-brand-50 hover:text-brand-800"><PencilLine size={15} /></button>}
+                    className="mt-3 flex-shrink-0 rounded-[4px] border border-[color:var(--j-DCDFE4)] bg-white p-2 text-[color:var(--j-44546F)] hover:bg-[color:var(--j-E9F2FF)] hover:text-[color:var(--j-0055CC)]"><PencilLine size={15} /></button>}
                 </li>
               ))}
             </ul>
@@ -362,7 +362,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
             : open.status !== "rejected" ? <Button variant="secondary" disabled={busy} onClick={() => { setPicked(new Set()); void investigate(); }}><FileSearch size={14} />{tr("Investigate")}</Button> : null;
           return (
             <div className="space-y-2">
-              {open.status === "approved" && <p className="text-xs text-neutral-500">{tr("Approved: counted in the COGS; QA can still investigate it")}</p>}
+              {open.status === "approved" && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Approved: counted in the COGS; QA can still investigate it")}</p>}
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                 <Button variant="secondary" onClick={() => setFixing(true)}><PencilLine size={14} />{tr("Correct")}</Button>
                 {(pending || open.status === "approved") && inv}
@@ -377,21 +377,21 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           <div>
             <Group title={tr("Summary")}>
               <div className="flex gap-3">
-                <a href={photoUrl(open.id)} target="_blank" rel="noreferrer" className="block h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-neutral-100 sm:h-32 sm:w-32" title={tr("Photo evidence")}>
+                <a href={photoUrl(open.id)} target="_blank" rel="noreferrer" className="block h-28 w-28 shrink-0 overflow-hidden rounded-[3px] bg-[color:var(--j-091E420F)] sm:h-32 sm:w-32" title={tr("Photo evidence")}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={thumb(photoUrl(open.id), 320)} decoding="async" loading="lazy" alt={tr("Photo evidence")} className="h-full w-full object-cover" />
                 </a>
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex flex-wrap items-center gap-1.5"><Badge tone={statusTone(open.status)}>{statusLabel(open.status)}</Badge><Badge tone="slate">{scopeLabel(open.scope)}</Badge></div>
-                  <div><p className="text-[11px] uppercase text-neutral-400">{tr("Quantity")}</p><p className="text-lg font-semibold tabular-nums text-neutral-900">{fmtQty(open.qty)} {open.unit}</p></div>
-                  <div><p className="text-[11px] uppercase text-neutral-400">{tr("Value")}</p><p className="font-semibold tabular-nums text-neutral-900">{fmtRp(open.value)}</p>
-                    <p className="text-[11px] text-neutral-500">{open.unitPrice != null ? `${fmtRp(open.unitPrice)} / ${open.unit} · ` : ""}{open.priceSource ? PRICE_SOURCE[open.priceSource]() : "—"}</p></div>
+                  <div><p className="text-[11px] uppercase text-[color:var(--j-626F86)]">{tr("Quantity")}</p><p className="text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtQty(open.qty)} {open.unit}</p></div>
+                  <div><p className="text-[11px] uppercase text-[color:var(--j-626F86)]">{tr("Value")}</p><p className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(open.value)}</p>
+                    <p className="text-[11px] text-[color:var(--j-626F86)]">{open.unitPrice != null ? `${fmtRp(open.unitPrice)} / ${open.unit} · ` : ""}{open.priceSource ? PRICE_SOURCE[open.priceSource]() : "—"}</p></div>
                 </div>
               </div>
             </Group>
             <Group title={tr("Item")}>
               <Facts rows={[
-                [tr("Item"), <span key="i">{open.itemName} <span className="text-xs font-normal text-neutral-400">{open.itemCode}</span></span>],
+                [tr("Item"), <span key="i">{open.itemName} <span className="text-xs font-normal text-[color:var(--j-626F86)]">{open.itemCode}</span></span>],
                 [tr("Waste category"), open.category || "—"],
                 [tr("Production Date"), open.productionDate ? dmy(open.productionDate) : "—"],
                 [tr("Expired Date"), open.expiredDate ? dmy(open.expiredDate) : "—"],
@@ -405,11 +405,11 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 [tr("Entered at"), wibDateTime(open.createdAt)],
                 [tr("Photo taken"), open.photoTakenAt ? wibDateTime(open.photoTakenAt) : "—"],
                 [tr("Position"), open.latitude !== null && open.longitude !== null
-                  ? <a key="p" href={mapsUrl(open.latitude, open.longitude)} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">{open.latitude.toFixed(5)}, {open.longitude.toFixed(5)}</a> : "—"],
+                  ? <a key="p" href={mapsUrl(open.latitude, open.longitude)} target="_blank" rel="noreferrer" className="text-[color:var(--j-0C66E4)] hover:underline">{open.latitude.toFixed(5)}, {open.longitude.toFixed(5)}</a> : "—"],
               ]} />
               {open.signed && (
-                <div className="rounded-lg border border-neutral-200 p-3">
-                  <p className="mb-1 text-xs text-neutral-500">{tr("Signature of {0}", open.name)}</p>
+                <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
+                  <p className="mb-1 text-xs text-[color:var(--j-626F86)]">{tr("Signature of {0}", open.name)}</p>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={signatureUrl(open.id)} alt={tr("Signature")} className="max-h-24 object-contain" />
                 </div>
@@ -419,7 +419,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
               <Group title={tr("Review")}>
                 {(open.review || open.investigationId) && <Facts rows={[
                   ...(open.review ? [[tr("Reviewed by"), `${open.review.by ?? "—"}${open.review.at ? ` · ${wibDateTime(open.review.at)}` : ""}`], [tr("Note"), open.review.note || "—"]] : []),
-                  ...(open.investigationId ? [[tr("Investigation"), <button key="inv" type="button" className="inline-flex items-center gap-1 text-brand-700 hover:underline"
+                  ...(open.investigationId ? [[tr("Investigation"), <button key="inv" type="button" className="inline-flex items-center gap-1 text-[color:var(--j-0C66E4)] hover:underline"
                     onClick={() => { setInvestigation(open.investigationId!); setOpen(null); }}><FileSearch size={13} />{tr("Open the investigation")}</button>]] : []),
                 ] as [string, React.ReactNode][]} />}
                 <CorrectionHistory entry={open} version={fixes} />
@@ -457,12 +457,12 @@ function Share({ value, total }: { value: number | null | undefined; total: numb
   const r = total > 0 && value ? value / total : 0;
   return (
     <span className="flex items-center justify-end gap-2">
-      <span className="h-1.5 w-20 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${Math.min(100, r * 100)}%` }} /></span>
-      <span className="w-11 text-right text-xs tabular-nums text-neutral-500">{(r * 100).toFixed(1)}%</span>
+      <span className="h-1.5 w-20 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-388BFF)]" style={{ width: `${Math.min(100, r * 100)}%` }} /></span>
+      <span className="w-11 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{(r * 100).toFixed(1)}%</span>
     </span>
   );
 }
-const rank = "w-10 py-2.5 pl-5 text-right text-xs tabular-nums text-neutral-400";
+const rank = "w-10 py-2.5 pl-5 text-right text-xs tabular-nums text-[color:var(--j-626F86)]";
 
 type WKey = "item" | "branch" | "date" | "qty" | "value" | "category" | "by" | "status";
 const wValue = (e: Entry, k: WKey) => ({ item: e.itemName, branch: e.branchName, date: e.businessDate, qty: e.qty, value: e.value, category: e.category,
@@ -498,15 +498,15 @@ function ItemsTable({ res }: { res: MonitorData }) {
         <th className="px-3 py-2.5 text-right">{tr("Share of Value")}</th>
         <SortTh k="entries" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Entries")}</SortTh>
         <SortTh k="branches" sort={sorted.sort} onSort={sorted.toggle} pad={`${th} pr-5`} align="right" first="desc">{tr("Branches")}</SortTh></tr></thead>
-      <tbody className="divide-y divide-neutral-100">{paged.rows.map((i, n) => (
-        <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-neutral-50"><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
-          <td className="px-3 py-2"><p className="font-medium text-neutral-800">{i.name}</p><p className="text-[11px] text-neutral-400">{i.code}</p></td>
-          <td className="px-3 py-2"><Badge tone="slate">{scopeLabel(i.scope)}</Badge></td><td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(i.qty)} <span className="text-neutral-400">{i.unit}</span></td>
-          <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-amber-700" : "font-medium text-neutral-900")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>
+      <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((i, n) => (
+        <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-[color:var(--j-F7F8F9)]"><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
+          <td className="px-3 py-2"><p className="font-medium text-[color:var(--j-172B4D)]">{i.name}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{i.code}</p></td>
+          <td className="px-3 py-2"><Badge tone="slate">{scopeLabel(i.scope)}</Badge></td><td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(i.qty)} <span className="text-[color:var(--j-626F86)]">{i.unit}</span></td>
+          <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-amber-700" : "font-medium text-[color:var(--j-172B4D)]")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>
           <td className="px-3 py-2"><Share value={i.value} total={total} /></td>
           <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-3 py-2 pr-5 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
       ))}</tbody>
-      <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5" colSpan={3}>{tr("Total")}</td>
+      <tfoot className="border-t border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-sm font-semibold"><tr><td /><td className="px-3 py-2.5" colSpan={3}>{tr("Total")}</td>
         <td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td /><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byItem.reduce((a, i) => a + i.entries, 0))}</td><td /></tr></tfoot>
       </table>
       <TableFoot note={tr("Rejected entries are not counted")} paged={paged} /></div>
@@ -529,15 +529,15 @@ function BranchesTable({ res, onBranch }: { res: MonitorData; onBranch: (code: s
         <SortTh k="waiting" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Waiting Review")}</SortTh>
         <SortTh k="days" sort={sorted.sort} onSort={sorted.toggle} pad={th} align="right" first="desc">{tr("Days with Waste")}</SortTh>
         <SortTh k="last" sort={sorted.sort} onSort={sorted.toggle} pad={`${th} pr-5`} first="desc">{tr("Last Entry")}</SortTh></tr></thead>
-      <tbody className="divide-y divide-neutral-100">{paged.rows.map((b, n) => (
-        <tr key={b.code} className="cursor-pointer hover:bg-neutral-50/70" onClick={() => onBranch(b.code)}><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
-          <td className="px-3 py-2 font-medium text-neutral-800">{b.name}</td><td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums">{fmtRp(b.value)}</td>
+      <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((b, n) => (
+        <tr key={b.code} className="cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => onBranch(b.code)}><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
+          <td className="px-3 py-2 font-medium text-[color:var(--j-172B4D)]">{b.name}</td><td className="whitespace-nowrap px-3 py-2 text-right font-medium tabular-nums">{fmtRp(b.value)}</td>
           <td className="px-3 py-2"><Share value={b.value} total={total} /></td>
           <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.entries)}</td>
-          <td className="px-3 py-2 text-right tabular-nums">{b.submitted > 0 ? <Badge tone="amber">{fmtNumber(b.submitted)}</Badge> : <span className="text-neutral-300">0</span>}</td>
-          <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="whitespace-nowrap px-3 py-2 pr-5 text-neutral-600">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
+          <td className="px-3 py-2 text-right tabular-nums">{b.submitted > 0 ? <Badge tone="amber">{fmtNumber(b.submitted)}</Badge> : <span className="text-[color:var(--j-8590A2)]">0</span>}</td>
+          <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.days)}</td><td className="whitespace-nowrap px-3 py-2 pr-5 text-[color:var(--j-44546F)]">{b.last_at ? wibDateTime(b.last_at) : "—"}</td></tr>
       ))}</tbody>
-      <tfoot className="border-t border-neutral-200 bg-neutral-50 text-sm font-semibold"><tr><td /><td className="px-3 py-2.5">{tr("Total")}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td />
+      <tfoot className="border-t border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-sm font-semibold"><tr><td /><td className="px-3 py-2.5">{tr("Total")}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtRp(total)}</td><td />
         <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.entries, 0))}</td><td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(res.byBranch.reduce((a, b) => a + b.submitted, 0))}</td><td colSpan={2} /></tr></tfoot>
       </table>
       <TableFoot note={tr("Open a branch to see its entries")} paged={paged} /></div>
@@ -552,13 +552,13 @@ function CategoriesList({ res }: { res: MonitorData }) {
   if (!rows.length) return <Empty title={tr("No waste in this period")} />;
   return (
     <>
-      <ul className="divide-y divide-neutral-100">{paged.rows.map((c, n) => (
+      <ul className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((c, n) => (
         <li key={c.name} className="flex items-center gap-3 px-5 py-3">
-          <span className="w-6 text-right text-xs tabular-nums text-neutral-400">{(paged.page - 1) * paged.size + n + 1}</span>
+          <span className="w-6 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{(paged.page - 1) * paged.size + n + 1}</span>
           <span className="min-w-0 flex-1">
-            <span className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-medium text-neutral-800">{c.name}</span>
-              <span className="flex-shrink-0 tabular-nums text-neutral-600">{tr("{0} entries", fmtNumber(c.entries))} · {total ? ((c.entries / total) * 100).toFixed(1) : "0.0"}%</span></span>
-            <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${total ? (c.entries / total) * 100 : 0}%` }} /></span>
+            <span className="flex items-center justify-between gap-3 text-sm"><span className="truncate font-medium text-[color:var(--j-172B4D)]">{c.name}</span>
+              <span className="flex-shrink-0 tabular-nums text-[color:var(--j-44546F)]">{tr("{0} entries", fmtNumber(c.entries))} · {total ? ((c.entries / total) * 100).toFixed(1) : "0.0"}%</span></span>
+            <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-388BFF)]" style={{ width: `${total ? (c.entries / total) * 100 : 0}%` }} /></span>
           </span>
         </li>
       ))}</ul>
@@ -570,7 +570,7 @@ function CategoriesList({ res }: { res: MonitorData }) {
 /** Under a summary table: its note and, past one page, the pages (PageNav shows nothing on one page). */
 function TableFoot({ note, paged }: { note?: string; paged: ReturnType<typeof usePaged> }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 px-5 py-2 text-[11px] text-neutral-400">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--j-F1F2F4)] px-5 py-2 text-[11px] text-[color:var(--j-626F86)]">
       <span>{note ?? ""}</span><PageNav paged={paged} />
     </div>
   );
@@ -579,12 +579,12 @@ function TableFoot({ note, paged }: { note?: string; paged: ReturnType<typeof us
 /** A selection of one or more (2026-11-27, Cost Control): nothing ticked = all. */
 function Checks({ label, picked, onChange, items }: { label: string; picked: string[]; onChange: (v: string[]) => void; items: { value: string; label: React.ReactNode }[] }) {
   return (
-    <div role="group" aria-label={label} className="divide-y divide-neutral-100 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+    <div role="group" aria-label={label} className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       {items.map((x) => {
         const on = picked.includes(x.value);
         return (
-          <label key={x.value} className={cx("flex min-h-11 cursor-pointer items-center gap-3 px-3 text-sm sm:min-h-10", on ? "bg-brand-50/60 text-brand-900" : "text-neutral-700 hover:bg-neutral-50")}>
-            <input type="checkbox" className="h-4 w-4 accent-brand-700" checked={on} onChange={() => onChange(on ? picked.filter((y) => y !== x.value) : [...picked, x.value])} />
+          <label key={x.value} className={cx("flex min-h-11 cursor-pointer items-center gap-3 px-3 text-sm sm:min-h-10", on ? "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]")}>
+            <input type="checkbox" className="h-4 w-4 accent-[color:var(--j-0C66E4)]" checked={on} onChange={() => onChange(on ? picked.filter((y) => y !== x.value) : [...picked, x.value])} />
             {x.label}
           </label>
         );
@@ -624,7 +624,7 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
         {/* 2026-11-27 (Cost Control): a selection of one or more statuses; none = every status */}
         <Checks label={tr("Status")} picked={stats} onChange={(v) => setD({ ...d, status: v.join("|") })}
           items={(["submitted", "investigating", "approved", "rejected"] as Status[]).map((x) => ({ value: x, label: <Badge tone={statusTone(x)}>{statusLabel(x)}</Badge> }))} />
-        {!stats.length && <p className="mt-1.5 text-xs text-neutral-500">{tr("None chosen: every status")}</p>}
+        {!stats.length && <p className="mt-1.5 text-xs text-[color:var(--j-626F86)]">{tr("None chosen: every status")}</p>}
       </FilterRow>
       <FilterRow icon={<Tags size={15} />} label={tr("Waste Category")} value={picked.length ? (picked.length === 1 ? picked[0] : tr("{0} categories", picked.length)) : null}
         onClear={() => setD({ ...d, category: "" })}>
@@ -635,7 +635,7 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
             return (
               <button key={c} type="button" aria-pressed={on} onClick={() => setD({ ...d, category: (on ? picked.filter((x) => x !== c) : [...picked, c]).join("|") })}
                 className={cx("inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition-colors",
-                  on ? "bg-brand-700 text-white ring-brand-700" : "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-50")}>
+                  on ? "bg-[color:var(--j-0C66E4)] text-white ring-[color:var(--j-388BFF)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
                 {on && <Check size={12} />}{c}
               </button>
             );
@@ -667,14 +667,14 @@ function RecategorizeDialog({ ids, categories, onClose, onDone }: { ids: string[
       footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!category || reason.trim().length < 3} onClick={() => void apply()}><Tags size={14} />{tr("Change")}</Button></>}>
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-neutral-700">{tr("New category")}
-          <NativeSelect value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm">
+        <label className="block text-sm font-medium text-[color:var(--j-44546F)]">{tr("New category")}
+          <NativeSelect value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 h-10 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-sm">
             <option value="">{tr("Choose a category")}</option>{categories.map((c) => <option key={c} value={c}>{c}</option>)}
           </NativeSelect>
         </label>
-        <label className="block text-sm font-medium text-neutral-700">{tr("Reason")}
+        <label className="block text-sm font-medium text-[color:var(--j-44546F)]">{tr("Reason")}
           <input value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} placeholder={tr("e.g. wrong category picked by the outlet")}
-            className="mt-1 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm" />
+            className="mt-1 h-10 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-sm" />
         </label>
       </div>
     </Dialog>

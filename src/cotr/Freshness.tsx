@@ -23,11 +23,11 @@ const behind = (d: string | null, today: string) => (d ? Math.round((Date.parse(
 
 function Cell({ d, today }: { d: string | null; today: string }) {
   const n = behind(d, today);
-  if (n === null) return <td className="px-3 py-2 text-right text-neutral-300">—</td>;
-  const cls = n <= 1 ? "bg-emerald-50 text-emerald-800" : n <= 3 ? "bg-amber-50 text-amber-800" : "bg-neutral-100 text-neutral-500";
+  if (n === null) return <td className="px-3 py-2 text-right text-[color:var(--j-8590A2)]">—</td>;
+  const cls = n <= 1 ? "bg-emerald-50 text-emerald-800" : n <= 3 ? "bg-amber-50 text-amber-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]";
   return (
     <td className="px-3 py-2 text-right">
-      <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs tabular-nums ${cls}`} title={n === 0 ? tr("today") : tr("{0} days ago", n)}>
+      <span className={`inline-flex items-center gap-1 rounded-[3px] px-1.5 py-0.5 text-xs tabular-nums ${cls}`} title={n === 0 ? tr("today") : tr("{0} days ago", n)}>
         {dmyOf(d!).slice(0, 5)}{n > 1 && <span className="text-[10px] opacity-70">−{n}</span>}</span>
     </td>
   );
@@ -76,10 +76,10 @@ export function Freshness() {
             <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Pool / HUB")}</th><th className="px-3 py-2.5 text-right">{tr("ESB sales")}</th>
               <th className="px-3 py-2.5 text-right">{tr("ESB transfers")}</th><th className="px-3 py-2.5 text-right">{tr("ESB journals")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Workbook")}</th><th className="px-3 py-2.5 text-right">{tr("Physical count")}</th><th className="px-3 py-2.5 text-right">{tr("App")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {data.pools.map((p) => (
                 <tr key={p.pool}>
-                  <td className="px-4 py-2 font-medium text-neutral-900">{p.name}</td>
+                  <td className="px-4 py-2 font-medium text-[color:var(--j-172B4D)]">{p.name}</td>
                   <Cell d={p.esbSales} today={data.today} /><Cell d={p.esbTransfer} today={data.today} /><Cell d={p.esbJournal} today={data.today} />
                   <Cell d={p.sheet} today={data.today} /><Cell d={p.count} today={data.today} /><Cell d={p.app} today={data.today} />
                 </tr>

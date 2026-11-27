@@ -6,11 +6,11 @@
 
 import type React from 'react';
 import { tr } from '@/lib/i18n';
-import { cx } from './index';
+const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
 /** A shimmering block; size it with classes (h-4 w-24 …). */
 export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <span className={cx('skeleton block rounded-md', className)} style={style} aria-hidden />;
+  return <span className={cx('skeleton block rounded-[3px]', className)} style={style} aria-hidden />;
 }
 
 const WIDTHS = ['w-3/4', 'w-1/2', 'w-2/3', 'w-5/12', 'w-7/12'];
@@ -25,7 +25,7 @@ export function SkeletonRows({ cols, rows = 6 }: { cols: number; rows?: number }
             <td key={c} className="px-3 py-2.5">
               {c === 0 ? (
                 <span className="flex items-center gap-3">
-                  <Skeleton className="h-8 w-8 flex-shrink-0 rounded-lg" />
+                  <Skeleton className="h-8 w-8 flex-shrink-0 rounded-[3px]" />
                   <span className="flex-1 space-y-1.5"><Skeleton className={cx('h-3', WIDTHS[r % WIDTHS.length])} /><Skeleton className="h-2.5 w-1/3" /></span>
                 </span>
               ) : <Skeleton className={cx('h-3', WIDTHS[(r + c) % WIDTHS.length])} />}
@@ -43,10 +43,10 @@ export function SkeletonTable({ cols, rows = 8 }: { cols: number; rows?: number 
   return (
     <div className="overflow-hidden" role="status" aria-label={tr('Loading…')}>
       <table className="w-full text-sm">
-        <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500" aria-hidden><tr>
+        <thead className="border-b-2 border-[color:var(--j-DCDFE4)] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]" aria-hidden><tr>
           {Array.from({ length: Math.max(1, cols) }, (_, c) => <th key={c} className="px-3 py-2"><Skeleton className={cx('h-2.5', c === 0 ? 'w-24' : 'w-14')} /></th>)}
         </tr></thead>
-        <tbody className="divide-y divide-neutral-100"><SkeletonRows cols={cols} rows={rows} /></tbody>
+        <tbody className="divide-y divide-[color:var(--j-F1F2F4)]"><SkeletonRows cols={cols} rows={rows} /></tbody>
       </table>
     </div>
   );
@@ -55,10 +55,10 @@ export function SkeletonTable({ cols, rows = 8 }: { cols: number; rows?: number 
 /** A list (cards, timeline rows) while loading. */
 export function SkeletonList({ rows = 5, className }: { rows?: number; className?: string }) {
   return (
-    <div className={cx('divide-y divide-neutral-100', className)} role="status" aria-label={tr('Loading…')}>
+    <div className={cx('divide-y divide-[color:var(--j-F1F2F4)]', className)} role="status" aria-label={tr('Loading…')}>
       {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="flex items-center gap-3 px-4 py-3.5" aria-hidden>
-          <Skeleton className="h-9 w-9 flex-shrink-0 rounded-lg" />
+          <Skeleton className="h-9 w-9 flex-shrink-0 rounded-[3px]" />
           <span className="flex-1 space-y-2"><Skeleton className={cx('h-3', WIDTHS[i % WIDTHS.length])} /><Skeleton className="h-2.5 w-1/3" /></span>
           <Skeleton className="h-6 w-16 rounded-full" />
         </div>
@@ -82,7 +82,7 @@ export function SkeletonCards({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-hidden>
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="space-y-2.5 rounded-md border border-neutral-200 bg-white px-4 py-3.5">
+        <div key={i} className="space-y-2.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3.5">
           <Skeleton className="h-2.5 w-1/2" />
           <SkeletonValue />
         </div>
@@ -97,9 +97,9 @@ export function PageSkeleton({ cards = 4, rows = 6 }: { cards?: number; rows?: n
     <div className="mx-auto w-full max-w-[1400px] space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-6" role="status" aria-label={tr('Loading…')}>
       <div className="space-y-2" aria-hidden><Skeleton className="h-2.5 w-24" /><Skeleton className="h-6 w-64" /><Skeleton className="h-3 w-80 max-w-full" /></div>
       {cards > 0 && <SkeletonCards count={cards} />}
-      <div className="overflow-hidden rounded-md border border-neutral-200 bg-white">
-        <div className="px-4 py-3.5 sm:px-5" aria-hidden><Skeleton className="h-9 w-full max-w-sm rounded-lg" /></div>
-        <SkeletonList rows={rows} className="border-t border-neutral-100" />
+      <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+        <div className="px-4 py-3.5 sm:px-5" aria-hidden><Skeleton className="h-9 w-full max-w-sm rounded-[3px]" /></div>
+        <SkeletonList rows={rows} className="border-t border-[color:var(--j-F1F2F4)]" />
       </div>
     </div>
   );
@@ -108,8 +108,8 @@ export function PageSkeleton({ cards = 4, rows = 6 }: { cards?: number; rows?: n
 /** The whole app while it starts (the session, the brand): the sidebar and a page (2026-11-10). */
 export function AppSkeleton() {
   return (
-    <div className="flex h-dvh bg-neutral-50" role="status" aria-label={tr('Loading…')}>
-      <div className="hidden w-60 flex-shrink-0 space-y-3 border-r border-neutral-200 p-4 lg:block" aria-hidden>
+    <div className="flex h-dvh bg-[color:var(--j-F7F8F9)]" role="status" aria-label={tr('Loading…')}>
+      <div className="hidden w-60 flex-shrink-0 space-y-3 border-r border-[color:var(--j-DCDFE4)] p-4 lg:block" aria-hidden>
         <Skeleton className="h-9 w-36" />
         {Array.from({ length: 7 }, (_, i) => <Skeleton key={i} className="h-7 w-full" />)}
       </div>

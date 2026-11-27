@@ -35,7 +35,7 @@ type Data = {
   reasons: { number: string; status: Status; note: string; at: string }[];
 };
 const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", ORDERED: "bg-violet-500", ON_HOLD: "bg-amber-500",
-  ACCEPTED: "bg-brand-500", IN_PROGRESS: "bg-brand-700", HANDOVER: "bg-cyan-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
+  ACCEPTED: "bg-[color:var(--j-388BFF)]", IN_PROGRESS: "bg-[color:var(--j-0C66E4)]", HANDOVER: "bg-cyan-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
 type Range = "30" | "90" | "180" | "365";
 
 export default function DeOverview({ bgroups }: { bgroups: { id: string; code: string }[] }) {
@@ -56,7 +56,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-neutral-500">{d ? tr("Requests sent {0} – {1}", dmy(d.period.from), dmy(d.period.to)) : tr("Loading…")}</p>
+        <p className="text-xs text-[color:var(--j-626F86)]">{d ? tr("Requests sent {0} – {1}", dmy(d.period.from), dmy(d.period.to)) : tr("Loading…")}</p>
         <div className="flex flex-wrap items-center gap-2">
           {bgroups.length > 0 && (
             <JSelect value={group} onChange={setGroup} label={tr("Branch Group")} placeholder={tr("All Branch Groups")} className="w-48"
@@ -90,7 +90,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
             <>
               <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
                 <Panel title={tr("Weekly Trend")} description={tr("Requests in vs done per week")}
-                  actions={<span className="flex items-center gap-3 text-[11px] text-neutral-500"><Legend color="bg-brand-600" label={tr("In")} /><Legend color="bg-emerald-500" label={tr("Done")} /></span>}>
+                  actions={<span className="flex items-center gap-3 text-[11px] text-[color:var(--j-626F86)]"><Legend color="bg-[color:var(--j-0C66E4)]" label={tr("In")} /><Legend color="bg-emerald-500" label={tr("Done")} /></span>}>
                   {!d ? <Skel /> : <Trend rows={d.trend} />}
                 </Panel>
                 <Panel title={tr("Where the Requests Stand")} description={tr("Current status of the requests of the period")}>
@@ -100,20 +100,20 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
 
               <div className="grid gap-4 lg:grid-cols-2">
                 <Panel title={tr("Average Time per Stage")} description={tr("Where the requests wait longest")}>
-                  {!d ? <Skel /> : <Bars rows={d.stages.map((s) => ({ key: s.status, label: s.label, value: s.avgHours ?? 0, text: fmtHours(s.avgHours), bar: DOT[s.status] ?? "bg-brand-600" }))} />}
+                  {!d ? <Skel /> : <Bars rows={d.stages.map((s) => ({ key: s.status, label: s.label, value: s.avgHours ?? 0, text: fmtHours(s.avgHours), bar: DOT[s.status] ?? "bg-[color:var(--j-0C66E4)]" }))} />}
                 </Panel>
                 <Panel title={tr("Urgency vs Target")} description={tr("Done on target per urgency")}>
                   {!d ? <Skel /> : (
                     <table className="m-cards w-full text-xs">
                       <thead className={theadClass}><tr><th className="px-4 py-2">{tr("Urgency")}</th><th className="px-2 py-2 text-right">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Done")}</th><th className="px-2 py-2">{tr("On Target")}</th><th className="px-4 py-2 text-right">{tr("Average")}</th></tr></thead>
-                      <tbody className="divide-y divide-neutral-100">
+                      <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                         {d.urgency.map((u) => (
                           <tr key={u.urgency}>
-                            <td className="px-4 py-2 text-neutral-800">{URGENCY_LABEL[u.urgency]()}</td>
+                            <td className="px-4 py-2 text-[color:var(--j-172B4D)]">{URGENCY_LABEL[u.urgency]()}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{u.count}</td>
                             <td className="px-2 py-2 text-right tabular-nums">{u.done}</td>
                             <td className="px-2 py-2"><Pct pct={u.pct} /></td>
-                            <td className="px-4 py-2 text-right tabular-nums text-neutral-600">{fmtHours(u.avgHours)}</td>
+                            <td className="px-4 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{fmtHours(u.avgHours)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -134,28 +134,28 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
               <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
                 <Panel title={tr("Internal vs Vendor")} description={tr("Jobs, average time and cost per kind of technician")}>
                   {!d ? <Skel /> : (
-                    <div className="grid grid-cols-2 divide-x divide-neutral-100">
+                    <div className="grid grid-cols-2 divide-x divide-[color:var(--j-F1F2F4)]">
                       {(["INTERNAL", "VENDOR"] as const).map((m) => (
                         <div key={m} className="space-y-1 px-4 py-4">
                           <Badge tone={m === "VENDOR" ? "amber" : "blue"}>{m === "VENDOR" ? tr("Vendor") : tr("Internal")}</Badge>
-                          <p className="text-2xl font-semibold tabular-nums text-neutral-900">{d.modes[m].jobs}<span className="ml-1 text-xs font-normal text-neutral-400">{tr("jobs")}</span></p>
-                          <p className="text-xs text-neutral-500">{tr("{0} done · average {1}", d.modes[m].done, fmtHours(d.modes[m].avgHours))}</p>
-                          <p className="text-sm font-semibold tabular-nums text-neutral-800">{fmtRp(d.modes[m].cost)}</p>
+                          <p className="text-2xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">{d.modes[m].jobs}<span className="ml-1 text-xs font-normal text-[color:var(--j-626F86)]">{tr("jobs")}</span></p>
+                          <p className="text-xs text-[color:var(--j-626F86)]">{tr("{0} done · average {1}", d.modes[m].done, fmtHours(d.modes[m].avgHours))}</p>
+                          <p className="text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(d.modes[m].cost)}</p>
                         </div>
                       ))}
                     </div>
                   )}
                 </Panel>
                 <Panel title={tr("Technicians")} description={tr("Jobs and average time per technician")}>
-                  {!d ? <Skel /> : d.technicians.length === 0 ? <p className="px-4 py-6 text-center text-sm text-neutral-400">—</p> : (
-                    <ul className="divide-y divide-neutral-100">
+                  {!d ? <Skel /> : d.technicians.length === 0 ? <p className="px-4 py-6 text-center text-sm text-[color:var(--j-626F86)]">—</p> : (
+                    <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {d.technicians.map((t) => (
                         <li key={t.name} className="flex items-center gap-3 px-4 py-2 text-sm">
-                          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-bold text-neutral-600">{t.name.slice(0, 1).toUpperCase()}</span>
-                          <span className="min-w-0 flex-1"><span className="block truncate font-medium text-neutral-900">{t.name}</span>
-                            <span className="text-[11px] text-neutral-500">{t.kind === "VENDOR" ? tr("Vendor") : tr("Internal")}</span></span>
-                          <span className="text-right text-xs"><span className="block font-semibold tabular-nums text-neutral-900">{tr("{0} jobs", t.jobs)}</span>
-                            <span className="text-neutral-400">{tr("{0} done · {1}", t.done, fmtHours(t.avgHours))}</span></span>
+                          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-091E420F)] text-[11px] font-bold text-[color:var(--j-44546F)]">{t.name.slice(0, 1).toUpperCase()}</span>
+                          <span className="min-w-0 flex-1"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{t.name}</span>
+                            <span className="text-[11px] text-[color:var(--j-626F86)]">{t.kind === "VENDOR" ? tr("Vendor") : tr("Internal")}</span></span>
+                          <span className="text-right text-xs"><span className="block font-semibold tabular-nums text-[color:var(--j-172B4D)]">{tr("{0} jobs", t.jobs)}</span>
+                            <span className="text-[color:var(--j-626F86)]">{tr("{0} done · {1}", t.done, fmtHours(t.avgHours))}</span></span>
                         </li>
                       ))}
                     </ul>
@@ -166,17 +166,17 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
               <div className="grid gap-4 lg:grid-cols-2">
                 <Panel title={tr("Outlets with Most Requests")} description={tr("Top 10 in the period")}>
                   {!d ? <Skel /> : (
-                    <Bars rows={d.branches.map((b) => ({ key: b.code, label: b.name, value: b.count, text: `${b.count}${b.open ? ` · ${tr("{0} open", b.open)}` : ""}`, bar: "bg-brand-600" }))} />
+                    <Bars rows={d.branches.map((b) => ({ key: b.code, label: b.name, value: b.count, text: `${b.count}${b.open ? ` · ${tr("{0} open", b.open)}` : ""}`, bar: "bg-[color:var(--j-0C66E4)]" }))} />
                   )}
                 </Panel>
                 <Panel title={tr("Repeated Damage")} description={tr("The same item of an outlet asked again within 90 days")}>
-                  {!d ? <Skel /> : d.repeats.length === 0 ? <p className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-neutral-400"><CheckCircle2 size={15} /> {tr("No repeated damage")}</p> : (
-                    <ul className="divide-y divide-neutral-100">
+                  {!d ? <Skel /> : d.repeats.length === 0 ? <p className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-[color:var(--j-626F86)]"><CheckCircle2 size={15} /> {tr("No repeated damage")}</p> : (
+                    <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {d.repeats.map((x) => (
                         <li key={`${x.branchCode}-${x.category}-${x.item}`} className="flex items-start gap-3 px-4 py-2.5 text-sm">
                           <Repeat size={15} className="mt-0.5 flex-shrink-0 text-amber-600" />
-                          <span className="min-w-0 flex-1"><span className="block font-medium text-neutral-900">{x.item} <span className="font-normal text-neutral-500">· {x.category}</span></span>
-                            <span className="block truncate text-[11px] text-neutral-500">{x.branchName} · {x.numbers.join(", ")}</span></span>
+                          <span className="min-w-0 flex-1"><span className="block font-medium text-[color:var(--j-172B4D)]">{x.item} <span className="font-normal text-[color:var(--j-626F86)]">· {x.category}</span></span>
+                            <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{x.branchName} · {x.numbers.join(", ")}</span></span>
                           <Badge tone="amber">{tr("{0}×", x.count)}</Badge>
                         </li>
                       ))}
@@ -186,13 +186,13 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
               </div>
 
               <Panel title={tr("Reasons of reject / on hold")} description={tr("The latest notes of the team")}>
-                {!d ? <Skel /> : d.reasons.length === 0 ? <p className="px-4 py-6 text-center text-sm text-neutral-400">—</p> : (
-                  <ul className="divide-y divide-neutral-100">
+                {!d ? <Skel /> : d.reasons.length === 0 ? <p className="px-4 py-6 text-center text-sm text-[color:var(--j-626F86)]">—</p> : (
+                  <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                     {d.reasons.map((x, i) => (
                       <li key={i} className="flex items-start gap-3 px-4 py-2.5 text-sm">
                         {x.status === "REJECTED" ? <AlertTriangle size={15} className="mt-0.5 flex-shrink-0 text-red-500" /> : <Wrench size={15} className="mt-0.5 flex-shrink-0 text-amber-500" />}
-                        <span className="min-w-0 flex-1"><span className="block text-neutral-800">{x.note}</span>
-                          <span className="text-[11px] text-neutral-500">{x.number} · {STATUS_LABEL[x.status]()} · {wibDateTime(x.at)}</span></span>
+                        <span className="min-w-0 flex-1"><span className="block text-[color:var(--j-172B4D)]">{x.note}</span>
+                          <span className="text-[11px] text-[color:var(--j-626F86)]">{x.number} · {STATUS_LABEL[x.status]()} · {wibDateTime(x.at)}</span></span>
                       </li>
                     ))}
                   </ul>
@@ -210,25 +210,25 @@ const Skel = () => <SkeletonList rows={4} />;
 const Legend = ({ color, label }: { color: string; label: string }) => <span className="inline-flex items-center gap-1.5"><span className={cx("h-2.5 w-2.5 rounded-sm", color)} />{label}</span>;
 
 function Pct({ pct }: { pct: number | null }) {
-  if (pct === null) return <span className="text-xs text-neutral-400">—</span>;
+  if (pct === null) return <span className="text-xs text-[color:var(--j-626F86)]">—</span>;
   return (
     <span className="flex items-center gap-2">
-      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-400" : "bg-red-500")} style={{ width: `${pct}%` }} /></span>
-      <span className="text-xs font-semibold tabular-nums text-neutral-800">{pct}%</span>
+      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-400" : "bg-red-500")} style={{ width: `${pct}%` }} /></span>
+      <span className="text-xs font-semibold tabular-nums text-[color:var(--j-172B4D)]">{pct}%</span>
     </span>
   );
 }
 
 function Bars({ rows }: { rows: { key: string; label: string; value: number; text: string; bar: string }[] }) {
-  if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-neutral-400">—</p>;
+  if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-[color:var(--j-626F86)]">—</p>;
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
     <ul className="space-y-2 px-4 py-4">
       {rows.map((r) => (
         <li key={r.key} className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3 text-xs" title={`${r.label}: ${r.text}`}>
-          <span className="truncate text-neutral-700">{r.label}</span>
-          <span className="h-2.5 overflow-hidden rounded bg-neutral-100"><span className={cx("block h-full rounded", r.bar)} style={{ width: `${(r.value / max) * 100}%` }} /></span>
-          <span className="whitespace-nowrap text-right font-semibold tabular-nums text-neutral-900">{r.text}</span>
+          <span className="truncate text-[color:var(--j-44546F)]">{r.label}</span>
+          <span className="h-2.5 overflow-hidden rounded bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded", r.bar)} style={{ width: `${(r.value / max) * 100}%` }} /></span>
+          <span className="whitespace-nowrap text-right font-semibold tabular-nums text-[color:var(--j-172B4D)]">{r.text}</span>
         </li>
       ))}
     </ul>
@@ -236,21 +236,21 @@ function Bars({ rows }: { rows: { key: string; label: string; value: number; tex
 }
 
 function RowTable({ rows }: { rows: Row[] }) {
-  if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-neutral-400">—</p>;
+  if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-[color:var(--j-626F86)]">—</p>;
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
     <table className="m-cards w-full text-xs">
       <thead className={theadClass}><tr><th className="px-4 py-2">{tr("Name")}</th><th className="px-2 py-2">{tr("Requests")}</th><th className="px-2 py-2 text-right">{tr("Average")}</th><th className="px-4 py-2 text-right">{tr("Cost")}</th></tr></thead>
-      <tbody className="divide-y divide-neutral-100">
+      <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
         {rows.map((r) => (
           <tr key={r.name}>
-            <td className="max-w-[10rem] truncate px-4 py-2 text-neutral-800">{r.name}</td>
+            <td className="max-w-[10rem] truncate px-4 py-2 text-[color:var(--j-172B4D)]">{r.name}</td>
             <td className="px-2 py-2">
-              <span className="flex items-center gap-2"><span className="h-2 w-20 overflow-hidden rounded bg-neutral-100"><span className="block h-full rounded bg-brand-600" style={{ width: `${(r.count / max) * 100}%` }} /></span>
-                <span className="text-xs font-semibold tabular-nums">{r.count}</span>{r.open > 0 && <span className="text-[11px] text-neutral-400">{tr("{0} open", r.open)}</span>}</span>
+              <span className="flex items-center gap-2"><span className="h-2 w-20 overflow-hidden rounded bg-[color:var(--j-091E420F)]"><span className="block h-full rounded bg-[color:var(--j-0C66E4)]" style={{ width: `${(r.count / max) * 100}%` }} /></span>
+                <span className="text-xs font-semibold tabular-nums">{r.count}</span>{r.open > 0 && <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("{0} open", r.open)}</span>}</span>
             </td>
-            <td className="px-2 py-2 text-right text-xs tabular-nums text-neutral-600">{fmtHours(r.avgHours)}</td>
-            <td className="px-4 py-2 text-right text-xs tabular-nums text-neutral-800">{r.cost ? fmtRp(r.cost) : "—"}</td>
+            <td className="px-2 py-2 text-right text-xs tabular-nums text-[color:var(--j-44546F)]">{fmtHours(r.avgHours)}</td>
+            <td className="px-4 py-2 text-right text-xs tabular-nums text-[color:var(--j-172B4D)]">{r.cost ? fmtRp(r.cost) : "—"}</td>
           </tr>
         ))}
       </tbody>
@@ -262,14 +262,14 @@ function StatusMix({ rows, total }: { rows: Data["status"]; total: number }) {
   const shown = rows.filter((r) => r.count > 0);
   return (
     <div className="space-y-3 px-4 py-4">
-      <div className="flex h-3 gap-0.5 overflow-hidden rounded-full bg-neutral-100">
+      <div className="flex h-3 gap-0.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]">
         {shown.map((r) => <span key={r.status} className={DOT[r.status]} style={{ width: `${(r.count / Math.max(1, total)) * 100}%` }} title={`${STATUS_LABEL[r.status]()}: ${r.count}`} />)}
       </div>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
         {rows.map((r) => (
           <li key={r.status} className={cx("flex items-center gap-2", !r.count && "opacity-40")}>
-            <span className={cx("h-2.5 w-2.5 rounded-full", DOT[r.status])} /><span className="flex-1 text-neutral-700">{STATUS_LABEL[r.status]()}</span>
-            <span className="font-semibold tabular-nums text-neutral-900">{r.count}</span>
+            <span className={cx("h-2.5 w-2.5 rounded-full", DOT[r.status])} /><span className="flex-1 text-[color:var(--j-44546F)]">{STATUS_LABEL[r.status]()}</span>
+            <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{r.count}</span>
           </li>
         ))}
       </ul>
@@ -278,22 +278,22 @@ function StatusMix({ rows, total }: { rows: Data["status"]; total: number }) {
 }
 
 function Trend({ rows }: { rows: Data["trend"] }) {
-  if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-neutral-400">—</p>;
+  if (!rows.length) return <p className="px-4 py-6 text-center text-sm text-[color:var(--j-626F86)]">—</p>;
   const max = Math.max(1, ...rows.map((r) => Math.max(r.in, r.done)));
   return (
     <div className="px-4 py-4">
-      <div className="flex h-40 items-end gap-2 overflow-x-auto border-b border-neutral-200">
+      <div className="flex h-40 items-end gap-2 overflow-x-auto border-b border-[color:var(--j-DCDFE4)]">
         {rows.map((r) => (
           <div key={r.week} className="flex min-w-[2.25rem] flex-1 flex-col items-center gap-1" title={`${dmy(r.week)}: ${r.in} / ${r.done}`}>
             <div className="flex h-32 w-full items-end justify-center gap-0.5">
-              <span className="w-2.5 rounded-t bg-brand-600" style={{ height: `${(r.in / max) * 100}%` }} />
+              <span className="w-2.5 rounded-t bg-[color:var(--j-0C66E4)]" style={{ height: `${(r.in / max) * 100}%` }} />
               <span className="w-2.5 rounded-t bg-emerald-500" style={{ height: `${(r.done / max) * 100}%` }} />
             </div>
           </div>
         ))}
       </div>
       <div className="mt-1 flex gap-2 overflow-x-auto">
-        {rows.map((r) => <span key={r.week} className="min-w-[2.25rem] flex-1 text-center text-[10px] tabular-nums text-neutral-400">{dmy(r.week).slice(0, 5)}</span>)}
+        {rows.map((r) => <span key={r.week} className="min-w-[2.25rem] flex-1 text-center text-[10px] tabular-nums text-[color:var(--j-626F86)]">{dmy(r.week).slice(0, 5)}</span>)}
       </div>
     </div>
   );

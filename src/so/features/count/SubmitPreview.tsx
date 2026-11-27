@@ -23,7 +23,7 @@ function Qty({ l }: { l: CountLine }) {
   if (l.source === "WIP_EXPLODED") return <span className="text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom} <span className="text-[11px]">WIP</span></span>;
   const n = l.qty_base === null ? null : Number(l.qty_base) / factorOf(l);
   return (
-    <span className={cx(n === 0 ? "text-neutral-400" : "text-neutral-900")}>
+    <span className={cx(n === 0 ? "text-[color:var(--j-626F86)]" : "text-[color:var(--j-172B4D)]")}>
       {n === null ? "—" : `${fmtQty(n)} ${unitOf(l)}`}
       {wip > 0 && <span className="block text-[11px] text-violet-700">+ {fmtQty(wip)} {l.base_uom} WIP</span>}
     </span>
@@ -53,7 +53,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
       description={`${count.facility_name} · ${count.number}`} locked={busy} focusFirstField={false}
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <p className={cx("text-xs sm:mr-auto", blocked ? "text-red-600" : "text-neutral-500")}>
+          <p className={cx("text-xs sm:mr-auto", blocked ? "text-red-600" : "text-[color:var(--j-626F86)]")}>
             {nameMissing ? tr("Write the signer's name under the signature.") : signature ? tr("Signed · the quantities are locked after submitting.") : tr("Sign below to submit · the quantities are locked after submitting.")}
           </p>
           <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the Count")}</Button>
@@ -63,7 +63,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         </div>
       }>
       <div className="space-y-5">
-        <section className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4 text-sm sm:grid-cols-3">
+        <section className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-4 text-sm sm:grid-cols-3">
           <Info k={tr("Branch")} v={`${count.facility_name} (${count.facility_code})`} />
           <Info k={tr("Count type")} v={countTypeLabel(count.count_type, count.count_type_name)} />
           <Info k={tr("Count day")} v={fmtDay(count.business_date)} />
@@ -73,20 +73,20 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         </section>
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900">
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]">
             <CheckCircle2 size={16} className="text-emerald-600" /> {tr("Quantities")}
-            <span className="text-xs font-normal text-neutral-500">{tr("{0} items · {1} at 0", count.lines.length, zero)}</span>
+            <span className="text-xs font-normal text-[color:var(--j-626F86)]">{tr("{0} items · {1} at 0", count.lines.length, zero)}</span>
           </h3>
           <div className="space-y-3">
             {areas.map(([area, lines]) => (
-              <div key={area} className="overflow-hidden rounded-md border border-neutral-200">
-                <p className="border-b border-neutral-100 bg-neutral-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{area} · {lines.length}</p>
-                <ul className="divide-y divide-neutral-100 text-sm">
+              <div key={area} className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+                <p className="border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{area} · {lines.length}</p>
+                <ul className="divide-y divide-[color:var(--j-F1F2F4)] text-sm">
                   {lines.map((l) => (
                     <li key={l.id} className="flex items-start justify-between gap-3 px-3 py-2">
                       <span className="min-w-0">
-                        <span className="block text-neutral-800">{l.item_name}</span>
-                        <span className="font-mono text-[10px] text-neutral-400">{l.item_code}</span>
+                        <span className="block text-[color:var(--j-172B4D)]">{l.item_name}</span>
+                        <span className="font-mono text-[10px] text-[color:var(--j-626F86)]">{l.item_code}</span>
                       </span>
                       <span className="flex-shrink-0 text-right tabular-nums"><Qty l={l} /></span>
                     </li>
@@ -99,12 +99,12 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
 
         {wip.length > 0 && (
           <section>
-            <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("WIP / Premix")}</h3>
-            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
+            <h3 className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("WIP / Premix")}</h3>
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
               {wip.map((w) => (
                 <li key={w.id} className="flex justify-between gap-3 px-3 py-2">
-                  <span className="min-w-0 truncate text-neutral-800">{w.name}</span>
-                  <span className="tabular-nums text-neutral-700">{fmtQty(w.qty)} {w.uom} · {fmtQty(w.qty_base)} g</span>
+                  <span className="min-w-0 truncate text-[color:var(--j-172B4D)]">{w.name}</span>
+                  <span className="tabular-nums text-[color:var(--j-44546F)]">{fmtQty(w.qty)} {w.uom} · {fmtQty(w.qty_base)} g</span>
                 </li>
               ))}
             </ul>
@@ -112,15 +112,15 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         )}
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Images size={16} className="text-neutral-500" /> {tr("Evidence Photos")} <span className="font-normal text-neutral-500">({count.photos.length})</span></h3>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Images size={16} className="text-[color:var(--j-626F86)]" /> {tr("Evidence Photos")} <span className="font-normal text-[color:var(--j-626F86)]">({count.photos.length})</span></h3>
           {count.photos.length === 0 ? (
-            <p className="rounded-md border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No evidence photos. They are optional; go back to the count to take some.")}</p>
+            <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-4 text-sm text-[color:var(--j-626F86)]">{tr("No evidence photos. They are optional; go back to the count to take some.")}</p>
           ) : (
             <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {count.photos.map((p) => (
                 <li key={p.id}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-                  <img src={photoUrl(p.id)} alt={tr("Photo")} loading="lazy" className="aspect-square w-full rounded-lg object-cover ring-1 ring-neutral-200" />
+                  <img src={photoUrl(p.id)} alt={tr("Photo")} loading="lazy" className="aspect-square w-full rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" />
                 </li>
               ))}
             </ul>
@@ -128,18 +128,18 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
         </section>
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Paperclip size={16} className="text-neutral-500" /> {tr("Evidence Files")} <span className="font-normal text-neutral-500">({count.files?.length ?? 0})</span></h3>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Paperclip size={16} className="text-[color:var(--j-626F86)]" /> {tr("Evidence Files")} <span className="font-normal text-[color:var(--j-626F86)]">({count.files?.length ?? 0})</span></h3>
           {count.files?.length ? <CountFileList files={count.files} /> : (
-            <p className="rounded-md border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No files attached. They are optional; go back to the count to attach some.")}</p>
+            <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-4 text-sm text-[color:var(--j-626F86)]">{tr("No files attached. They are optional; go back to the count to attach some.")}</p>
           )}
         </section>
 
-        <section className="rounded-md border border-neutral-200 p-4">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><PenLine size={16} className="text-neutral-500" /> {tr("Signature")} <span className="font-normal text-neutral-500">({tr("optional")})</span></h3>
-          <p className="mb-3 mt-0.5 text-xs text-neutral-500">{tr("By signing, I confirm the quantities above are what was physically counted.")}</p>
+        <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><PenLine size={16} className="text-[color:var(--j-626F86)]" /> {tr("Signature")} <span className="font-normal text-[color:var(--j-626F86)]">({tr("optional")})</span></h3>
+          <p className="mb-3 mt-0.5 text-xs text-[color:var(--j-626F86)]">{tr("By signing, I confirm the quantities above are what was physically counted.")}</p>
           <SignaturePad onChange={setSignature} />
           <label className="mt-2 block">
-            <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Signer's name")}</span>
+            <span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Signer's name")}</span>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={cx(inputClass, nameMissing && "border-red-400")} />
           </label>
         </section>
@@ -151,8 +151,8 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
 function Info({ k, v }: { k: string; v: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
-      <p className="truncate font-medium text-neutral-800" title={v}>{v}</p>
+      <p className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{k}</p>
+      <p className="truncate font-medium text-[color:var(--j-172B4D)]" title={v}>{v}</p>
     </div>
   );
 }

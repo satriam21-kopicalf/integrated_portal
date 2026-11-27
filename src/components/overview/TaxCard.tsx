@@ -57,7 +57,7 @@ function Rows({ rows, label, limit }: { rows: TaxResponse['channels']; label: (k
               <td className="px-2 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{r.taxedPct != null ? `${fixed(r.taxedPct, 0)}%` : '—'}</td>
               <td className="py-2 pl-2">
                 <span className="flex items-center justify-end gap-2">
-                  <span className="h-1.5 w-14 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${Math.min(100, r.share ?? 0)}%` }} /></span>
+                  <span className="h-1.5 w-14 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-388BFF)]" style={{ width: `${Math.min(100, r.share ?? 0)}%` }} /></span>
                   <span className="w-10 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{fixed(r.share ?? 0, 1)}%</span>
                 </span>
               </td>

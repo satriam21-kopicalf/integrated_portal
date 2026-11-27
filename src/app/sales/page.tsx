@@ -414,7 +414,7 @@ export default function SalesPage() {
 
               {refreshing && (
                 <div className="absolute inset-0 z-10 flex items-start justify-center bg-white/60 pt-24 backdrop-blur-[1px]">
-                  <div className="flex items-center gap-2 rounded-full border border-[color:var(--j-DCDFE4)] bg-white px-4 py-2 text-sm font-medium text-[color:var(--j-44546F)] shadow-sm">
+                  <div className="flex items-center gap-2 rounded-full border border-[color:var(--j-DCDFE4)] bg-white px-4 py-2 text-sm font-medium text-[color:var(--j-44546F)]">
                     <Loader2 size={16} className="animate-spin text-[color:var(--j-626F86)]" />
                     {tr('Updating results…')}
                   </div>

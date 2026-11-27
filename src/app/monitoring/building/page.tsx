@@ -45,18 +45,18 @@ function Filters({ fields, q, onQ, placeholder, excel, add }: { fields: { key: s
   const chosen = fields.filter((f) => f.value);
   const clear = () => fields.forEach((f) => f.onChange(""));
   return (
-    <div className="space-y-2.5 border-b border-neutral-200 p-4 sm:px-5">
+    <div className="space-y-2.5 border-b border-[color:var(--j-DCDFE4)] p-4 sm:px-5">
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-0 flex-1 basis-full sm:basis-64 sm:max-w-md"><SearchBox value={q} onChange={onQ} placeholder={placeholder} /></div>
         <div className="flex flex-1 items-center gap-2 sm:flex-none">
-          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", chosen.length ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-300")}>
-            <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
-          {chosen.length > 0 && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-700 hover:bg-neutral-50 sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
+          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-[3px] border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", chosen.length ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-172B4D)] hover:border-[color:var(--j-8590A2)]")}>
+            <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
+          {chosen.length > 0 && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)] sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
           <ExcelIconButton boxed label={tr("Export to Excel")} onClick={excel} className="!h-11 !w-11 sm:!h-10 sm:!w-10" />
           <Button className="!h-11 sm:!h-10" onClick={add}><Plus size={15} /><span className="hidden sm:inline">{tr("Add")}</span></Button>
         </div>
       </div>
-      {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((f) => <li key={f.key}><button type="button" onClick={() => f.onChange("")} className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-brand-50 px-2.5 text-xs text-brand-900"><span className="text-brand-700/70">{f.label}:</span><span className="font-semibold">{f.options.find((o) => o.value === f.value)?.label ?? f.value}</span><X size={13} /></button></li>)}</ul>}
+      {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((f) => <li key={f.key}><button type="button" onClick={() => f.onChange("")} className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-2.5 text-xs text-[color:var(--j-0055CC)]"><span className="text-[color:var(--j-0C66E4)]/70">{f.label}:</span><span className="font-semibold">{f.options.find((o) => o.value === f.value)?.label ?? f.value}</span><X size={13} /></button></li>)}</ul>}
       <Floating open={open} onClose={() => setOpen(false)} title={tr("Filter")} anchor={btn}
         footer={<><Button variant="secondary" className="flex-1" disabled={!chosen.length} onClick={clear}>{tr("Clear")}</Button><Button className="flex-1" onClick={() => setOpen(false)}>{tr("Show")}</Button></>}>
         <div className="space-y-4 px-4 py-4">{fields.map((f) => <Row key={f.key} label={f.label}><JSelect value={f.value} onChange={f.onChange} label={f.label} placeholder={tr("All")} options={[{ value: "", label: tr("All") }, ...f.options]} /></Row>)}</div>
@@ -89,19 +89,19 @@ export default function BuildingPage() {
   const vens = (res?.vendors ?? []).filter((v) => (!kind || v.kind === kind) && (!loc || v.location === loc) && has(v.name, v.goods, v.location, v.contactName, v.phone));
   const s = res?.summary;
   const matCols: Col<Material>[] = [
-    { key: "cat", card: "title", label: tr("Material"), sort: (r) => `${r.category} ${r.spec ?? ""} ${r.detail ?? ""}`, render: (r) => <><span className="font-medium text-neutral-900">{r.category}{r.spec ? ` · ${r.spec}` : ""}</span>{r.detail && <span className="block text-xs text-neutral-500">{r.detail}</span>}{r.repeat && <Badge tone="blue">{tr("Repeat order")}</Badge>}</> },
-    { key: "grp", label: tr("Group"), sort: (r) => `${String(GROUP_ORDER.indexOf(r.group) + 1).padStart(2, "0")} ${r.category} ${r.spec ?? ""} ${r.detail ?? ""}`, render: (r) => <span className="text-xs text-neutral-600">{r.group}</span> },
-    { key: "price", card: "side", label: tr("Price"), right: true, first: "desc", sort: (r) => r.price, render: (r) => <><span className="font-semibold tabular-nums text-neutral-900">{rp(r.price)}</span>{r.unit && <span className="block text-[11px] text-neutral-500">/ {r.unit}</span>}</> },
-    { key: "on", label: tr("Price date"), sort: (r) => r.priceOn, render: (r) => r.priceOn ? <span className={cx("whitespace-nowrap text-xs", r.stale ? "text-amber-700" : "text-neutral-600")}>{dmy(r.priceOn)}{r.stale && <span className="block">{tr("{0} days · check", r.priceAge ?? 0)}</span>}</span> : <span className="text-xs text-neutral-400">{tr("No price")}</span> },
-    { key: "v", label: tr("Store"), sort: (r) => r.vendor, render: (r) => r.vendor ? <span className="text-xs">{r.vendor}{r.vendorPhone && <a href={waLink(r.vendorPhone)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="block text-brand-700 hover:underline">{r.vendorPhone}</a>}</span> : <span className="text-xs text-neutral-400">—</span> },
-    { key: "note", label: tr("Note"), render: (r) => <span className="line-clamp-2 max-w-56 break-words text-xs text-neutral-500">{r.note ?? ""}</span> },
+    { key: "cat", card: "title", label: tr("Material"), sort: (r) => `${r.category} ${r.spec ?? ""} ${r.detail ?? ""}`, render: (r) => <><span className="font-medium text-[color:var(--j-172B4D)]">{r.category}{r.spec ? ` · ${r.spec}` : ""}</span>{r.detail && <span className="block text-xs text-[color:var(--j-626F86)]">{r.detail}</span>}{r.repeat && <Badge tone="blue">{tr("Repeat order")}</Badge>}</> },
+    { key: "grp", label: tr("Group"), sort: (r) => `${String(GROUP_ORDER.indexOf(r.group) + 1).padStart(2, "0")} ${r.category} ${r.spec ?? ""} ${r.detail ?? ""}`, render: (r) => <span className="text-xs text-[color:var(--j-44546F)]">{r.group}</span> },
+    { key: "price", card: "side", label: tr("Price"), right: true, first: "desc", sort: (r) => r.price, render: (r) => <><span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{rp(r.price)}</span>{r.unit && <span className="block text-[11px] text-[color:var(--j-626F86)]">/ {r.unit}</span>}</> },
+    { key: "on", label: tr("Price date"), sort: (r) => r.priceOn, render: (r) => r.priceOn ? <span className={cx("whitespace-nowrap text-xs", r.stale ? "text-amber-700" : "text-[color:var(--j-44546F)]")}>{dmy(r.priceOn)}{r.stale && <span className="block">{tr("{0} days · check", r.priceAge ?? 0)}</span>}</span> : <span className="text-xs text-[color:var(--j-626F86)]">{tr("No price")}</span> },
+    { key: "v", label: tr("Store"), sort: (r) => r.vendor, render: (r) => r.vendor ? <span className="text-xs">{r.vendor}{r.vendorPhone && <a href={waLink(r.vendorPhone)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="block text-[color:var(--j-0C66E4)] hover:underline">{r.vendorPhone}</a>}</span> : <span className="text-xs text-[color:var(--j-626F86)]">—</span> },
+    { key: "note", label: tr("Note"), render: (r) => <span className="line-clamp-2 max-w-56 break-words text-xs text-[color:var(--j-626F86)]">{r.note ?? ""}</span> },
   ];
   const venCols: Col<Vendor>[] = [
-    { key: "name", card: "title", label: tr("Name"), sort: (r) => r.name, render: (r) => <><span className="font-medium text-neutral-900">{r.name}</span><span className="block text-xs text-neutral-500">{r.goods ?? ""}</span></> },
+    { key: "name", card: "title", label: tr("Name"), sort: (r) => r.name, render: (r) => <><span className="font-medium text-[color:var(--j-172B4D)]">{r.name}</span><span className="block text-xs text-[color:var(--j-626F86)]">{r.goods ?? ""}</span></> },
     { key: "kind", label: tr("Kind"), sort: (r) => r.kind, render: (r) => <Badge tone={r.kind === "STORE" ? "slate" : "violet"}>{r.kindLabel}</Badge> },
     { key: "loc", label: tr("Location"), sort: (r) => r.location, render: (r) => <span className="text-xs">{r.location ?? "—"}</span> },
-    { key: "contact", label: tr("Contact"), render: (r) => <span className="text-xs">{r.contactName && <span className="block">{r.contactName}</span>}{r.phone ? <a href={waLink(r.phone)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-brand-700 hover:underline">{r.phone}</a> : "—"}</span> },
-    { key: "bank", label: tr("Bank account"), render: (r) => <span className="text-xs">{r.bank ? `${r.bank} ${r.accountNo ?? ""}` : "—"}{r.accountName && <span className="block text-neutral-500">a.n. {r.accountName}</span>}</span> },
+    { key: "contact", label: tr("Contact"), render: (r) => <span className="text-xs">{r.contactName && <span className="block">{r.contactName}</span>}{r.phone ? <a href={waLink(r.phone)} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[color:var(--j-0C66E4)] hover:underline">{r.phone}</a> : "—"}</span> },
+    { key: "bank", label: tr("Bank account"), render: (r) => <span className="text-xs">{r.bank ? `${r.bank} ${r.accountNo ?? ""}` : "—"}{r.accountName && <span className="block text-[color:var(--j-626F86)]">a.n. {r.accountName}</span>}</span> },
     { key: "n", card: "side", label: tr("Materials"), right: true, first: "desc", sort: (r) => r.materials, render: (r) => r.materials || "—" },
   ];
   const exportXlsx = () => void downloadSheets(`Building Catalog ${today()}`, [
@@ -193,9 +193,9 @@ function MaterialDrawer({ m, res, onClose, onSaved }: { m: Partial<Material>; re
         {m.id != null && <label className="flex min-h-11 items-center gap-2.5 text-sm"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={!f.active} onChange={(e) => set("active")(!e.target.checked)} />{tr("Not used any more (hidden from the catalog)")}</label>}
       </Group>
       {m.id != null && <Group title={tr("Price history")}>
-        {!hist ? <p className="text-xs text-neutral-500">…</p> : !hist.length ? <p className="text-xs text-neutral-500">{tr("No history yet")}</p> :
-          <Facts rows={hist.map((h, i) => [`${dmy(h.priceOn)} · ${SOURCE[h.source] ?? h.source}`, <span key={i}>{rp(h.price)}<span className="block text-[11px] font-normal text-neutral-500">{[h.vendor, h.note, h.by].filter(Boolean).join(" · ")}</span></span>])} />}
-        <p className="flex items-center gap-1 text-[11px] text-neutral-400"><History size={11} />{tr("Every price change stays here")}</p>
+        {!hist ? <p className="text-xs text-[color:var(--j-626F86)]">…</p> : !hist.length ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("No history yet")}</p> :
+          <Facts rows={hist.map((h, i) => [`${dmy(h.priceOn)} · ${SOURCE[h.source] ?? h.source}`, <span key={i}>{rp(h.price)}<span className="block text-[11px] font-normal text-[color:var(--j-626F86)]">{[h.vendor, h.note, h.by].filter(Boolean).join(" · ")}</span></span>])} />}
+        <p className="flex items-center gap-1 text-[11px] text-[color:var(--j-626F86)]"><History size={11} />{tr("Every price change stays here")}</p>
       </Group>}
     </Drawer>
   );

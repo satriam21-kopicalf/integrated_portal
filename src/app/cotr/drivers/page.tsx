@@ -49,11 +49,11 @@ export default function CotrDriversPage() {
           <span className="relative h-5 w-5"><Image src={assetUrl("assets/xlsx.png")} alt="" fill sizes="20px" className="object-contain" /></span>
         </IconButton>
         <Link href="/users" title={tr("Driver Accounts")} aria-label={tr("Driver Accounts")}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900"><KeyRound size={17} /></Link>
+          className="inline-flex h-9 w-9 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] transition-colors hover:bg-[color:var(--j-F7F8F9)] hover:text-[color:var(--j-172B4D)]"><KeyRound size={17} /></Link>
       </>}>
       {importing && <ImportDrivers pools={pools.rows ?? []} onClose={() => setImporting(false)} onDone={() => { void master.load(); void fleet.load(); }} />}
       {!management && (
-        <p className="flex items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
+        <p className="flex items-center gap-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-626F86)]">
           <ShieldCheck size={14} />{tr("Salary, bank account and NIK are shown to superadmins and the COTR management only.")}
         </p>
       )}
@@ -70,18 +70,18 @@ export default function CotrDriversPage() {
         columns={[
           { label: tr("Driver"), render: (d) => (
             <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-neutral-400">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {d.has_photo ? <img src={thumb(imageUrl("drivers", d.code, "photo", d.updated_at), 96)} decoding="async" alt="" className="h-full w-full object-cover" loading="lazy" /> : <UserRound size={16} />}
               </span>
-              <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{d.name || "—"}</span><span className="text-[11px] text-neutral-400">{d.employee_id ?? d.code}{d.nickname ? ` · ${d.nickname}` : ""}{d.phone ? ` · ${d.phone}` : ""}</span></span>
+              <span className="min-w-0"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{d.name || "—"}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{d.employee_id ?? d.code}{d.nickname ? ` · ${d.nickname}` : ""}{d.phone ? ` · ${d.phone}` : ""}</span></span>
             </span>
           ) },
-          { label: tr("Department"), render: (d) => d.department ? <Badge tone={d.department === "Armada" ? "blue" : "slate"}>{d.department}</Badge> : <span className="text-neutral-400">—</span> },
+          { label: tr("Department"), render: (d) => d.department ? <Badge tone={d.department === "Armada" ? "blue" : "slate"}>{d.department}</Badge> : <span className="text-[color:var(--j-626F86)]">—</span> },
           { label: tr("Pool / HUB"), render: (d) => poolName(d.pool_code) },
-          { label: tr("Fleet"), render: (d) => (d.fleet_code || d.bike_code) ? <span className="text-xs">{d.fleet_code ?? "—"}{d.bike_code ? <span className="block text-[11px] text-neutral-400">{tr("Bike {0}", d.bike_code)}</span> : null}</span> : <span className="text-neutral-400">{tr("Not assigned")}</span> },
-          { label: tr("Employment"), render: (d) => d.employment_status ? <span className="text-xs">{EMPLOYMENT[d.employment_status]()}{d.position ? ` · ${d.position}` : ""}</span> : <span className="text-neutral-400">—</span> },
-          ...(management ? [{ label: tr("Salary / Month"), className: "text-right", render: (d: Driver) => d.salary_monthly ? <span className="tabular-nums">{rupiah(d.salary_monthly)}</span> : <span className="text-neutral-400">—</span> }] : []),
+          { label: tr("Fleet"), render: (d) => (d.fleet_code || d.bike_code) ? <span className="text-xs">{d.fleet_code ?? "—"}{d.bike_code ? <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("Bike {0}", d.bike_code)}</span> : null}</span> : <span className="text-[color:var(--j-626F86)]">{tr("Not assigned")}</span> },
+          { label: tr("Employment"), render: (d) => d.employment_status ? <span className="text-xs">{EMPLOYMENT[d.employment_status]()}{d.position ? ` · ${d.position}` : ""}</span> : <span className="text-[color:var(--j-626F86)]">—</span> },
+          ...(management ? [{ label: tr("Salary / Month"), className: "text-right", render: (d: Driver) => d.salary_monthly ? <span className="tabular-nums">{rupiah(d.salary_monthly)}</span> : <span className="text-[color:var(--j-626F86)]">—</span> }] : []),
           { label: tr("Status"), render: (d) => <Badge tone={STATUS[d.status].tone} dot>{STATUS[d.status].label()}</Badge> },
           { label: tr("Account"), render: (d) => d.account ? <span className="font-mono text-xs">{d.account}</span> : <Badge tone="amber">{tr("No account yet")}</Badge> },
         ]}

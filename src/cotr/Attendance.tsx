@@ -41,16 +41,16 @@ export function CotrAttendance({ day, pool, q }: { day: string; pool: string; q:
   if (error) return <div className="p-4"><ErrorState message={error} /></div>;
   return (
     <>
-      <div className="border-b border-neutral-200 px-4 py-3 sm:px-5">
+      <div className="border-b border-[color:var(--j-DCDFE4)] px-4 py-3 sm:px-5">
         <QuickChips label={tr("Attendance")} value={show} onChange={setShow} items={[
           { key: "all" as Show, label: tr("All"), count: n("all") },
           { key: "in" as Show, label: tr("Punched in"), dot: "bg-emerald-500", count: n("in") },
           { key: "out" as Show, label: tr("Not punched in"), dot: "bg-neutral-400", count: n("out") },
           { key: "noshift" as Show, label: tr("Punched, no shift"), dot: "bg-amber-500", count: n("noshift") },
           { key: "away" as Show, label: tr("Outside the pool"), dot: "bg-red-500", count: n("away") }]} />
-        {data && <p className="mt-2 text-xs text-neutral-500">{tr("{0} of {1} employees linked to HRMS · {2} punched in", data.summary.linked, data.summary.people, data.summary.punched)}</p>}
+        {data && <p className="mt-2 text-xs text-[color:var(--j-626F86)]">{tr("{0} of {1} employees linked to HRMS · {2} punched in", data.summary.linked, data.summary.people, data.summary.punched)}</p>}
       </div>
-      {!data ? <div className="p-4"><div className="skeleton h-48 rounded-lg" /></div> : rows.length === 0 ? (
+      {!data ? <div className="p-4"><div className="skeleton h-48 rounded-[3px]" /></div> : rows.length === 0 ? (
         <Empty icon={<Fingerprint size={28} />} title={tr("No one matches")} />
       ) : (
         <div className="overflow-x-auto">
@@ -59,9 +59,9 @@ export function CotrAttendance({ day, pool, q }: { day: string; pool: string; q:
               <th className={jTh}>{tr("Punch out")}</th><th className={jTh}>{tr("Place")}</th><th className={jTh}>{tr("Driver app shift")}</th></tr></thead>
             <tbody>
               {paged.rows.map((r) => (
-                <tr key={r.code} className="border-b border-neutral-100">
+                <tr key={r.code} className="border-b border-[color:var(--j-F1F2F4)]">
                   <td className={jTd} data-label={tr("Employee")}><Person name={r.name} sub={[r.position, r.fleet].filter(Boolean).join(" · ") || r.code} /></td>
-                  <td className={cx(jTd, "text-neutral-600")} data-label={tr("Pool / HUB")}>{r.poolName}</td>
+                  <td className={cx(jTd, "text-[color:var(--j-44546F)]")} data-label={tr("Pool / HUB")}>{r.poolName}</td>
                   <td className={jTd} data-label={tr("Punch in")}>
                     {!r.linked ? <Lozenge tone="grey">{tr("Not linked to HRMS")}</Lozenge> : r.punchIn ? (
                       <span className="tabular-nums">{r.punchIn} {r.late > 0 && <Lozenge tone="amber">{tr("Late {0} min", r.late)}</Lozenge>}</span>
@@ -71,7 +71,7 @@ export function CotrAttendance({ day, pool, q }: { day: string; pool: string; q:
                   <td className={jTd} data-label={tr("Place")}>
                     {r.punchIn ? <span className="flex flex-wrap items-center gap-1.5">
                       {r.atPool === null ? <Lozenge tone="grey">{tr("Unknown")}</Lozenge> : r.atPool ? <Lozenge tone="green">{tr("At the site")}</Lozenge> : <Lozenge tone="red">{tr("Outside")}</Lozenge>}
-                      {r.meters !== null && <span className={cx("text-[11px]", r.nearPool === false ? "text-amber-700" : "text-neutral-400")}
+                      {r.meters !== null && <span className={cx("text-[11px]", r.nearPool === false ? "text-amber-700" : "text-[color:var(--j-626F86)]")}
                         title={tr("Distance to the point of the pool in Master Pool")}>{tr("{0} m from the pool point", r.meters)}</span>}
                     </span> : "—"}
                   </td>

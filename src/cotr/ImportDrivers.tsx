@@ -81,7 +81,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
             </Field>
           )}
           <Field label={tr('Excel File (.xlsx)')} required>
-            <label className="flex h-11 cursor-pointer items-center gap-2 rounded-md border border-dashed border-neutral-300 px-3 text-sm text-neutral-600 hover:bg-neutral-50 lg:h-10">
+            <label className="flex h-11 cursor-pointer items-center gap-2 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] px-3 text-sm text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)] lg:h-10">
               <Upload size={16} /> <span className="truncate">{name || tr('Choose a file')}</span>
               <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => void pick(e.target.files?.[0])} />
             </label>
@@ -98,21 +98,21 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
             </div>
             {team && result.departments && (
               <div className="flex flex-wrap gap-1.5">
-                <button type="button" onClick={() => setDept('')} className={cx('rounded-full border px-2.5 py-1 text-xs', !dept ? 'border-brand-600 bg-brand-50 text-brand-800' : 'border-neutral-200 text-neutral-600')}>{tr('All')} · {result.rows.length}</button>
+                <button type="button" onClick={() => setDept('')} className={cx('rounded-full border px-2.5 py-1 text-xs', !dept ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]' : 'border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)]')}>{tr('All')} · {result.rows.length}</button>
                 {Object.entries(result.departments).map(([d, n]) => (
-                  <button key={d} type="button" onClick={() => setDept(d)} className={cx('rounded-full border px-2.5 py-1 text-xs', dept === d ? 'border-brand-600 bg-brand-50 text-brand-800' : 'border-neutral-200 text-neutral-600')}>{d || '—'} · {n}</button>
+                  <button key={d} type="button" onClick={() => setDept(d)} className={cx('rounded-full border px-2.5 py-1 text-xs', dept === d ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]' : 'border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)]')}>{d || '—'} · {n}</button>
                 ))}
               </div>
             )}
-            <div className="max-h-[28rem] overflow-auto rounded-md border border-neutral-200">
+            <div className="max-h-[28rem] overflow-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
               {team ? (
                 <table className="m-cards w-full min-w-[720px] text-sm">
                   <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Employee')}</th><th className="px-3 py-2">{tr('Department')}</th><th className="px-3 py-2">{tr('Pool / HUB')}</th>
                     <th className="px-3 py-2">{tr('Bike')}</th><th className="px-3 py-2">{tr('Armada (QRIS)')}</th><th className="px-3 py-2" /></tr></thead>
-                  <tbody className="divide-y divide-neutral-100">
+                  <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                     {teamRows.map((r) => (
                       <tr key={r.employeeId}>
-                        <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{r.name}</span><span className="text-[11px] text-neutral-400">{r.employeeId} · {r.nickname}</span></td>
+                        <td className="px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{r.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{r.employeeId} · {r.nickname}</span></td>
                         <td className="px-3 py-2 text-xs">{r.department}</td>
                         <td className="px-3 py-2 text-xs">{poolName(r.pool)}</td>
                         <td className="px-3 py-2 font-mono text-xs">{r.bike || '—'}</td>
@@ -125,12 +125,12 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
               ) : (
                 <table className="m-cards w-full text-sm">
                   <thead className={theadClass}><tr><th className="px-3 py-2">{tr('Fleet')}</th><th className="px-3 py-2">{tr('Name')}</th><th className="px-3 py-2">{tr('Phone')}</th><th className="px-3 py-2" /></tr></thead>
-                  <tbody className="divide-y divide-neutral-100">
+                  <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                     {(result.rows as ArmadaRow[]).map((r) => (
                       <tr key={r.armada}>
                         <td className="px-3 py-2 font-mono text-xs">{r.armada}</td>
-                        <td className="px-3 py-2">{r.name}{r.action === 'update' && r.current && <span className="block text-[11px] text-neutral-400">{tr('now')}: {r.current}</span>}</td>
-                        <td className="px-3 py-2 text-xs text-neutral-500">{r.phone || '—'}</td>
+                        <td className="px-3 py-2">{r.name}{r.action === 'update' && r.current && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr('now')}: {r.current}</span>}</td>
+                        <td className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{r.phone || '—'}</td>
                         <td className="px-3 py-2 text-right"><Badge tone={ACTION[r.action].tone}>{ACTION[r.action].label()}</Badge></td>
                       </tr>
                     ))}
@@ -139,7 +139,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
               )}
             </div>
             {!!result.skipped?.length && (
-              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+              <div className="rounded-[3px] border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
                 <p className="font-semibold">{tr('Left out')}</p>
                 <ul className="mt-1 space-y-0.5">{result.skipped.slice(0, 20).map((r) => <li key={r.employeeId}>{r.employeeId} · {r.name}: {r.reason}</li>)}</ul>
               </div>

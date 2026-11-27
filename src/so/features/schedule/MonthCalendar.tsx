@@ -12,7 +12,7 @@ export type CalendarCount = { code: string; name: string; frequency: string; win
 export type CalendarDay = { date: string; counts: CalendarCount[] };
 
 export const TYPE_COLORS = [
-  "bg-brand-600", "bg-emerald-600", "bg-amber-500", "bg-violet-600", "bg-rose-600", "bg-cyan-600", "bg-lime-600", "bg-orange-500",
+  "bg-[color:var(--j-0C66E4)]", "bg-emerald-600", "bg-amber-500", "bg-violet-600", "bg-rose-600", "bg-cyan-600", "bg-lime-600", "bg-orange-500",
 ];
 
 /** Monday on or before the first day of the month: the first cell of a 6-week month grid. */
@@ -45,20 +45,20 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
   return (
     <div>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-neutral-900">{month.toLocaleDateString(locale(), { month: "long", year: "numeric" })}</p>
+        <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{month.toLocaleDateString(locale(), { month: "long", year: "numeric" })}</p>
         {onMonth && (
           <div className="flex items-center gap-1">
             <button type="button" onClick={() => onMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-              className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Previous Month")}><ChevronLeft size={16} /></button>
+              className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Previous Month")}><ChevronLeft size={16} /></button>
             <button type="button" onClick={() => onMonth(wibMonthStart())}
-              className="rounded-md px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100">{tr("Today")}</button>
+              className="rounded-[3px] px-2 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]">{tr("Today")}</button>
             <button type="button" onClick={() => onMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-              className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Next Month")}><ChevronRight size={16} /></button>
+              className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Next Month")}><ChevronRight size={16} /></button>
           </div>
         )}
       </div>
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200 text-xs">
-        {weekdays.map((w) => <div key={w} className="bg-neutral-50 px-1.5 py-1 text-center font-semibold uppercase tracking-wide text-[10px] text-neutral-500">{w}</div>)}
+      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-DCDFE4)] text-xs">
+        {weekdays.map((w) => <div key={w} className="bg-[color:var(--j-F7F8F9)] px-1.5 py-1 text-center font-semibold uppercase tracking-wide text-[10px] text-[color:var(--j-626F86)]">{w}</div>)}
         {cells.map((d) => {
           const key = iso(d);
           const inMonth = d.getMonth() === month.getMonth();
@@ -69,11 +69,11 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
             <div key={key} role={pickable ? "button" : undefined} tabIndex={pickable ? 0 : undefined} aria-pressed={pickable ? !!marked : undefined}
               onClick={pickable ? () => onPick(key) : undefined}
               onKeyDown={pickable ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(key); } } : undefined}
-              className={cx("bg-white px-1 py-1", compact ? "min-h-9" : "min-h-12 sm:min-h-[5.5rem]", !inMonth && "bg-neutral-50/70", marked && "bg-brand-50",
-                pickable && "cursor-pointer hover:bg-brand-50/60", onPick && !pickable && "opacity-50")}>
+              className={cx("bg-white px-1 py-1", compact ? "min-h-9" : "min-h-12 sm:min-h-[5.5rem]", !inMonth && "bg-[color:var(--j-F7F8F9)]", marked && "bg-[color:var(--j-E9F2FF)]",
+                pickable && "cursor-pointer hover:bg-[color:var(--j-E9F2FF)]", onPick && !pickable && "opacity-50")}>
               <span className={cx("mb-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] tabular-nums",
-                key === today ? "bg-brand-700 font-semibold text-white" : inMonth ? "text-neutral-700" : "text-neutral-300",
-                marked && key !== today && "bg-brand-600 font-semibold text-white")}>{d.getDate()}</span>
+                key === today ? "bg-[color:var(--j-0C66E4)] font-semibold text-white" : inMonth ? "text-[color:var(--j-44546F)]" : "text-[color:var(--j-8590A2)]",
+                marked && key !== today && "bg-[color:var(--j-0C66E4)] font-semibold text-white")}>{d.getDate()}</span>
               {!compact && counts.length > 0 && (
                 <span className="flex flex-wrap gap-0.5 px-0.5 sm:hidden" aria-label={counts.map((c) => labelOf(c.code, c.name)).join(", ")}>
                   {counts.map((c) => <span key={c.code} className={cx("h-1.5 w-1.5 rounded-full", colorOf(c.code))} />)}
@@ -82,13 +82,13 @@ export default function MonthCalendar({ month, days, colorOf, labelOf, onMonth, 
               {!compact && (
                 <ul className="hidden space-y-0.5 sm:block">
                   {counts.slice(0, 3).map((c) => (
-                    <li key={c.code} className="flex min-w-0 items-center gap-1 rounded px-1 py-0.5 text-[10.5px] leading-tight text-neutral-700 hover:bg-neutral-50"
+                    <li key={c.code} className="flex min-w-0 items-center gap-1 rounded px-1 py-0.5 text-[10.5px] leading-tight text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]"
                       title={`${labelOf(c.code, c.name)} · ${c.window_start}–${c.window_end} ${TZ_LABEL}`}>
                       <span className={cx("h-1.5 w-1.5 flex-shrink-0 rounded-full", colorOf(c.code))} />
-                      <span className="truncate"><span className="tabular-nums text-neutral-400">{c.window_start}</span> {labelOf(c.code, c.name)}</span>
+                      <span className="truncate"><span className="tabular-nums text-[color:var(--j-626F86)]">{c.window_start}</span> {labelOf(c.code, c.name)}</span>
                     </li>
                   ))}
-                  {counts.length > 3 && <li className="px-1 text-[10px] text-neutral-400">{tr("+{0} more", counts.length - 3)}</li>}
+                  {counts.length > 3 && <li className="px-1 text-[10px] text-[color:var(--j-626F86)]">{tr("+{0} more", counts.length - 3)}</li>}
                 </ul>
               )}
             </div>

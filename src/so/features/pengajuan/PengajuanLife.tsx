@@ -34,27 +34,27 @@ export function LifeSummary({ p }: { p: Pengajuan }) {
       diff == null || diff === 0 ? undefined : diff > 0 ? "text-amber-700" : "text-emerald-700"],
   ];
   return (
-    <section className="space-y-3 rounded-md border border-violet-200 bg-violet-50/30 p-4">
-      <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-neutral-900"><Scale size={15} className="text-violet-600" /> {tr("Proof & difference")}
+    <section className="space-y-3 rounded-[3px] border border-violet-200 bg-violet-50/30 p-4">
+      <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Scale size={15} className="text-violet-600" /> {tr("Proof & difference")}
         {p.status === "PAID" && p.proofDueOn && (
-          <span className={cx("ml-auto rounded px-2 py-0.5 text-xs font-medium", p.proofOverdue ? "bg-red-100 text-red-800" : "bg-white text-neutral-600 ring-1 ring-neutral-200")}>
+          <span className={cx("ml-auto rounded px-2 py-0.5 text-xs font-medium", p.proofOverdue ? "bg-red-100 text-red-800" : "bg-white text-[color:var(--j-44546F)] ring-1 ring-[color:var(--j-DCDFE4)]")}>
             {p.proofOverdue ? tr("Proof overdue since {0}", wibDay(p.proofDueOn)) : tr("Proof due {0}", wibDay(p.proofDueOn))}</span>)}
       </h3>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {cells.map(([k, v, tone]) => (
-          <div key={k} className="rounded-xl bg-white px-3 py-2 ring-1 ring-neutral-200">
-            <dt className="text-xs font-semibold text-neutral-400">{k}</dt>
-            <dd className={cx("mt-0.5 truncate text-sm font-semibold tabular-nums text-neutral-900", tone)}>{v}</dd>
+          <div key={k} className="rounded-[3px] bg-white px-3 py-2 ring-1 ring-[color:var(--j-DCDFE4)]">
+            <dt className="text-xs font-semibold text-[color:var(--j-626F86)]">{k}</dt>
+            <dd className={cx("mt-0.5 truncate text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]", tone)}>{v}</dd>
           </div>
         ))}
       </dl>
       {diff != null && diff !== 0 && (
-        <p className="text-xs text-neutral-600">{diff > 0
+        <p className="text-xs text-[color:var(--j-44546F)]">{diff > 0
           ? (p.topupAmount ? tr("Shortfall paid {0}; still {1}", fmtRp(p.topupAmount), fmtRp(Math.max(left, 0))) : tr("Finance pays the shortfall {0} in this request", fmtRp(diff)))
           : (p.refundedAt ? tr("Money back {0} received {1}", fmtRp(p.refundAmount ?? -diff), wibDay(p.refundedAt)) : tr("{0} goes back to the company; Done once Finance confirms it", fmtRp(-diff)))}</p>
       )}
-      {p.actualNote && <p className="whitespace-pre-line text-xs text-neutral-600"><span className="font-medium text-neutral-800">{tr("Requester")}:</span> {p.actualNote}</p>}
-      {p.verifiedNote && <p className="whitespace-pre-line text-xs text-neutral-600"><span className="font-medium text-neutral-800">{tr("Finance adjustment")}:</span> {p.verifiedNote}</p>}
+      {p.actualNote && <p className="whitespace-pre-line text-xs text-[color:var(--j-44546F)]"><span className="font-medium text-[color:var(--j-172B4D)]">{tr("Requester")}:</span> {p.actualNote}</p>}
+      {p.verifiedNote && <p className="whitespace-pre-line text-xs text-[color:var(--j-44546F)]"><span className="font-medium text-[color:var(--j-172B4D)]">{tr("Finance adjustment")}:</span> {p.verifiedNote}</p>}
       {(proof.length > 0 || topup.length > 0) && (
         <div className="flex flex-wrap gap-2">{proof.map((f) => <FileChip key={f.id} f={f} />)}{topup.map((f) => <FileChip key={f.id} f={f} />)}</div>
       )}
@@ -97,9 +97,9 @@ export function ProofPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Peng
   };
   const asked = rule.proofDocs.length ? rule.proofDocs.map(docLabel).join(", ") : tr("bill / receipt / invoice");
   return (
-    <section className={cx("space-y-3 rounded-md border p-4", p.proofOverdue ? "border-red-300 bg-red-50/40" : "border-brand-200 bg-brand-50/30")}>
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><Receipt size={15} className="text-brand-600" /> {tr("Send the proof to Finance")}</h3>
-      <p className="text-xs text-neutral-600">{tr("The money was paid. Attach the proof ({0}) and the amount really spent; Finance checks it and closes the request.", asked)}
+    <section className={cx("space-y-3 rounded-[3px] border p-4", p.proofOverdue ? "border-red-300 bg-red-50/40" : "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)]")}>
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Receipt size={15} className="text-[color:var(--j-0C66E4)]" /> {tr("Send the proof to Finance")}</h3>
+      <p className="text-xs text-[color:var(--j-44546F)]">{tr("The money was paid. Attach the proof ({0}) and the amount really spent; Finance checks it and closes the request.", asked)}
         {p.proofDueOn && ` ${tr("Due {0}.", wibDay(p.proofDueOn))}`}</p>
       {p.proofOverdue && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-700"><AlertTriangle size={13} /> {tr("The proof is overdue")}</p>}
       <div className="flex flex-wrap items-end gap-2">
@@ -107,15 +107,15 @@ export function ProofPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Peng
         <select value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Document")} className={cx(inputClass, "h-9 !w-auto text-xs")}>
           {DOCS.map((d) => <option key={d} value={d}>{docLabel(d)}</option>)}
         </select>
-        <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-700 px-3 text-xs font-medium text-white hover:bg-brand-800">
+        <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-0055CC)]">
           <Paperclip size={13} /> {tr("Attach")}
           <input type="file" accept={ACCEPT} multiple className="hidden" onChange={(e) => void add(e.target.files)} />
         </label>
       </div>
       <div className="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)]">
-        <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Amount really spent")}</span>
+        <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Amount really spent")}</span>
           <input value={amount} inputMode="numeric" onChange={(e) => setAmount(typeRp(parseRp(e.target.value)))} className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} /></label>
-        <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Note for Finance")}</span>
+        <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Note for Finance")}</span>
           <input value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} placeholder={tr("e.g. the rest is returned by transfer")} className={cx(inputClass, "h-10 text-sm")} /></label>
       </div>
       {diff != null && diff !== 0 && (
@@ -144,9 +144,9 @@ export function CancelPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Pen
   };
   if (!open) return <div className="flex justify-end"><Button variant="ghost" onClick={() => setOpen(true)}><Ban size={14} /> {tr("Cancel request")}</Button></div>;
   return (
-    <section className="space-y-2 rounded-md border border-red-200 bg-red-50/40 p-4">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><Ban size={15} className="text-red-700" /> {tr("Cancel request")}</h3>
-      <p className="text-xs text-neutral-600">{tr("The request stops here and cannot be reopened. Only possible before Finance pays.")}</p>
+    <section className="space-y-2 rounded-[3px] border border-red-200 bg-red-50/40 p-4">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Ban size={15} className="text-red-700" /> {tr("Cancel request")}</h3>
+      <p className="text-xs text-[color:var(--j-44546F)]">{tr("The request stops here and cannot be reopened. Only possible before Finance pays.")}</p>
       <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Reason for cancelling (required)")} className={cx(inputClass, "h-auto py-2 text-sm")} />
       <div className="flex justify-end gap-2">
         <Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>{tr("Back")}</Button>
@@ -185,16 +185,16 @@ export function VerifyPanel({ p, base, onChanged }: { p: Pengajuan; base: string
     try { onChanged(await call<Pengajuan>(`${base}/topup-files/${id}`, { method: "DELETE" })); } catch (e) { toast((e as Error).message, "error"); }
   };
   return (
-    <section className="space-y-3 rounded-md border border-amber-300 bg-amber-50/40 p-4">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><Scale size={15} className="text-amber-700" /> {tr("Verify the proof")}</h3>
-      <p className="text-xs text-neutral-700">{p.outstanding == null ? tr("The amount spent is not filled in: set it with Adjust amount.") : diff > 0 ? tr("Spent {0} more than paid: pay the shortfall here, then Done.", fmtRp(diff))
+    <section className="space-y-3 rounded-[3px] border border-amber-300 bg-amber-50/40 p-4">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Scale size={15} className="text-amber-700" /> {tr("Verify the proof")}</h3>
+      <p className="text-xs text-[color:var(--j-44546F)]">{p.outstanding == null ? tr("The amount spent is not filled in: set it with Adjust amount.") : diff > 0 ? tr("Spent {0} more than paid: pay the shortfall here, then Done.", fmtRp(diff))
         : diff < 0 ? tr("{0} less than paid: Done asks for the money back; confirm it with its proof.", fmtRp(-diff)) : tr("Spent as paid: check the proof and press Done.")}</p>
       {mode && (
-        <div className="space-y-2 rounded-md bg-white p-3 ring-1 ring-neutral-200">
+        <div className="space-y-2 rounded-[3px] bg-white p-3 ring-1 ring-[color:var(--j-DCDFE4)]">
           {mode === "TOPUP" && (
             <div className="flex flex-wrap items-end gap-2">
               {topupFiles.map((f) => <FileChip key={f.id} f={f} onRemove={p.topupPaidAt ? undefined : () => void removeTopup(f.id)} />)}
-              <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-700 px-3 text-xs font-medium text-white hover:bg-brand-800">
+              <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-0055CC)]">
                 <Paperclip size={13} /> {tr("Attach transfer proof")}
                 <input type="file" accept={ACCEPT} multiple className="hidden" onChange={(e) => void attach(e.target.files)} /></label>
             </div>
@@ -249,34 +249,34 @@ export function RulesPanel({ rules, lifecycle, docs, edit, onChanged }: { rules:
   const groups: [RuleRow["group"], string][] = [["outlet", tr("Outlet requests")], ["de", tr("Maintenance & Procurement")], ["personal", tr("Personal requests")]];
   return (
     <section className="space-y-4">
-      <div className="border-b border-neutral-200 pb-3">
-        <h3 className="text-base font-semibold text-neutral-900">{tr("Rules after the payment")}</h3>
-        <p className="mt-0.5 max-w-xl text-xs text-neutral-500">{tr("Every request goes Pending → Approved → In Progress → Verifying → Done. A kind without proof after the money is Done once paid; with it, the requester attaches the proof and Finance verifies it.")}</p>
+      <div className="border-b border-[color:var(--j-DCDFE4)] pb-3">
+        <h3 className="text-base font-semibold text-[color:var(--j-172B4D)]">{tr("Rules after the payment")}</h3>
+        <p className="mt-0.5 max-w-xl text-xs text-[color:var(--j-626F86)]">{tr("Every request goes Pending → Approved → In Progress → Verifying → Done. A kind without proof after the money is Done once paid; with it, the requester attaches the proof and Finance verifies it.")}</p>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
-        <label className="flex cursor-pointer items-start gap-3 rounded border border-neutral-200 px-3 py-2.5">
+        <label className="flex cursor-pointer items-start gap-3 rounded border border-[color:var(--j-DCDFE4)] px-3 py-2.5">
           <input type="checkbox" className="mt-0.5" disabled={!edit} checked={life.blockOverdueProof} onChange={(e) => void saveLife({ blockOverdueProof: e.target.checked })} />
-          <span><span className="block text-sm font-medium text-neutral-900">{tr("Block new requests while a proof is overdue")}</span>
-            <span className="block text-xs text-neutral-500">{tr("Someone whose proof is past its due day cannot send a new request until it is complete")}</span></span>
+          <span><span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Block new requests while a proof is overdue")}</span>
+            <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Someone whose proof is past its due day cannot send a new request until it is complete")}</span></span>
         </label>
-        <label className="flex items-center justify-between gap-3 rounded border border-neutral-200 px-3 py-2.5">
-          <span><span className="block text-sm font-medium text-neutral-900">{tr("Least days to a vendor's due date")}</span>
-            <span className="block text-xs text-neutral-500">{tr("A warning below it: Finance needs time to pay")}</span></span>
+        <label className="flex items-center justify-between gap-3 rounded border border-[color:var(--j-DCDFE4)] px-3 py-2.5">
+          <span><span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Least days to a vendor's due date")}</span>
+            <span className="block text-xs text-[color:var(--j-626F86)]">{tr("A warning below it: Finance needs time to pay")}</span></span>
           <input type="number" min={0} max={60} disabled={!edit} defaultValue={life.minLeadDays} onBlur={(e) => Number(e.target.value) !== life.minLeadDays && void saveLife({ minLeadDays: Number(e.target.value) })}
             className={cx(inputClass, "h-9 !w-20 text-right")} />
         </label>
       </div>
       {groups.map(([g, title]) => (
-        <div key={g} className="overflow-x-auto rounded border border-neutral-200">
+        <div key={g} className="overflow-x-auto rounded border border-[color:var(--j-DCDFE4)]">
           <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-neutral-50 text-left text-[11px] uppercase tracking-wide text-neutral-500">
+            <thead className="bg-[color:var(--j-F7F8F9)] text-left text-[11px] uppercase tracking-wide text-[color:var(--j-626F86)]">
               <tr><th className="px-3 py-2">{title}</th><th className="px-3 py-2">{tr("Proof after payment")}</th><th className="px-3 py-2">{tr("Within (days)")}</th>
                 <th className="px-3 py-2">{tr("Documents asked")}</th><th className="px-3 py-2">{tr("Vendor payment")}</th></tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {rules.filter((r) => r.group === g).map((r) => (
                 <tr key={r.key}>
-                  <td className="px-3 py-2 font-medium text-neutral-900">{r.label}</td>
+                  <td className="px-3 py-2 font-medium text-[color:var(--j-172B4D)]">{r.label}</td>
                   <td className="px-3 py-2"><input type="checkbox" disabled={!edit} checked={r.proofAfter} onChange={(e) => void save(r, { proofAfter: e.target.checked })} aria-label={tr("Proof after payment")} /></td>
                   <td className="px-3 py-2"><input type="number" min={1} max={180} disabled={!edit || !r.proofAfter} defaultValue={r.proofDays}
                     onBlur={(e) => Number(e.target.value) !== r.proofDays && void save(r, { proofDays: Number(e.target.value) })} className={cx(inputClass, "h-8 !w-16 text-right")} /></td>
@@ -284,7 +284,7 @@ export function RulesPanel({ rules, lifecycle, docs, edit, onChanged }: { rules:
                     {Object.keys(docs).map((d) => {
                       const on = r.proofDocs.includes(d);
                       return <button key={d} type="button" disabled={!edit || !r.proofAfter} onClick={() => void save(r, { proofDocs: on ? r.proofDocs.filter((x) => x !== d) : [...r.proofDocs, d] })}
-                        className={cx("rounded px-1.5 py-0.5 text-[11px] ring-1", on ? "bg-brand-50 font-semibold text-brand-800 ring-brand-200" : "text-neutral-500 ring-neutral-200 hover:bg-neutral-50", (!edit || !r.proofAfter) && "opacity-50")}>{docs[d]}</button>;
+                        className={cx("rounded px-1.5 py-0.5 text-[11px] ring-1", on ? "bg-[color:var(--j-E9F2FF)] font-semibold text-[color:var(--j-0055CC)] ring-[color:var(--j-85B8FF)]" : "text-[color:var(--j-626F86)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]", (!edit || !r.proofAfter) && "opacity-50")}>{docs[d]}</button>;
                     })}</span></td>
                   <td className="px-3 py-2"><input type="checkbox" disabled={!edit} checked={r.vendor} onChange={(e) => void save(r, { vendor: e.target.checked })} aria-label={tr("Vendor payment")} /></td>
                 </tr>
@@ -293,7 +293,7 @@ export function RulesPanel({ rules, lifecycle, docs, edit, onChanged }: { rules:
           </table>
         </div>
       ))}
-      {!edit && <p className="text-xs text-neutral-500">{tr("Only management or Finance changes these rules.")}</p>}
+      {!edit && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Only management or Finance changes these rules.")}</p>}
     </section>
   );
 }

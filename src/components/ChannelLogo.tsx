@@ -29,7 +29,7 @@ export function channelLogo(name: string): Logo | null {
 }
 
 export default function ChannelLogo({
-  channel, height = 16, className = '', labelClassName = 'text-neutral-700',
+  channel, height = 16, className = '', labelClassName = 'text-[color:var(--j-44546F)]',
 }: {
   channel: string;
   height?: number;

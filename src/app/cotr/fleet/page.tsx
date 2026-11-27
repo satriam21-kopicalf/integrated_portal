@@ -76,28 +76,28 @@ export default function CotrFleetPage() {
         blank={(): Partial<Fleet> => ({ code: "", name: "", type: types.rows?.[0]?.code ?? "sepeda", plate: "", pool_code: pools.rows?.find((p) => p.kind !== "storage")?.code ?? "", capacity: 0, condition: "good", last_service: null, is_active: true })}
         rowActions={(f) => (<>
           <button type="button" onClick={() => setAccOf(f)} aria-label={tr("Accessories")} title={tr("Accessories")}
-            className="inline-flex items-center gap-1 rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-brand-700"><Package size={15} />
-            {accCount(f.code) > 0 && <span className="text-[11px] font-semibold tabular-nums text-neutral-600">{accCount(f.code)}</span>}</button>
+            className="inline-flex items-center gap-1 rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-0055CC)]"><Package size={15} />
+            {accCount(f.code) > 0 && <span className="text-[11px] font-semibold tabular-nums text-[color:var(--j-44546F)]">{accCount(f.code)}</span>}</button>
           {f.label_token && <a href={`/share/fleet/${f.label_token}`} target="_blank" rel="noreferrer" aria-label={tr("Information Page")} title={tr("Information page (what the QR opens)")}
-            className="inline-flex rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><ExternalLink size={15} /></a>}
+            className="inline-flex rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"><ExternalLink size={15} /></a>}
           <Link href={`/cotr/fleet/labels?codes=${encodeURIComponent(f.code)}`} aria-label={tr("Print Label")} title={tr("Print Label")}
-            className="inline-flex rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"><Printer size={15} /></Link>
+            className="inline-flex rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"><Printer size={15} /></Link>
         </>)}
         columns={[
           { label: tr("Fleet"), render: (f) => (
             <span className="flex items-center gap-3">
-              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-100 text-neutral-400">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-[3px] bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {f.has_photo ? <img src={thumb(imageUrl("fleet", f.code, "photo", f.updated_at), 96)} decoding="async" alt="" className="h-full w-full object-cover" loading="lazy" /> : <Bike size={16} />}
               </span>
-              <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{f.code}{f.name ? ` · ${f.name}` : ""}</span>
-                <span className="text-[11px] text-neutral-400">{typeName(f.type)}{f.brand ? ` · ${f.brand} ${f.model ?? ""}` : ""}{f.plate ? ` · ${f.plate}` : ""}{f.color ? ` · ${f.color}` : ""}</span></span>
+              <span className="min-w-0"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{f.code}{f.name ? ` · ${f.name}` : ""}</span>
+                <span className="text-[11px] text-[color:var(--j-626F86)]">{typeName(f.type)}{f.brand ? ` · ${f.brand} ${f.model ?? ""}` : ""}{f.plate ? ` · ${f.plate}` : ""}{f.color ? ` · ${f.color}` : ""}</span></span>
             </span>
           ) },
           { label: tr("Pool / HUB"), render: (f) => pools.rows?.find((p) => p.code === f.pool_code)?.name ?? f.pool_code },
-          { label: tr("Driver"), render: (f) => drivers.rows?.find((d) => d.fleet_code === f.code)?.name ?? <span className="text-neutral-400">—</span> },
+          { label: tr("Driver"), render: (f) => drivers.rows?.find((d) => d.fleet_code === f.code)?.name ?? <span className="text-[color:var(--j-626F86)]">—</span> },
           { label: tr("QRIS"), render: (f) => f.qris_nmid || f.has_qris
-            ? <Badge tone="blue" icon={<QrCode size={11} />}>{f.qris_bank ?? "QRIS"}{f.qris_nmid ? ` · ${f.qris_nmid}` : ""}</Badge> : <span className="text-neutral-400">—</span> },
+            ? <Badge tone="blue" icon={<QrCode size={11} />}>{f.qris_bank ?? "QRIS"}{f.qris_nmid ? ` · ${f.qris_nmid}` : ""}</Badge> : <span className="text-[color:var(--j-626F86)]">—</span> },
           { label: tr("Condition"), render: (f) => (
             <span className="flex flex-wrap gap-1">
               {f.condition === "good" ? <Badge tone="green" dot>{tr("Good")}</Badge> : <Badge tone="amber" dot>{tr("In Service")}</Badge>}
@@ -146,7 +146,7 @@ export default function CotrFleetPage() {
         description={tr("The kinds of fleet the team uses; add one when a new kind of vehicle comes")}
         blank={(): Partial<FleetType> => ({ code: "", name: "", sort: (types.rows?.length ?? 0) + 1 })}
         columns={[
-          { label: tr("Type"), render: (t) => <><span className="block font-medium text-neutral-900">{t.name}</span><span className="text-[11px] text-neutral-400">{t.code}</span></> },
+          { label: tr("Type"), render: (t) => <><span className="block font-medium text-[color:var(--j-172B4D)]">{t.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{t.code}</span></> },
           { label: tr("Fleet"), className: "text-right", render: (t) => <span className="tabular-nums">{(master.rows ?? []).filter((f) => f.type === t.code).length}</span> },
         ]}
         fields={[

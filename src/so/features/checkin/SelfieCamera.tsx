@@ -114,7 +114,7 @@ export default function SelfieCamera({ pic, branch, position, onClose, onShot, t
             {/* where the face goes */}
             <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[58%] max-h-[26rem] aspect-[3/4] -translate-x-1/2 -translate-y-1/2 rounded-[50%] border-[3px] border-dashed border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
             {!ready && <Loader2 className="absolute animate-spin text-white" size={28} />}
-            {tip && <p className="absolute inset-x-4 bottom-4 mx-auto max-w-md rounded-xl bg-black/65 px-3 py-2 text-center text-xs leading-snug text-white backdrop-blur">{tip}</p>}
+            {tip && <p className="absolute inset-x-4 bottom-4 mx-auto max-w-md rounded-[3px] bg-black/65 px-3 py-2 text-center text-xs leading-snug text-white backdrop-blur">{tip}</p>}
           </>
         )}
       </div>

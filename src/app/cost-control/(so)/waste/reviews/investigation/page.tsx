@@ -37,7 +37,7 @@ function Sheet() {
   const [error, setError] = useState<string | null>(null);
   useEffect(() => { if (id) call<Investigation>(`/api/waste/investigations/${id}`).then(setInv).catch((e: Error) => setError(e.message)); }, [id]);
   if (error) return <p className="p-8 text-sm text-red-600">{error}</p>;
-  if (!inv) return <div className="skeleton m-8 h-[80vh] rounded-xl" />;
+  if (!inv) return <div className="skeleton m-8 h-[80vh] rounded-[3px]" />;
   const r = inv.report;
   const mark = (on: boolean) => <span className="inline-block w-6 text-center font-semibold">( {on ? "✓" : " "} )</span>;
   const pick = (list: string[], on: (x: string) => boolean) => list.map((x, i) => (
@@ -45,7 +45,7 @@ function Sheet() {
   ));
   const entries = Array.isArray(inv.entries) ? inv.entries : [];
   return (
-    <div className="print-sheet mx-auto my-6 w-[210mm] max-w-full bg-white p-[12mm] text-[11px] leading-snug text-neutral-900 shadow print:my-0 print:shadow-none">
+    <div className="print-sheet mx-auto my-6 w-[210mm] max-w-full bg-white p-[12mm] text-[11px] leading-snug text-[color:var(--j-172B4D)] shadow print:my-0 print:shadow-none">
       <table className="w-full border-collapse border border-neutral-700">
         <tbody>
           <tr>
@@ -131,10 +131,10 @@ function Sheet() {
 
 export default function InvestigationPrintPage() {
   return (
-    <div className="fixed inset-0 z-[100] overflow-auto bg-neutral-100 print:static print:bg-white">
+    <div className="fixed inset-0 z-[100] overflow-auto bg-[color:var(--j-091E420F)] print:static print:bg-white">
       <style>{`@media print { @page { size: A4; margin: 0 } body * { visibility: hidden } .print-sheet, .print-sheet * { visibility: visible } .print-sheet { position: absolute; left: 0; top: 0; width: 210mm } }`}</style>
-      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-neutral-100/90 px-4 py-2 backdrop-blur print:hidden">
-        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-lg bg-brand-700 px-3 py-2 text-sm font-medium text-white"><Printer size={15} />{tr("Print / PDF")}</button>
+      <div className="sticky top-0 z-10 flex justify-end gap-2 bg-[color:var(--j-091E420F)]/90 px-4 py-2 backdrop-blur print:hidden">
+        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 py-2 text-sm font-medium text-white"><Printer size={15} />{tr("Print / PDF")}</button>
       </div>
       <Suspense><Sheet /></Suspense>
     </div>

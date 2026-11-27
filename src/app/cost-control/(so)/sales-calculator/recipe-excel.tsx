@@ -67,23 +67,23 @@ export function RecipeImport({ onClose, onDone }: { onClose: () => void; onDone:
           <CheckCircle2 size={15} /> {tr("Import {0} cards", ok)}</Button>}
       </>}>
       <div className="space-y-4">
-        <label className={cx("flex cursor-pointer items-center gap-3 rounded-md border border-dashed px-4 py-4 transition-colors",
-          file ? "border-brand-300 bg-brand-50/40" : "border-neutral-300 hover:bg-neutral-50")}>
+        <label className={cx("flex cursor-pointer items-center gap-3 rounded-[3px] border border-dashed px-4 py-4 transition-colors",
+          file ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)]" : "border-[color:var(--j-8590A2)] hover:bg-[color:var(--j-F7F8F9)]")}>
           <FileSpreadsheet size={22} className="flex-shrink-0 text-emerald-600" />
-          <span className="min-w-0 flex-1 text-sm"><span className="block truncate font-medium text-neutral-900">{file ? file.name : tr("Choose the Excel file (.xlsx)")}</span>
-            <span className="block text-xs text-neutral-500">{tr("Columns: Kode Kartu, Nama Kartu, Kategori, Aktif, Catatan, Jenis Baris (Bahan / WIP / Lain / Menu), Kode Baris, Nama Baris, Qty, Satuan, Harga")}</span></span>
-          <span className="rounded-[4px] border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium text-neutral-700">{file ? tr("Change") : tr("Choose")}</span>
+          <span className="min-w-0 flex-1 text-sm"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{file ? file.name : tr("Choose the Excel file (.xlsx)")}</span>
+            <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Columns: Kode Kartu, Nama Kartu, Kategori, Aktif, Catatan, Jenis Baris (Bahan / WIP / Lain / Menu), Kode Baris, Nama Baris, Qty, Satuan, Harga")}</span></span>
+          <span className="rounded-[4px] border border-[color:var(--j-8590A2)] bg-white px-2.5 py-1 text-xs font-medium text-[color:var(--j-44546F)]">{file ? tr("Change") : tr("Choose")}</span>
           <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="hidden" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
         </label>
         {error && <p className="rounded-[4px] border-l-[3px] border-red-600 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
-        {busy && !res && <p className="text-sm text-neutral-500">{tr("Checking the file…")}</p>}
+        {busy && !res && <p className="text-sm text-[color:var(--j-626F86)]">{tr("Checking the file…")}</p>}
         {res && (
           <>
             <div className="flex flex-wrap gap-2 text-xs">
               {saved ? <Lozenge tone="green">{tr("{0} saved", res.saved)}</Lozenge> : <>
                 <Lozenge tone="blue">{tr("{0} new", res.create)}</Lozenge><Lozenge tone="violet">{tr("{0} changed", res.update)}</Lozenge></>}
               {res.invalid > 0 && <Lozenge tone="red">{tr("{0} refused", res.invalid)}</Lozenge>}
-              {!saved && <span className="text-neutral-500">{tr("Checked only, nothing saved yet")}</span>}
+              {!saved && <span className="text-[color:var(--j-626F86)]">{tr("Checked only, nothing saved yet")}</span>}
             </div>
             {res.cards.length === 0 ? <Empty title={tr("No card in the file")} /> : (
               <div className="-mx-5 overflow-x-auto sm:-mx-6">
@@ -92,8 +92,8 @@ export function RecipeImport({ onClose, onDone }: { onClose: () => void; onDone:
                     <th className={cx(jTh, "text-right")}>{tr("Lines")}</th><th className={jTh}>{tr("Check")}</th></tr></thead>
                   <tbody>
                     {res.cards.map((c) => (
-                      <tr key={c.code} className="border-b border-neutral-100 align-top">
-                        <td className={cx(jTd, "whitespace-nowrap font-medium text-brand-700")}>{c.code}</td>
+                      <tr key={c.code} className="border-b border-[color:var(--j-F1F2F4)] align-top">
+                        <td className={cx(jTd, "whitespace-nowrap font-medium text-[color:var(--j-0C66E4)]")}>{c.code}</td>
                         <td className={cx(jTd, "max-w-[14rem]")}><span className="block truncate">{c.name || "—"}</span></td>
                         <td className={jTd}><Lozenge tone={c.errors.length ? "red" : c.action === "create" ? "blue" : "violet"}>
                           {c.errors.length ? tr("Refused") : c.action === "create" ? tr("New") : tr("Change")}</Lozenge></td>

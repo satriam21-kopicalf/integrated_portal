@@ -43,8 +43,8 @@ export function SortTh<K extends string>({ k, sort, onSort, children, align = "l
   return (
     <th className={cx(pad, align === "right" && "text-right", className)} aria-sort={on ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}>
       <button type="button" onClick={() => onSort(k, first)} title={tr("Sort")}
-        className={cx("group inline-flex items-center gap-1 uppercase tracking-wide hover:text-neutral-900", align === "right" && "flex-row-reverse", on ? "text-neutral-900" : "")}>
-        {children}<Icon size={12} className={cx("flex-shrink-0", on ? "text-brand-600" : "text-neutral-300 group-hover:text-neutral-500")} />
+        className={cx("group inline-flex items-center gap-1 uppercase tracking-wide hover:text-[color:var(--j-172B4D)]", align === "right" && "flex-row-reverse", on ? "text-[color:var(--j-172B4D)]" : "")}>
+        {children}<Icon size={12} className={cx("flex-shrink-0", on ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-8590A2)] group-hover:text-[color:var(--j-626F86)]")} />
       </button>
     </th>
   );

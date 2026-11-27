@@ -97,7 +97,7 @@ export default function ExportButton({
       <div className="relative" ref={menuRef}>
         <PopoverButton label={tr('Export')} value={running ? tr('Exporting…') : tr('Export')} open={menuOpen} disabled={running}
           title={running ? tr('Export in progress') : tr('Export to Excel or Google Sheets')} onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
-          icon={running ? <Loader2 className="animate-spin text-neutral-600" /> : <span className="relative block h-[18px] w-[18px]"><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="18px" className="object-contain" /></span>} />
+          icon={running ? <Loader2 className="animate-spin text-[color:var(--j-44546F)]" /> : <span className="relative block h-[18px] w-[18px]"><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="18px" className="object-contain" /></span>} />
 
         <Popover open={menuOpen} onClose={closeMenu} title={confirmReport ? (splitInParts ? tr('Split into several Google Sheets') : tr('Large export')) : tr('Export')} width="sm:w-[22rem]"
           subtitle={`${typeLabel} · ${branchLabel} · ${dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Last 65 days')}`}>
@@ -106,8 +106,8 @@ export default function ExportButton({
                 <div className="flex gap-3">
                   <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-amber-500" />
                   <div>
-                    <p className="text-sm font-semibold text-neutral-900">{splitInParts ? tr('Split into several Google Sheets') : tr('Large export')}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+                    <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{splitInParts ? tr('Split into several Google Sheets') : tr('Large export')}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[color:var(--j-626F86)]">
                       {days} {tr('days')}{!dateFrom && tr(' (no date filter, last 65 days)')}
                       {!branch && tr(' · approx. {0} rows', formatNumber(days * ROWS_PER_DAY_ESTIMATE))}.{' '}
                       {splitInParts
@@ -139,8 +139,8 @@ export default function ExportButton({
                         disabled={unavailable}
                         onClick={() => chooseFormat(f.value)}
                         title={unavailable ? tr('Google Sheets is not set up on the server yet') : undefined}
-                        className={`inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                          format === f.value ? 'rounded-[4px] border border-brand-700 bg-brand-700 text-white' : 'text-neutral-500 hover:text-neutral-800 disabled:hover:text-neutral-500'}`}
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-[3px] px-2 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                          format === f.value ? 'rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white' : 'text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)] disabled:hover:text-[color:var(--j-626F86)]'}`}
                       >
                         {f.value === 'gsheet' ? <Sheet size={14} className="text-emerald-600" /> : <FileSpreadsheet size={14} className="text-emerald-700" />}
                         {f.label}
@@ -149,9 +149,9 @@ export default function ExportButton({
                   })}
                 </div>
                 {!googleSheets && (
-                  <p className="px-2.5 pb-1 text-[11px] leading-snug text-neutral-400">{tr('Google Sheets becomes available once it is set up on the server.')}</p>
+                  <p className="px-2.5 pb-1 text-[11px] leading-snug text-[color:var(--j-626F86)]">{tr('Google Sheets becomes available once it is set up on the server.')}</p>
                 )}
-                <p className="px-2.5 pb-1.5 pt-1 text-xs font-semibold capitalize text-neutral-400">{tr('Export to')} {destination}</p>
+                <p className="px-2.5 pb-1.5 pt-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr('Export to')} {destination}</p>
                 {REPORTS.map(r => {
                   // one sheet only: the period is capped (one month of every branch ≈ 450k rows)
                   const tooLong = r.value === 'menu' && days > MENU_MAX_DAYS[format];
@@ -161,18 +161,18 @@ export default function ExportButton({
                       type="button"
                       disabled={tooLong}
                       onClick={() => requestExport(r.value)}
-                      className="flex w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left transition-colors hover:bg-neutral-50 active:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent sm:py-2"
+                      className="flex w-full items-start gap-3 rounded-[3px] px-2.5 py-3 text-left transition-colors hover:bg-[color:var(--j-F7F8F9)] active:bg-[color:var(--j-091E420F)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent sm:py-2"
                     >
-                      <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-neutral-400" />
+                      <FileSpreadsheet size={18} className="mt-0.5 flex-shrink-0 text-[color:var(--j-626F86)]" />
                       <span>
-                        <span className="block text-sm font-medium text-neutral-800">{r.label}</span>
-                        <span className="block text-xs text-neutral-500">{r.description}</span>
+                        <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{r.label}</span>
+                        <span className="block text-xs text-[color:var(--j-626F86)]">{r.description}</span>
                         {tooLong && <span className="block text-xs text-amber-700">{tr('At most {0} days for {1}: choose a shorter period', MENU_MAX_DAYS[format], destination)}</span>}
                       </span>
                     </button>
                   );
                 })}
-                <p className="border-t border-neutral-100 px-2.5 pb-1 pt-2 text-[11px] text-neutral-400">
+                <p className="border-t border-[color:var(--j-F1F2F4)] px-2.5 pb-1 pt-2 text-[11px] text-[color:var(--j-626F86)]">
                   {typeLabel} · {branchLabel} · {dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Last 65 days')}
                   {format === 'gsheet' && <span className="block pt-0.5">{tr('The sheet is shared with your account e-mail.')}</span>}
                 </p>

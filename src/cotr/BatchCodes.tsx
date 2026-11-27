@@ -112,20 +112,20 @@ export function BatchCodes() {
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Batch code")}</th><th className="px-3 py-2.5">{tr("Menu")}</th><th className="px-3 py-2.5">{tr("Produced")}</th>
               <th className="px-3 py-2.5">{tr("Expiry")}</th><th className="px-3 py-2.5">{tr("Counted")}</th><th className="px-3 py-2.5 text-right">{tr("Left (last count)")}</th><th className="px-3 py-2">{tr("Per pool")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {paged.rows.map((r) => (
                 <tr key={`${r.menu}:${r.batchNo}:${r.producedOn}`} className={r.status === "expired" && r.left > 0 ? "bg-red-50/40" : undefined}>
-                  <td className="px-3 py-2"><span className="font-mono font-semibold text-neutral-900">{r.batchNo}</span>
-                    {r.sequence !== null && <span className="block text-[11px] text-neutral-500">{tr("Batch {0}", r.sequence)}</span>}</td>
+                  <td className="px-3 py-2"><span className="font-mono font-semibold text-[color:var(--j-172B4D)]">{r.batchNo}</span>
+                    {r.sequence !== null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("Batch {0}", r.sequence)}</span>}</td>
                   <td className="px-3 py-2.5">{r.menuName}</td>
                   <td className="px-3 py-2.5 tabular-nums">{r.producedOn ? dmyOf(r.producedOn) : "—"}</td>
                   <td className="px-3 py-2.5"><span className="tabular-nums">{r.expiresOn ? dmyOf(r.expiresOn) : "—"}</span>{" "}
                     <Badge tone={r.status === "expired" ? "red" : "green"}>{r.status === "expired" ? tr("Expired") : tr("Active")}</Badge></td>
-                  <td className="px-3 py-2.5 text-xs text-neutral-600">{r.firstCounted === r.lastCounted ? dmyOf(r.firstCounted) : `${dmyOf(r.firstCounted)} – ${dmyOf(r.lastCounted)}`}</td>
+                  <td className="px-3 py-2.5 text-xs text-[color:var(--j-44546F)]">{r.firstCounted === r.lastCounted ? dmyOf(r.firstCounted) : `${dmyOf(r.firstCounted)} – ${dmyOf(r.lastCounted)}`}</td>
                   <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{r.left}</td>
                   <td className="px-3 py-2"><span className="flex flex-wrap gap-1">{r.pools.map((p) => (
                     <button key={p.pool} type="button" onClick={() => setAdjust({ code: r, pool: p })} title={tr("Adjust the cups counted on {0}", dmyOf(p.day))}
-                      className="inline-flex items-center gap-1 rounded-md bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-neutral-700 hover:bg-brand-50 hover:text-brand-700">
+                      className="inline-flex items-center gap-1 rounded-[3px] bg-[color:var(--j-091E420F)] px-1.5 py-0.5 text-[11px] font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-E9F2FF)] hover:text-[color:var(--j-0055CC)]">
                       {p.poolName.replace(/^COTR /, "").replace(/ HUB$/, "")} · {p.qty}<PencilLine size={11} /></button>))}</span></td>
                 </tr>
               ))}
@@ -157,7 +157,7 @@ function AdjustDrawer({ code, pool, onClose, onSaved }: { code: Code; pool: Pool
       footer={<><Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={reason.trim().length < 3 || Number(qty) === pool.qty} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button></>}>
       <div className="space-y-4">
-        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">{tr("The physical leftover of this pool on this day is corrected: its balance and the opening stock of the next day follow. 0 = none left.")}</p>
+        <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">{tr("The physical leftover of this pool on this day is corrected: its balance and the opening stock of the next day follow. 0 = none left.")}</p>
         <Field label={tr("Cups")} hint={tr("Now {0}", pool.qty)}><Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ""))} className="text-right tabular-nums" /></Field>
         <Field label={tr("Reason")} required><Input value={reason} maxLength={300} placeholder={tr("e.g. counted again at the pool")} onChange={(e) => setReason(e.target.value)} /></Field>
       </div>

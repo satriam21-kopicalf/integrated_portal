@@ -107,7 +107,7 @@ export default function ProfileFields({
   const id = (name: string) => `${idPrefix}-${name}`;
   const required = (key: string) => markRequired && (REQUIRED_PROFILE_KEYS as readonly string[]).includes(key);
   const lk = (key: string) => locked.includes(key);
-  const ro = (key: string) => (lk(key) ? { readOnly: true, className: `${inputClass} bg-neutral-50`, title: tr('Follows HRMS') } : {});
+  const ro = (key: string) => (lk(key) ? { readOnly: true, className: `${inputClass} bg-[color:var(--j-F7F8F9)]`, title: tr('Follows HRMS') } : {});
   const hrmsHint = (key: string, hint?: string) => (lk(key) ? tr('Follows HRMS') : hint);
   const savedBranchMissing = values.workBranchCode && !branches.some(b => b.code === values.workBranchCode);
 

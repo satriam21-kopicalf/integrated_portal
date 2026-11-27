@@ -147,7 +147,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
             {([['period', tr('Date range'), CalendarRange], ['day', tr('Compare two days'), GitCompareArrows]] as const).map(([v, l, Icon]) => (
               <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
                 className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[3px] text-sm font-medium transition-colors ${
-                  view === v ? 'bg-white text-[color:var(--j-0C66E4)] shadow-sm ring-1 ring-neutral-200' : 'text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'}`}>
+                  view === v ? 'bg-white text-[color:var(--j-0C66E4)] ring-1 ring-[color:var(--j-DCDFE4)]' : 'text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'}`}>
                 <Icon size={15} />{l}
               </button>
             ))}

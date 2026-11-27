@@ -44,19 +44,19 @@ export function EsbProducts({ menus, onSaved }: { menus: Menu[]; onSaved: () => 
         <table className="m-cards w-full text-sm">
           <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("ESB product")}</th><th className="px-3 py-2.5 text-right">{tr("Lines")}</th>
             <th className="px-3 py-2.5">{tr("Last seen")}</th><th className="px-3 py-2">{tr("Counts as menu")}</th></tr></thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {rows.map((p) => {
               const byHand = menus.some((m) => (m.esb_aliases ?? []).includes(p.key));
               return (
                 <tr key={p.key} className={p.menu ? undefined : "bg-amber-50/40"}>
-                  <td className="px-4 py-2 font-medium text-neutral-900">{p.name}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{p.lines.toLocaleString("id-ID")}</td>
-                  <td className="px-3 py-2 tabular-nums text-neutral-600">{p.last ? dmyOf(p.last) : "—"}</td>
+                  <td className="px-4 py-2 font-medium text-[color:var(--j-172B4D)]">{p.name}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{p.lines.toLocaleString("id-ID")}</td>
+                  <td className="px-3 py-2 tabular-nums text-[color:var(--j-44546F)]">{p.last ? dmyOf(p.last) : "—"}</td>
                   <td className="px-4 py-2">
                     <div className="flex items-center gap-2">
                       <Select value={p.menu ?? ""} disabled={busy === p.key} onChange={(e) => void map(p, e.target.value)} className="h-9 w-52">
                         <option value="">{tr("Not a menu")}</option>{menus.map((m) => <option key={m.code} value={m.code}>{m.name}</option>)}</Select>
-                      {p.menu && <span className="text-[11px] text-neutral-500">{byHand ? <span className="inline-flex items-center gap-1"><Link2 size={11} />{tr("mapped")}</span> : tr("by name")}</span>}
+                      {p.menu && <span className="text-[11px] text-[color:var(--j-626F86)]">{byHand ? <span className="inline-flex items-center gap-1"><Link2 size={11} />{tr("mapped")}</span> : tr("by name")}</span>}
                     </div>
                   </td>
                 </tr>

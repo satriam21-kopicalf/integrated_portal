@@ -67,21 +67,21 @@ export default function Floating({ open, onClose, title, subtitle, anchor, width
 
   if (!open || typeof document === 'undefined') return null;
   const body = <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>;
-  const foot = footer && <footer className="flex flex-shrink-0 items-center gap-2 border-t border-neutral-200 bg-white px-4 py-3" style={phone ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' } : undefined}>{footer}</footer>;
+  const foot = footer && <footer className="flex flex-shrink-0 items-center gap-2 border-t border-[color:var(--j-DCDFE4)] bg-white px-4 py-3" style={phone ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' } : undefined}>{footer}</footer>;
   return createPortal(phone ? (
     <div ref={panel} className="fixed inset-0 z-[90] flex items-end" role="presentation" onClick={(e) => e.stopPropagation()}>
       <div className="drawer-backdrop absolute inset-0 bg-neutral-900/40" onClick={onClose} aria-hidden />
-      <div role="dialog" aria-modal="true" aria-label={title} className="sheet-panel relative flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-xl">
-        <span className="mx-auto mt-2 h-1 w-10 flex-shrink-0 rounded-full bg-neutral-200" aria-hidden />
-        <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-neutral-200 px-4 py-2.5">
-          <div className="min-w-0"><p className="text-base font-semibold text-neutral-900">{title}</p>{subtitle && <p className="text-xs text-neutral-500">{subtitle}</p>}</div>
-          <button type="button" onClick={onClose} aria-label={tr('Close')} className="-mr-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100"><X size={18} /></button>
+      <div role="dialog" aria-modal="true" aria-label={title} className="sheet-panel relative flex max-h-[88dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white shadow-xl">
+        <span className="mx-auto mt-2 h-1 w-10 flex-shrink-0 rounded-full bg-[color:var(--j-DCDFE4)]" aria-hidden />
+        <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-[color:var(--j-DCDFE4)] px-4 py-2.5">
+          <div className="min-w-0"><p className="text-base font-semibold text-[color:var(--j-172B4D)]">{title}</p>{subtitle && <p className="text-xs text-[color:var(--j-626F86)]">{subtitle}</p>}</div>
+          <button type="button" onClick={onClose} aria-label={tr('Close')} className="-mr-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]"><X size={18} /></button>
         </header>
         {body}{foot ?? <div className="flex-shrink-0" style={{ height: 'env(safe-area-inset-bottom)' }} />}
       </div>
     </div>
   ) : (
     <div ref={panel} role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()} style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, width, maxHeight: pos?.max }}
-      className="fixed z-[90] flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl">{body}{foot}</div>
+      className="fixed z-[90] flex flex-col overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-xl">{body}{foot}</div>
   ), document.body);
 }

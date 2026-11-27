@@ -66,12 +66,12 @@ export default function ComparePage() {
           <Empty icon={<ArrowLeftRight size={28} />} title={tr("No exported counts in this period")} />
         ) : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
               {all.map((r) => (
                 <li key={r.count_id}>
-                  <Link href={`/cost-control/esb-compare/${r.count_id}`} className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-neutral-50">
-                    <span className="min-w-0"><span className="block truncate text-sm font-medium text-neutral-900">{r.facility_name}</span>
-                      <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {fmtDay(r.business_date)} · {rp(r.variance_value)}</span></span>
+                  <Link href={`/cost-control/esb-compare/${r.count_id}`} className="flex items-start justify-between gap-3 px-4 py-3 hover:bg-[color:var(--j-F7F8F9)]">
+                    <span className="min-w-0"><span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{r.facility_name}</span>
+                      <span className="block truncate text-xs text-[color:var(--j-626F86)]">{countTypeLabel(r.count_type)} · {fmtDay(r.business_date)} · {rp(r.variance_value)}</span></span>
                     <Badge tone={(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).tone}>{(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).label()}</Badge>
                   </Link>
                 </li>
@@ -83,13 +83,13 @@ export default function ComparePage() {
                   <tr><SortTh k="facility" sort={sorted.sort} onSort={sorted.toggle}>{tr("Facility")}</SortTh><SortTh k="count" sort={sorted.sort} onSort={sorted.toggle} first="desc">{tr("Count")}</SortTh><SortTh k="doc" sort={sorted.sort} onSort={sorted.toggle}>{tr("ESB Document")}</SortTh>
                     <SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh><SortTh k="diff" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Differences")}</SortTh><SortTh k="variance" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Variance Value")}</SortTh></tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {rows === null ? <SkeletonRows cols={6} /> : all.map((r) => (
-                    <tr key={r.count_id} className="group hover:bg-neutral-50/70">
-                      <td className="px-3 py-2"><Link href={`/cost-control/esb-compare/${r.count_id}`} className="block font-medium text-neutral-900 group-hover:text-brand-700">{r.facility_name}</Link>
-                        <span className="block font-mono text-[11px] text-neutral-400">{r.number}</span></td>
-                      <td className="px-3 py-2 text-neutral-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-neutral-400">{fmtDay(r.business_date)}</span></td>
-                      <td className="px-3 py-2 font-mono text-xs text-neutral-600">{r.esb_doc ?? "—"}</td>
+                    <tr key={r.count_id} className="group hover:bg-[color:var(--j-F7F8F9)]">
+                      <td className="px-3 py-2"><Link href={`/cost-control/esb-compare/${r.count_id}`} className="block font-medium text-[color:var(--j-172B4D)] group-hover:text-[color:var(--j-0C66E4)]">{r.facility_name}</Link>
+                        <span className="block font-mono text-[11px] text-[color:var(--j-626F86)]">{r.number}</span></td>
+                      <td className="px-3 py-2 text-[color:var(--j-44546F)]">{countTypeLabel(r.count_type)}<span className="block text-xs text-[color:var(--j-626F86)]">{fmtDay(r.business_date)}</span></td>
+                      <td className="px-3 py-2 font-mono text-xs text-[color:var(--j-44546F)]">{r.esb_doc ?? "—"}</td>
                       <td className="px-3 py-2"><Badge tone={(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).tone}>{(COMPARE[r.status] ?? COMPARE.NO_ESB_BRANCH).label()}</Badge></td>
                       <td className="px-3 py-2 text-right tabular-nums">{r.mismatches ?? "—"}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{rp(r.variance_value)}</td>

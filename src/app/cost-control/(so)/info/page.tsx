@@ -23,7 +23,7 @@ export default function InfoPage() {
   const c = data?.counts;
   return (
     <Page title={tr('Information Center')} subtitle={tr('How complete and fresh the ESB and Portal data behind the Cost Control figures is')}
-      actions={<button type="button" onClick={reload} className="inline-flex h-9 items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 text-[13px] font-medium text-neutral-700 shadow-sm hover:bg-neutral-50">
+      actions={<button type="button" onClick={reload} className="inline-flex h-9 items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-[13px] font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
         <RefreshCw size={14} /> {tr('Refresh')}</button>}
       stats={
         <StatStrip label={tr('Summary')} columns={4}>
@@ -39,7 +39,7 @@ export default function InfoPage() {
       }>
       {error ? <ErrorState message={error} onRetry={reload} /> : (
         <div className="grid gap-3 lg:grid-cols-2">
-          {!data ? Array.from({ length: 6 }, (_, i) => <div key={i} className="skeleton h-36 rounded-xl" aria-hidden />) : cards.map((card) => <HealthCard key={card.key} card={card} />)}
+          {!data ? Array.from({ length: 6 }, (_, i) => <div key={i} className="skeleton h-36 rounded-[3px]" aria-hidden />) : cards.map((card) => <HealthCard key={card.key} card={card} />)}
         </div>
       )}
       <Note tone="muted" className="mt-4" title={tr('How to read it')}>
@@ -55,39 +55,39 @@ function HealthCard({ card }: { card: Card }) {
   const s = STATUS[card.status];
   const items = card.items ?? [];
   return (
-    <section className="flex flex-col rounded-md border border-neutral-200 bg-white shadow-sm">
+    <section className="flex flex-col rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <div className="flex items-start gap-3 p-4">
-        <span className={cx('flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border [&>svg]:h-4.5 [&>svg]:w-4.5', s.tone)}>{s.icon}</span>
+        <span className={cx('flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] border [&>svg]:h-4.5 [&>svg]:w-4.5', s.tone)}>{s.icon}</span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-sm font-semibold text-neutral-900">{d.title}</h2>
+            <h2 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{d.title}</h2>
             <Badge tone={card.status === 'ok' ? 'green' : card.status === 'warn' ? 'amber' : card.status === 'high' ? 'red' : 'slate'}>{s.label()}</Badge>
           </div>
-          <p className="mt-0.5 text-xs font-medium capitalize text-neutral-400">{tr('Source')}: {d.source}</p>
-          <p className="mt-2 text-xs leading-relaxed text-neutral-600">{card.status === 'error' ? card.detail : d.text}</p>
+          <p className="mt-0.5 text-xs font-medium capitalize text-[color:var(--j-626F86)]">{tr('Source')}: {d.source}</p>
+          <p className="mt-2 text-xs leading-relaxed text-[color:var(--j-44546F)]">{card.status === 'error' ? card.detail : d.text}</p>
         </div>
-        <span className="flex-shrink-0 text-right text-xl font-semibold tabular-nums text-neutral-900">{d.value}</span>
+        <span className="flex-shrink-0 text-right text-xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">{d.value}</span>
       </div>
-      <div className="mt-auto flex items-center gap-2 border-t border-neutral-100 px-4 py-2">
+      <div className="mt-auto flex items-center gap-2 border-t border-[color:var(--j-F1F2F4)] px-4 py-2">
         {items.length > 0 && (
-          <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="inline-flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-neutral-900">
+          <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-44546F)] hover:text-[color:var(--j-172B4D)]">
             <ChevronDown size={14} className={cx('transition-transform', open && 'rotate-180')} /> {open ? tr('Hide the list') : tr('Show the list ({0})', items.length)}
           </button>
         )}
-        {card.link && <Link href={card.link} className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:underline">{tr('Open')} <ExternalLink size={12} /></Link>}
+        {card.link && <Link href={card.link} className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--j-0C66E4)] hover:underline">{tr('Open')} <ExternalLink size={12} /></Link>}
       </div>
       {open && items.length > 0 && (
-        <ul className="max-h-72 divide-y divide-neutral-100 overflow-y-auto border-t border-neutral-100 text-xs">
+        <ul className="max-h-72 divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto border-t border-[color:var(--j-F1F2F4)] text-xs">
           {items.map((it, i) => (
             <li key={`${it.code ?? it.id ?? it.module ?? i}`} className="flex items-center gap-2 px-4 py-1.5">
               {it.status && <span className={cx('[&>svg]:h-3.5 [&>svg]:w-3.5', STATUS[it.status].dot)}>{STATUS[it.status].icon}</span>}
-              <span className="min-w-0 flex-1 truncate text-neutral-800">{it.name}</span>
+              <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{it.name}</span>
               {it.diff != null ? <span className="tabular-nums text-red-700">{tr('ESB {0} · portal {1}', it.esb ?? 0, it.db ?? 0)}</span>
                 : it.failed != null || it.failedRun ? <span className="text-amber-700">{it.failedRun ? tr('sync failed') : tr('{0} failed · {1} waiting', it.failed ?? 0, it.waiting ?? 0)}</span>
-                : it.module ? <span className="tabular-nums text-neutral-500">{tr('doc {0} · {1} in 7 days{2}', it.lastDoc ? it.lastDoc.split('-').reverse().join('/') : '—', it.week ?? 0, it.drafts ? ` · ${tr('{0} drafts', it.drafts)}` : '')}</span>
+                : it.module ? <span className="tabular-nums text-[color:var(--j-626F86)]">{tr('doc {0} · {1} in 7 days{2}', it.lastDoc ? it.lastDoc.split('-').reverse().join('/') : '—', it.week ?? 0, it.drafts ? ` · ${tr('{0} drafts', it.drafts)}` : '')}</span>
                 : it.level ? <span className={it.level === 'none' ? 'text-red-700' : 'text-amber-700'}>{it.level === 'none' ? tr('no price') : tr('ESB HPP')}</span>
-                  : it.qty != null ? <span className="tabular-nums text-neutral-500">{tr('{0} sold', it.qty.toLocaleString(numberLocale()))}</span>
-                    : <span className="text-neutral-400">{it.code}</span>}
+                  : it.qty != null ? <span className="tabular-nums text-[color:var(--j-626F86)]">{tr('{0} sold', it.qty.toLocaleString(numberLocale()))}</span>
+                    : <span className="text-[color:var(--j-626F86)]">{it.code}</span>}
             </li>
           ))}
         </ul>

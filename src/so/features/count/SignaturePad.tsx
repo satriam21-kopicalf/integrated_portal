@@ -93,20 +93,20 @@ export default function SignaturePad({ onChange }: { onChange: (image: string | 
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-md border border-neutral-300 bg-white">
+      <div className="relative overflow-hidden rounded-[3px] border border-[color:var(--j-8590A2)] bg-white">
         <canvas ref={canvas} style={{ height: HEIGHT, touchAction: "none" }} className="block w-full cursor-crosshair"
           onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={up}
           aria-label={tr("Signature area: draw your signature")} role="img" />
         {!inked && (
-          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-neutral-300">
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-[color:var(--j-8590A2)]">
             {tr("Sign here")}
           </span>
         )}
-        <span className="pointer-events-none absolute inset-x-6 bottom-9 border-b border-dashed border-neutral-300" />
+        <span className="pointer-events-none absolute inset-x-6 bottom-9 border-b border-dashed border-[color:var(--j-8590A2)]" />
       </div>
       <div className="mt-1.5 flex justify-end">
         <button type="button" onClick={clear} disabled={!inked}
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40">
+          className="inline-flex items-center gap-1.5 rounded-[3px] px-2 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)] disabled:opacity-40">
           <Eraser size={13} /> {tr("Clear")}
         </button>
       </div>

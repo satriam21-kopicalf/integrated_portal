@@ -68,10 +68,10 @@ function ShareView() {
       actions={r && (
         <>
           <button type="button" onClick={() => void copy()} aria-label={tr("Copy Link")}
-            className="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-white ring-1 ring-white/25 hover:bg-white/10 sm:inline-flex">
+            className="hidden h-8 items-center gap-1.5 rounded-[3px] px-2.5 text-xs font-medium text-white ring-1 ring-white/25 hover:bg-white/10 sm:inline-flex">
             {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? tr("Copied") : tr("Copy Link")}</button>
           <a href={`https://wa.me/?text=${encodeURIComponent(`${r.number} · ${r.kindLabel} · ${r.branchName}\n${typeof window === "undefined" ? "" : window.location.href}`)}`} target="_blank" rel="noreferrer"
-            aria-label="WhatsApp" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-xs font-medium text-neutral-800 hover:bg-neutral-50"><WhatsAppIcon size={16} /><span className="hidden sm:inline">WhatsApp</span></a>
+            aria-label="WhatsApp" className="inline-flex h-8 items-center gap-1.5 rounded-[3px] bg-white px-2.5 text-xs font-medium text-[color:var(--j-172B4D)] hover:bg-[color:var(--j-F7F8F9)]"><WhatsAppIcon size={16} /><span className="hidden sm:inline">WhatsApp</span></a>
           {r.status === "DONE" && <Button size="sm" variant="secondary" loading={busy} onClick={() => void pdf()}><PdfIcon size={16} /> <span className="hidden sm:inline">{tr("Final Works (PDF)")}</span></Button>}
         </>
       )}>
@@ -88,11 +88,11 @@ function ShareView() {
             <aside className="space-y-4 lg:sticky lg:top-4">
               <DetailsPanel r={r} />
               <RequestView r={r} urls={urls} part="tracker" numbered={false} />
-              {seen && <p className="flex items-center gap-1.5 text-[11px] text-neutral-500"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+              {seen && <p className="flex items-center gap-1.5 text-[11px] text-[color:var(--j-626F86)]"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
                 {tr("Live · updated {0}", wibDateTime(seen))}</p>}
             </aside>
           </div>
-          <p className="flex items-start justify-center gap-1.5 text-center text-[11px] text-neutral-400">
+          <p className="flex items-start justify-center gap-1.5 text-center text-[11px] text-[color:var(--j-626F86)]">
             <Info size={12} className="mt-px flex-shrink-0" />
             {tr("Read-only copy for sharing; it always shows the latest progress.")}{r.shareExpiresAt ? ` ${tr("Link valid until {0}.", wibDateTime(r.shareExpiresAt))}` : ""}
           </p>

@@ -37,19 +37,19 @@ export function FifoPanel({ pool, day, version }: { pool: string; day: string; v
       {!data ? <SkeletonList rows={3} /> : (
         <div className="space-y-4 p-4">
           {expired.length > 0 && (
-            <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 ring-1 ring-red-200"><PackageX size={15} className="mt-0.5 flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-xs text-red-700 ring-1 ring-red-200"><PackageX size={15} className="mt-0.5 flex-shrink-0" />
               <span>{tr("Expired, do not give")}: {expired.map((l) => `${l.name} ${l.batchNo ?? "—"} (${l.qty})`).join(", ")}</span></p>
           )}
           <div className="grid gap-3 lg:grid-cols-2">
             {data.menus.filter((m) => m.lots.length).map((m) => (
-              <div key={m.menu} className="rounded-lg border border-neutral-200 p-3">
-                <p className="mb-2 text-sm font-semibold text-neutral-900">{m.name}</p>
+              <div key={m.menu} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
+                <p className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{m.name}</p>
                 <ol className="flex flex-wrap gap-1.5">
                   {m.lots.map((l, i) => (
-                    <li key={`${l.batchNo}:${i}`} className="inline-flex items-center gap-1.5 rounded-md bg-neutral-50 px-2 py-1 text-xs ring-1 ring-neutral-200">
-                      <span className="text-[10px] font-bold tabular-nums text-neutral-400">{i + 1}</span>
-                      <span className="font-mono font-semibold text-neutral-900">{l.new ? tr("New stock") : l.batchNo ?? tr("No code")}</span>
-                      <span className="tabular-nums text-neutral-600">{l.qty}</span>
+                    <li key={`${l.batchNo}:${i}`} className="inline-flex items-center gap-1.5 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-2 py-1 text-xs ring-1 ring-[color:var(--j-DCDFE4)]">
+                      <span className="text-[10px] font-bold tabular-nums text-[color:var(--j-626F86)]">{i + 1}</span>
+                      <span className="font-mono font-semibold text-[color:var(--j-172B4D)]">{l.new ? tr("New stock") : l.batchNo ?? tr("No code")}</span>
+                      <span className="tabular-nums text-[color:var(--j-44546F)]">{l.qty}</span>
                       {when(l) && <Badge tone={tone(l.daysLeft)}>{when(l)}</Badge>}
                     </li>
                   ))}
@@ -59,14 +59,14 @@ export function FifoPanel({ pool, day, version }: { pool: string; day: string; v
           </div>
           {data.drivers.length > 0 && (
             <div>
-              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500"><ListOrdered size={13} />{tr("Per driver of the day")}</p>
-              <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]"><ListOrdered size={13} />{tr("Per driver of the day")}</p>
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                 {data.drivers.map((d) => (
                   <li key={d.code} className="flex flex-wrap items-start gap-x-3 gap-y-1 px-3 py-2">
-                    <span className="w-40 flex-shrink-0 truncate text-sm font-medium text-neutral-900">{d.name}</span>
+                    <span className="w-40 flex-shrink-0 truncate text-sm font-medium text-[color:var(--j-172B4D)]">{d.name}</span>
                     <span className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                       {d.lines.map((l, i) => (
-                        <span key={i} className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs ring-1 ${l.short ? "bg-red-50 text-red-700 ring-red-200" : "bg-white text-neutral-700 ring-neutral-200"}`}>
+                        <span key={i} className={`inline-flex items-center gap-1 rounded-[3px] px-2 py-0.5 text-xs ring-1 ${l.short ? "bg-red-50 text-red-700 ring-red-200" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]"}`}>
                           {l.name} · <span className="font-mono font-semibold">{l.short ? tr("short") : l.batchNo ?? tr("new")}</span> × {l.qty}
                         </span>
                       ))}

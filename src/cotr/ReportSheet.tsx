@@ -100,7 +100,7 @@ export function ReportSheet() {
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-neutral-900">{poolName} · {dmyOf(day)}</p>
+        <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{poolName} · {dmyOf(day)}</p>
         <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search armada or driver")} filters={filters}
           onOpen={() => { setDraft({ pool: poolCode, day }); setSheet(true); }} onClear={() => { setDay(todayWib()); if (!own) setPool(""); }} />
       </div>
@@ -117,15 +117,15 @@ export function ReportSheet() {
         </MonitorFilterSheet>
       )}
       {data && (
-        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200 text-xs sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-DCDFE4)] text-xs sm:grid-cols-5">
           {[[tr("Cups sold"), sum((a) => Object.values(a.lines).reduce((s, l) => s + l.t, 0)).toLocaleString("id-ID")], [tr("Total revenue"), rupiah(sum((a) => a.total))],
             [tr("QRIS"), rupiah(sum((a) => a.qris ?? 0))], [tr("Actual cash"), rupiah(sum((a) => a.cashActual ?? 0))],
             [tr("Balance"), rupiah(sum((a) => a.balance ?? 0))]].map(([k, v]) => (
-            <div key={k} className="bg-white px-3 py-2"><p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{k}</p><p className="mt-0.5 text-sm font-semibold tabular-nums text-neutral-900">{v}</p></div>
+            <div key={k} className="bg-white px-3 py-2"><p className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--j-626F86)]">{k}</p><p className="mt-0.5 text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{v}</p></div>
           ))}
         </div>
       )}
-      {error ? <ErrorState message={error} /> : !data ? <div className="skeleton h-64 rounded-lg" /> : listed.length === 0 ? (
+      {error ? <ErrorState message={error} /> : !data ? <div className="skeleton h-64 rounded-[3px]" /> : listed.length === 0 ? (
         <Empty icon={<ClipboardList size={28} />} title={tr("No armada in this pool")} />
       ) : (
         <div className="space-y-3">{paged.rows.map((a, i) => <Block key={a.driver} n={i} a={a} sheet={data} onSaved={merge} />)}<PageNav paged={paged} /></div>
@@ -174,28 +174,28 @@ function Block({ n, a, sheet, onSaved }: { n: number; a: Armada; sheet: Sheet; o
       if (out) { onSaved(out); toast(tr("Report saved")); }
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
-  const cell = "border border-neutral-300 px-1.5 py-1";
+  const cell = "border border-[color:var(--j-8590A2)] px-1.5 py-1";
   const inp = (val: string, set: (v: string) => void, can: boolean, label: string, wide?: boolean, at?: [number, number]) => can
     ? <input inputMode="numeric" value={val} onChange={(e) => set(e.target.value.replace(/\D/g, ""))} aria-label={label} placeholder="0"
         data-b={n} data-r={at?.[0]} data-c={at?.[1]} onKeyDown={move} onFocus={(e) => e.currentTarget.select()} enterKeyHint="next"
-        className={cx("h-8 w-full rounded-sm border border-transparent bg-white px-1 text-right tabular-nums hover:border-neutral-300 focus:border-brand-700 focus:outline-none", wide && "text-sm")} />
+        className={cx("h-8 w-full rounded-sm border border-transparent bg-white px-1 text-right tabular-nums hover:border-[color:var(--j-8590A2)] focus:border-[color:var(--j-0C66E4)] focus:outline-none", wide && "text-sm")} />
     : <span className="block text-right tabular-nums">{val || ""}</span>;
   const money = (label: string, value: React.ReactNode, tone: string, note?: React.ReactNode) => (
     <tr><td colSpan={2} className={cx(cell, "text-center text-[11px] font-bold uppercase", tone)}>{label}</td>
-      <td colSpan={5} className={cx(cell, "text-[11px] text-neutral-500")}>{note}</td><td className={cx(cell, "text-right font-semibold tabular-nums")}>{value}</td></tr>
+      <td colSpan={5} className={cx(cell, "text-[11px] text-[color:var(--j-626F86)]")}>{note}</td><td className={cx(cell, "text-right font-semibold tabular-nums")}>{value}</td></tr>
   );
   return (
-    <section className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
-      <header className="flex flex-wrap items-center gap-2 border-b border-neutral-200 bg-neutral-50 px-3 py-2">
-        <span className="rounded-[3px] bg-yellow-300 px-1.5 py-0.5 text-xs font-bold text-neutral-900">{a.fleet ?? "—"}</span>
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-neutral-900">{a.name}{a.nickname ? ` (${a.nickname})` : ""}</span>
-        {a.poolName && <span className="text-[11px] text-neutral-500">{a.poolName}</span>}
-        {a.productsAt && <span className="text-[11px] text-neutral-500">{tr("Products: {0}", a.productsBy ?? "—")}</span>}
-        {a.moneyAt && <span className="text-[11px] text-neutral-500">· {tr("Money: {0}", a.moneyBy ?? "—")}</span>}
-        {a.app && <button type="button" onClick={() => setShowApp((x) => !x)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-50">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+      <header className="flex flex-wrap items-center gap-2 border-b border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2">
+        <span className="rounded-[3px] bg-yellow-300 px-1.5 py-0.5 text-xs font-bold text-[color:var(--j-172B4D)]">{a.fleet ?? "—"}</span>
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{a.name}{a.nickname ? ` (${a.nickname})` : ""}</span>
+        {a.poolName && <span className="text-[11px] text-[color:var(--j-626F86)]">{a.poolName}</span>}
+        {a.productsAt && <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("Products: {0}", a.productsBy ?? "—")}</span>}
+        {a.moneyAt && <span className="text-[11px] text-[color:var(--j-626F86)]">· {tr("Money: {0}", a.moneyBy ?? "—")}</span>}
+        {a.app && <button type="button" onClick={() => setShowApp((x) => !x)} className="inline-flex items-center gap-1 rounded-[3px] px-2 py-1 text-[11px] font-semibold text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]">
           <Smartphone size={12} />{showApp ? tr("Hide driver app") : tr("Driver app")}</button>}
       </header>
-      <p className="border-b border-neutral-100 px-3 py-1.5 text-[11px] text-neutral-400">{tr("Keyboard: ↑ ↓ or Enter between rows, ← → between columns")}</p>
+      <p className="border-b border-[color:var(--j-F1F2F4)] px-3 py-1.5 text-[11px] text-[color:var(--j-626F86)]">{tr("Keyboard: ↑ ↓ or Enter between rows, ← → between columns")}</p>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[620px] table-fixed border-collapse text-xs">
           <thead><tr className="bg-red-600 text-white">
@@ -205,7 +205,7 @@ function Block({ n, a, sheet, onSaved }: { n: number; a: Armada; sheet: Sheet; o
           <tbody>
             {rows.map(({ m, l }, ri) => (
               <tr key={m.code}>
-                <td className={cx(cell, "whitespace-nowrap text-neutral-800")}>{m.name}</td><td className={cx(cell, "text-right tabular-nums text-neutral-500")}>{rupiah(m.price)}</td>
+                <td className={cx(cell, "whitespace-nowrap text-[color:var(--j-172B4D)]")}>{m.name}</td><td className={cx(cell, "text-right tabular-nums text-[color:var(--j-626F86)]")}>{rupiah(m.price)}</td>
                 {PARTS.map((p) => <td key={p} className={cx(cell, "p-0.5")}>{inp(lines[m.code]?.[p] ?? "", (v) => setLines((x) => ({ ...x, [m.code]: { ...x[m.code], [p]: v } })), sheet.canProducts, `${a.fleet} ${m.name} ${p.toUpperCase()}`, false, [ri, PARTS.indexOf(p)])}
                   {showApp && a.app && <span className="block px-1 text-right text-[10px] text-sky-700">{a.app.lines[m.code]?.[p] ?? 0}</span>}</td>)}
                 <td className={cx(cell, "text-right font-semibold tabular-nums", l.t < 0 && "bg-red-50 text-red-700")}>{l.t}
@@ -216,21 +216,21 @@ function Block({ n, a, sheet, onSaved }: { n: number; a: Armada; sheet: Sheet; o
             <tr className="bg-neutral-300 font-semibold"><td colSpan={2} className={cx(cell, "text-center text-[11px] uppercase")}>{tr("Total products")}</td>
               {(["b", "s", "c", "w", "t"] as const).map((k) => <td key={k} className={cx(cell, "text-right tabular-nums")}>{tot(k)}</td>)}<td className={cell} /></tr>
             {money(tr("Total revenue"), rupiah(revenue), "bg-blue-700 text-cyan-200")}
-            {money(tr("QRIS revenue"), inp(qris, setQris, sheet.canMoney, `${a.fleet} QRIS`, true, [rows.length, 0]), "bg-sky-300 text-neutral-900", showApp && a.app ? tr("App: {0}", rupiah(a.app.qris)) : undefined)}
-            {money(tr("Cash revenue"), rupiah(cash), "bg-green-300 text-neutral-900")}
-            {money(tr("Actual cash"), inp(actual, setActual, sheet.canMoney, `${a.fleet} actual cash`, true, [rows.length + 1, 0]), "bg-green-300 text-neutral-900",
+            {money(tr("QRIS revenue"), inp(qris, setQris, sheet.canMoney, `${a.fleet} QRIS`, true, [rows.length, 0]), "bg-sky-300 text-[color:var(--j-172B4D)]", showApp && a.app ? tr("App: {0}", rupiah(a.app.qris)) : undefined)}
+            {money(tr("Cash revenue"), rupiah(cash), "bg-green-300 text-[color:var(--j-172B4D)]")}
+            {money(tr("Actual cash"), inp(actual, setActual, sheet.canMoney, `${a.fleet} actual cash`, true, [rows.length + 1, 0]), "bg-green-300 text-[color:var(--j-172B4D)]",
               showApp && a.app?.cashActual != null ? tr("App: {0}", rupiah(a.app.cashActual)) : undefined)}
-            {money(tr("Operational"), rupiah(a.operational), "bg-green-300 text-neutral-900",
+            {money(tr("Operational"), rupiah(a.operational), "bg-green-300 text-[color:var(--j-172B4D)]",
               a.operationalWaiting ? <span className="text-amber-700">{tr("{0} waiting for the office in Requests & Maintenance", rupiah(a.operationalWaiting))}</span> : tr("Driver requests approved by the office"))}
-            <tr><td colSpan={2} className={cx(cell, "bg-green-300 text-center text-[11px] font-bold uppercase text-neutral-900")}>{tr("Balance")}</td>
-              <td colSpan={5} className={cx(cell, "text-[11px] text-neutral-500")}>{tr("Actual cash − (cash revenue − operational)")}</td>
-              <td className={cx(cell, "text-right font-bold tabular-nums", balance === null ? "text-neutral-400" : balance < 0 ? "bg-red-50 text-red-700" : balance > 0 ? "bg-emerald-50 text-emerald-700" : "")}>
+            <tr><td colSpan={2} className={cx(cell, "bg-green-300 text-center text-[11px] font-bold uppercase text-[color:var(--j-172B4D)]")}>{tr("Balance")}</td>
+              <td colSpan={5} className={cx(cell, "text-[11px] text-[color:var(--j-626F86)]")}>{tr("Actual cash − (cash revenue − operational)")}</td>
+              <td className={cx(cell, "text-right font-bold tabular-nums", balance === null ? "text-[color:var(--j-626F86)]" : balance < 0 ? "bg-red-50 text-red-700" : balance > 0 ? "bg-emerald-50 text-emerald-700" : "")}>
                 {balance === null ? "—" : `${balance > 0 ? "+" : ""}${rupiah(balance)}`}</td></tr>
           </tbody>
         </table>
       </div>
       {(sheet.canProducts || sheet.canMoney) && (
-        <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-200 px-3 py-2">
+        <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-[color:var(--j-DCDFE4)] px-3 py-2">
           {bad && <span className="mr-auto text-xs text-red-700">{tr("Left + cupping + waste is more than brought")}</span>}
           <Button size="sm" variant={canP || canM ? "primary" : "secondary"} disabled={!(canP || canM) || (canP && bad)} loading={busy} onClick={() => void save()}>
             {(a.productsAt || a.moneyAt) && !canP && !canM ? <Check size={14} /> : <Save size={14} />} {tr("Save report")}</Button>

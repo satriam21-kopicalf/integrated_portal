@@ -21,24 +21,24 @@ export function ScopeBar({ scopes, onOpen, onRefresh, refreshing, right }: {
     <div className="flex flex-wrap items-center gap-2">
       {scopes.map((s) => (
         <button key={s.key} type="button" onClick={onOpen} title={s.label}
-          className={cx('inline-flex h-9 max-w-full items-center gap-2 rounded-lg border px-3 text-[13px] transition-colors',
-            s.active ? 'border-brand-200 bg-brand-50 text-brand-800' : 'border-neutral-200 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50')}>
-          <span className={cx('flex-shrink-0 [&>svg]:h-4 [&>svg]:w-4', s.active ? 'text-brand-600' : 'text-neutral-400')}>{s.icon}</span>
-          <span className="hidden text-neutral-500 sm:inline">{s.label}</span>
+          className={cx('inline-flex h-9 max-w-full items-center gap-2 rounded-[3px] border px-3 text-[13px] transition-colors',
+            s.active ? 'border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]')}>
+          <span className={cx('flex-shrink-0 [&>svg]:h-4 [&>svg]:w-4', s.active ? 'text-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-626F86)]')}>{s.icon}</span>
+          <span className="hidden text-[color:var(--j-626F86)] sm:inline">{s.label}</span>
           <span className="truncate font-medium">{s.value}</span>
-          <ChevronDown size={14} className="flex-shrink-0 text-neutral-400" />
+          <ChevronDown size={14} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
         </button>
       ))}
       <button type="button" onClick={onOpen}
-        className={cx('inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-[13px] font-medium shadow-sm transition-colors',
-          count ? 'border-brand-700 bg-brand-700 text-white hover:bg-brand-800' : 'border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50')}>
+        className={cx('inline-flex h-9 items-center gap-1.5 rounded-[3px] border px-3 text-[13px] font-medium transition-colors',
+          count ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white hover:bg-[color:var(--j-0055CC)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]')}>
         <SlidersHorizontal size={15} /> {tr('Filters')}
         {count > 0 && <span className="rounded-full bg-white/20 px-1.5 text-xs tabular-nums">{count}</span>}
       </button>
       {right}
       {onRefresh && (
         <button type="button" onClick={onRefresh} title={tr('Refresh')} aria-label={tr('Refresh')}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 shadow-sm hover:bg-neutral-50 hover:text-neutral-900">
+          className="inline-flex h-9 w-9 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] hover:bg-[color:var(--j-F7F8F9)] hover:text-[color:var(--j-172B4D)]">
           <RefreshCw size={15} className={refreshing ? 'animate-spin' : undefined} />
         </button>
       )}
@@ -46,8 +46,8 @@ export function ScopeBar({ scopes, onOpen, onRefresh, refreshing, right }: {
   );
 }
 
-const quick = (on: boolean) => cx('rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors',
-  on ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300');
+const quick = (on: boolean) => cx('rounded-[3px] border px-2 py-1.5 text-xs font-medium transition-colors',
+  on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]');
 
 /** One day with quick picks (yesterday, today, tomorrow when `future`). */
 export function DayField({ value, onChange, future, max }: { value: string; onChange: (v: string) => void; future?: boolean; max?: string }) {
@@ -58,7 +58,7 @@ export function DayField({ value, onChange, future, max }: { value: string; onCh
         {picks.map((p) => <button key={p.label} type="button" onClick={() => onChange(p.v)} aria-pressed={value === p.v} className={quick(value === p.v)}>{p.label}</button>)}
       </div>
       <span className="relative block">
-        <CalendarDays size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <CalendarDays size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
         <input type="date" value={value} max={max} onChange={(e) => e.target.value && onChange(e.target.value)} className={cx(inputClass, 'pl-9')} aria-label={tr('Day')} />
       </span>
     </div>

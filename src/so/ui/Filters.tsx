@@ -40,11 +40,11 @@ export function FilterToolbar({ search, onSearch, placeholder, filters, onOpen, 
       <div className="flex flex-wrap items-center gap-2">
         {onSearch && (
           <div className="relative min-w-[8rem] flex-1 basis-32 sm:basis-56">
-            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--j-626F86)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
             </svg>
             <input value={search ?? ''} onChange={(e) => onSearch(e.target.value)} placeholder={placeholder} aria-label={placeholder}
-              className="h-10 w-full rounded-md border border-neutral-200 bg-white pl-9 pr-3 text-base font-medium text-neutral-900 placeholder:text-neutral-400 transition-colors hover:border-neutral-300 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100 lg:text-xs" />
+              className="h-10 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white pl-9 pr-3 text-base font-medium text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] transition-colors hover:border-[color:var(--j-8590A2)] focus:border-[color:var(--j-0C66E4)] focus:outline-none focus:ring-2 focus:ring-[color:var(--j-388BFF)] lg:text-xs" />
           </div>
         )}
         <FilterButton count={filters.length} onClick={onOpen} />
@@ -72,13 +72,13 @@ export function FilterSheet({ title, description, onClose, onReset, onApply, chi
       footer={
         <>
           <button type="button" onClick={onReset}
-            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
+            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-[3px] px-2 text-sm font-medium text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]">
             <RotateCcw size={14} /> {tr('Reset all')}
           </button>
           <Button onClick={onApply} disabled={applyDisabled} className="min-w-[9rem]">{tr('Show results')}</Button>
         </>
       }>
-      <div className="-mx-1 divide-y divide-neutral-100">{children}</div>
+      <div className="-mx-1 divide-y divide-[color:var(--j-F1F2F4)]">{children}</div>
     </Drawer>
   );
 }
@@ -88,16 +88,16 @@ export function FilterSection({ title, hint, children }: { title: string; hint?:
   return (
     <section className="px-1 py-4 first:pt-1">
       <header className="mb-2">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tc(title)}</h3>
-        {hint && <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>}
+        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tc(title)}</h3>
+        {hint && <p className="mt-0.5 text-xs text-[color:var(--j-626F86)]">{hint}</p>}
       </header>
       {children}
     </section>
   );
 }
 
-const chip = (on: boolean) => cx('h-9 rounded-lg border px-2 text-xs font-medium transition-colors',
-  on ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300');
+const chip = (on: boolean) => cx('h-9 rounded-[3px] border px-2 text-xs font-medium transition-colors',
+  on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]');
 
 /** One day with quick picks (today, yesterday …). */
 export function DayField({ value, onChange, picks }: { value: string; onChange: (v: string) => void; picks?: { label: string; value: string }[] }) {
@@ -143,11 +143,11 @@ export function PeriodField({ value, onChange, presets, maxDays }: {
       <div className="flex items-center gap-2">
         <input type="date" value={value.from} max={value.to} aria-label={tr('From')} className={cx(inputClass, 'h-10')}
           onChange={(e) => e.target.value && onChange({ from: e.target.value, to: value.to < e.target.value ? e.target.value : value.to })} />
-        <span className="text-neutral-400">–</span>
+        <span className="text-[color:var(--j-626F86)]">–</span>
         <input type="date" value={value.to} min={value.from} max={today} aria-label={tr('To')} className={cx(inputClass, 'h-10')}
           onChange={(e) => e.target.value && onChange({ from: value.from > e.target.value ? e.target.value : value.from, to: e.target.value })} />
       </div>
-      <p className={cx('text-xs', maxDays && days > maxDays ? 'text-red-600' : 'text-neutral-500')}>
+      <p className={cx('text-xs', maxDays && days > maxDays ? 'text-red-600' : 'text-[color:var(--j-626F86)]')}>
         {dmy(value.from)} – {dmy(value.to)} · {tr('{0} days', days)}{maxDays && days > maxDays ? ` · ${tr('at most {0} days', maxDays)}` : ''}
       </p>
     </div>
@@ -157,16 +157,16 @@ export function PeriodField({ value, onChange, presets, maxDays }: {
 /** A stacked bar of parts (status distribution) with a legend; shares of the total. */
 export function SegmentBar({ parts, total }: { parts: { label: string; value: number; color: string }[]; total?: number }) {
   const sum = total ?? parts.reduce((a, p) => a + p.value, 0);
-  if (!sum) return <div className="h-2 rounded-full bg-neutral-100" />;
+  if (!sum) return <div className="h-2 rounded-full bg-[color:var(--j-091E420F)]" />;
   return (
     <div className="space-y-2">
-      <div className="flex h-2 overflow-hidden rounded-full bg-neutral-100" role="img" aria-label={parts.map((p) => `${p.label} ${p.value}`).join(', ')}>
+      <div className="flex h-2 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]" role="img" aria-label={parts.map((p) => `${p.label} ${p.value}`).join(', ')}>
         {parts.filter((p) => p.value > 0).map((p) => <span key={p.label} className={p.color} style={{ width: `${(p.value / sum) * 100}%` }} />)}
       </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-600">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[color:var(--j-44546F)]">
         {parts.map((p) => (
           <span key={p.label} className="inline-flex items-center gap-1.5">
-            <span className={cx('h-2 w-2 rounded-full', p.color)} />{p.label} <span className="font-semibold tabular-nums text-neutral-900">{p.value}</span>
+            <span className={cx('h-2 w-2 rounded-full', p.color)} />{p.label} <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{p.value}</span>
           </span>
         ))}
       </div>

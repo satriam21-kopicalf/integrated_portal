@@ -58,12 +58,12 @@ export function OptionsStep() {
       description={tr("Choices sold with a menu (Less / No Sugar, Extra Shot …). The recipe card stays the standard portion (Normal Sugar); the rule of a choice says what it changes. One rule per name works for every menu.")}
       toolbar={
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search choice or menu")} /></div>
           <div role="radiogroup" aria-label={tr("Show")} className="flex gap-1">
             {([["all", tr("All")], ["todo", tr("Not set ({0})", todo)], ["set", tr("Set")]] as const).map(([k, label]) => (
               <button key={k} type="button" role="radio" aria-checked={only === k} onClick={() => setOnly(k)}
-                className={cx("rounded-md px-3 py-1 text-xs font-semibold", only === k ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "text-neutral-500")}>{label}</button>
+                className={cx("rounded-[3px] px-3 py-1 text-xs font-semibold", only === k ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "text-[color:var(--j-626F86)]")}>{label}</button>
             ))}
           </div>
         </div>
@@ -71,7 +71,7 @@ export function OptionsStep() {
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : (
         <>
           {res.pendingDays > 0 && (
-            <p className="mx-4 mt-3 flex items-start gap-2 rounded-xl bg-sky-50 px-3 py-2 text-xs text-sky-800">
+            <p className="mx-4 mt-3 flex items-start gap-2 rounded-[3px] bg-sky-50 px-3 py-2 text-xs text-sky-800">
               <Database size={14} className="mt-0.5 flex-shrink-0" />
               {tr("The choices of {0} earlier days are still being prepared from the transactions (a few days every 15 minutes); the numbers grow until then.", res.pendingDays)}
             </p>
@@ -83,14 +83,14 @@ export function OptionsStep() {
                   <th className="px-3 py-2">{tr("Choice")}</th><th className="px-3 py-2 text-right">{tr("Sold (90 Days)")}</th>
                   <th className="px-3 py-2">{tr("Sold With")}</th><th className="px-3 py-2">{tr("Rule")}</th><th className="w-24 px-3 py-2" />
                 </tr></thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {rows.map((c) => (
-                    <tr key={c.key} className="hover:bg-neutral-50">
-                      <td className="px-3 py-2"><span className="font-medium text-neutral-900">{c.name}</span>
-                        {c.ids > 1 && <span className="block text-[11px] text-neutral-400">{tr("{0} ESB ids with this name", c.ids)}</span>}</td>
+                    <tr key={c.key} className="hover:bg-[color:var(--j-F7F8F9)]">
+                      <td className="px-3 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{c.name}</span>
+                        {c.ids > 1 && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} ESB ids with this name", c.ids)}</span>}</td>
                       <td className="px-3 py-2 text-right tabular-nums" data-label={tr("Sold (90 Days)")}>{num(c.qty, 0)}
-                        <span className="block text-[11px] text-neutral-400">{tr("{0} with a card", num(c.withCard, 0))}</span></td>
-                      <td className="px-3 py-2 text-xs text-neutral-600" data-label={tr("Sold With")}>
+                        <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} with a card", num(c.withCard, 0))}</span></td>
+                      <td className="px-3 py-2 text-xs text-[color:var(--j-44546F)]" data-label={tr("Sold With")}>
                         {c.top.slice(0, 3).map((t) => t.name).join(", ")}{c.menus > 3 ? ` ${tr("+{0} menus", c.menus - 3)}` : ""}</td>
                       <td className="px-3 py-2" data-label={tr("Rule")}>
                         <Badge tone={!c.rule ? "amber" : c.rule.effect === "none" ? "slate" : "violet"} wrap>{ruleText(c.rule)}</Badge></td>
@@ -154,10 +154,10 @@ function SugarGrams() {
         <Button size="sm" loading={busy === "save"} disabled={!changes.length} onClick={() => void save()}><Save size={14} />{tr("Save {0} changes", changes.length)}</Button>
       </div>}
       toolbar={<div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <div className="relative w-full sm:max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
           <input className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search menu")} /></div>
         {checks > 0 && <Badge tone="amber"><AlertTriangle size={12} />{tr("{0} to check", checks)}</Badge>}
-        {notFilled && <span className="text-xs text-neutral-500">{tr("Not filled yet: the grams shown follow the % rule. Choose Fill from ESB.")}</span>}
+        {notFilled && <span className="text-xs text-[color:var(--j-626F86)]">{tr("Not filled yet: the grams shown follow the % rule. Choose Fill from ESB.")}</span>}
       </div>}>
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table>
         : rows.length === 0 ? <Empty title={tr("No menu with a sugar choice")} /> : (
@@ -165,19 +165,19 @@ function SugarGrams() {
           <table className="w-full min-w-[760px] text-sm">
             <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Menu (recipe card)")}</th><th className="px-3 py-2 text-right">Normal</th>
               {LEVELS.map((l) => <th key={l.key} className="px-3 py-2">{l.label}</th>)}</tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {rows.map((r) => (
-                <tr key={r.code} className="hover:bg-neutral-50">
-                  <td className="px-4 py-2"><span className="font-medium text-neutral-900">{r.name}</span><span className="block text-[11px] text-neutral-400">{r.code}</span></td>
+                <tr key={r.code} className="hover:bg-[color:var(--j-F7F8F9)]">
+                  <td className="px-4 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{r.name}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{r.code}</span></td>
                   <td className="px-4 py-2 text-right tabular-nums">{num(r.normal)} g</td>
                   {LEVELS.map((l) => {
                     const c = r.choices[l.key], k = `${r.code}|${l.key}`, src = SOURCE[c.source];
                     return (
                       <td key={l.key} className="px-4 py-2" title={c.note ?? undefined}>
                         <span className="flex items-center gap-2">
-                          <input inputMode="decimal" aria-label={`${r.name} · ${l.label}`} className={cx(inputClass, "h-8 w-20 text-right tabular-nums", draft[k] && "border-brand-300 bg-brand-50/40")}
+                          <input inputMode="decimal" aria-label={`${r.name} · ${l.label}`} className={cx(inputClass, "h-8 w-20 text-right tabular-nums", draft[k] && "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)]")}
                             placeholder={num(c.grams)} value={draft[k] ?? ""} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} />
-                          <span className="text-xs text-neutral-400">g</span>
+                          <span className="text-xs text-[color:var(--j-626F86)]">g</span>
                           <Badge tone={src.tone}>{src.label()}</Badge>
                         </span>
                       </td>
@@ -222,30 +222,30 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
           {([["none", tr("No Effect"), tr("The materials of the card do not change (Normal Sugar, Less Ice, a note …)")],
             ["adjust", tr("Change the Materials"), tr("Less or more of a material of the card, or an item added")]] as const).map(([k, label, hint]) => (
             <button key={k} type="button" role="radio" aria-checked={effect === k} onClick={() => setEffect(k)}
-              className={cx("rounded-md border p-3 text-left transition", effect === k ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
-              <span className="flex items-center gap-2 text-sm font-semibold text-neutral-900">{effect === k && <Check size={15} className="text-brand-700" />}{label}</span>
-              <span className="mt-0.5 block text-[11px] text-neutral-500">{hint}</span>
+              className={cx("rounded-[3px] border p-3 text-left transition", effect === k ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] ring-1 ring-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-8590A2)]")}>
+              <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{effect === k && <Check size={15} className="text-[color:var(--j-0C66E4)]" />}{label}</span>
+              <span className="mt-0.5 block text-[11px] text-[color:var(--j-626F86)]">{hint}</span>
             </button>
           ))}
         </div>
         {effect === "adjust" && (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-neutral-500">{tr("Quick:")}</span>
+              <span className="text-xs text-[color:var(--j-626F86)]">{tr("Quick:")}</span>
               {PRESETS.map((p) => (
                 <button key={p.label()} type="button" onClick={() => setLines(p.lines.map((l) => ({ ...l, text: String(l.value) })))}
-                  className="rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-700 hover:border-brand-300">{p.label()}</button>
+                  className="rounded-full border border-[color:var(--j-DCDFE4)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-85B8FF)]">{p.label()}</button>
               ))}
             </div>
             {lines.map((l, i) => (
-              <div key={i} className="grid gap-2 rounded-md border border-neutral-200 p-3 sm:grid-cols-[10rem_minmax(0,1fr)_9rem_7rem_auto] sm:items-center">
+              <div key={i} className="grid gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 sm:grid-cols-[10rem_minmax(0,1fr)_9rem_7rem_auto] sm:items-center">
                 <NativeSelect className={cx(inputClass, "h-9")} value={l.target} aria-label={tr("Material")}
                   onChange={(e) => set(i, { target: e.target.value as RuleLine["target"], mode: e.target.value === "sugar" ? "pct" : l.mode, code: null })}>
                   <option value="sugar">{tr("Sugar of the card")}</option><option value="item">{tr("An item")}</option>
                 </NativeSelect>
                 {l.target === "item" ? <Picker value={l.code ?? ""} options={itemOpts} placeholder={tr("Pick an item")}
                   onPick={(v) => set(i, { code: v, name: items.find((x) => x.code === v)?.name })} />
-                  : <span className="text-xs text-neutral-500">{tr("Every gula / sugar item of the card of the menu (not the flavour syrups)")}</span>}
+                  : <span className="text-xs text-[color:var(--j-626F86)]">{tr("Every gula / sugar item of the card of the menu (not the flavour syrups)")}</span>}
                 <NativeSelect className={cx(inputClass, "h-9")} value={l.mode} disabled={l.target === "sugar"} aria-label={tr("How")}
                   onChange={(e) => set(i, { mode: e.target.value as RuleLine["mode"] })}>
                   <option value="pct">{tr("% of the card")}</option><option value="qty">{tr("Qty per choice")}</option>
@@ -253,22 +253,22 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
                 <div className="relative">
                   <input inputMode="decimal" className={cx(inputClass, "h-9 pr-12 text-right tabular-nums")} value={l.text} placeholder={l.mode === "pct" ? "-50" : "18"}
                     onChange={(e) => set(i, { text: e.target.value.replace(/[^0-9,.-]/g, "") })} aria-label={tr("Value")} />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">{unit(l)}</span>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[color:var(--j-626F86)]">{unit(l)}</span>
                 </div>
-                <button type="button" onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))} className="justify-self-end rounded-lg p-2 text-neutral-400 hover:bg-neutral-100 hover:text-red-600" aria-label={tr("Remove")}><X size={16} /></button>
+                <button type="button" onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))} className="justify-self-end rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-red-600" aria-label={tr("Remove")}><X size={16} /></button>
               </div>
             ))}
             <Button size="sm" variant="secondary" onClick={() => setLines((ls) => [...ls, { target: "item", mode: "qty", value: 0, text: "" }])}><Plus size={14} /> {tr("Add Adjustment")}</Button>
-            <p className="rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600">
+            <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-[11px] text-[color:var(--j-44546F)]">
               {tr("Negative = less, positive = more. Example: Less Sugar = sugar of the card −50%; Extra Shot = espresso +18 (grams per choice sold).")}</p>
           </div>
         )}
-        <label className="block text-xs font-medium text-neutral-700">{tr("Note")}
+        <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Note")}
           <textarea rows={2} className={cx(inputClass, "mt-1 h-auto py-2")} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Optional")} /></label>
         {choice.top.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-neutral-700">{tr("Sold most with")}</p>
-            <ul className="mt-1 space-y-1 text-xs text-neutral-600">
+            <p className="text-xs font-semibold text-[color:var(--j-44546F)]">{tr("Sold most with")}</p>
+            <ul className="mt-1 space-y-1 text-xs text-[color:var(--j-44546F)]">
               {choice.top.map((t) => <li key={t.id} className="flex justify-between gap-3"><span>{t.name}{!t.hasCard && <span className="ml-1 text-amber-700">({tr("no card yet")})</span>}</span><span className="tabular-nums">{num(t.qty, 0)}</span></li>)}
             </ul>
           </div>
@@ -319,15 +319,15 @@ export function BomImport({ onClose, onDone }: { onClose: () => void; onDone: ()
         <Button loading={busy} disabled={!card?.lines.length} onClick={() => void save()}><ArrowDownToLine size={15} /> {tr("Make the Card")}</Button></> : undefined}>
       {!pick ? (
         <div className="space-y-3">
-          <div className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <div className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input autoFocus className={cx(searchClass, "pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search BOM or product, e.g. Es Kopi Calf")} /></div>
           {error ? <ErrorState message={error} /> : !list ? <table className="w-full"><tbody><SkeletonRows cols={3} /></tbody></table> : list.length === 0 ? <Empty title={tr("No BOM matches")} /> : (
-            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
               {list.slice(0, 80).map((b) => (
                 <li key={b.id}>
-                  <button type="button" onClick={() => open(b)} className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-neutral-50">
-                    <span className="min-w-0"><span className="block font-medium text-neutral-900">{b.name}</span>
-                      <span className="block text-[11px] text-neutral-500">{[b.code, b.type, tr("{0} lines", b.lines)].filter(Boolean).join(" · ")}</span></span>
+                  <button type="button" onClick={() => open(b)} className="flex w-full items-start justify-between gap-3 px-3 py-2.5 text-left hover:bg-[color:var(--j-F7F8F9)]">
+                    <span className="min-w-0"><span className="block font-medium text-[color:var(--j-172B4D)]">{b.name}</span>
+                      <span className="block text-[11px] text-[color:var(--j-626F86)]">{[b.code, b.type, tr("{0} lines", b.lines)].filter(Boolean).join(" · ")}</span></span>
                     {b.menus.length > 0 ? <Badge tone={b.menus.every((m) => m.recipe) ? "slate" : "green"}>{tr("{0} POS menus", b.menus.length)}</Badge> : <Badge tone="slate">{tr("No POS menu of this name")}</Badge>}
                   </button>
                 </li>
@@ -338,33 +338,33 @@ export function BomImport({ onClose, onDone }: { onClose: () => void; onDone: ()
       ) : !card ? <table className="w-full"><tbody><SkeletonRows cols={3} /></tbody></table> : (
         <div className="space-y-4">
           <div>
-            <p className="text-sm font-semibold text-neutral-900">{card.bom.name}</p>
-            <p className="text-xs text-neutral-500">{tr("One portion, from BOM {0}", card.bom.code ?? card.bom.id)}</p>
+            <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{card.bom.name}</p>
+            <p className="text-xs text-[color:var(--j-626F86)]">{tr("One portion, from BOM {0}", card.bom.code ?? card.bom.id)}</p>
           </div>
           <table className="w-full text-sm">
             <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2">{tr("In ESB")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {card.lines.map((l, i) => (
                 <tr key={i}><td className="px-3 py-2"><Badge tone={l.type === "item" ? "blue" : l.type === "wip" ? "violet" : "amber"}>{l.type === "item" ? tr("Item") : l.type === "wip" ? "WIP" : tr("Other")}</Badge> <span className="ml-1">{l.name}</span></td>
-                  <td className="px-3 py-2 text-right tabular-nums">{num(l.qty, 4)} {l.unit}{l.price != null && <span className="block text-[11px] text-neutral-400">{rp(l.price)}</span>}</td>
-                  <td className="px-3 py-2 text-xs text-neutral-500">{l.from}</td></tr>
+                  <td className="px-3 py-2 text-right tabular-nums">{num(l.qty, 4)} {l.unit}{l.price != null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{rp(l.price)}</span>}</td>
+                  <td className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{l.from}</td></tr>
               ))}
             </tbody>
           </table>
           {card.notes.length > 0 && (
-            <ul className="space-y-1 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <ul className="space-y-1 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">
               {card.notes.map((n, i) => <li key={i} className="flex gap-1.5"><AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />{n}</li>)}
             </ul>
           )}
           <div>
-            <p className="text-xs font-semibold text-neutral-700">{tr("POS menus that use this card")}</p>
-            {pick.menus.length === 0 ? <p className="mt-1 text-xs text-neutral-500">{tr("No POS menu has this name; assign the menus in step 2 after the card is made.")}</p> : (
+            <p className="text-xs font-semibold text-[color:var(--j-44546F)]">{tr("POS menus that use this card")}</p>
+            {pick.menus.length === 0 ? <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{tr("No POS menu has this name; assign the menus in step 2 after the card is made.")}</p> : (
               <ul className="mt-1 space-y-1">
                 {pick.menus.map((m) => (
                   <li key={m.id}><label className="flex cursor-pointer items-center gap-2 text-sm">
-                    <input type="checkbox" className="h-4 w-4 accent-brand-700" checked={menus.has(m.id)}
+                    <input type="checkbox" className="h-4 w-4 accent-[color:var(--j-0C66E4)]" checked={menus.has(m.id)}
                       onChange={() => setMenus((s) => { const n = new Set(s); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n; })} />
-                    {m.name} <span className="text-[11px] text-neutral-400">{tr("{0} sold in 90 days", num(m.qty, 0))}{m.recipe ? ` · ${tr("now on card {0}", m.recipe)}` : ""}</span>
+                    {m.name} <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("{0} sold in 90 days", num(m.qty, 0))}{m.recipe ? ` · ${tr("now on card {0}", m.recipe)}` : ""}</span>
                   </label></li>
                 ))}
               </ul>

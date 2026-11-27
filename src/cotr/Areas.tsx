@@ -41,10 +41,10 @@ export default function AreasTab() {
       <MasterTable noun={tr("area")} title={tr("Areas")} master={master} filters={filters}
         blank={(): Partial<Area> => ({ code: "", name: "", address: "", district: "", city: "", province: "", postal_code: "", latitude: null, longitude: null, radius_m: 100, pool_code: null, is_active: true })}
         columns={[
-          { label: tr("Area"), render: (a) => <><span className="block font-medium text-neutral-900">{a.name || "—"}</span><span className="text-[11px] text-neutral-400">{a.code}</span></> },
-          { label: tr("Address"), render: (a) => <><span className="block">{a.address || "—"}</span><span className="text-[11px] text-neutral-400">{[a.district, a.city, a.province, a.postal_code].filter(Boolean).join(", ")}</span></> },
+          { label: tr("Area"), render: (a) => <><span className="block font-medium text-[color:var(--j-172B4D)]">{a.name || "—"}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{a.code}</span></> },
+          { label: tr("Address"), render: (a) => <><span className="block">{a.address || "—"}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{[a.district, a.city, a.province, a.postal_code].filter(Boolean).join(", ")}</span></> },
           { label: tr("Location"), render: (a) => located(a)
-            ? <a href={`https://maps.google.com/?q=${a.latitude},${a.longitude}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-brand-700"><MapPin size={12} />{tr("Map")} · {a.radius_m} m</a>
+            ? <a href={`https://maps.google.com/?q=${a.latitude},${a.longitude}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[color:var(--j-0C66E4)]"><MapPin size={12} />{tr("Map")} · {a.radius_m} m</a>
             : <Badge tone="amber">{tr("No coordinates")}</Badge> },
           { label: tr("Served from"), render: (a) => poolName(a.pool_code) },
           { label: tr("Status"), render: (a) => <Badge tone={a.is_active ? "green" : "slate"}>{a.is_active ? tr("Active") : tr("Inactive")}</Badge> },

@@ -58,16 +58,16 @@ export default function CotrMenuPage() {
         columns={[
           { label: tr("Menu"), render: (m) => (
             <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-xs font-semibold tabular-nums text-brand-700" title={tr("Order in the App")}>{m.sort}</span>
-              <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{m.name || "—"}</span><span className="text-[11px] text-neutral-400">{m.code}</span></span>
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-xs font-semibold tabular-nums text-[color:var(--j-0C66E4)]" title={tr("Order in the App")}>{m.sort}</span>
+              <span className="min-w-0"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{m.name || "—"}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{m.code}</span></span>
             </span>
           ) },
           { label: tr("Category"), render: (m) => <Pill tone="gray">{m.category}</Pill> },
-          { label: tr("Price"), className: "text-right", render: (m) => <span className="font-semibold tabular-nums text-neutral-900">{rupiah(m.price)}</span> },
+          { label: tr("Price"), className: "text-right", render: (m) => <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{rupiah(m.price)}</span> },
           { label: tr("Recipe (BOM)"), render: (m) => m.bom_code
-            ? <span className="inline-flex items-center gap-1.5 text-neutral-700"><BookOpen size={13} className="text-neutral-400" />{boms.rows?.find((b) => b.code === m.bom_code)?.name ?? m.bom_code}</span>
+            ? <span className="inline-flex items-center gap-1.5 text-[color:var(--j-44546F)]"><BookOpen size={13} className="text-[color:var(--j-626F86)]" />{boms.rows?.find((b) => b.code === m.bom_code)?.name ?? m.bom_code}</span>
             : <Pill tone="amber" icon={<TriangleAlert size={11} />}>{tr("No recipe yet")}</Pill> },
-          { label: tr("Shelf Life"), className: "text-right", render: (m) => m.shelf_life_days ? <span className="tabular-nums">{tr("{0} days", m.shelf_life_days)}</span> : <span className="text-neutral-400">—</span> },
+          { label: tr("Shelf Life"), className: "text-right", render: (m) => m.shelf_life_days ? <span className="tabular-nums">{tr("{0} days", m.shelf_life_days)}</span> : <span className="text-[color:var(--j-626F86)]">—</span> },
           { label: tr("Status"), render: (m) => <YesNo on={m.is_active} yes={tr("Sold")} no={tr("Not sold")} /> },
         ]}
         fields={[
@@ -85,7 +85,7 @@ export default function CotrMenuPage() {
         description={tr("The categories the menus are grouped in; a category used by a menu cannot be deleted")}
         blank={(): Partial<Category> => ({ code: "", name: "", sort: (cats.rows?.length ?? 0) + 1, is_active: true })}
         columns={[
-          { label: tr("Category"), render: (c) => <><span className="block font-medium text-neutral-900">{c.name}</span><span className="text-[11px] text-neutral-400">{c.code}</span></> },
+          { label: tr("Category"), render: (c) => <><span className="block font-medium text-[color:var(--j-172B4D)]">{c.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{c.code}</span></> },
           { label: tr("Menus"), className: "text-right", render: (c) => <span className="tabular-nums">{(rows ?? []).filter((m) => m.category === c.name).length}</span> },
           { label: tr("Status"), render: (c) => <YesNo on={c.is_active} yes={tr("Active")} no={tr("Inactive")} /> },
         ]}

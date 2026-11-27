@@ -66,16 +66,16 @@ export default function WasteAnalysis({ res, onBranch, onItem }: { res: MonitorD
       <section>
         <Head icon={<CalendarDays size={15} />} title={tr("Waste value per day")}
           aside={<>{tr("Average {0} a day", fmtRp(a.avg))}{a.peak[1] > 0 && <> · {tr("highest {0} on {1}", fmtRp(a.peak[1]), dmy(a.peak[0]))}</>}</>} />
-        <div className="flex h-40 items-end gap-1 rounded-md border border-neutral-200 bg-white px-3 pb-2 pt-4" role="img"
+        <div className="flex h-40 items-end gap-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 pb-2 pt-4" role="img"
           aria-label={tr("Waste value per day")}>
           {a.days.map(([d, v]) => (
             <div key={d} className="group relative flex h-full min-w-0 flex-1 flex-col justify-end" title={`${dmy(d)} · ${fmtRp(v)}`}>
-              <span className={cx("block w-full rounded-t-[4px] transition-colors", v ? "bg-brand-500 group-hover:bg-brand-700" : "bg-neutral-100")}
+              <span className={cx("block w-full rounded-t-[4px] transition-colors", v ? "bg-[color:var(--j-388BFF)] group-hover:bg-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-091E420F)]")}
                 style={{ height: `${v ? Math.max(4, (v / max) * 100) : 2}%` }} />
             </div>
           ))}
         </div>
-        <div className="mt-1 flex justify-between text-[11px] tabular-nums text-neutral-400"><span>{dmy(a.days[0][0])}</span><span>{dmy(a.days[a.days.length - 1][0])}</span></div>
+        <div className="mt-1 flex justify-between text-[11px] tabular-nums text-[color:var(--j-626F86)]"><span>{dmy(a.days[0][0])}</span><span>{dmy(a.days[a.days.length - 1][0])}</span></div>
       </section>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -105,8 +105,8 @@ export default function WasteAnalysis({ res, onBranch, onItem }: { res: MonitorD
           <Head icon={<AlertTriangle size={15} />} title={tr("To check")} />
           <ul className="space-y-1.5">
             {checks.map((c, i) => (
-              <li key={i} className={cx("flex items-start gap-2 rounded-lg px-3 py-2 text-sm ring-1 ring-inset",
-                c.tone === "amber" ? "bg-amber-50 text-amber-900 ring-amber-200" : "bg-neutral-50 text-neutral-700 ring-neutral-200")}>
+              <li key={i} className={cx("flex items-start gap-2 rounded-[3px] px-3 py-2 text-sm ring-1 ring-inset",
+                c.tone === "amber" ? "bg-amber-50 text-amber-900 ring-amber-200" : "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]")}>
                 <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />{c.text}
               </li>
             ))}
@@ -120,32 +120,32 @@ export default function WasteAnalysis({ res, onBranch, onItem }: { res: MonitorD
 function Head({ icon, title, aside }: { icon: React.ReactNode; title: string; aside?: React.ReactNode }) {
   return (
     <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><span className="text-neutral-400">{icon}</span>{title}</h3>
-      {aside && <span className="text-xs text-neutral-500">{aside}</span>}
+      <h3 className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><span className="text-[color:var(--j-626F86)]">{icon}</span>{title}</h3>
+      {aside && <span className="text-xs text-[color:var(--j-626F86)]">{aside}</span>}
     </div>
   );
 }
 
 /** Horizontal bars, the label and figure in text colours (the bar carries the size only). */
 function Bars({ rows, max, total }: { rows: { key: string; label: string; sub?: string; value: number; text: string; onClick?: () => void }[]; max: number; total?: number }) {
-  if (!rows.length) return <p className="rounded-md border border-dashed border-neutral-200 px-3 py-6 text-center text-xs text-neutral-400">—</p>;
+  if (!rows.length) return <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-6 text-center text-xs text-[color:var(--j-626F86)]">—</p>;
   return (
-    <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 bg-white">
+    <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       {rows.map((r) => {
         const Tag = r.onClick ? "button" : "div";
         return (
           <li key={r.key}>
             <Tag {...(r.onClick ? { type: "button" as const, onClick: r.onClick } : {})}
-              className={cx("block w-full px-3 py-2.5 text-left", r.onClick && "hover:bg-neutral-50")}>
+              className={cx("block w-full px-3 py-2.5 text-left", r.onClick && "hover:bg-[color:var(--j-F7F8F9)]")}>
               <span className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="min-w-0 truncate font-medium text-neutral-800">{r.label}</span>
-                <span className="flex-shrink-0 tabular-nums text-neutral-900">{r.text}
-                  {total ? <span className="ml-1.5 text-xs text-neutral-400">{((r.value / Math.max(1, total)) * 100).toFixed(1)}%</span> : null}</span>
+                <span className="min-w-0 truncate font-medium text-[color:var(--j-172B4D)]">{r.label}</span>
+                <span className="flex-shrink-0 tabular-nums text-[color:var(--j-172B4D)]">{r.text}
+                  {total ? <span className="ml-1.5 text-xs text-[color:var(--j-626F86)]">{((r.value / Math.max(1, total)) * 100).toFixed(1)}%</span> : null}</span>
               </span>
-              <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-neutral-100">
-                <span className="block h-full rounded-full bg-brand-500" style={{ width: `${Math.min(100, (r.value / max) * 100)}%` }} />
+              <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]">
+                <span className="block h-full rounded-full bg-[color:var(--j-388BFF)]" style={{ width: `${Math.min(100, (r.value / max) * 100)}%` }} />
               </span>
-              {r.sub && <span className="mt-1 block text-[11px] text-neutral-400">{r.sub}</span>}
+              {r.sub && <span className="mt-1 block text-[11px] text-[color:var(--j-626F86)]">{r.sub}</span>}
             </Tag>
           </li>
         );
@@ -160,7 +160,7 @@ function AnalysisSkeleton() {
     <div className="space-y-5 p-4 sm:p-5" role="status" aria-label={tr("Loading…")}>
       <div className="space-y-2" aria-hidden>
         <Skeleton className="h-3.5 w-48" />
-        <div className="flex h-40 items-end gap-1 rounded-md border border-neutral-200 px-3 pb-2 pt-4">
+        <div className="flex h-40 items-end gap-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 pb-2 pt-4">
           {[40, 65, 30, 80, 55, 70, 45].map((h, i) => <Skeleton key={i} className="flex-1 rounded-t-[4px] rounded-b-none" style={{ height: `${h}%` }} />)}
         </div>
       </div>
@@ -168,7 +168,7 @@ function AnalysisSkeleton() {
         {[0, 1, 2, 3].map((k) => (
           <div key={k} className="space-y-2">
             <Skeleton className="h-3.5 w-36" />
-            <div className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+            <div className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
               {[0, 1, 2].map((r) => <div key={r} className="space-y-2 px-3 py-3"><Skeleton className="h-3 w-2/3" /><Skeleton className="h-1.5 w-full rounded-full" /></div>)}
             </div>
           </div>

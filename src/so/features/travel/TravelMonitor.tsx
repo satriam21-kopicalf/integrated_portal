@@ -33,17 +33,17 @@ type FShow = "open" | "overdue" | "critical" | "fixed" | "all";
 type RShow = "all" | "failed" | "late" | "critical";
 
 const short = (n: string) => n.replace(/^Kopi Calf (To Go )?/, "");
-const CELL: Record<CellState, string> = { done: "bg-emerald-500", late: "bg-amber-400", missing: "bg-red-500", waiting: "bg-neutral-200", none: "bg-transparent" };
+const CELL: Record<CellState, string> = { done: "bg-emerald-500", late: "bg-amber-400", missing: "bg-red-500", waiting: "bg-[color:var(--j-DCDFE4)]", none: "bg-transparent" };
 const cellText = (s: CellState) => ({ done: tr("On time"), late: tr("Late"), missing: tr("Not done"), waiting: tr("Not due yet"), none: "—" })[s];
 const Cat = ({ c }: { c: string | null | undefined }) => (c ? <span className={cx("inline-block rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", categoryClass(c))}>{categoryText(c)}</span> : null);
 const Score = ({ v, band }: { v: number | null; band?: Band | null }) => <span className={cx("rounded px-1.5 py-0.5 text-xs font-bold tabular-nums", bandClass(band ?? null))}>{v != null ? `${v}%` : "—"}</span>;
 
 function Photos({ ids, label }: { ids?: string[]; label?: string }) {
   if (!ids?.length) return null;
-  return <span className="inline-flex flex-wrap items-center gap-1.5">{label && <span className="text-[11px] text-neutral-500">{label}</span>}{ids.map((id) => (
+  return <span className="inline-flex flex-wrap items-center gap-1.5">{label && <span className="text-[11px] text-[color:var(--j-626F86)]">{label}</span>}{ids.map((id) => (
     <a key={id} href={photoUrl(id)} target="_blank" rel="noreferrer">
       {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-      <img src={thumb(photoUrl(id), 160)} decoding="async" loading="lazy" alt={label ?? tr("Photo")} className="h-12 w-12 rounded-md bg-neutral-100 object-cover" /></a>))}</span>;
+      <img src={thumb(photoUrl(id), 160)} decoding="async" loading="lazy" alt={label ?? tr("Photo")} className="h-12 w-12 rounded-[3px] bg-[color:var(--j-091E420F)] object-cover" /></a>))}</span>;
 }
 
 export default function TravelMonitor() {
@@ -110,16 +110,16 @@ export default function TravelMonitor() {
           <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "compliance", label: tr("Compliance"), icon: <CalendarCheck size={15} /> }, { key: "reports", label: tr("Reports"), icon: <FileText size={15} />, count: s?.reports },
             { key: "findings", label: tr("Findings"), icon: <AlertTriangle size={15} />, count: s?.openFindings }, { key: "analysis", label: tr("Analysis"), icon: <BarChart3 size={15} /> }]}
             left={<div className="flex flex-wrap items-center gap-2">
-              <Button variant="secondary" size="sm" className="!h-9" onClick={() => setFiltering(true)}><SlidersHorizontal size={14} /> {tr("Filter")}{group ? <span className="rounded-full bg-brand-700 px-1.5 text-[10px] font-bold text-white">1</span> : null}</Button>
-              <button type="button" onClick={() => setFiltering(true)} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-neutral-100 px-3 text-xs font-medium text-neutral-700"><CalendarDays size={13} />{from === to ? dmy(from) : `${dmy(from)} – ${dmy(to)}`}</button>
-              {group && <button type="button" onClick={() => setGroup("")} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-brand-50 px-3 text-xs font-medium text-brand-800">{tr("Group")}: {groups.find((g) => g.id === group)?.code ?? group}<X size={13} /></button>}
+              <Button variant="secondary" size="sm" className="!h-9" onClick={() => setFiltering(true)}><SlidersHorizontal size={14} /> {tr("Filter")}{group ? <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[10px] font-bold text-white">1</span> : null}</Button>
+              <button type="button" onClick={() => setFiltering(true)} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[color:var(--j-091E420F)] px-3 text-xs font-medium text-[color:var(--j-44546F)]"><CalendarDays size={13} />{from === to ? dmy(from) : `${dmy(from)} – ${dmy(to)}`}</button>
+              {group && <button type="button" onClick={() => setGroup("")} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-3 text-xs font-medium text-[color:var(--j-0055CC)]">{tr("Group")}: {groups.find((g) => g.id === group)?.code ?? group}<X size={13} /></button>}
             </div>}>
             {tab !== "analysis" && <Toolbar><div className="flex flex-wrap items-center gap-2">
               <div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet")} /></div>
               {tab === "reports" && <QuickChips<RShow> value={rshow} onChange={setRshow} label={tr("Show")} items={[{ key: "all", label: tr("All") }, { key: "failed", label: tr("Not passed"), dot: "bg-red-500", count: s?.failed }, { key: "critical", label: tr("Critical") }, { key: "late", label: tr("Late"), dot: "bg-amber-400" }]} />}
               {tab === "findings" && <QuickChips<FShow> value={fshow} onChange={setFshow} label={tr("Show")} items={[{ key: "open", label: tr("Open"), count: s?.openFindings }, { key: "overdue", label: tr("Overdue"), dot: "bg-red-500", count: s?.overdue }, { key: "critical", label: tr("Critical") }, { key: "fixed", label: tr("Repaired"), dot: "bg-emerald-500" }, { key: "all", label: tr("All") }]} />}
             </div>
-              {tab === "compliance" && data && <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500">{(["done", "late", "missing", "waiting"] as CellState[]).map((k) => <span key={k} className="inline-flex items-center gap-1.5"><span className={cx("h-3 w-3 rounded-sm", CELL[k])} />{cellText(k)}</span>)}
+              {tab === "compliance" && data && <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--j-626F86)]">{(["done", "late", "missing", "waiting"] as CellState[]).map((k) => <span key={k} className="inline-flex items-center gap-1.5"><span className={cx("h-3 w-3 rounded-sm", CELL[k])} />{cellText(k)}</span>)}
                 <span>{data.sessions.map((x) => `${sessionName(x)} ${x.from}–${x.to}`).join(" · ")}</span><span>{tr("Counted from {0}", dmy(data.since))}</span></p>}
             </Toolbar>}
             {!data ? <SkeletonTable cols={6} /> : tab === "compliance" ? (outlets.length === 0 ? <Empty title={tr("Nothing matches the search or filters")} /> : (
@@ -128,7 +128,7 @@ export default function TravelMonitor() {
                   {data.dates.map((d) => <th key={d} className="px-1 py-2 text-center font-medium">{d.slice(8)}/{d.slice(5, 7)}</th>)}</tr></thead>
                 <tbody>{po.rows.map((o) => (
                   <tr key={o.code} className={jRow.replace("cursor-pointer", "")}>
-                    <td className={cx(jTd, "sticky left-0 z-10 bg-white")}><span className="block font-medium text-neutral-900">{short(o.name)}</span><span className="text-[11px] text-neutral-400">{o.code}{o.group ? ` · ${o.group}` : ""}</span></td>
+                    <td className={cx(jTd, "sticky left-0 z-10 bg-white")}><span className="block font-medium text-[color:var(--j-172B4D)]">{short(o.name)}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{o.code}{o.group ? ` · ${o.group}` : ""}</span></td>
                     <td className={cx(jTd, "whitespace-nowrap text-right tabular-nums", o.missing > 0 && "font-semibold text-red-700")}>{o.done}/{o.expected}</td>
                     <td className={cx(jTd, "text-right tabular-nums")}>{o.score != null ? `${o.score}%` : "—"}</td>
                     {o.days.map((d) => <td key={d.date} className="px-1 py-2 text-center"><span className="inline-flex gap-0.5">{d.sessions.map((c) => {
@@ -142,9 +142,9 @@ export default function TravelMonitor() {
                 <thead><tr className={jHeadRow}>{[tr("Sent"), tr("Session"), tr("Outlet"), tr("Done by"), tr("Score"), tr("Findings"), "N/A", tr("Notes")].map((h) => <th key={h} className={jTh}>{h}</th>)}</tr></thead>
                 <tbody>{pr.rows.map((r) => (
                   <tr key={r.id} className={jRow} onClick={() => setOpen(r.id)}>
-                    <td className={cx(jTd, "whitespace-nowrap text-neutral-600")}>{wibDateTime(r.submittedAt)}</td><td className={jTd}>{r.sessionLabel}</td>
-                    <td className={cx(jTd, "font-medium text-neutral-900")}><button type="button" className="text-left hover:underline" onClick={(e) => { e.stopPropagation(); setOpen(r.id); }}>{short(r.branchName)}</button></td>
-                    <td className={cx(jTd, "text-neutral-600")}>{[r.crew, r.supervisor].filter(Boolean).join(" & ")}</td><td className={jTd}><Score v={r.score} band={r.band} /></td>
+                    <td className={cx(jTd, "whitespace-nowrap text-[color:var(--j-44546F)]")}>{wibDateTime(r.submittedAt)}</td><td className={jTd}>{r.sessionLabel}</td>
+                    <td className={cx(jTd, "font-medium text-[color:var(--j-172B4D)]")}><button type="button" className="text-left hover:underline" onClick={(e) => { e.stopPropagation(); setOpen(r.id); }}>{short(r.branchName)}</button></td>
+                    <td className={cx(jTd, "text-[color:var(--j-44546F)]")}>{[r.crew, r.supervisor].filter(Boolean).join(" & ")}</td><td className={jTd}><Score v={r.score} band={r.band} /></td>
                     <td className={jTd}>{r.counts?.nok ? <span className={cx("tabular-nums", r.counts.critical > 0 && "font-semibold text-red-700")}>{r.counts.nok}{r.counts.critical ? ` (${tr("{0} critical", r.counts.critical)})` : ""}</span> : "0"}</td><td className={cx(jTd, "tabular-nums")}>{r.counts?.na ?? 0}</td>
                     <td className={jTd}><span className="flex flex-wrap gap-1">{r.late && <Lozenge tone="amber">{tr("Late")}</Lozenge>}{r.reportLate && <Lozenge tone="amber">{tr("Late report")}</Lozenge>}{r.outsideRadius && <Lozenge tone="red">{tr("Outside radius")}</Lozenge>}</span></td>
                   </tr>))}</tbody></table></div>
@@ -152,25 +152,25 @@ export default function TravelMonitor() {
               <div className="overflow-x-auto"><table className={cx(jTable, "min-w-[980px]")}>
                 <thead><tr className={jHeadRow}>{[tr("Outlet"), tr("Area"), tr("Finding"), tr("Photo"), tr("Repair before"), tr("Status"), ""].map((h, i) => <th key={i} className={jTh}>{h}</th>)}</tr></thead>
                 <tbody>{pf.rows.map((f) => (
-                  <tr key={f.id} className="border-b border-neutral-100 align-top hover:bg-neutral-50">
-                    <td className={jTd}><button type="button" onClick={() => setOpen(f.reportId)} className="text-left font-medium text-neutral-900 hover:underline">{short(f.branchName)}</button><span className="block text-[11px] text-neutral-400">{dmy(f.day)} · {sname(f.session)}</span></td>
-                    <td className={jTd}><Cat c={f.category} /> <span className="text-neutral-900">{f.label}</span></td><td className={cx(jTd, "max-w-[18rem] text-neutral-700")}>{f.note}{f.reopenedNote && <span className="block text-xs text-amber-800">{tr("Opened again by {0}: {1}", f.reopenedBy ?? "", f.reopenedNote)}</span>}</td>
+                  <tr key={f.id} className="border-b border-[color:var(--j-F1F2F4)] align-top hover:bg-[color:var(--j-F7F8F9)]">
+                    <td className={jTd}><button type="button" onClick={() => setOpen(f.reportId)} className="text-left font-medium text-[color:var(--j-172B4D)] hover:underline">{short(f.branchName)}</button><span className="block text-[11px] text-[color:var(--j-626F86)]">{dmy(f.day)} · {sname(f.session)}</span></td>
+                    <td className={jTd}><Cat c={f.category} /> <span className="text-[color:var(--j-172B4D)]">{f.label}</span></td><td className={cx(jTd, "max-w-[18rem] text-[color:var(--j-44546F)]")}>{f.note}{f.reopenedNote && <span className="block text-xs text-amber-800">{tr("Opened again by {0}: {1}", f.reopenedBy ?? "", f.reopenedNote)}</span>}</td>
                     <td className={jTd}><Photos ids={f.photos.MAIN} /> <Photos ids={f.photos.AFTER} label={tr("After")} /></td>
                     <td className={cx(jTd, "whitespace-nowrap", f.overdue && "font-semibold text-red-700")}>{f.dueAt ? wibDateTime(f.dueAt) : "—"}</td>
                     <td className={jTd}>{f.status === "OPEN" ? <Lozenge tone={f.overdue ? "red" : "amber"}>{f.overdue ? tr("Overdue") : tr("Open")}</Lozenge> : <><Lozenge tone="green">{tr("Repaired")}</Lozenge>{f.fixedLate && <span className="ml-1"><Lozenge tone="amber">{tr("Late")}</Lozenge></span>}
-                      <span className="block max-w-[14rem] text-xs text-neutral-600">{f.fixNote}</span><span className="block text-[11px] text-neutral-400">{f.fixedBy} · {wibDateTime(f.fixedAt)}</span></>}</td>
+                      <span className="block max-w-[14rem] text-xs text-[color:var(--j-44546F)]">{f.fixNote}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{f.fixedBy} · {wibDateTime(f.fixedAt)}</span></>}</td>
                     <td className={cx(jTd, "text-right")}>{f.status === "FIXED" && <Button size="sm" variant="ghost" onClick={() => setReopening(f)}><RotateCcw size={13} /> {tr("Open again")}</Button>}</td>
                   </tr>))}</tbody></table></div>
             )) : (
               <div className="grid gap-6 p-4 sm:p-5 lg:grid-cols-2">
-                <section><h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("Most frequent findings")}</h3>
-                  {data.top.length === 0 ? <p className="text-sm text-neutral-500">{tr("No finding here")}</p> : <ul className="space-y-2">{data.top.slice(0, 15).map((x) => (
-                    <li key={x.key} className="text-sm"><div className="flex items-baseline justify-between gap-3"><span className="min-w-0 truncate"><Cat c={x.category} /> {x.label}</span><span className="shrink-0 tabular-nums text-neutral-600">{x.count}× · {tr("{0} outlets", x.outlets.length)}</span></div>
-                      <span className="mt-1 block h-2 rounded-sm bg-neutral-100"><span className="block h-2 rounded-sm bg-brand-600" style={{ width: `${(x.count / data.top[0].count) * 100}%` }} /></span></li>))}</ul>}</section>
-                <section><h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("Per branch group")}</h3>
+                <section><h3 className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Most frequent findings")}</h3>
+                  {data.top.length === 0 ? <p className="text-sm text-[color:var(--j-626F86)]">{tr("No finding here")}</p> : <ul className="space-y-2">{data.top.slice(0, 15).map((x) => (
+                    <li key={x.key} className="text-sm"><div className="flex items-baseline justify-between gap-3"><span className="min-w-0 truncate"><Cat c={x.category} /> {x.label}</span><span className="shrink-0 tabular-nums text-[color:var(--j-44546F)]">{x.count}× · {tr("{0} outlets", x.outlets.length)}</span></div>
+                      <span className="mt-1 block h-2 rounded-sm bg-[color:var(--j-091E420F)]"><span className="block h-2 rounded-sm bg-[color:var(--j-0C66E4)]" style={{ width: `${(x.count / data.top[0].count) * 100}%` }} /></span></li>))}</ul>}</section>
+                <section><h3 className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Per branch group")}</h3>
                   <table className={jTable}><thead><tr className={jHeadRow}>{[tr("Group"), tr("Outlets"), tr("Done"), "%", tr("Average score")].map((h) => <th key={h} className={jTh}>{h}</th>)}</tr></thead>
-                    <tbody>{data.groups.map((g) => <tr key={g.code} className="border-b border-neutral-100"><td className={cx(jTd, "font-medium")}>{g.code}</td><td className={cx(jTd, "tabular-nums")}>{g.outlets}</td><td className={cx(jTd, "tabular-nums")}>{g.done}/{g.expected}</td><td className={cx(jTd, "tabular-nums")}>{g.rate != null ? `${g.rate}%` : "—"}</td><td className={cx(jTd, "tabular-nums")}>{g.score != null ? `${g.score}%` : "—"}</td></tr>)}</tbody></table>
-                  <p className="mt-3 text-xs text-neutral-500">{tr("Score = areas that meet ÷ areas that apply; one critical finding caps it at {0}%. {1}% or more is standard, below {2}% is not passed.", data.criticalCap, data.standard, data.pass)}</p></section>
+                    <tbody>{data.groups.map((g) => <tr key={g.code} className="border-b border-[color:var(--j-F1F2F4)]"><td className={cx(jTd, "font-medium")}>{g.code}</td><td className={cx(jTd, "tabular-nums")}>{g.outlets}</td><td className={cx(jTd, "tabular-nums")}>{g.done}/{g.expected}</td><td className={cx(jTd, "tabular-nums")}>{g.rate != null ? `${g.rate}%` : "—"}</td><td className={cx(jTd, "tabular-nums")}>{g.score != null ? `${g.score}%` : "—"}</td></tr>)}</tbody></table>
+                  <p className="mt-3 text-xs text-[color:var(--j-626F86)]">{tr("Score = areas that meet ÷ areas that apply; one critical finding caps it at {0}%. {1}% or more is standard, below {2}% is not passed.", data.criticalCap, data.standard, data.pass)}</p></section>
               </div>)}
             {data && tab !== "analysis" && <CardFooter><span>{tr("{0} lines", fmtNumber(tab === "compliance" ? outlets.length : tab === "reports" ? reports.length : findings.length))}{data.truncated ? ` · ${tr("only the latest are listed, narrow the period")}` : ""}</span><PageNav paged={tab === "compliance" ? po : tab === "reports" ? pr : pf} /></CardFooter>}
           </WorkCard>
@@ -192,16 +192,16 @@ function ReportDrawer({ id, onClose }: { id: string; onClose: () => void }) {
     <Drawer open onClose={onClose} size="lg" icon={<Footprints size={18} />} title={r ? `${r.branchName} · ${r.sessionLabel}` : "Travel Path"} description={r ? `${wibDateTime(r.submittedAt)} · ${[r.crew, r.supervisor].filter(Boolean).join(" & ")}` : undefined}>
       {err ? <ErrorState message={err} /> : !r ? <SkeletonList rows={8} /> : (
         <div className="space-y-5">
-          <p className="flex flex-wrap items-center gap-2 text-sm"><Score v={r.score} band={r.band} />{r.band && <span className="font-semibold text-neutral-900">{bandText(r.band)}</span>}<span className="text-neutral-600">{tr("{0} meet · {1} findings · {2} N/A", r.counts?.ok ?? 0, r.counts?.nok ?? 0, r.counts?.na ?? 0)}</span>
-            {r.late && <Lozenge tone="amber">{tr("Late")}</Lozenge>}{r.reportLate && <Lozenge tone="amber">{tr("Late report")}</Lozenge>}{r.distanceM != null && <span className="text-xs text-neutral-500">{tr("{0} m from the outlet", r.distanceM)}</span>}</p>
+          <p className="flex flex-wrap items-center gap-2 text-sm"><Score v={r.score} band={r.band} />{r.band && <span className="font-semibold text-[color:var(--j-172B4D)]">{bandText(r.band)}</span>}<span className="text-[color:var(--j-44546F)]">{tr("{0} meet · {1} findings · {2} N/A", r.counts?.ok ?? 0, r.counts?.nok ?? 0, r.counts?.na ?? 0)}</span>
+            {r.late && <Lozenge tone="amber">{tr("Late")}</Lozenge>}{r.reportLate && <Lozenge tone="amber">{tr("Late report")}</Lozenge>}{r.distanceM != null && <span className="text-xs text-[color:var(--j-626F86)]">{tr("{0} m from the outlet", r.distanceM)}</span>}</p>
           {r.definition.groups.flatMap((g) => g.sections).map((z) => (
-            <section key={z.key}><h3 className="mb-1 text-sm font-semibold text-neutral-900">{tl(z, "title")}</h3>
-              <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">{z.items.map((i) => { const a = r.answers[i.key]; const f = r.findings?.find((x) => x.itemKey === i.key); return (
+            <section key={z.key}><h3 className="mb-1 text-sm font-semibold text-[color:var(--j-172B4D)]">{tl(z, "title")}</h3>
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">{z.items.map((i) => { const a = r.answers[i.key]; const f = r.findings?.find((x) => x.itemKey === i.key); return (
                 <li key={i.key} className={cx("space-y-1 px-3 py-2.5 text-sm", a?.rating === "NOK" && "bg-red-50/40")}>
-                  <p className="flex flex-wrap items-center gap-1.5"><span className="font-medium text-neutral-900">{i.no}. {tl(i)}</span><Cat c={i.category} />{a?.rating && <Lozenge tone={a.rating === "OK" ? "green" : a.rating === "NOK" ? "red" : "grey"}>{ratingText(a.rating)}</Lozenge>}</p>
-                  {a?.note && <p className="text-neutral-700">{a.note}</p>}
+                  <p className="flex flex-wrap items-center gap-1.5"><span className="font-medium text-[color:var(--j-172B4D)]">{i.no}. {tl(i)}</span><Cat c={i.category} />{a?.rating && <Lozenge tone={a.rating === "OK" ? "green" : a.rating === "NOK" ? "red" : "grey"}>{ratingText(a.rating)}</Lozenge>}</p>
+                  {a?.note && <p className="text-[color:var(--j-44546F)]">{a.note}</p>}
                   <Photos ids={r.photos.filter((p) => p.item === i.key && p.kind === "MAIN").map((p) => p.id)} />
-                  {f && <p className="text-xs text-neutral-600"><Wrench size={12} className="mr-1 inline" aria-hidden />{f.status === "FIXED" ? `${tr("Repaired")} · ${f.fixNote ?? ""} · ${f.fixedBy ?? ""} ${f.fixedAt ? wibDateTime(f.fixedAt) : ""}` : `${f.overdue ? tr("Overdue") : tr("Open")} · ${tr("Repair before {0}", f.dueAt ? wibDateTime(f.dueAt) : "—")}`}</p>}
+                  {f && <p className="text-xs text-[color:var(--j-44546F)]"><Wrench size={12} className="mr-1 inline" aria-hidden />{f.status === "FIXED" ? `${tr("Repaired")} · ${f.fixNote ?? ""} · ${f.fixedBy ?? ""} ${f.fixedAt ? wibDateTime(f.fixedAt) : ""}` : `${f.overdue ? tr("Overdue") : tr("Open")} · ${tr("Repair before {0}", f.dueAt ? wibDateTime(f.dueAt) : "—")}`}</p>}
                   <Photos ids={r.photos.filter((p) => p.item === i.key && p.kind === "AFTER").map((p) => p.id)} label={tr("After")} />
                 </li>); })}</ul></section>))}
         </div>)}
@@ -221,8 +221,8 @@ function Reopen({ finding, onClose, onDone }: { finding: Finding; onClose: () =>
   return (
     <Drawer open onClose={onClose} icon={<RotateCcw size={18} />} title={tr("Open the finding again")} description={`${finding.branchName} · ${finding.label}`}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={note.trim().length < 3} onClick={() => void save()}>{tr("Open again")}</Button></>}>
-      <div className="space-y-4"><p className="text-sm text-neutral-700">{finding.fixNote}</p><Photos ids={finding.photos.AFTER} label={tr("After")} />
-        <Field label={tr("What is still not right")} required><textarea className="min-h-[80px] w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} /></Field></div>
+      <div className="space-y-4"><p className="text-sm text-[color:var(--j-44546F)]">{finding.fixNote}</p><Photos ids={finding.photos.AFTER} label={tr("After")} />
+        <Field label={tr("What is still not right")} required><textarea className="min-h-[80px] w-full rounded-[3px] border border-[color:var(--j-8590A2)] px-3 py-2 text-sm" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} /></Field></div>
     </Drawer>
   );
 }

@@ -268,12 +268,12 @@ export default function RatioPage() {
               <table className="m-cards w-full min-w-[1600px] text-xs">
                 <thead className={cx(theadClass, "sticky top-0 z-10")}>
                   <tr>
-                    <th className="sticky left-0 z-20 bg-neutral-50 px-3 py-2.5">{tr("Outlet")}</th>
+                    <th className="sticky left-0 z-20 bg-[color:var(--j-F7F8F9)] px-3 py-2.5">{tr("Outlet")}</th>
                     {COLS.map((c, i) => (
                       <th key={c.key} className="whitespace-nowrap px-2 py-2.5 text-right">
                         <span className="inline-flex items-center gap-1">
                           <button type="button" onClick={() => setSort(s => ({ key: c.key, desc: s.key === c.key ? !s.desc : true }))}
-                            className="inline-flex items-center gap-0.5 capitalize hover:text-neutral-800">
+                            className="inline-flex items-center gap-0.5 capitalize hover:text-[color:var(--j-172B4D)]">
                             {c.label}{sort.key === c.key && (sort.desc ? <ArrowDown size={11} /> : <ArrowUp size={11} />)}
                           </button>
                           <HeaderInfo label={c.label} info={c.info} alignRight={i > COLS.length - 4} />
@@ -282,12 +282,12 @@ export default function RatioPage() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {!data ? <SkeletonRows cols={COLS.length + 1} /> : paged.rows.map(r => (
-                    <tr key={r.branchCode} className="hover:bg-neutral-50/70">
+                    <tr key={r.branchCode} className="hover:bg-[color:var(--j-F7F8F9)]">
                       <td className="sticky left-0 z-[1] max-w-[15rem] bg-white px-3 py-2">
-                        <span className="block truncate font-medium text-neutral-900" title={r.branchName}>{r.branchName}</span>
-                        <span className="block font-mono text-[10px] text-neutral-400">{r.branchCode}</span>
+                        <span className="block truncate font-medium text-[color:var(--j-172B4D)]" title={r.branchName}>{r.branchName}</span>
+                        <span className="block font-mono text-[10px] text-[color:var(--j-626F86)]">{r.branchCode}</span>
                       </td>
                       {COLS.map(c => (
                         <td key={c.key} className="whitespace-nowrap px-2 py-2 text-right tabular-nums">
@@ -295,14 +295,14 @@ export default function RatioPage() {
                             : c.kind === "mdr" ? (data.period.mdrEditable ? (
                               <input defaultValue={r.mdrPct ?? ""} placeholder="—" inputMode="decimal" aria-label={`MDR ${r.branchName}`}
                                 onBlur={e => void saveMdr(r, e.target.value)} onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-                                className="h-7 w-16 rounded border border-neutral-200 px-1.5 text-right" />
+                                className="h-7 w-16 rounded border border-[color:var(--j-DCDFE4)] px-1.5 text-right" />
                             ) : (r.mdrPct === null ? "-" : `${r.mdrPct}%`))
                             : <SoCell so={r[c.key] as So} onEdit={() => setEditSo({ row: r, which: c.key as "soStart" | "soEnd" })} />}
                         </td>
                       ))}
                     </tr>
                   ))}
-                  {data && rows.length === 0 && <tr><td colSpan={COLS.length + 1} className="py-10 text-center text-sm text-neutral-400">{tr("No outlet matches")}</td></tr>}
+                  {data && rows.length === 0 && <tr><td colSpan={COLS.length + 1} className="py-10 text-center text-sm text-[color:var(--j-626F86)]">{tr("No outlet matches")}</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -332,7 +332,7 @@ function RatioFilters({ basis, month, range, watch, onApply, onClose }: {
       <FilterSection title={tr("Month")}>
         <input type="month" value={iso(m).slice(0, 7)} aria-label={tr("Month")} max={iso(new Date()).slice(0, 7)}
           onChange={e => { if (!e.target.value) return; const [y, mm] = e.target.value.split("-").map(Number); const d = new Date(y, mm - 1, 1); setM(d); setR(presets(d).at(-1)!); }}
-          className="h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm" />
+          className="h-10 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-sm" />
       </FilterSection>
       <FilterSection title={tr("Period")} hint={tr("Cumulative from the 1st, as the workbook (W1 1–7 … W4 1–28)")}>
         <ChoiceGroup label="" value={r.key} onChange={k => setR(list.find(p => p.key === k) ?? list.at(-1)!)} choices={list.map(p => ({ value: p.key, label: p.label }))} />
@@ -353,10 +353,10 @@ function RatioFilters({ basis, month, range, watch, onApply, onClose }: {
 function HeaderInfo({ label, info, alignRight }: { label: string; info: Info; alignRight?: boolean }) {
   return (
     <span className="group/info relative inline-flex normal-case">
-      <button type="button" aria-label={tr("About {0}", label)} className="rounded-full p-0.5 text-neutral-300 outline-none hover:text-neutral-600 focus-visible:text-brand-700 focus-visible:ring-2 focus-visible:ring-brand-300">
+      <button type="button" aria-label={tr("About {0}", label)} className="rounded-full p-0.5 text-[color:var(--j-8590A2)] outline-none hover:text-[color:var(--j-44546F)] focus-visible:text-[color:var(--j-0C66E4)] focus-visible:ring-2 focus-visible:ring-[color:var(--j-85B8FF)]">
         <InfoIcon size={12} aria-hidden />
       </button>
-      <span role="tooltip" className={cx("pointer-events-none invisible absolute top-full z-30 mt-1.5 w-72 whitespace-normal rounded-lg bg-neutral-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed tracking-normal text-neutral-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100",
+      <span role="tooltip" className={cx("pointer-events-none invisible absolute top-full z-30 mt-1.5 w-72 whitespace-normal rounded-[3px] bg-neutral-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed tracking-normal text-neutral-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100",
         alignRight ? "right-0" : "left-1/2 -translate-x-1/2")}>
         <span className="mb-1 block font-semibold text-white">{label}</span>
         <span className="block">{info.source()}</span>
@@ -372,8 +372,8 @@ function BasisSwitch({ value, onChange }: { value: Basis; onChange: (b: Basis) =
     <div role="radiogroup" aria-label={tr("Ratio Basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 gap-1">
       {(["gross", "net"] as Basis[]).map((b) => (
         <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)}
-          className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors",
-            value === b ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "rounded-[4px] border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
+          className={cx("h-8 rounded-[3px] px-3 text-sm font-medium transition-colors",
+            value === b ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "rounded-[4px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>
           {b === "gross" ? tr("Gross sales") : tr("Net sales")}
         </button>
       ))}
@@ -386,7 +386,7 @@ function PurchasesSwitch({ value, onChange }: { value: Purchases; onChange: (v: 
     <div role="radiogroup" aria-label={tr("Purchases basis")} className="inline-flex h-10 flex-shrink-0 items-center gap-0.5 gap-1">
       {(["invoice", "gr"] as Purchases[]).map((b) => (
         <button key={b} type="button" role="radio" aria-checked={value === b} onClick={() => onChange(b)} title={b === "invoice" ? tr("Purchase invoices by supplier, as the workbook") : tr("Goods received and outlet purchases by cost group")}
-          className={cx("h-8 rounded-md px-3 text-sm font-medium transition-colors", value === b ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "rounded-[4px] border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
+          className={cx("h-8 rounded-[3px] px-3 text-sm font-medium transition-colors", value === b ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "rounded-[4px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>
           {b === "invoice" ? tr("Invoice") : tr("GR actual")}
         </button>
       ))}
@@ -419,20 +419,20 @@ function CostGroups({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
     <Dialog open size="lg" title={tr("Cost groups")} onClose={close}
       description={tr("The cost group of every ESB category of the goods receipts and outlet purchases ({0} days). A change applies from its date on; the months before keep theirs. A category not set follows its supplier, as the workbook.", data?.days ?? 60)}
       footer={<Button onClick={close}>{tr("Done")}</Button>}>
-      {error ? <ErrorState message={error} /> : !data ? <p className="py-6 text-center text-sm text-neutral-500">{tr("Loading…")}</p> : (
+      {error ? <ErrorState message={error} /> : !data ? <p className="py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr("Loading…")}</p> : (
         <div className="space-y-3">
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search category")} />
-          <ul className="max-h-[55vh] divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
+          <ul className="max-h-[55vh] divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {rows.map((c) => (
               <li key={c.category} className="px-3 py-2 text-sm">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-neutral-900">{c.category || tr("(no category)")}</p>
-                    <p className="truncate text-[11px] text-neutral-500">Rp {rp(c.value)} · {Object.entries(c.bySupplier).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([s]) => s).join(", ")}</p>
+                    <p className="truncate font-medium text-[color:var(--j-172B4D)]">{c.category || tr("(no category)")}</p>
+                    <p className="truncate text-[11px] text-[color:var(--j-626F86)]">Rp {rp(c.value)} · {Object.entries(c.bySupplier).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([s]) => s).join(", ")}</p>
                   </div>
                   <div className="text-right text-xs">
-                    <p className="font-semibold text-neutral-800">{groupText(c.group, c)}</p>
-                    {c.next && <p className="text-brand-700">{tr("{0} from {1}", groupText(c.next.group, c), dmyIso(c.next.validFrom))}</p>}
+                    <p className="font-semibold text-[color:var(--j-172B4D)]">{groupText(c.group, c)}</p>
+                    {c.next && <p className="text-[color:var(--j-0C66E4)]">{tr("{0} from {1}", groupText(c.next.group, c), dmyIso(c.next.validFrom))}</p>}
                   </div>
                   <div className="flex gap-1">
                     {c.history.length > 0 && <Button size="sm" variant="ghost" onClick={() => setOpen(open === c.category ? null : c.category)} aria-expanded={open === c.category}>{tr("History")}</Button>}
@@ -440,7 +440,7 @@ function CostGroups({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
                   </div>
                 </div>
                 {open === c.category && (
-                  <ul className="mt-2 space-y-1 rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600">
+                  <ul className="mt-2 space-y-1 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-[11px] text-[color:var(--j-44546F)]">
                     {c.history.map((h) => <li key={h.validFrom + (h.at ?? "")}><b>{dmyIso(h.validFrom)}</b> · {groupText(h.group, c)} · {h.note ?? "—"}{h.by ? ` · ${h.by}` : ""}</li>)}
                   </ul>
                 )}
@@ -469,18 +469,18 @@ function CostGroupForm({ category, minFrom, onCancel, onSaved }: { category: Cat
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   };
   return (
-    <div className="mt-2 grid gap-2 rounded-lg border border-brand-100 bg-brand-50/40 p-3 sm:grid-cols-[1fr_auto]">
-      <NativeSelect value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Cost group of {0}", category.category)} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm">
+    <div className="mt-2 grid gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] p-3 sm:grid-cols-[1fr_auto]">
+      <NativeSelect value={group} onChange={(e) => setGroup(e.target.value)} aria-label={tr("Cost group of {0}", category.category)} className="h-9 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2 text-sm">
         <option value="">{tr("Follow supplier ({0})", GROUP_LABEL[category.suggested]())}</option>
         {(Object.keys(GROUP_LABEL) as CostGroup[]).map((g) => <option key={g} value={g}>{GROUP_LABEL[g]()}</option>)}
       </NativeSelect>
-      <input type="date" value={from} min={minFrom} onChange={(e) => e.target.value && setFrom(e.target.value)} aria-label={tr("Valid from")} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-sm" />
+      <input type="date" value={from} min={minFrom} onChange={(e) => e.target.value && setFrom(e.target.value)} aria-label={tr("Valid from")} className="h-9 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2 text-sm" />
       <Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder={tr("Reason (agreed with management)")} className="sm:col-span-2" />
       <div className="flex gap-1">
         <Button size="sm" variant="ghost" onClick={onCancel} disabled={busy}>{tr("Cancel")}</Button>
         <Button size="sm" onClick={() => void save()} loading={busy} disabled={!note.trim()}>{tr("Save")}</Button>
       </div>
-      <p className="self-center text-[11px] text-neutral-500">{tr("Valid from {0} at the earliest: a closed month keeps its figures.", dmyIso(minFrom))}</p>
+      <p className="self-center text-[11px] text-[color:var(--j-626F86)]">{tr("Valid from {0} at the earliest: a closed month keeps its figures.", dmyIso(minFrom))}</p>
       {err && <p className="text-xs text-red-700 sm:col-span-2">{err}</p>}
     </div>
   );
@@ -490,7 +490,7 @@ function CostGroupForm({ category, minFrom, onCancel, onSaved }: { category: Cat
 function NetCell({ row }: { row: Row }) {
   return (
     <span title={row.netBasis === "pendapatan" ? tr("Pendapatan: gross × (1 − MDR {0}%)", row.mdrPct ?? 0) : tr("ESB nett sales (no MDR for this month)")}>
-      {row.netBasis === "nett" && <span className="mr-1 rounded bg-neutral-100 px-1 text-[9px] font-semibold text-neutral-500">ESB</span>}
+      {row.netBasis === "nett" && <span className="mr-1 rounded bg-[color:var(--j-091E420F)] px-1 text-[9px] font-semibold text-[color:var(--j-626F86)]">ESB</span>}
       {rp(row.net)}
     </span>
   );
@@ -498,11 +498,11 @@ function NetCell({ row }: { row: Row }) {
 
 function SoCell({ so, onEdit }: { so: So; onEdit: () => void }) {
   return (
-    <button type="button" onClick={onEdit} className="group inline-flex items-center gap-1 rounded px-1 hover:bg-neutral-100"
+    <button type="button" onClick={onEdit} className="group inline-flex items-center gap-1 rounded px-1 hover:bg-[color:var(--j-091E420F)]"
       title={so.override ? `${tr("Corrected")}: ${so.override.note}` : so.doc ? `${so.doc} · ${so.docDate} · ${so.docStatus}` : tr("No stock opname document")}>
       {so.override && <Badge tone="violet">{tr("Corrected")}</Badge>}
-      <span className={so.value === null ? "text-neutral-300" : ""}>{rp(so.value)}</span>
-      <Pencil size={11} className="text-neutral-300 group-hover:text-neutral-600" />
+      <span className={so.value === null ? "text-[color:var(--j-8590A2)]" : ""}>{rp(so.value)}</span>
+      <Pencil size={11} className="text-[color:var(--j-8590A2)] group-hover:text-[color:var(--j-44546F)]" />
     </button>
   );
 }
@@ -530,12 +530,12 @@ function SoDialog({ row, which, onClose, onSaved }: { row: Row; which: "soStart"
         <Button loading={busy} disabled={!value.trim() || !note.trim()} onClick={() => void send({ value: Number(value.replace(/\./g, "").replace(",", ".")), note })}>{tr("Save correction")}</Button>
       </>}>
       <div className="space-y-3">
-        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+        <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">
           {so.doc ? tr("ESB stock opname {0} ({1}, {2}): Rp {3}", so.doc, so.docDate ?? "", so.docStatus ?? "", rp(so.esb)) : tr("No ESB stock opname document around this date.")}
         </p>
         <Field label={tr("Value Used (Rp)")} required><Input inputMode="numeric" value={value} onChange={e => setValue(e.target.value)} /></Field>
         <Field label={tr("Reason")} required><Input value={note} onChange={e => setNote(e.target.value)} placeholder={tr("e.g. espresso stock counted separately")} /></Field>
-        {so.override && <p className="text-[11px] text-neutral-400">{tr("Last corrected by {0}", so.override.by ?? "-")}</p>}
+        {so.override && <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("Last corrected by {0}", so.override.by ?? "-")}</p>}
         {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       </div>
     </Dialog>

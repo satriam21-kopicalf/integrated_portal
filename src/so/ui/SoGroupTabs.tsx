@@ -61,11 +61,11 @@ export function SoGroupTabs({ value, onChange, counts }: { value: SoGroup; onCha
         return (
           <button key={key} type="button" role="tab" aria-selected={on} onClick={() => onChange(key)}
             className={cx("flex min-w-0 items-center gap-1.5 rounded-[4px] border px-2.5 py-1 text-xs font-medium transition-colors",
-              on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
+              on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>
             <Icon size={13} />
             <span className="truncate sm:hidden">{short}</span><span className="hidden truncate sm:inline">{label}</span>
             {counts?.[key] !== undefined && (
-              <span className={cx("tabular-nums", on ? "text-white/70" : "text-neutral-400")}>{counts[key]}</span>
+              <span className={cx("tabular-nums", on ? "text-white/70" : "text-[color:var(--j-626F86)]")}>{counts[key]}</span>
             )}
           </button>
         );

@@ -514,7 +514,7 @@ function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
   if (!only && !some) return null;
   const host = OPERATIONS_URL.replace('https://', '');
   return (
-    <p className={`flex items-start gap-2 rounded-[3px] px-3 py-2 text-xs ${only ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] ring-1 ring-brand-200' : 'bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]'}`}>
+    <p className={`flex items-start gap-2 rounded-[3px] px-3 py-2 text-xs ${only ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-85B8FF)]' : 'bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]'}`}>
       <Smartphone size={14} className="mt-px flex-shrink-0" />
       <span>{only
         ? tr('This account opens forms and pages Operations has only: it signs in at {0} and the portal refuses it. Add a page without the Operations tag to keep the portal.', host)

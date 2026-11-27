@@ -52,7 +52,7 @@ export default function BranchGroupsPage() {
       {tab === "deadlines" ? <CardBody><CheckInDeadlines canEdit={canEdit} /></CardBody> : tab === "items" ? <CardBody><FormItems canEdit={canEdit} /></CardBody>
         : tab === "travel" ? <CardBody><TravelSettings canEdit={canEdit} /></CardBody>
         : tab === "targets" ? <CardBody><SalesTargets /></CardBody> : error ? <div className="p-4"><ErrorState message={error} onRetry={load} /></div> : !data ? (
-        <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-10 rounded-md" />)}</div>
+        <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="skeleton h-10 rounded-[3px]" />)}</div>
       ) : (
         <>
           <div className="overflow-x-auto">
@@ -66,27 +66,27 @@ export default function BranchGroupsPage() {
               <tbody>
                 {data.groups.map((g) => (
                   <tr key={g.id} onClick={() => canEdit && setOpen(g)} className={cx(jRow, !canEdit && "cursor-default")}>
-                    <td className={jTd}><TypeIcon tone="bg-brand-700" title={tr("Group")}><Boxes size={11} /></TypeIcon></td>
+                    <td className={jTd}><TypeIcon tone="bg-[color:var(--j-0C66E4)]" title={tr("Group")}><Boxes size={11} /></TypeIcon></td>
                     <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{g.code}</span></td>
-                    <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-900">{g.name}</span>
-                      {g.description && <span className="block truncate text-[11px] text-neutral-400">{g.description}</span>}</td>
+                    <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-[color:var(--j-172B4D)]">{g.name}</span>
+                      {g.description && <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{g.description}</span>}</td>
                     <td className={cx(jTd, "max-w-[26rem]")}>
                       <span className="flex flex-wrap items-center gap-1">
                         <Lozenge tone={g.branches.length ? "blue" : "amber"}>{g.branches.length}</Lozenge>
-                        {g.branches.slice(0, 4).map((b) => <span key={b.code} className="max-w-[9rem] truncate rounded-[3px] bg-neutral-100 px-1.5 py-0.5 text-[11px] text-neutral-600">{b.name.replace(/^Kopi Calf (To Go )?/, "")}</span>)}
-                        {g.branches.length > 4 && <span className="text-[11px] text-neutral-400">+{g.branches.length - 4}</span>}
+                        {g.branches.slice(0, 4).map((b) => <span key={b.code} className="max-w-[9rem] truncate rounded-[3px] bg-[color:var(--j-091E420F)] px-1.5 py-0.5 text-[11px] text-[color:var(--j-44546F)]">{b.name.replace(/^Kopi Calf (To Go )?/, "")}</span>)}
+                        {g.branches.length > 4 && <span className="text-[11px] text-[color:var(--j-626F86)]">+{g.branches.length - 4}</span>}
                         {g.branches.length === 0 && <span className="text-xs text-amber-700">{tr("No branch yet")}</span>}
                       </span>
                     </td>
-                    <td className={cx(jTd, "text-right tabular-nums text-neutral-800")}>{g.checkin_max_per_day ?? 1}×</td>
-                    <td className={cx(jTd, "tabular-nums text-neutral-800")}>{g.checkin_deadline ?? "11:00"}</td>
+                    <td className={cx(jTd, "text-right tabular-nums text-[color:var(--j-172B4D)]")}>{g.checkin_max_per_day ?? 1}×</td>
+                    <td className={cx(jTd, "tabular-nums text-[color:var(--j-172B4D)]")}>{g.checkin_deadline ?? "11:00"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="border-t border-neutral-200 px-4 py-3 sm:px-5">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Without a group ({0})", data.unassigned.length)}</p>
+          <div className="border-t border-[color:var(--j-DCDFE4)] px-4 py-3 sm:px-5">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Without a group ({0})", data.unassigned.length)}</p>
             {data.unassigned.length === 0 ? <p className="flex items-center gap-1.5 text-sm text-emerald-700"><Check size={14} /> {tr("Every outlet is in a group")}</p> : (
               <ul className="flex flex-wrap gap-1.5">
                 {data.unassigned.map((b) => <li key={b.code}><Badge tone="amber" icon={<Store size={11} />}>{b.name} · {b.code}</Badge></li>)}
@@ -177,7 +177,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
               <Input value={maxCheckin} onChange={(e) => setMaxCheckin(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1" className="w-24 text-right tabular-nums" />
               {[1, 2, 3].map((n) => (
                 <button key={n} type="button" onClick={() => setMaxCheckin(String(n))}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{tr("{0}× a day", n)}</button>
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{tr("{0}× a day", n)}</button>
               ))}
             </div>
           </Field>
@@ -186,7 +186,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
               <Input type="time" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="w-32 tabular-nums" aria-label={tr("Check-In Deadline")} />
               {["10:00", "10:15", "10:30"].map((t) => (
                 <button key={t} type="button" onClick={() => setDeadline(t)}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium tabular-nums", deadline === t ? "border-brand-600 bg-brand-50 text-brand-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{t}</button>
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium tabular-nums", deadline === t ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{t}</button>
               ))}
             </div>
           </Field>
@@ -199,21 +199,21 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
               {allShown ? tr("Clear shown") : tr("Select shown")} ({shown.length})
             </Button>
           </div>
-          {moving > 0 && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("{0} branches move from another group", moving)}</p>}
-          <ul className="max-h-[24rem] divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
+          {moving > 0 && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("{0} branches move from another group", moving)}</p>}
+          <ul className="max-h-[24rem] divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {shown.map((b) => (
               <li key={b.code}>
-                <label className={cx("flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-neutral-50", picked.has(b.code) && "bg-brand-50/60")}>
-                  <input type="checkbox" className="h-4 w-4 rounded border-neutral-300" checked={picked.has(b.code)} onChange={() => toggle(b.code)} />
+                <label className={cx("flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-[color:var(--j-F7F8F9)]", picked.has(b.code) && "bg-[color:var(--j-E9F2FF)]")}>
+                  <input type="checkbox" className="h-4 w-4 rounded border-[color:var(--j-8590A2)]" checked={picked.has(b.code)} onChange={() => toggle(b.code)} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-neutral-900">{b.name}</span>
-                    <span className="text-[11px] text-neutral-400">{b.code}</span>
+                    <span className="block truncate text-[color:var(--j-172B4D)]">{b.name}</span>
+                    <span className="text-[11px] text-[color:var(--j-626F86)]">{b.code}</span>
                   </span>
                   {b.group && <Badge tone={picked.has(b.code) ? "amber" : "slate"}>{picked.has(b.code) ? tr("moves from {0}", b.group) : b.group}</Badge>}
                 </label>
               </li>
             ))}
-            {shown.length === 0 && <li className="px-3 py-8 text-center text-sm text-neutral-400">{tr("No branch matches")}</li>}
+            {shown.length === 0 && <li className="px-3 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No branch matches")}</li>}
           </ul>
         </FormCard>
       </div>

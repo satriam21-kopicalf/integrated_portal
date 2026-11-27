@@ -467,7 +467,7 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
       {
         id: 'cc-ratio', title: tr('Outlet Ratio'),
         body: <>
-          <p className="text-sm text-neutral-700">{L(<>Kolom workbook <i>CALF – Rasio Outlet</i> dari data ESB. Pilih {tr('Month')} dan {tr('Period')} (kumulatif W1 1–7 … W4 1–28, atau sebulan); rasio atas gross atau net; <B t="Download Excel" />.</>,
+          <p className="text-sm text-[color:var(--j-44546F)]">{L(<>Kolom workbook <i>CALF – Rasio Outlet</i> dari data ESB. Pilih {tr('Month')} dan {tr('Period')} (kumulatif W1 1–7 … W4 1–28, atau sebulan); rasio atas gross atau net; <B t="Download Excel" />.</>,
             <>The columns of the workbook <i>CALF – Rasio Outlet</i> from ESB data. Choose the {tr('Month')} and {tr('Period')} (cumulative W1 1–7 … W4 1–28, or the whole month); ratios on gross or net sales; <B t="Download Excel" />.</>)}</p>
           <Table head={[S('Kolom', 'Column'), S('Sumber / rumus', 'Source / formula')]} rows={[
             ['Gross sales', S('Subtotal penjualan POS', 'POS sales subtotal')],
@@ -551,7 +551,7 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
       {
         id: 'cc-notif', title: tr('Notifications'),
         body: <>
-          <p className="text-sm text-neutral-700">{L(<>Untuk akun dengan akses Good Receipt atau COGS & Usage. Buka profil Anda di kiri bawah sidebar (HP: foto profil kanan atas → profil di bawah menu) → <B t="Notifications" />. Angka merah = belum dibaca. Diperiksa otomatis setiap 30 menit.</>,
+          <p className="text-sm text-[color:var(--j-44546F)]">{L(<>Untuk akun dengan akses Good Receipt atau COGS & Usage. Buka profil Anda di kiri bawah sidebar (HP: foto profil kanan atas → profil di bawah menu) → <B t="Notifications" />. Angka merah = belum dibaca. Diperiksa otomatis setiap 30 menit.</>,
             <>For accounts opening Good Receipt or COGS & Usage. Open your profile at the bottom of the sidebar (phone: the avatar top right → your profile at the bottom of the menu) → <B t="Notifications" />. A red number = unread. Checked by itself every 30 minutes.</>)}</p>
           <Table head={[S('Notifikasi', 'Notification'), S('Kapan', 'When')]} rows={[
             [S('Dokumen / GR tidak wajar', 'Unusual document / GR'), S('Jumlah jauh dari kebiasaan dan belum dikoreksi (per baris)', 'A quantity far from usual, not corrected yet (per line)')],
@@ -575,7 +575,7 @@ export function guideParts(lang: GuideLang): Record<GuideKey, Part> {
       {
         id: 'ops-overview', title: S('Overview: skor PIC', 'Overview: PIC score'),
         body: <>
-          <p className="text-sm text-neutral-700">{L(<><P href="/monitoring/overview" t="Overview" />: setiap bagian 0–100%; skor = rata-rata berbobot dari bagian yang ada datanya (<B t="How the PIC score is made" />). Lalu hal yang sama per outlet.</>,
+          <p className="text-sm text-[color:var(--j-44546F)]">{L(<><P href="/monitoring/overview" t="Overview" />: setiap bagian 0–100%; skor = rata-rata berbobot dari bagian yang ada datanya (<B t="How the PIC score is made" />). Lalu hal yang sama per outlet.</>,
             <><P href="/monitoring/overview" t="Overview" />: every part 0–100%; the score = the weighted average of the parts with data (<B t="How the PIC score is made" />). Then the same per outlet.</>)}</p>
           <Table head={[S('Bagian', 'Part'), S('Bobot', 'Weight'), S('Cara hitung', 'How')]} rows={[
             [tr('PIC Check-In'), '15%', S('Check in dalam radius terhadap target harian grup × hari kerja', 'Check ins within the radius against the group\'s daily target × working days')],

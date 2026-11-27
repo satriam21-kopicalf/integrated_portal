@@ -62,23 +62,23 @@ export function ShipmentPlan() {
             {plan.pools.map((p) => (
               <div key={p.pool}>
                 <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="text-sm font-semibold text-neutral-900">{p.name}</p>
-                  <p className="text-xs text-neutral-500">{tr("Leftover of {0} · {1} days of sales", p.counted ? dmyOf(p.counted) : "—", p.days)} · <span className={p.send ? "font-semibold text-brand-700" : ""}>{tr("send {0} cups", n(p.send))}</span></p>
+                  <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{p.name}</p>
+                  <p className="text-xs text-[color:var(--j-626F86)]">{tr("Leftover of {0} · {1} days of sales", p.counted ? dmyOf(p.counted) : "—", p.days)} · <span className={p.send ? "font-semibold text-[color:var(--j-0C66E4)]" : ""}>{tr("send {0} cups", n(p.send))}</span></p>
                 </div>
-                <div className="overflow-x-auto rounded-lg border border-neutral-200">
+                <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                   <table className="w-full min-w-[36rem] text-sm">
                     <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2 text-right">{tr("Sold / day")}</th>
                       <th className="px-3 py-2 text-right">{tr("Waste & cupping / day")}</th><th className="px-3 py-2 text-right">{tr("Needed")}</th>
                       <th className="px-3 py-2 text-right">{tr("Good leftover")}</th><th className="px-3 py-2 text-right">{tr("Send")}</th></tr></thead>
-                    <tbody className="divide-y divide-neutral-100">
+                    <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {p.rows.map((r) => (
                         <tr key={r.menu}>
-                          <td className="px-3 py-1.5 text-neutral-800">{r.name}</td>
+                          <td className="px-3 py-1.5 text-[color:var(--j-172B4D)]">{r.name}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{n(r.avgSold)}</td>
-                          <td className="px-3 py-1.5 text-right tabular-nums text-neutral-500">{n(r.avgUsed)}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums text-[color:var(--j-626F86)]">{n(r.avgUsed)}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{n(r.need)}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{n(r.have)}{r.expiring > 0 && <span className="ml-1 text-[11px] text-red-600">(−{r.expiring} {tr("expired")})</span>}</td>
-                          <td className={`px-3 py-1.5 text-right font-semibold tabular-nums ${r.send ? "text-brand-700" : "text-neutral-400"}`}>{r.send ? n(r.send) : "—"}</td>
+                          <td className={`px-3 py-1.5 text-right font-semibold tabular-nums ${r.send ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-626F86)]"}`}>{r.send ? n(r.send) : "—"}</td>
                         </tr>
                       ))}
                     </tbody>

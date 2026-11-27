@@ -165,9 +165,9 @@ export default function ReviewsPage() {
       </>}
         footer={rows ? <><span>{tr("{0} of {1} shown", fmtNumber(shown.length), fmtNumber(all.length))}</span><PageNav paged={paged} /></> : undefined}>
         {canReview && selected.length > 0 && (
-          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-brand-200 bg-brand-50 px-4 py-2 sm:px-5">
-            <span className="text-sm font-semibold text-brand-900">{tr("{0} selected", selected.length)}</span>
-            <button type="button" onClick={() => setPicked(new Set())} className="text-xs text-brand-700 hover:underline">{tr("Clear")}</button>
+          <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-4 py-2 sm:px-5">
+            <span className="text-sm font-semibold text-[color:var(--j-0055CC)]">{tr("{0} selected", selected.length)}</span>
+            <button type="button" onClick={() => setPicked(new Set())} className="text-xs text-[color:var(--j-0C66E4)] hover:underline">{tr("Clear")}</button>
             <span className="ml-auto flex flex-wrap gap-2">
               <Button size="sm" disabled={!selected.some((r) => BULK_OK.APPROVE.includes(r.status))} onClick={() => setBulk("APPROVE")}><CheckCircle2 size={14} /> {tr("Approve")} ({selected.filter((r) => BULK_OK.APPROVE.includes(r.status)).length})</Button>
               <Button size="sm" variant="secondary" disabled={!selected.some((r) => BULK_OK.RECOUNT.includes(r.status))} onClick={() => setBulk("RECOUNT")}><RotateCcw size={14} /> {tr("Recount")} ({selected.filter((r) => BULK_OK.RECOUNT.includes(r.status)).length})</Button>
@@ -183,8 +183,8 @@ export default function ReviewsPage() {
           <>
             {/* phones: one card per count; the whole card opens it */}
             <div className="flex items-center gap-2 px-3 pt-3 md:hidden">
-              <label className="text-xs text-neutral-500" htmlFor="review-sort">{tr("Sort")}</label>
-              <NativeSelect id="review-sort" className="h-9 flex-1 rounded-lg border border-neutral-200 bg-white px-2 text-sm"
+              <label className="text-xs text-[color:var(--j-626F86)]" htmlFor="review-sort">{tr("Sort")}</label>
+              <NativeSelect id="review-sort" className="h-9 flex-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2 text-sm"
                 value={sort.key ? `${sort.key}:${sort.dir}` : ""}
                 onChange={(e) => { const [k, d] = e.target.value.split(":") as [SortKey, "asc" | "desc"]; setSort(e.target.value ? { key: k, dir: d } : { key: null, dir: "asc" }); }}>
                 <option value="">{tr("Default order")}</option>
@@ -198,18 +198,18 @@ export default function ReviewsPage() {
                 const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                 return (
                   <li key={r.id} className="relative">
-                    {canReview && pickable(r) && <input type="checkbox" className="absolute right-3 top-3 z-[1] h-5 w-5 accent-brand-700" checked={picked.has(r.id)}
+                    {canReview && pickable(r) && <input type="checkbox" className="absolute right-3 top-3 z-[1] h-5 w-5 accent-[color:var(--j-0C66E4)]" checked={picked.has(r.id)}
                       onChange={() => pick(r.id)} aria-label={tr("Select {0}", r.facility_name)} />}
-                    <Link href={`/cost-control/reviews/${r.id}`} className={cx("block rounded-md border bg-white p-3.5 shadow-sm active:bg-neutral-50", picked.has(r.id) ? "border-brand-400" : "border-neutral-200", canReview && pickable(r) && "pr-11")}>
+                    <Link href={`/cost-control/reviews/${r.id}`} className={cx("block rounded-[3px] border bg-white p-3.5 active:bg-[color:var(--j-F7F8F9)]", picked.has(r.id) ? "border-brand-400" : "border-[color:var(--j-DCDFE4)]", canReview && pickable(r) && "pr-11")}>
                       <span className="flex items-start justify-between gap-3">
                         <span className="min-w-0">
-                          <span className="block truncate text-sm font-semibold text-neutral-900">{r.facility_name}</span>
-                          <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {dmy(r.business_date)}</span>
+                          <span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{r.facility_name}</span>
+                          <span className="block truncate text-xs text-[color:var(--j-626F86)]">{countTypeLabel(r.count_type)} · {dmy(r.business_date)}</span>
                         </span>
                         <Badge tone={st.tone} dot>{st.label()}</Badge>
                       </span>
-                      <span className="mt-3 flex items-center gap-2 text-xs text-neutral-500">
-                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${p}%` }} /></span>
+                      <span className="mt-3 flex items-center gap-2 text-xs text-[color:var(--j-626F86)]">
+                        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-0C66E4)]" style={{ width: `${p}%` }} /></span>
                         <span className="tabular-nums">{r.counted}/{r.lines}</span>
                       </span>
                       <span className="mt-2.5 flex items-center justify-between gap-2">
@@ -219,7 +219,7 @@ export default function ReviewsPage() {
                           {r.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
                           <LocationBadges s={r} />
                         </span>
-                        <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-brand-700">{r.submitted_at ? fmtDate(r.submitted_at) : tr("Open")}<ChevronRight size={14} /></span>
+                        <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-[color:var(--j-0C66E4)]">{r.submitted_at ? fmtDate(r.submitted_at) : tr("Open")}<ChevronRight size={14} /></span>
                       </span>
                     </Link>
                   </li>
@@ -231,7 +231,7 @@ export default function ReviewsPage() {
                 <thead className={theadClass}>
                   <tr>
                     {canReview && <th className="w-10 px-3 py-2">
-                      <input type="checkbox" className="h-4 w-4 cursor-pointer accent-brand-700" aria-label={tr("Select all shown")}
+                      <input type="checkbox" className="h-4 w-4 cursor-pointer accent-[color:var(--j-0C66E4)]" aria-label={tr("Select all shown")}
                         checked={paged.rows.some(pickable) && paged.rows.filter(pickable).every((r) => picked.has(r.id))}
                         onChange={(e) => setPicked((p) => { const n = new Set(p); for (const r of paged.rows.filter(pickable)) { if (e.target.checked) n.add(r.id); else n.delete(r.id); } return n; })} /></th>}
                     <SortTh k="facility" sort={sort} onSort={toggle}>{tr("Facility")}</SortTh>
@@ -243,25 +243,25 @@ export default function ReviewsPage() {
                     <th className="w-16 px-3 py-2" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {rows === null ? <SkeletonRows cols={canReview ? 8 : 7} /> : paged.rows.map((r) => {
                     const st = STATUS[r.status] ?? STATUS.IN_PROGRESS;
                     const p = r.lines ? Math.round((r.counted / r.lines) * 100) : 0;
                     return (
-                      <tr key={r.id} className={cx("group hover:bg-neutral-50", picked.has(r.id) && "bg-brand-50/60")}>
-                        {canReview && <td className="px-3 py-2">{pickable(r) && <input type="checkbox" className="h-4 w-4 cursor-pointer accent-brand-700"
+                      <tr key={r.id} className={cx("group hover:bg-[color:var(--j-F7F8F9)]", picked.has(r.id) && "bg-[color:var(--j-E9F2FF)]")}>
+                        {canReview && <td className="px-3 py-2">{pickable(r) && <input type="checkbox" className="h-4 w-4 cursor-pointer accent-[color:var(--j-0C66E4)]"
                           checked={picked.has(r.id)} onChange={() => pick(r.id)} aria-label={tr("Select {0}", r.facility_name)} />}</td>}
                         <td className="max-w-[18rem] px-3 py-2">
                           <Link href={`/cost-control/reviews/${r.id}`} className="block min-w-0">
-                            <span className="block truncate font-medium text-neutral-900 group-hover:text-brand-700">{r.facility_name}</span>
-                            <span className="block truncate font-mono text-[11px] text-neutral-400">{r.number}</span>
+                            <span className="block truncate font-medium text-[color:var(--j-172B4D)] group-hover:text-[color:var(--j-0C66E4)]">{r.facility_name}</span>
+                            <span className="block truncate font-mono text-[11px] text-[color:var(--j-626F86)]">{r.number}</span>
                           </Link>
                         </td>
-                        <td className="px-3 py-2 text-neutral-700">{countTypeLabel(r.count_type)}<span className="block text-xs text-neutral-400">{dmy(r.business_date)}</span></td>
+                        <td className="px-3 py-2 text-[color:var(--j-44546F)]">{countTypeLabel(r.count_type)}<span className="block text-xs text-[color:var(--j-626F86)]">{dmy(r.business_date)}</span></td>
                         <td className="px-3 py-2"><Badge tone={st.tone} dot>{st.label()}</Badge></td>
                         <td className="px-3 py-2 text-right">
-                          <span className="tabular-nums text-neutral-700">{r.counted}/{r.lines}</span>
-                          <span className="ml-auto mt-1 block h-1 w-16 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${p}%` }} /></span>
+                          <span className="tabular-nums text-[color:var(--j-44546F)]">{r.counted}/{r.lines}</span>
+                          <span className="ml-auto mt-1 block h-1 w-16 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-0C66E4)]" style={{ width: `${p}%` }} /></span>
                         </td>
                         <td className="px-3 py-2"><div className="flex flex-wrap gap-1">
                           {r.flagged > 0 && <Badge tone="amber" icon={<AlertTriangle size={11} />}>{tr("{0} to check", r.flagged)}</Badge>}
@@ -269,10 +269,10 @@ export default function ReviewsPage() {
                           {r.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
                           <LocationBadges s={r} />
                         </div></td>
-                        <td className="whitespace-nowrap px-3 py-2 text-xs text-neutral-500">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-[color:var(--j-626F86)]">{r.submitted_at ? fmtDate(r.submitted_at) : "—"}
                           {r.started_by_name && <span className="block">{r.started_by_name}</span>}</td>
                         <td className="px-3 py-2 text-right">
-                          <Link href={`/cost-control/reviews/${r.id}`} className="inline-flex items-center text-xs font-semibold text-brand-700 hover:underline">{tr("Open")}<ChevronRight size={13} /></Link>
+                          <Link href={`/cost-control/reviews/${r.id}`} className="inline-flex items-center text-xs font-semibold text-[color:var(--j-0C66E4)] hover:underline">{tr("Open")}<ChevronRight size={13} /></Link>
                         </td>
                       </tr>
                     );
@@ -336,7 +336,7 @@ const EXPORT_ICON: Record<ExportKind, React.ReactNode> = {
   ENTERED: <Send size={16} />, SUBMITTED: <Clock size={16} />, ALL: <Layers size={16} />, REVIEWED: <CheckCircle2 size={16} />,
 };
 const EXPORT_TONE: Record<ExportKind, string> = {
-  ENTERED: "bg-brand-50 text-brand-600", SUBMITTED: "bg-amber-50 text-amber-600", ALL: "bg-neutral-100 text-neutral-600",
+  ENTERED: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", SUBMITTED: "bg-amber-50 text-amber-600", ALL: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]",
   REVIEWED: "bg-emerald-50 text-emerald-600",
 };
 const EXPORT_FILE: Record<ExportKind, string> = { ENTERED: "Entered", SUBMITTED: "Waiting Review", ALL: "All", REVIEWED: "Approved" };
@@ -379,20 +379,20 @@ function BulkReview({ action, rows, onClose, onDone }: { action: Bulk; rows: Row
       <div className="space-y-4">
         {needNote && (
           <label className="block text-sm">
-            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Note for the branches")} *</span>
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Note for the branches")} *</span>
             <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} className={cx(inputClass, "h-auto py-2")}
               placeholder={action === "RECOUNT" ? tr("e.g. the quantities look wrong, count again") : tr("e.g. counted on the wrong day")} />
           </label>
         )}
-        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           {rows.map((r) => {
             const d = done.find((x) => x.id === r.id);
             return (
               <li key={r.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-neutral-900">{r.facility_name}</span>
-                  <span className="text-[11px] text-neutral-500">{r.number} · {countTypeLabel(r.count_type)} · {dmy(r.business_date)}</span>
+                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{r.facility_name}</span>
+                  <span className="text-[11px] text-[color:var(--j-626F86)]">{r.number} · {countTypeLabel(r.count_type)} · {dmy(r.business_date)}</span>
                   {d && !d.ok && <span className="block text-[11px] text-red-700">{d.msg}</span>}</span>
-                {d ? <Badge tone={d.ok ? "green" : "red"}>{d.ok ? tr("Done") : tr("Failed")}</Badge> : busy ? <span className="text-[11px] text-neutral-400">{tr("Waiting…")}</span> : null}
+                {d ? <Badge tone={d.ok ? "green" : "red"}>{d.ok ? tr("Done") : tr("Failed")}</Badge> : busy ? <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("Waiting…")}</span> : null}
               </li>
             );
           })}

@@ -97,7 +97,7 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
                 <span className="block text-[10px] font-extrabold tracking-[0.14em] text-[color:var(--j-0C66E4)]">PORTAL</span>
               </span>
             ) : <>
-              <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-[3px] bg-white shadow-sm ring-1 ring-neutral-200/80">
+              <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-[3px] bg-white ring-1 ring-[color:var(--j-DCDFE4)]/80">
                 <Image src={brand.logo} alt={brand.name} fill sizes="36px" className="object-contain p-1" />
               </span>
               <span className="min-w-0 leading-tight">

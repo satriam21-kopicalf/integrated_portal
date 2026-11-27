@@ -123,8 +123,8 @@ export default function SocialMediaPage() {
           <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search text or account")} filters={filters}
             onOpen={() => { setDraft(period); setKwDraft(keyword); setSheet(true); }} onClear={() => { setPeriod({ from: wibDay(-29), to: wibDay(0) }); setKeyword(""); }} />
         </Toolbar>
-        {!rows ? <div className="p-4"><div className="skeleton h-64 rounded-lg" /></div> : rows.data.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>
+        {!rows ? <div className="p-4"><div className="skeleton h-64 rounded-[3px]" /></div> : rows.data.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-[color:var(--j-626F86)]">{tr("No mention in this period")}</p>
         ) : (
           <div className="overflow-x-auto">
             <table className={cx(jTable, "m-cards min-w-[920px]")}>
@@ -136,21 +136,21 @@ export default function SocialMediaPage() {
                   const pf = PLATFORM[p.platform];
                   return (
                     <tr key={`${p.platform}:${p.post_id}`} onClick={() => setOpen({ platform: p.platform, id: p.post_id })}
-                      className="group cursor-pointer border-b border-neutral-100 align-top hover:bg-neutral-50">
+                      className="group cursor-pointer border-b border-[color:var(--j-F1F2F4)] align-top hover:bg-[color:var(--j-F7F8F9)]">
                       <td className={jTd} data-label={tr("Platform")}><span className="inline-flex items-center gap-1.5">
-                        {pf ? logo(pf.file) : <Megaphone size={15} />}<span className="text-neutral-700">{pf?.label ?? p.platform}</span></span>
-                        {p.source === "comment" && <span className="mt-0.5 block text-[11px] text-neutral-400">{tr("comment")}</span>}</td>
+                        {pf ? logo(pf.file) : <Megaphone size={15} />}<span className="text-[color:var(--j-44546F)]">{pf?.label ?? p.platform}</span></span>
+                        {p.source === "comment" && <span className="mt-0.5 block text-[11px] text-[color:var(--j-626F86)]">{tr("comment")}</span>}</td>
                       <td className={cx(jTd, "max-w-[34rem]")} data-label={tr("Mention")}>
-                        <span className="block text-[11px] font-semibold text-neutral-500">{p.author ?? "—"}</span>
-                        <span className="line-clamp-3 whitespace-pre-line text-neutral-900">{p.text}</span>
+                        <span className="block text-[11px] font-semibold text-[color:var(--j-626F86)]">{p.author ?? "—"}</span>
+                        <span className="line-clamp-3 whitespace-pre-line text-[color:var(--j-172B4D)]">{p.text}</span>
                         {(p.keywords?.length ?? 0) > 0 && <span className="mt-1 flex flex-wrap gap-1">{p.keywords!.map((k) => <Lozenge key={k} tone="blue">{k}</Lozenge>)}</span>}
-                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand-700 group-hover:underline">{tr("See details")}</span>
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)] group-hover:underline">{tr("See details")}</span>
                       </td>
                       <td className={jTd} data-label={tr("Sentiment")}>{p.sentiment ? <Lozenge tone={FEEL[p.sentiment].tone}>{FEEL[p.sentiment].label()}</Lozenge> : "—"}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Views")}>{n(p.views)}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Likes")}>{n(p.likes)}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Comments")}>{n(p.comments)}</td>
-                      <td className={cx(jTd, "whitespace-nowrap text-neutral-600")} data-label={tr("Date")}>{contentDate(p.createdAt, p.dateApprox)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap text-[color:var(--j-44546F)]")} data-label={tr("Date")}>{contentDate(p.createdAt, p.dateApprox)}</td>
                     </tr>
                   );
                 })}
@@ -181,29 +181,29 @@ function Schedule({ sum }: { sum: Summary | null }) {
   const at = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }) : "—");
   const latest = sum?.schedule.map((x) => x.lastRunAt).filter(Boolean).sort().at(-1) ?? null;
   return (
-    <section className="h-fit overflow-hidden rounded-lg border border-neutral-200 bg-white">
+    <section className="h-fit overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-neutral-900">{tr("Data collection schedule")}</span>
-          <span className="block text-xs text-neutral-500">{tr("Automatic · updated {0}", at(latest))}</span>
+          <span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Data collection schedule")}</span>
+          <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Automatic · updated {0}", at(latest))}</span>
         </span>
         <span className="flex items-center gap-1">{sum?.schedule.map((x) => PLATFORM[x.source] && <span key={x.source}>{logo(PLATFORM[x.source].file, 14)}</span>)}</span>
-        <ChevronDown size={16} className={cx("text-neutral-400 transition-transform", open && "rotate-180")} />
+        <ChevronDown size={16} className={cx("text-[color:var(--j-626F86)] transition-transform", open && "rotate-180")} />
       </button>
       {open && sum && (
-        <div className="border-t border-neutral-200">
-          <ul className="divide-y divide-neutral-100">
+        <div className="border-t border-[color:var(--j-DCDFE4)]">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {sum.schedule.map((x) => {
               const last = sum.runs.find((r) => r.source === x.source);
               const pf = PLATFORM[x.source];
               return (
                 <li key={x.source} className="px-4 py-2.5 text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="flex min-w-0 flex-1 items-center gap-2 font-medium text-neutral-900">{pf && logo(pf.file)}{pf?.label ?? x.source}</span>
+                    <span className="flex min-w-0 flex-1 items-center gap-2 font-medium text-[color:var(--j-172B4D)]">{pf && logo(pf.file)}{pf?.label ?? x.source}</span>
                     {x.enabled ? <Lozenge tone="green">{tr("Every {0} h", x.everyHours)}</Lozenge> : <Lozenge tone="grey">{tr("Off")}</Lozenge>}
                   </div>
-                  <p className="mt-1 text-xs text-neutral-500">
+                  <p className="mt-1 text-xs text-[color:var(--j-626F86)]">
                     {tr("Last")}: {at(x.lastRunAt)}{last && (last.error ? <> · <span className="text-red-700">{tr("Failed")}</span></>
                       : !last.finishedAt ? <> · {tr("Running")}</> : <> · {tr("{0} found, {1} new", last.found ?? 0, last.added ?? 0)}</>)}
                     {x.enabled && <> · {tr("Next")}: {at(x.nextRunAt)}</>}
@@ -212,7 +212,7 @@ function Schedule({ sum }: { sum: Summary | null }) {
               );
             })}
           </ul>
-          <p className="border-t border-neutral-100 px-4 py-2.5 text-[11px] text-neutral-500">{tr("Without an API key. Instagram, Threads, X and LinkedIn need a login and are not collected.")}</p>
+          <p className="border-t border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-[11px] text-[color:var(--j-626F86)]">{tr("Without an API key. Instagram, Threads, X and LinkedIn need a login and are not collected.")}</p>
         </div>
       )}
     </section>
@@ -223,16 +223,16 @@ function Schedule({ sum }: { sum: Summary | null }) {
 function Accounts({ sum }: { sum: Summary | null }) {
   const [open, setOpen] = useState(false);
   return (
-    <section className="h-fit overflow-hidden rounded-lg border border-neutral-200 bg-white">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+    <section className="h-fit overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-neutral-900">{tr("Most influential accounts")}</span>
-          <span className="block text-xs text-neutral-500">{sum ? tr("{0} accounts · the most views in the period", sum.authors.length) : tr("The accounts whose mentions reached the most views in the period")}</span>
+          <span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Most influential accounts")}</span>
+          <span className="block text-xs text-[color:var(--j-626F86)]">{sum ? tr("{0} accounts · the most views in the period", sum.authors.length) : tr("The accounts whose mentions reached the most views in the period")}</span>
         </span>
-        <ChevronDown size={16} className={cx("text-neutral-400 transition-transform", open && "rotate-180")} />
+        <ChevronDown size={16} className={cx("text-[color:var(--j-626F86)] transition-transform", open && "rotate-180")} />
       </button>
-      {open && <div className="border-t border-neutral-200">
-{!sum ? <div className="skeleton m-4 h-40 rounded-lg" /> : sum.authors.length === 0 ? <p className="px-4 py-6 text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
+      {open && <div className="border-t border-[color:var(--j-DCDFE4)]">
+{!sum ? <div className="skeleton m-4 h-40 rounded-[3px]" /> : sum.authors.length === 0 ? <p className="px-4 py-6 text-sm text-[color:var(--j-626F86)]">{tr("No mention in this period")}</p> : (
             <div className="overflow-x-auto">
               <table className={cx(jTable, "m-cards")}>
                 <thead><tr className={jHeadRow}><th className={cx(jTh, "w-10")}>#</th><th className={jTh}>{tr("Account")}</th>
@@ -242,15 +242,15 @@ function Accounts({ sum }: { sum: Summary | null }) {
                     const pf = PLATFORM[a.platform];
                     const top = sum.authors[0]?.views || 1;
                     return (
-                      <tr key={`${a.platform}:${a.author}`} className="border-b border-neutral-100">
-                        <td className={cx(jTd, "tabular-nums text-neutral-400")} data-label="#">{i + 1}</td>
+                      <tr key={`${a.platform}:${a.author}`} className="border-b border-[color:var(--j-F1F2F4)]">
+                        <td className={cx(jTd, "tabular-nums text-[color:var(--j-626F86)]")} data-label="#">{i + 1}</td>
                         <td className={jTd} data-label={tr("Account")}><span className="flex min-w-0 items-center gap-2">{pf && logo(pf.file)}
-                          <span className="min-w-0"><span className="block truncate font-medium text-neutral-900">{a.author}</span>
-                            <span className="block text-[11px] text-neutral-500">{pf?.label ?? a.platform}</span></span></span></td>
+                          <span className="min-w-0"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{a.author}</span>
+                            <span className="block text-[11px] text-[color:var(--j-626F86)]">{pf?.label ?? a.platform}</span></span></span></td>
                         <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Mentions")}>{n(a.posts)}</td>
                         <td className={jTd} data-label={tr("Views")}><span className="flex items-center gap-2">
-                          <span className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${Math.max(2, (a.views / top) * 100)}%` }} /></span>
-                          <span className="w-20 text-right tabular-nums text-neutral-700">{n(a.views)}</span></span></td>
+                          <span className="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-0C66E4)]" style={{ width: `${Math.max(2, (a.views / top) * 100)}%` }} /></span>
+                          <span className="w-20 text-right tabular-nums text-[color:var(--j-44546F)]">{n(a.views)}</span></span></td>
                       </tr>
                     );
                   })}

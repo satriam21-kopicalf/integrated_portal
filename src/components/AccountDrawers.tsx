@@ -121,13 +121,13 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
       <form id="my-profile" onSubmit={submit} className="space-y-0" noValidate>
         {/* identity (2026-11-16, the kopicalf-hrms profile card): one photo with the name, title, role, HRMS and how
             complete the profile is; the photo buttons under the name */}
-        <div className="-mx-5 -mt-5 mb-6 border-b border-neutral-200 sm:-mx-6">
+        <div className="-mx-5 -mt-5 mb-6 border-b border-[color:var(--j-DCDFE4)] sm:-mx-6">
           <div className="h-14 bg-gradient-to-r from-brand-800 via-brand-700 to-brand-500" aria-hidden />
           <div className="px-5 pb-5 pt-4 sm:px-6">
             <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser}>
               <div>
-                <p className="truncate text-lg font-bold tracking-tight text-neutral-900">{form.fullName || user.displayName}</p>
-                <p className="truncate text-[13px] text-neutral-500">{[form.jobTitle, form.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}</p>
+                <p className="truncate text-lg font-bold tracking-tight text-[color:var(--j-172B4D)]">{form.fullName || user.displayName}</p>
+                <p className="truncate text-[13px] text-[color:var(--j-626F86)]">{[form.jobTitle, form.department].filter(Boolean).join(' · ') || tr('Job title not filled in yet')}</p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <Pill tone={user.role === 'superadmin' ? 'red' : 'brand'} icon={user.role === 'superadmin' ? <ShieldCheck size={11} /> : undefined}>{role}</Pill>
                   {user.hrmsEmployeeId && <Pill tone="green" icon={<Link2 size={11} />}>{tr('Linked to HRMS')}</Pill>}
@@ -138,8 +138,8 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
               </div>
             </AvatarEditor>
             {user.hrmsEmployeeId && (
-              <p className="mt-3 flex items-start gap-2 rounded-[4px] border-l-[3px] border-brand-700 bg-brand-50/60 px-3 py-2 text-xs text-neutral-700">
-                <Info size={14} className="mt-px flex-shrink-0 text-brand-700" />
+              <p className="mt-3 flex items-start gap-2 rounded-[4px] border-l-[3px] border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">
+                <Info size={14} className="mt-px flex-shrink-0 text-[color:var(--j-0C66E4)]" />
                 {tr('Name, job title, department and the other HRMS details follow HRMS and are updated every hour; ask HR to change them.')}
               </p>
             )}
@@ -147,7 +147,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
         </div>
 
         {!user.profileComplete && (
-          <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50/70 px-3.5 py-3 text-sm text-amber-900">
+          <div className="mt-6 rounded-[3px] border border-amber-200 bg-amber-50/70 px-3.5 py-3 text-sm text-amber-900">
             <p className="font-medium">{tr('Complete your profile')}</p>
             <p className="mt-0.5 text-amber-800/90">{tr('Your administrator only set up your sign-in. Please add your own details below.')}</p>
             <div className="mt-2.5 flex items-center gap-2">
@@ -160,13 +160,13 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
         )}
 
         {error && !PROFILE_KEYS.includes(error.field as keyof ProfileValues) && (
-          <p className="mt-6 flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
+          <p className="mt-6 flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
         )}
 
         <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} locked={user.hrmsLocked ?? []} />
 
         <DrawerSection title={tr('Sign-in & Access')} description={tr('Managed by an administrator.')}>
-          <dl className="divide-y divide-neutral-100 border-y border-neutral-100 text-sm">
+          <dl className="divide-y divide-[color:var(--j-F1F2F4)] border-y border-[color:var(--j-F1F2F4)] text-sm">
             {([
               [tr('Username'), user.username],
               [tr('Email'), user.email],
@@ -174,8 +174,8 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
               [tr('Password changed'), user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
             ] as [string, ReactNode][]).map(([k, v]) => (
               <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 py-2">
-                <dt className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{k}</dt>
-                <dd className="min-w-0 break-words text-neutral-800">{v}</dd>
+                <dt className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{k}</dt>
+                <dd className="min-w-0 break-words text-[color:var(--j-172B4D)]">{v}</dd>
               </div>
             ))}
           </dl>
@@ -215,18 +215,18 @@ function ProfileNudge({ user, onOpen }: { user: AuthUser; onOpen: () => void }) 
   if (!visible) return null;
   return (
     <div className="fixed inset-x-4 bottom-4 z-[70] sm:left-auto sm:w-[360px]" role="status" data-bottom-notice>
-      <div className="drawer-backdrop rounded-md border border-neutral-200/80 bg-white p-4 shadow-xl">
+      <div className="drawer-backdrop rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-xl">
         <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600"><CircleUserRound size={20} /></span>
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-amber-50 text-amber-600"><CircleUserRound size={20} /></span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-neutral-900">{tr('Complete your profile')}</p>
-            <p className="mt-0.5 text-sm text-neutral-500">{tr('Add your full name, phone number, job title and department.')}</p>
+            <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr('Complete your profile')}</p>
+            <p className="mt-0.5 text-sm text-[color:var(--j-626F86)]">{tr('Add your full name, phone number, job title and department.')}</p>
             <div className="mt-3 flex gap-2">
               <button type="button" className={`${buttonPrimary} h-9 px-3`} onClick={onOpen}>{tr('Complete Profile')}</button>
               <button type="button" className={`${buttonSecondary} h-9 px-3`} onClick={dismiss}>{tr('Later')}</button>
             </div>
           </div>
-          <button type="button" onClick={dismiss} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Dismiss')}><X size={16} /></button>
+          <button type="button" onClick={dismiss} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]" aria-label={tr('Dismiss')}><X size={16} /></button>
         </div>
       </div>
     </div>

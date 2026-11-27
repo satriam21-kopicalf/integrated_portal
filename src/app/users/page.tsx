@@ -1,11 +1,12 @@
 'use client';
 
 import { NativeSelect } from "@/so/ui/Jira";
+import { Pager } from "@/so/ui";
 import { COTR_KINDS, type CotrEmployee, type CotrKind, EmployeePicker, cotrOverrides, kindOf, usernameOf } from '@/components/access/CotrAccount';
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
+  AlertCircle, CheckCircle2, CircleAlert, Copy, Eye, EyeOff, History, Info, KeyRound, Loader2, Lock, Pencil, Plus,
   LogIn, RefreshCw, ShieldCheck, SlidersHorizontal, Store, Trash2, Unlock, UserCheck, UserPlus, UserRound, UserRoundPen, Users, Wand2, X,
 } from 'lucide-react';
 import BranchAssign from '@/components/BranchAssign';
@@ -290,7 +291,7 @@ export default function UsersPage() {
                 className={`inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors ${on ? 'border-[color:var(--j-0C66E4)] bg-white text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-388BFF)]' : 'border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]'}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={LOGOS[l.unit]} alt="" aria-hidden className={`max-h-6 max-w-14 object-contain ${on ? '' : 'opacity-60 grayscale'}`} />
-                {l.label}{s?.lines && <span className="rounded-full bg-neutral-200/80 px-1.5 text-[11px] tabular-nums text-[color:var(--j-44546F)]">{formatNumber(s.lines[l.key] ?? 0)}</span>}
+                {l.label}{s?.lines && <span className="rounded-full bg-[color:var(--j-DCDFE4)]/80 px-1.5 text-[11px] tabular-nums text-[color:var(--j-44546F)]">{formatNumber(s.lines[l.key] ?? 0)}</span>}
               </button>
             );
           })}
@@ -359,11 +360,7 @@ export default function UsersPage() {
           )}
           <CardFooter>
             <span className="text-xs text-[color:var(--j-626F86)]">{formatNumber(total)} {total === 1 ? tr('user') : tr('users')}{filtersActive ? tr(' match') : ''}</span>
-            <div className="flex items-center gap-2 text-xs text-[color:var(--j-626F86)]">
-              <button type="button" className={btn('outline', 'sm')} disabled={page <= 1} onClick={() => setPage(p => p - 1)} aria-label={tr('Previous Page')}><ChevronLeft size={15} /></button>
-              <span className="tabular-nums">{tr('Page')} {page} {tr('of')} {pages}</span>
-              <button type="button" className={btn('outline', 'sm')} disabled={page >= pages} onClick={() => setPage(p => p + 1)} aria-label={tr('Next Page')}><ChevronRight size={15} /></button>
-            </div>
+            <Pager page={page} pages={pages} onPage={setPage} />
           </CardFooter>
         </WorkCard>
       </PageShell>

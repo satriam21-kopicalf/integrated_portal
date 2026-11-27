@@ -96,41 +96,41 @@ export default function InstallApp() {
 
   return (
     <div role="dialog" aria-label={tr('Install the App')}
-      className="fixed inset-x-3 z-[60] mx-auto max-w-md rounded-md border border-neutral-200 bg-white p-4 shadow-xl sm:inset-x-auto sm:right-4"
+      className="fixed inset-x-3 z-[60] mx-auto max-w-md rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-xl sm:inset-x-auto sm:right-4"
       style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
       <div className="flex items-start gap-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icons/icon-192.png" alt="" className="h-11 w-11 shrink-0 rounded-md border border-neutral-100" />
+        <img src="/icons/icon-192.png" alt="" className="h-11 w-11 shrink-0 rounded-[3px] border border-[color:var(--j-F1F2F4)]" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-neutral-900">{tr('Install Kopi Calf Portal')}</p>
-          <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">
+          <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr('Install Kopi Calf Portal')}</p>
+          <p className="mt-0.5 text-xs leading-relaxed text-[color:var(--j-626F86)]">
             {tr('Open the portal from the home screen, full screen like an app.')}
           </p>
         </div>
         <button type="button" onClick={later} aria-label={tr('Close')}
-          className="-m-1 rounded-lg p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600">
+          className="-m-1 rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-44546F)]">
           <X size={16} />
         </button>
       </div>
 
       {mode === 'ios' ? (
-        <ol className="mt-3 space-y-2 rounded-xl bg-neutral-50 p-3 text-xs text-neutral-600">
+        <ol className="mt-3 space-y-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] p-3 text-xs text-[color:var(--j-44546F)]">
           <li className="flex items-center gap-2">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">1</span>
-            <Share size={15} className="shrink-0 text-brand-600" aria-hidden />
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] text-[10px] font-bold text-white">1</span>
+            <Share size={15} className="shrink-0 text-[color:var(--j-0C66E4)]" aria-hidden />
             <span>{tr('Tap Share in the browser bar')}</span>
           </li>
           <li className="flex items-center gap-2">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">2</span>
-            <PlusSquare size={15} className="shrink-0 text-neutral-700" aria-hidden />
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] text-[10px] font-bold text-white">2</span>
+            <PlusSquare size={15} className="shrink-0 text-[color:var(--j-44546F)]" aria-hidden />
             <span>{tr('Choose Add to Home Screen, then Add')}</span>
           </li>
         </ol>
       ) : (
         <div className="mt-3 flex justify-end gap-2">
-          <button type="button" onClick={later} className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100">{tr('Later')}</button>
+          <button type="button" onClick={later} className="rounded-[3px] px-3 py-2 text-sm font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]">{tr('Later')}</button>
           <button type="button" onClick={install}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+            className="inline-flex items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3.5 py-2 text-sm font-semibold text-white hover:bg-[color:var(--j-0055CC)]">
             <Download size={15} /> {tr('Install')}
           </button>
         </div>

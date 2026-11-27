@@ -102,17 +102,17 @@ function Stepper({ value, label, unit, hint, onChange }: { value: string; label:
   const step = (d: number) => onChange(String(Math.max(0, Math.round((n + d) * 100) / 100) || ""));
   return (
     <div className="min-w-0">
-      <div className={cx("flex h-10 items-stretch overflow-hidden rounded-lg border bg-white transition-colors",
-        n > 0 ? "border-brand-500 ring-2 ring-brand-500/15" : "border-neutral-200")}>
+      <div className={cx("flex h-10 items-stretch overflow-hidden rounded-[3px] border bg-white transition-colors",
+        n > 0 ? "border-[color:var(--j-0C66E4)] ring-2 ring-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)]")}>
         <button type="button" onClick={() => step(-1)} disabled={n <= 0} aria-label={tr("Less {0}", label)}
-          className="flex w-9 flex-shrink-0 items-center justify-center text-neutral-500 hover:bg-neutral-50 disabled:opacity-30"><Minus size={14} /></button>
+          className="flex w-9 flex-shrink-0 items-center justify-center text-[color:var(--j-626F86)] hover:bg-[color:var(--j-F7F8F9)] disabled:opacity-30"><Minus size={14} /></button>
         <input inputMode="decimal" value={value} placeholder="0" aria-label={label} onFocus={(e) => e.currentTarget.select()}
           onChange={(e) => onChange(cleanQty(e.target.value))}
-          className="w-full min-w-0 border-x border-neutral-100 bg-transparent px-1 text-center text-sm font-semibold tabular-nums text-neutral-900 outline-none placeholder:font-normal placeholder:text-neutral-300" />
+          className="w-full min-w-0 border-x border-[color:var(--j-F1F2F4)] bg-transparent px-1 text-center text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)] outline-none placeholder:font-normal placeholder:text-[color:var(--j-8590A2)]" />
         <button type="button" onClick={() => step(1)} aria-label={tr("More {0}", label)}
-          className="flex w-9 flex-shrink-0 items-center justify-center text-neutral-500 hover:bg-neutral-50"><Plus size={14} /></button>
+          className="flex w-9 flex-shrink-0 items-center justify-center text-[color:var(--j-626F86)] hover:bg-[color:var(--j-F7F8F9)]"><Plus size={14} /></button>
       </div>
-      <p className="mt-1 truncate text-center text-[11px] text-neutral-500" title={hint}><span className="font-semibold text-neutral-700">{unit}</span>{hint ? ` · ${hint}` : ""}</p>
+      <p className="mt-1 truncate text-center text-[11px] text-[color:var(--j-626F86)]" title={hint}><span className="font-semibold text-[color:var(--j-44546F)]">{unit}</span>{hint ? ` · ${hint}` : ""}</p>
     </div>
   );
 }
@@ -175,11 +175,11 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
   return (
     <div className="grid gap-5 pb-20 xl:grid-cols-[minmax(0,1fr)_22rem] xl:pb-0 2xl:grid-cols-[minmax(0,1fr)_26rem]">
       {/* recipes and their quantities */}
-      <section className="min-w-0 overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
-        <div className="space-y-3 border-b border-neutral-100 p-4">
+      <section className="min-w-0 overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+        <div className="space-y-3 border-b border-[color:var(--j-F1F2F4)] p-4">
           <div>
-            <h2 className="text-sm font-semibold text-neutral-900">{tr("1. Enter the WIP Quantities")}</h2>
-            <p className="text-xs text-neutral-500">{tr("Per unit (pail, teko, gram…); the grams of the WIP appear under each recipe.")}</p>
+            <h2 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("1. Enter the WIP Quantities")}</h2>
+            <p className="text-xs text-[color:var(--j-626F86)]">{tr("Per unit (pail, teko, gram…); the grams of the WIP appear under each recipe.")}</p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="min-w-0 flex-1"><SearchBox value={q} onChange={setQ} placeholder={tr("Search recipe")} /></div>
@@ -187,7 +187,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
               {[[false, tr("All ({0})", active.length)], [true, tr("Entered ({0})", picked.size)]].map(([v, label]) => (
                 <button key={String(v)} type="button" role="radio" aria-checked={onlyPicked === v} onClick={() => setOnlyPicked(v as boolean)}
                   className={cx("whitespace-nowrap rounded-[4px] border px-2.5 py-1 text-xs font-medium transition-colors",
-                    onlyPicked === v ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>{label as string}</button>
+                    onlyPicked === v ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>{label as string}</button>
               ))}
             </div>
           </div>
@@ -197,26 +197,26 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
         ) : shown.length === 0 ? (
           <Empty icon={<Search size={26} />} title={onlyPicked ? tr("No quantity entered yet") : tr("Nothing matches the search")} />
         ) : (
-          <ul className="divide-y divide-neutral-100">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {shown.map(r => {
               const batch = num(r.active!.output_qty_base);
               const units = withGram(r.units);
               const grams = units.reduce((s, u) => s + num(qty[`${r.id}|${u.uom}`]) * gramsOf(u, batch), 0);
               const on = grams > 0;
               return (
-                <li key={r.id} className={cx("relative px-4 py-3.5 transition-colors", on && "bg-brand-50/40")}>
-                  {on && <span className="absolute inset-y-0 left-0 w-1 bg-brand-600" aria-hidden />}
+                <li key={r.id} className={cx("relative px-4 py-3.5 transition-colors", on && "bg-[color:var(--j-E9F2FF)]")}>
+                  {on && <span className="absolute inset-y-0 left-0 w-1 bg-[color:var(--j-0C66E4)]" aria-hidden />}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-neutral-900">{r.name}</p>
-                      <p className="mt-0.5 truncate text-[11px] text-neutral-400">
+                      <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{r.name}</p>
+                      <p className="mt-0.5 truncate text-[11px] text-[color:var(--j-626F86)]">
                         <span className="font-mono">{r.code}</span> · v{r.active!.version_no} · {tr("batch {0} g", fmtG(batch))}
                         {r.facility_types.length ? ` · ${r.facility_types.join(", ")}` : ""}
                         {` · ${tr("SO in {0}", r.count_uom || "Gram")}`}
                       </p>
                     </div>
                     {on && (
-                      <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-brand-600 px-2.5 py-0.5 text-xs font-semibold text-white tabular-nums">
+                      <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-[color:var(--j-0C66E4)] px-2.5 py-0.5 text-xs font-semibold text-white tabular-nums">
                         <Scale size={12} />{tr("{0} g of WIP", fmtG(grams, 1))}
                       </span>
                     )}
@@ -239,26 +239,26 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 
       {/* the result */}
       <aside id="premix-result" className="min-w-0 xl:sticky xl:top-4 xl:self-start">
-        <section className="overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
-          <div className="flex items-start justify-between gap-3 border-b border-neutral-100 p-4">
+        <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+          <div className="flex items-start justify-between gap-3 border-b border-[color:var(--j-F1F2F4)] p-4">
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-neutral-900">{tr("2. Ingredients to Prepare")}</h2>
-              <p className="text-xs text-neutral-500">{tr("Grams per ingredient, rounded up to the gram as in the workbook")}</p>
+              <h2 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("2. Ingredients to Prepare")}</h2>
+              <p className="text-xs text-[color:var(--j-626F86)]">{tr("Grams per ingredient, rounded up to the gram as in the workbook")}</p>
             </div>
             {entries.length > 0 && (
               <button type="button" onClick={() => setQty({})} title={tr("Reset")} aria-label={tr("Reset")}
-                className="flex-shrink-0 rounded-lg p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"><RotateCcw size={16} /></button>
+                className="flex-shrink-0 rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"><RotateCcw size={16} /></button>
             )}
           </div>
           {!entries.length ? (
             <div className="flex flex-col items-center px-6 py-12 text-center">
-              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Calculator size={22} /></span>
-              <p className="text-sm font-medium text-neutral-800">{tr("Enter a WIP quantity to start")}</p>
-              <p className="mt-1 max-w-xs text-xs text-neutral-500">{tr("The grams of every ingredient appear here as you type, ready to copy or download.")}</p>
+              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]"><Calculator size={22} /></span>
+              <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Enter a WIP quantity to start")}</p>
+              <p className="mt-1 max-w-xs text-xs text-[color:var(--j-626F86)]">{tr("The grams of every ingredient appear here as you type, ready to copy or download.")}</p>
             </div>
           ) : error ? <p className="p-4 text-sm text-red-600">{error}</p> : (
             <div className={cx(loading && !result && "opacity-60")}>
-              <dl className="grid grid-cols-3 divide-x divide-neutral-100 border-b border-neutral-100 text-center">
+              <dl className="grid grid-cols-3 divide-x divide-[color:var(--j-F1F2F4)] border-b border-[color:var(--j-F1F2F4)] text-center">
                 <Tile k={tr("WIP")} v={fmtNumber(result?.rows.length ?? entries.length)} />
                 <Tile k={tr("WIP grams")} v={result ? fmtG(wipGrams) : "…"} />
                 <Tile k={tr("Ingredients")} v={result ? fmtNumber(result.totals.length) : "…"} />
@@ -266,16 +266,16 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 
               {result && (
                 <>
-                  <div className="border-b border-neutral-100 px-4 py-3">
-                    <p className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("WIP entered")}</p>
+                  <div className="border-b border-[color:var(--j-F1F2F4)] px-4 py-3">
+                    <p className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("WIP entered")}</p>
                     <ul className="space-y-1.5">
                       {result.rows.map(r => (
                         <li key={`${r.recipe_id}|${r.uom}`} className="flex items-center gap-2 text-sm">
-                          <span className="min-w-0 flex-1 truncate text-neutral-800">{r.name}</span>
-                          <span className="whitespace-nowrap tabular-nums text-neutral-600">{fmtG(r.qty, 2)} {r.uom}</span>
-                          <span className="w-20 whitespace-nowrap text-right font-semibold tabular-nums text-neutral-900">{fmtG(r.qty_base)} g</span>
+                          <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{r.name}</span>
+                          <span className="whitespace-nowrap tabular-nums text-[color:var(--j-44546F)]">{fmtG(r.qty, 2)} {r.uom}</span>
+                          <span className="w-20 whitespace-nowrap text-right font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtG(r.qty_base)} g</span>
                           <button type="button" onClick={() => setOne(`${r.recipe_id}|${r.uom}`, "")} aria-label={tr("Remove {0}", r.name)}
-                            className="rounded p-0.5 text-neutral-300 hover:bg-neutral-100 hover:text-neutral-700"><X size={14} /></button>
+                            className="rounded p-0.5 text-[color:var(--j-8590A2)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"><X size={14} /></button>
                         </li>
                       ))}
                     </ul>
@@ -284,21 +284,21 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
                   <div className="max-h-[28rem] overflow-y-auto">
                     <table className="w-full text-sm">
                       <thead className={cx(theadClass, "sticky top-0 z-10")}><tr><th className="px-4 py-2">{tr("Ingredient")}</th><th className="px-4 py-2 text-right">{tr("Grams")}</th></tr></thead>
-                      <tbody className="divide-y divide-neutral-100">
+                      <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                         {result.totals.map(t => {
                           const share = totalRounded ? (t.rounded / totalRounded) * 100 : 0;
                           return (
                             <tr key={t.item_id ?? t.name}>
                               <td className="px-4 py-2">
-                                <span className={cx("block", t.is_stock ? "text-neutral-800" : "text-neutral-500")}>{t.name}</span>
+                                <span className={cx("block", t.is_stock ? "text-[color:var(--j-172B4D)]" : "text-[color:var(--j-626F86)]")}>{t.name}</span>
                                 <span className="mt-1 flex items-center gap-2">
-                                  <span className="h-1 w-20 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${Math.max(share, 2)}%` }} /></span>
-                                  <span className="text-[11px] text-neutral-400">{t.is_stock ? (t.item_code ?? tr("not mapped")) : tr("not a stock item")}</span>
+                                  <span className="h-1 w-20 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-388BFF)]" style={{ width: `${Math.max(share, 2)}%` }} /></span>
+                                  <span className="text-[11px] text-[color:var(--j-626F86)]">{t.is_stock ? (t.item_code ?? tr("not mapped")) : tr("not a stock item")}</span>
                                 </span>
                               </td>
                               <td className="px-4 py-2 text-right align-top">
-                                <span className="block text-base font-semibold tabular-nums text-neutral-900">{fmtG(t.rounded)}</span>
-                                <span className="block text-[11px] tabular-nums text-neutral-400">{fmtG(t.qty_base, 2)} g</span>
+                                <span className="block text-base font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtG(t.rounded)}</span>
+                                <span className="block text-[11px] tabular-nums text-[color:var(--j-626F86)]">{fmtG(t.qty_base, 2)} g</span>
                               </td>
                             </tr>
                           );
@@ -307,23 +307,23 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
                     </table>
                   </div>
 
-                  <div className="border-t border-neutral-100">
+                  <div className="border-t border-[color:var(--j-F1F2F4)]">
                     <button type="button" onClick={() => setBreakdown(v => !v)} aria-expanded={breakdown}
-                      className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                      className="flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
                       {tr("Breakdown per WIP")} <ChevronDown size={16} className={cx("transition-transform", breakdown && "rotate-180")} />
                     </button>
                     {breakdown && (
                       <div className="space-y-3 px-4 pb-4">
                         {result.rows.map(r => (
-                          <div key={`${r.recipe_id}|${r.uom}`} className="rounded-lg border border-neutral-200">
-                            <p className="flex justify-between gap-2 border-b border-neutral-100 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700">
+                          <div key={`${r.recipe_id}|${r.uom}`} className="rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+                            <p className="flex justify-between gap-2 border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-3 py-1.5 text-xs font-semibold text-[color:var(--j-44546F)]">
                               <span className="truncate">{r.name}</span><span className="whitespace-nowrap tabular-nums">{fmtG(r.qty, 2)} {r.uom} · {fmtG(r.qty_base)} g</span>
                             </p>
-                            <ul className="divide-y divide-neutral-100 text-xs">
+                            <ul className="divide-y divide-[color:var(--j-F1F2F4)] text-xs">
                               {r.components.map(c => (
                                 <li key={c.item_id ?? c.name} className="flex justify-between gap-2 px-3 py-1.5">
-                                  <span className={cx("truncate", c.is_stock ? "text-neutral-700" : "text-neutral-400")}>{c.name}</span>
-                                  <span className="tabular-nums text-neutral-600">{fmtG(c.qty_base, 2)} g</span>
+                                  <span className={cx("truncate", c.is_stock ? "text-[color:var(--j-44546F)]" : "text-[color:var(--j-626F86)]")}>{c.name}</span>
+                                  <span className="tabular-nums text-[color:var(--j-44546F)]">{fmtG(c.qty_base, 2)} g</span>
                                 </li>
                               ))}
                             </ul>
@@ -333,8 +333,8 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 bg-neutral-50 px-4 py-3">
-                    <p className="mr-auto text-xs text-neutral-500">{tr("{0} stock items · {1} g in total", stockCount, fmtG(totalRounded))}</p>
+                  <div className="flex flex-wrap items-center gap-2 border-t border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-4 py-3">
+                    <p className="mr-auto text-xs text-[color:var(--j-626F86)]">{tr("{0} stock items · {1} g in total", stockCount, fmtG(totalRounded))}</p>
                     <Button variant="secondary" size="sm" onClick={() => void copy()}><Copy size={14} /> {tr("Copy")}</Button>
                     <ExcelIconButton label={tr("Export to Excel")} onClick={exportCsv} />
                   </div>
@@ -347,12 +347,12 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 
       {/* phones: what is entered and a jump to the result */}
       {entries.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-4 pt-3 backdrop-blur xl:hidden"
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 pt-3 backdrop-blur xl:hidden"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-neutral-900">{tr("{0} WIP · {1} g", entries.length, result ? fmtG(wipGrams) : "…")}</p>
-              <p className="truncate text-xs text-neutral-500">{result ? tr("{0} ingredients", result.totals.length) : tr("Calculating…")}</p>
+              <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("{0} WIP · {1} g", entries.length, result ? fmtG(wipGrams) : "…")}</p>
+              <p className="truncate text-xs text-[color:var(--j-626F86)]">{result ? tr("{0} ingredients", result.totals.length) : tr("Calculating…")}</p>
             </div>
             <Button size="sm" onClick={() => document.getElementById("premix-result")?.scrollIntoView({ behavior: "smooth" })}>{tr("See ingredients")}</Button>
           </div>
@@ -365,8 +365,8 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
 function Tile({ k, v }: { k: string; v: string }) {
   return (
     <div className="px-2 py-3">
-      <dt className="text-xs font-semibold capitalize text-neutral-400">{k}</dt>
-      <dd className="mt-0.5 text-lg font-semibold tabular-nums text-neutral-900">{v}</dd>
+      <dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{k}</dt>
+      <dd className="mt-0.5 text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{v}</dd>
     </div>
   );
 }
@@ -412,17 +412,17 @@ function RecipesTab({ recipes, onOpen }: { recipes: Recipe[] | null; onOpen: (id
               <tr><SortTh k="recipe" sort={sorted.sort} onSort={sorted.toggle}>{tr("Recipe")}</SortTh><th className="px-3 py-2">{tr("Units")}</th><SortTh k="batch" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Batch")}</SortTh>
                 <SortTh k="components" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Components")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle}>{tr("Status")}</SortTh></tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {recipes === null ? <SkeletonRows cols={5} /> : paged.rows.map(r => {
                 const errors = r.active?.issues.filter(i => i.level === "error").length ?? 0;
                 const warnings = r.active?.issues.filter(i => i.level === "warning") ?? [];
                 return (
-                  <tr key={r.id} className="group cursor-pointer hover:bg-neutral-50/70" onClick={() => onOpen(r.id)}>
+                  <tr key={r.id} className="group cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => onOpen(r.id)}>
                     <td className="px-3 py-2">
-                      <span className="block font-medium text-neutral-900 group-hover:text-brand-700">{r.name}</span>
-                      <span className="block font-mono text-[11px] text-neutral-400">{r.code} · {r.recipe_type}{r.facility_types.length ? ` · ${r.facility_types.join(", ")}` : ""}</span>
+                      <span className="block font-medium text-[color:var(--j-172B4D)] group-hover:text-[color:var(--j-0C66E4)]">{r.name}</span>
+                      <span className="block font-mono text-[11px] text-[color:var(--j-626F86)]">{r.code} · {r.recipe_type}{r.facility_types.length ? ` · ${r.facility_types.join(", ")}` : ""}</span>
                     </td>
-                    <td className="px-3 py-2 text-xs text-neutral-600">{r.units.map(u => u.uom).join(" · ")}</td>
+                    <td className="px-3 py-2 text-xs text-[color:var(--j-44546F)]">{r.units.map(u => u.uom).join(" · ")}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.active ? `${fmtG(num(r.active.output_qty_base))} g` : "-"}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{r.active?.lines.length ?? "-"}</td>
                     <td className="px-3 py-2">

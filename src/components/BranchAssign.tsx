@@ -56,15 +56,15 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
   const clear = () => onChange([]);
 
   return (
-    <div className={`rounded-lg border ${invalid ? 'border-red-300' : 'border-neutral-200'}`}>
+    <div className={`rounded-[3px] border ${invalid ? 'border-red-300' : 'border-[color:var(--j-DCDFE4)]'}`}>
       {/* selection */}
-      <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-neutral-100 px-2.5 py-2">
+      <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-[color:var(--j-F1F2F4)] px-2.5 py-2">
         {value.length === 0 ? (
-          <span className="text-sm text-neutral-400">{tr('No branch selected — the user would see no data')}</span>
+          <span className="text-sm text-[color:var(--j-626F86)]">{tr('No branch selected — the user would see no data')}</span>
         ) : value.map(code => (
-          <span key={code} className="inline-flex max-w-full items-center gap-1 rounded-full bg-brand-50 py-0.5 pl-2 pr-1 text-xs font-medium text-brand-800">
+          <span key={code} className="inline-flex max-w-full items-center gap-1 rounded-full bg-[color:var(--j-E9F2FF)] py-0.5 pl-2 pr-1 text-xs font-medium text-[color:var(--j-0055CC)]">
             <span className="truncate">{names.get(code) ?? code}</span>
-            <button type="button" onClick={() => toggle(code)} className="rounded-full p-0.5 hover:bg-brand-100" aria-label={tr('Remove {0}', names.get(code) ?? code)}>
+            <button type="button" onClick={() => toggle(code)} className="rounded-full p-0.5 hover:bg-[color:var(--j-CCE0FF)]" aria-label={tr('Remove {0}', names.get(code) ?? code)}>
               <X size={12} />
             </button>
           </span>
@@ -74,49 +74,49 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
       <div role="tablist" aria-label={tr('Branch category')} className="flex gap-1 overflow-x-auto px-2 pt-2">
         {KINDS.filter(k => k.key === 'all' || counts[k.key] > 0).map(k => (
           <button key={k.key} type="button" role="tab" aria-selected={kind === k.key} onClick={() => setKind(k.key)}
-            className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${kind === k.key ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'}`}>
+            className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${kind === k.key ? 'bg-[color:var(--j-0C66E4)] text-white' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-DCDFE4)]'}`}>
             {k.label()} <span className="tabular-nums opacity-80">{counts[k.key]}</span>
           </button>
         ))}
       </div>
       <div className="flex items-center gap-2 p-2">
         <div className="relative flex-1">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr('Search outlet name or code')}
             className={`${inputClass} h-9 pl-8 text-sm`} aria-label={tr('Search Branches')} />
         </div>
-        <button type="button" onClick={selectShown} disabled={!shown.length} className="rounded-md px-2 py-1.5 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-40">
+        <button type="button" onClick={selectShown} disabled={!shown.length} className="rounded-[3px] px-2 py-1.5 text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)] disabled:opacity-40">
           {query || kind !== 'all' ? tr('Select shown') : tr('Select all')}
         </button>
-        <button type="button" onClick={clear} disabled={!value.length} className="rounded-md px-2 py-1.5 text-xs font-medium text-neutral-500 hover:bg-neutral-100 disabled:opacity-40">
+        <button type="button" onClick={clear} disabled={!value.length} className="rounded-[3px] px-2 py-1.5 text-xs font-medium text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] disabled:opacity-40">
           {tr('Clear')}
         </button>
       </div>
 
-      <ul className="max-h-64 overflow-y-auto border-t border-neutral-100 py-1" role="listbox" aria-multiselectable="true" aria-label={tr('Branches')}>
+      <ul className="max-h-64 overflow-y-auto border-t border-[color:var(--j-F1F2F4)] py-1" role="listbox" aria-multiselectable="true" aria-label={tr('Branches')}>
         {loading ? (
-          <li className="px-3 py-6 text-center text-sm text-neutral-400">{tr('Loading branches…')}</li>
+          <li className="px-3 py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('Loading branches…')}</li>
         ) : shown.length === 0 ? (
-          <li className="px-3 py-6 text-center text-sm text-neutral-400">{tr('No branch matches “')}{query}”</li>
+          <li className="px-3 py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('No branch matches “')}{query}”</li>
         ) : shown.map(b => {
           const on = selected.has(b.branch_code);
           return (
             <li key={b.branch_code}>
               <button type="button" role="option" aria-selected={on} onClick={() => toggle(b.branch_code)}
-                className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors ${on ? 'bg-brand-50/60' : 'hover:bg-neutral-50'}`}>
-                <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${on ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-300 bg-white'}`}>
+                className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm transition-colors ${on ? 'bg-[color:var(--j-E9F2FF)]' : 'hover:bg-[color:var(--j-F7F8F9)]'}`}>
+                <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white' : 'border-[color:var(--j-8590A2)] bg-white'}`}>
                   {on && <Check size={12} strokeWidth={3} />}
                 </span>
-                {kindOf(b.branch_code) === 'hub' ? <Warehouse size={14} className="flex-shrink-0 text-neutral-400" /> : <Store size={14} className="flex-shrink-0 text-neutral-400" />}
-                <span className="min-w-0 flex-1 truncate text-neutral-800">{b.branch_name}</span>
-                {!b.count && <span className="rounded bg-neutral-100 px-1.5 text-[10px] font-medium text-neutral-500">{tr('no recent sales')}</span>}
-                <span className="font-mono text-[11px] text-neutral-400">{b.branch_code}</span>
+                {kindOf(b.branch_code) === 'hub' ? <Warehouse size={14} className="flex-shrink-0 text-[color:var(--j-626F86)]" /> : <Store size={14} className="flex-shrink-0 text-[color:var(--j-626F86)]" />}
+                <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{b.branch_name}</span>
+                {!b.count && <span className="rounded bg-[color:var(--j-091E420F)] px-1.5 text-[10px] font-medium text-[color:var(--j-626F86)]">{tr('no recent sales')}</span>}
+                <span className="font-mono text-[11px] text-[color:var(--j-626F86)]">{b.branch_code}</span>
               </button>
             </li>
           );
         })}
       </ul>
-      <p className="border-t border-neutral-100 px-3 py-1.5 text-[11px] text-neutral-400">{value.length} {tr('of')} {branches.length} {tr('branches selected')}</p>
+      <p className="border-t border-[color:var(--j-F1F2F4)] px-3 py-1.5 text-[11px] text-[color:var(--j-626F86)]">{value.length} {tr('of')} {branches.length} {tr('branches selected')}</p>
     </div>
   );
 }

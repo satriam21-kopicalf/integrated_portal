@@ -93,7 +93,7 @@ function ImportDrawer({ count, onClose, onDownload, onImported }: { count: Count
         </div>
       ) : undefined}>
       <div className="space-y-4">
-        <div className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-900">
+        <div className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-4 py-3 text-sm text-[color:var(--j-0055CC)]">
           <p className="mb-1.5 flex items-center gap-1.5 font-semibold"><Info size={15} /> {tr("How to fill in")}</p>
           <ol className="list-decimal space-y-1 pl-5 text-xs">
             <li>{tr("Download the import format of this count (the button below or Import format).")}</li>
@@ -109,38 +109,38 @@ function ImportDrawer({ count, onClose, onDownload, onImported }: { count: Count
           onChange={(e) => void pick(e.target.files?.[0])} />
         {!preview && (
           <button type="button" disabled={busy} onClick={() => input.current?.click()}
-            className="flex w-full flex-col items-center gap-1.5 rounded-md border-2 border-dashed border-neutral-300 px-4 py-8 text-sm text-neutral-600 hover:border-brand-400 hover:bg-brand-50/40">
-            <Upload size={22} className="text-neutral-400" />
+            className="flex w-full flex-col items-center gap-1.5 rounded-[3px] border-2 border-dashed border-[color:var(--j-8590A2)] px-4 py-8 text-sm text-[color:var(--j-44546F)] hover:border-brand-400 hover:bg-[color:var(--j-E9F2FF)]">
+            <Upload size={22} className="text-[color:var(--j-626F86)]" />
             <span className="font-semibold">{busy ? tr("Reading the file…") : tr("Choose the filled Excel file")}</span>
-            <span className="text-xs text-neutral-400">.xlsx</span>
+            <span className="text-xs text-[color:var(--j-626F86)]">.xlsx</span>
           </button>
         )}
         {preview && (
           <div className="space-y-3">
-            <p className="text-sm text-neutral-700">{file?.name} · {tr("{0} rows read", preview.rows)}</p>
+            <p className="text-sm text-[color:var(--j-44546F)]">{file?.name} · {tr("{0} rows read", preview.rows)}</p>
             <div className="flex flex-wrap gap-1.5">
               <Badge tone="blue">{tr("{0} items change", preview.changes.length)}</Badge>
               {preview.problems.length > 0 && <Badge tone="red">{tr("{0} rows to correct", preview.problems.length)}</Badge>}
             </div>
             {preview.problems.length > 0 && (
-              <ul className="space-y-1 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+              <ul className="space-y-1 rounded-[3px] border border-red-200 bg-red-50 p-3 text-xs text-red-800">
                 {preview.problems.map((p) => <li key={p.row}>{tr("Row {0}", p.row)}{p.item ? ` · ${p.item}` : ""}: {p.error}</li>)}
                 <li className="pt-1 font-semibold">{tr("Correct these rows in the file and choose it again: nothing is saved while a row is wrong.")}</li>
               </ul>
             )}
             {preview.changes.length > 0 && (
-              <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
                 {preview.changes.map((c) => (
                   <li key={c.row} className="flex items-center justify-between gap-2 px-3 py-2">
                     <span className="min-w-0 truncate">{c.item}</span>
-                    <span className={cx("flex-shrink-0 tabular-nums text-xs", "text-neutral-600")}>
-                      {c.from === null ? "—" : fmtQty(String(c.from))} → <b className="text-neutral-900">{c.to === null ? "—" : fmtQty(String(c.to))}</b>{c.date ? ` · ${c.date}` : ""}
+                    <span className={cx("flex-shrink-0 tabular-nums text-xs", "text-[color:var(--j-44546F)]")}>
+                      {c.from === null ? "—" : fmtQty(String(c.from))} → <b className="text-[color:var(--j-172B4D)]">{c.to === null ? "—" : fmtQty(String(c.to))}</b>{c.date ? ` · ${c.date}` : ""}
                     </span>
                   </li>
                 ))}
               </ul>
             )}
-            {preview.changes.length === 0 && preview.problems.length === 0 && <p className="text-sm text-neutral-500">{tr("Nothing to change: fill in Qty in the file first.")}</p>}
+            {preview.changes.length === 0 && preview.problems.length === 0 && <p className="text-sm text-[color:var(--j-626F86)]">{tr("Nothing to change: fill in Qty in the file first.")}</p>}
           </div>
         )}
       </div>

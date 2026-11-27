@@ -94,54 +94,54 @@ export default function DeForm({ kind }: { kind: Kind }) {
   return (
     <Page title={KIND_LABEL[kind]()} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
-      {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && <SentCard r={sent} onClose={() => setSent(null)} onOpen={() => setView(sent.id)} />}
 
-          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-            <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+            <div className="flex items-center gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-neutral-900">{data.user.name}</p>
-                <p className="truncate text-xs text-neutral-500">{me?.username ? `@${me.username} · ` : ""}{tr("PIC of the request")}</p>
+                <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{data.user.name}</p>
+                <p className="truncate text-xs text-[color:var(--j-626F86)]">{me?.username ? `@${me.username} · ` : ""}{tr("PIC of the request")}</p>
               </div>
             </div>
             <div className="space-y-4 p-4 sm:p-5">
-              <p className="flex items-start gap-3 rounded-xl bg-neutral-50 p-3 text-xs text-neutral-600">
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{kind === "REPAIR" ? <Hammer size={18} /> : <PackagePlus size={18} />}</span>
+              <p className="flex items-start gap-3 rounded-[3px] bg-[color:var(--j-F7F8F9)] p-3 text-xs text-[color:var(--j-44546F)]">
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]">{kind === "REPAIR" ? <Hammer size={18} /> : <PackagePlus size={18} />}</span>
                 <span className="min-w-0">{kind === "REPAIR" ? tr("Something at the outlet is broken: building, electricity, water, furniture, tools or heavy tools.") : tr("Something new is needed at the outlet: heavy tools, tools, decoration or merchandise.")}</span>
               </p>
               <div>
-                <p className="mb-2 text-sm font-semibold text-neutral-900">{tr("Branch")}</p>
+                <p className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Branch")}</p>
                 {data.branches.length === 0 ? (
-                  <p className="rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-500">{tr("No branch is assigned to your account. Ask your administrator to assign your outlets.")}</p>
+                  <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-3 text-sm text-[color:var(--j-626F86)]">{tr("No branch is assigned to your account. Ask your administrator to assign your outlets.")}</p>
                 ) : data.branches.length === 1 ? (
-                  <p className="rounded-lg bg-neutral-50 px-3 py-2.5 text-sm font-medium text-neutral-900">{data.branches[0].name}</p>
+                  <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-sm font-medium text-[color:var(--j-172B4D)]">{data.branches[0].name}</p>
                 ) : (
                   // more than one outlet: searchable by name, code and branch group (2026-11-17)
                   <BranchSearch value={branch} onChange={setBranch} branches={data.branches} groups={data.branchGroups ?? {}} />
                 )}
               </div>
-              <p className="text-xs text-neutral-500">{tr("Date and time = server time when sent; PIC and branch come from your account.")}</p>
+              <p className="text-xs text-[color:var(--j-626F86)]">{tr("Date and time = server time when sent; PIC and branch come from your account.")}</p>
               <Button className="w-full sm:w-auto" disabled={!branch} loading={opening} onClick={() => void open()}><Plus size={15} /> {tr("Create Request")}</Button>
             </div>
           </section>
 
           {drafts.length > 0 && (
-            <section className="rounded-md border border-amber-200 bg-white shadow-sm">
+            <section className="rounded-[3px] border border-amber-200 bg-white">
               <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("Drafts saved ({0})", drafts.length)}</p>
-              <ul className="divide-y divide-neutral-100">
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {drafts.map((d) => (
                   <li key={d.id}>
-                    <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
+                    <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)] sm:px-5">
                       <ClipboardList size={18} className="flex-shrink-0 text-amber-600" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-neutral-900">{d.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {d.branchName}</span>
-                        <span className="block text-xs text-neutral-500">{tr("saved {0}", wibDateTime(d.updatedAt))}</span>
+                        <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{d.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {d.branchName}</span>
+                        <span className="block text-xs text-[color:var(--j-626F86)]">{tr("saved {0}", wibDateTime(d.updatedAt))}</span>
                       </span>
-                      <ChevronRight size={16} className="text-neutral-300" />
+                      <ChevronRight size={16} className="text-[color:var(--j-8590A2)]" />
                     </button>
                   </li>
                 ))}
@@ -149,18 +149,18 @@ export default function DeForm({ kind }: { kind: Kind }) {
             </section>
           )}
 
-          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3 sm:px-5">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
               <div>
-                <p className="text-sm font-semibold text-neutral-900">{tr("My requests")}</p>
-                <p className="text-xs text-neutral-500">{tr("Tap a request to see every step and note of the team")}</p>
+                <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("My requests")}</p>
+                <p className="text-xs text-[color:var(--j-626F86)]">{tr("Tap a request to see every step and note of the team")}</p>
               </div>
               <Segmented label={tr("Show")} value={show} onChange={setShow} options={[
                 { value: "all", label: `${tr("All")} ${mine.length}` }, { value: "open", label: `${tr("In Progress")} ${live.length}` },
                 { value: "done", label: `${tr("Done")} ${done.length}` }, { value: "rejected", label: `${tr("Rejected")} ${mine.length - live.length - done.length}` }]} />
             </div>
-            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{mine.length ? tr("No request in this view") : tr("No request sent yet")}</p> : (
-              <ul className="divide-y divide-neutral-100">
+            {shown.length === 0 ? <p className="px-5 py-8 text-center text-sm text-[color:var(--j-626F86)]">{mine.length ? tr("No request in this view") : tr("No request sent yet")}</p> : (
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {shown.map((r) => <MineRow key={r.id} r={r} onOpen={() => setView(r.id)} />)}
               </ul>
             )}
@@ -179,21 +179,21 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
   const idx = r.status === "DONE" ? STEPS.length - 1 : at ? STEPS.indexOf(at) : 0;
   return (
     <li>
-      <button type="button" onClick={onOpen} className="w-full px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
+      <button type="button" onClick={onOpen} className="w-full px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)] sm:px-5">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="font-mono text-xs font-semibold text-neutral-500">{r.number}</span>
+          <span className="font-mono text-xs font-semibold text-[color:var(--j-626F86)]">{r.number}</span>
           <StatusBadge r={r} />
           {r.status === "HANDOVER" && !r.handover?.at && <Badge tone="red" icon={<Handshake size={11} />}>{tr("Your handover needed")}</Badge>}
           {r.tracker?.targetAdjusted && OPEN.includes(r.status) && <Badge tone="violet">{tr("Estimate adjusted")}</Badge>}
-          <span className="ml-auto text-[11px] tabular-nums text-neutral-400">{wibDateTime(r.submittedAt)}</span>
+          <span className="ml-auto text-[11px] tabular-nums text-[color:var(--j-626F86)]">{wibDateTime(r.submittedAt)}</span>
         </span>
-        <span className="mt-1 block truncate text-sm font-medium text-neutral-900">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {r.branchName}</span>
+        <span className="mt-1 block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {r.branchName}</span>
         <span className="mt-2 flex items-center gap-1" aria-label={tr("Progress")}>
           {STEPS.map((st, i) => (
-            <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-red-200" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-brand-600") : "bg-neutral-100")} />
+            <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-red-200" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]") : "bg-[color:var(--j-091E420F)]")} />
           ))}
         </span>
-        <span className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-neutral-500">
+        <span className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-[color:var(--j-626F86)]">
           <span className="truncate">{r.lastNote?.note ? `“${r.lastNote.note}” — ${r.lastNote.actor}` : tr("No note from the team yet")}</span>
           <span className="flex-shrink-0 tabular-nums">{fmtHours(r.tracker?.workHours)}</span>
         </span>
@@ -205,14 +205,14 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
 /** Sent: number, PDF, link to share with the teams. */
 function SentCard({ r, onClose, onOpen }: { r: Request; onClose: () => void; onOpen: () => void }) {
   return (
-    <div className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+    <div className="rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
       <div className="flex items-start gap-3">
         <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
         <div className="min-w-0 flex-1">
           <p className="font-semibold">{tr("Request {0} sent", r.number ?? "")}</p>
           <p className="text-xs">{r.kindLabel} · {r.branchName} · {wibDateTime(r.submittedAt)} · {tr("status Pending: the team checks it first")}</p>
         </div>
-        <button type="button" onClick={onClose} className="rounded-md p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
+        <button type="button" onClick={onClose} className="rounded-[3px] p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
       </div>
       <div className="mt-3"><DocActions r={r} /></div>
       <button type="button" onClick={onOpen} className="mt-2 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline">{tr("See the Progress")}</button>
@@ -253,7 +253,7 @@ export function DocActions({ r, shareUrl }: { r: Request; shareUrl?: string | nu
         <PdfIcon size={16} /> {tr("Final Works (PDF)")}</Button>}
       {url && <Button size="sm" variant="secondary" onClick={() => void copy()}><Copy size={14} /> {tr("Copy Link")}</Button>}
       {url && <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"
-        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+        className="inline-flex h-8 items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
         <WhatsAppIcon size={16} /> WhatsApp</a>}
     </div>
   );
@@ -339,12 +339,12 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
   };
   let n = 0;
   return (
-    <section className="space-y-3 rounded-md border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
+    <section className="space-y-3 rounded-[3px] border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-cyan-600 text-white"><Handshake size={18} /></span>
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-cyan-600 text-white"><Handshake size={18} /></span>
         <div>
-          <p className="font-semibold text-neutral-900">{tr("Handover at the Outlet")}</p>
-          <p className="text-xs text-neutral-600">{vendor ? tr("The maintenance team asks you to check the vendor's work: photos of the result, the vendor's signature and yours.")
+          <p className="font-semibold text-[color:var(--j-172B4D)]">{tr("Handover at the Outlet")}</p>
+          <p className="text-xs text-[color:var(--j-44546F)]">{vendor ? tr("The maintenance team asks you to check the vendor's work: photos of the result, the vendor's signature and yours.")
             : tr("The maintenance team asks you to check the work: photos of the result and your signature.")}</p>
         </div>
       </div>
@@ -355,7 +355,7 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
         <FormCard n={++n} title={tr("Vendor's Signature")} hint={tr("The vendor's officer signs on this phone")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
           <SignaturePad onChange={setVendorSign} />
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Vendor officer's name")}{vendorName0 ? ` · ${vendorName0}` : ""}</span>
+            <span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Vendor officer's name")}{vendorName0 ? ` · ${vendorName0}` : ""}</span>
             <input value={vendorName} onChange={(e) => setVendorName(e.target.value)} maxLength={120} className={inputClass} placeholder={tr("Full name")} />
           </label>
         </FormCard>
@@ -363,14 +363,14 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
       <FormCard n={++n} title={tr("Your signature (PIC)")} hint={tr("By signing I confirm the work has been done and received at the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
         <SignaturePad onChange={setPicSign} />
         <label className="block">
-          <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Signer's name")}</span>
+          <span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Signer's name")}</span>
           <input value={picName} onChange={(e) => setPicName(e.target.value)} maxLength={120} className={inputClass} />
         </label>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={1000} placeholder={tr("Note (optional), e.g. anything still to follow up")}
           className={cx(inputClass, "h-auto py-2 text-sm")} aria-label={tr("Note")} />
       </FormCard>
       <Button className="w-full" loading={busy} disabled={!ready} onClick={() => void send()}><Send size={15} /> {tr("Send the Handover")}</Button>
-      {!ready && <p className="text-center text-[11px] text-neutral-500">{vendor ? tr("Photos, the vendor's signature and name, and your signature are needed.") : tr("Photos and your signature are needed.")}</p>}
+      {!ready && <p className="text-center text-[11px] text-[color:var(--j-626F86)]">{vendor ? tr("Photos, the vendor's signature and name, and your signature are needed.") : tr("Photos and your signature are needed.")}</p>}
     </section>
   );
 }
@@ -483,15 +483,15 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
   ];
 
   return (
-    <div className="flex min-h-full flex-col bg-neutral-50">
-      <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-3 sm:px-6">
+    <div className="flex min-h-full flex-col bg-[color:var(--j-F7F8F9)]">
+      <header className="sticky top-0 z-20 border-b border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 sm:px-6">
         <div className="mx-auto flex max-w-6xl items-start gap-2">
-          <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
+          <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-semibold text-neutral-900 sm:text-lg">{KIND_LABEL[r.kind]()}</h1>
-            <p className="truncate text-xs text-neutral-500">{r.picName} · {r.branchName}</p>
+            <h1 className="truncate text-base font-semibold text-[color:var(--j-172B4D)] sm:text-lg">{KIND_LABEL[r.kind]()}</h1>
+            <p className="truncate text-xs text-[color:var(--j-626F86)]">{r.picName} · {r.branchName}</p>
           </div>
-          <span className="flex-shrink-0 pt-1 text-xs text-neutral-400" aria-live="polite">
+          <span className="flex-shrink-0 pt-1 text-xs text-[color:var(--j-626F86)]" aria-live="polite">
             {saving > 0 ? <span className="inline-flex items-center gap-1"><CloudUpload size={13} /> {tr("Saving…")}</span> : <span className="inline-flex items-center gap-1"><Check size={13} /> {tr("Saved")}</span>}
           </span>
         </div>
@@ -502,28 +502,28 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:order-2">
         <FormCard n={1} title={tr("Request Data")} hint={tr("Filled automatically from your account")}>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
-            <div><dt className="text-[11px] text-neutral-400">{tr("Date & time")}</dt><dd className="font-medium text-neutral-900"><LiveClock /></dd></div>
-            <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
-            <div><dt className="text-[11px] text-neutral-400">{tr("Branch")}</dt>
+            <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Date & time")}</dt><dd className="font-medium text-[color:var(--j-172B4D)]"><LiveClock /></dd></div>
+            <div><dt className="text-[11px] text-[color:var(--j-626F86)]">PIC</dt><dd className="font-medium text-[color:var(--j-172B4D)]">{r.picName}</dd></div>
+            <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Branch")}</dt>
               <dd>{data.branches.length > 1 ? (
                 <NativeSelect value={r.branchCode} onChange={(e) => { setR({ ...r, branchCode: e.target.value }); save({ branchCode: e.target.value }, true); }}
                   className={cx(inputClass, "h-9 text-sm")} aria-label={tr("Branch")}>
                   {data.branches.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
                 </NativeSelect>
-              ) : <span className="font-medium text-neutral-900">{r.branchName}</span>}</dd></div>
+              ) : <span className="font-medium text-[color:var(--j-172B4D)]">{r.branchName}</span>}</dd></div>
           </dl>
         </FormCard>
 
         {(r.openInBranch ?? []).length > 0 && (
-          <section className="rounded-md border border-amber-200 bg-amber-50/60 p-4">
+          <section className="rounded-[3px] border border-amber-200 bg-amber-50/60 p-4">
             <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-900"><AlertTriangle size={16} /> {tr("Still in progress at {0} ({1})", r.branchName, r.openInBranch!.length)}</p>
             <p className="mt-0.5 text-xs text-amber-800">{tr("Check these first so nothing is asked twice; follow them under My requests.")}</p>
             <ul className="mt-2 space-y-1.5">
               {r.openInBranch!.map((o) => (
-                <li key={o.id} className="rounded-lg bg-white px-3 py-2 text-xs ring-1 ring-amber-100">
-                  <span className="flex flex-wrap items-center gap-2"><span className="font-mono font-semibold text-neutral-600">{o.number}</span> <StatusBadge r={o} />
-                    <span className="text-neutral-500">{o.picName} · {wibDateTime(o.submittedAt)}</span></span>
-                  <span className="mt-1 block text-neutral-700">{(o.items ?? []).map((i) => `${i.name} (${i.category})`).join(", ")}</span>
+                <li key={o.id} className="rounded-[3px] bg-white px-3 py-2 text-xs ring-1 ring-amber-100">
+                  <span className="flex flex-wrap items-center gap-2"><span className="font-mono font-semibold text-[color:var(--j-44546F)]">{o.number}</span> <StatusBadge r={o} />
+                    <span className="text-[color:var(--j-626F86)]">{o.picName} · {wibDateTime(o.submittedAt)}</span></span>
+                  <span className="mt-1 block text-[color:var(--j-44546F)]">{(o.items ?? []).map((i) => `${i.name} (${i.category})`).join(", ")}</span>
                 </li>
               ))}
             </ul>
@@ -539,16 +539,16 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <FormCard n={3} title={r.kind === "REPAIR" ? tr("What is damaged") : tr("What is needed")}
           hint={r.kind === "REPAIR" ? tr("One line per item: pick the category and the item") : tr("One line per item: pick the category, the item and how many")}
           aside={<Badge tone={filled.length ? "blue" : "slate"}>{filled.length}</Badge>}>
-          {items.length === 0 && <p className="text-sm text-neutral-500">{tr("No item yet.")}</p>}
+          {items.length === 0 && <p className="text-sm text-[color:var(--j-626F86)]">{tr("No item yet.")}</p>}
           {items.map((it, idx) => {
             const cat = cats.find((c) => c.id === it.categoryId);
             const dup = alreadyAsked(it, r.openInBranch);
             const upd = (patch: Partial<ItemDraft>, now = false) => setItemsAndSave(items.map((x) => (x.key === it.key ? { ...x, ...patch } : x)), now);
             return (
-              <div key={it.key} className={cx("space-y-2 rounded-lg border p-3", dup ? "border-amber-300 bg-amber-50/40" : "border-neutral-200")}>
+              <div key={it.key} className={cx("space-y-2 rounded-[3px] border p-3", dup ? "border-amber-300 bg-amber-50/40" : "border-[color:var(--j-DCDFE4)]")}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-neutral-500">{tr("Item {0}", idx + 1)}</span>
-                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Item")}><Trash2 size={15} /></button>
+                  <span className="text-xs font-semibold text-[color:var(--j-626F86)]">{tr("Item {0}", idx + 1)}</span>
+                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Item")}><Trash2 size={15} /></button>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <NativeSelect value={it.categoryId || ""} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}
@@ -588,25 +588,25 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <FormCard n={4} title={r.kind === "REPAIR" ? tr("Damage description") : tr("Need description")}
           hint={r.kind === "REPAIR" ? tr("What happened, since when, what was tried") : tr("Why it is needed and where it goes")}>
           {/* a wide description like an issue body (2026-11-18): an outline to start from and the characters left */}
-          <div className="overflow-hidden rounded-lg border border-neutral-200 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100">
-            <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 bg-neutral-50 px-3 py-1.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Description")}</span>
+          <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] focus-within:border-[color:var(--j-388BFF)] focus-within:ring-2 focus-within:ring-[color:var(--j-388BFF)]">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-3 py-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Description")}</span>
               {!analysis.trim() && (
-                <button type="button" className="ml-auto rounded-md px-2 py-0.5 text-xs font-medium text-brand-700 hover:bg-brand-50"
+                <button type="button" className="ml-auto rounded-[3px] px-2 py-0.5 text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]"
                   onClick={() => { const t = r.kind === "REPAIR" ? tr("What happened:\nSince when:\nWhat was tried:\n") : tr("What is needed:\nWhat it is for:\nSpecification (brand, size, colour):\nWhere it goes in the outlet:\nReference link (optional):\n"); setAnalysis(t); save({ analysis: t }); }}>
                   {tr("Use the outline")}</button>
               )}
             </div>
             <textarea value={analysis} onChange={(e) => { setAnalysis(e.target.value); save({ analysis: e.target.value }); }} rows={r.kind === "REPAIR" ? 6 : 10} maxLength={4000}
               placeholder={r.kind === "REPAIR" ? tr("Describe the damage in detail") : tr("Describe the need in detail: what, what for, the specification and where it goes")}
-              className="block min-h-[10rem] w-full resize-y border-0 px-3 py-2.5 text-sm leading-relaxed text-neutral-900 outline-none placeholder:text-neutral-400 sm:min-h-[16rem]" aria-label={tr("Analysis")} />
-            <p className="border-t border-neutral-100 px-3 py-1 text-right text-[11px] tabular-nums text-neutral-400">{analysis.length}/4000</p>
+              className="block min-h-[10rem] w-full resize-y border-0 px-3 py-2.5 text-sm leading-relaxed text-[color:var(--j-172B4D)] outline-none placeholder:text-[color:var(--j-626F86)] sm:min-h-[16rem]" aria-label={tr("Analysis")} />
+            <p className="border-t border-[color:var(--j-F1F2F4)] px-3 py-1 text-right text-[11px] tabular-nums text-[color:var(--j-626F86)]">{analysis.length}/4000</p>
           </div>
           {r.kind === "REPAIR" && (
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Cause")}>
               {CAUSES.map((c) => (
                 <button key={c.value} type="button" role="radio" aria-checked={cause === c.value} onClick={() => { const v = cause === c.value ? "" : c.value; setCause(v); save({ cause: v || null }, true); }}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", cause === c.value ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300")}>{c.label()}</button>
+                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", cause === c.value ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{c.label()}</button>
               ))}
             </div>
           )}
@@ -617,19 +617,19 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           aside={<Badge tone={photos.length ? "blue" : "slate"}>{photos.length}/{data.limits.photos}</Badge>}>
           <EvidenceGrid list={photos} urls={PORTAL_URLS} onRemove={(id) => void removeMedia(id)}
             add={photos.length < data.limits.photos ? <AddPhotoTile onClick={() => setCamera(true)} label={photos.length ? tr("Add photo") : tr("Take Photo")} tone={photos.length ? "slate" : "blue"} /> : undefined} />
-          <div className="rounded-lg border border-neutral-200 p-3">
+          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
             {video ? (
               <div className="space-y-2">
-                <p className="flex items-center justify-between gap-2 text-xs text-neutral-600"><span className="inline-flex min-w-0 items-center gap-1 truncate"><Video size={14} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</span>
-                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Video")}><Trash2 size={14} /></button></p>
-                <video src={PORTAL_URLS.media(video.id)} controls preload="metadata" className="max-h-64 w-full rounded-lg bg-black" />
+                <p className="flex items-center justify-between gap-2 text-xs text-[color:var(--j-44546F)]"><span className="inline-flex min-w-0 items-center gap-1 truncate"><Video size={14} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</span>
+                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Video")}><Trash2 size={14} /></button></p>
+                <video src={PORTAL_URLS.media(video.id)} controls preload="metadata" className="max-h-64 w-full rounded-[3px] bg-black" />
               </div>
             ) : upload !== null ? (
-              <div className="space-y-1.5"><p className="flex items-center gap-1.5 text-xs text-neutral-600"><Loader2 size={13} className="animate-spin" /> {tr("Uploading the video… {0}%", upload)}</p>
-                <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100"><div className="h-full rounded-full bg-brand-600" style={{ width: `${upload}%` }} /></div></div>
+              <div className="space-y-1.5"><p className="flex items-center gap-1.5 text-xs text-[color:var(--j-44546F)]"><Loader2 size={13} className="animate-spin" /> {tr("Uploading the video… {0}%", upload)}</p>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><div className="h-full rounded-full bg-[color:var(--j-0C66E4)]" style={{ width: `${upload}%` }} /></div></div>
             ) : (
-              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-neutral-700">
-                <Video size={16} className="text-neutral-500" /> {tr("Record or choose a video (optional)")}
+              <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[color:var(--j-44546F)]">
+                <Video size={16} className="text-[color:var(--j-626F86)]" /> {tr("Record or choose a video (optional)")}
                 <input type="file" accept="video/*" capture="environment" className="hidden" onChange={(e) => { addVideo(e.target.files?.[0]); e.target.value = ""; }} />
               </label>
             )}
@@ -638,14 +638,14 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Button variant="ghost" className="text-red-600" onClick={() => setDiscarding(true)}><Trash2 size={15} /> {tr("Delete draft")}</Button>
-          <span className="text-xs text-neutral-500">{tr("Saved automatically; you can continue later.")}</span>
+          <span className="text-xs text-[color:var(--j-626F86)]">{tr("Saved automatically; you can continue later.")}</span>
         </div>
         </div>
       </div>
 
-      <div className="action-bar sticky bottom-0 z-20 border-t border-neutral-200/70 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+      <div className="action-bar sticky bottom-0 z-20 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
-          <p className="min-w-0 flex-1 text-xs text-neutral-600">{todo.length ? <span className="text-amber-700">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
+          <p className="min-w-0 flex-1 text-xs text-[color:var(--j-44546F)]">{todo.length ? <span className="text-amber-700">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
           <Button disabled={todo.length > 0 || saving > 0} onClick={() => { void flush(); setPreview(true); }}><Send size={15} /> {tr("Preview & send")}</Button>
         </div>
       </div>
@@ -689,40 +689,40 @@ function SendSheet({ r, onClose, onSent }: { r: Request; onClose: () => void; on
       <div className="space-y-4">
         <FormCard n={1} title={tr("Request Data")} hint={tr("Filled automatically from your account")}>
           <dl className="grid grid-cols-2 gap-3 text-sm">
-            <div><dt className="text-[11px] text-neutral-400">PIC</dt><dd className="font-medium text-neutral-900">{r.picName}</dd></div>
-            <div><dt className="text-[11px] text-neutral-400">{tr("Branch")}</dt><dd className="font-medium text-neutral-900">{r.branchName}</dd></div>
-            <div><dt className="text-[11px] text-neutral-400">{tr("Type of request")}</dt><dd className="text-neutral-900">{r.kindLabel}</dd></div>
-            <div><dt className="text-[11px] text-neutral-400">{tr("Date & time")}</dt><dd className="text-neutral-900"><LiveClock /></dd></div>
+            <div><dt className="text-[11px] text-[color:var(--j-626F86)]">PIC</dt><dd className="font-medium text-[color:var(--j-172B4D)]">{r.picName}</dd></div>
+            <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Branch")}</dt><dd className="font-medium text-[color:var(--j-172B4D)]">{r.branchName}</dd></div>
+            <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Type of request")}</dt><dd className="text-[color:var(--j-172B4D)]">{r.kindLabel}</dd></div>
+            <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Date & time")}</dt><dd className="text-[color:var(--j-172B4D)]"><LiveClock /></dd></div>
           </dl>
         </FormCard>
         <FormCard n={2} title={tr("Items ({0})", r.items?.length ?? 0)} hint={r.kind === "REPAIR" ? tr("What is damaged") : tr("What to add")}>
-          <ul className="divide-y divide-neutral-100 text-sm">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)] text-sm">
             {(r.items ?? []).map((it, i) => (
               <li key={i} className="flex items-start justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
-                <span className="min-w-0"><span className="block text-neutral-900">{it.name} × {it.qty}</span>
-                  <span className="block text-xs text-neutral-500">{it.category}{it.location ? ` · ${it.location}` : ""}{it.note ? ` · ${it.note}` : ""}</span></span>
+                <span className="min-w-0"><span className="block text-[color:var(--j-172B4D)]">{it.name} × {it.qty}</span>
+                  <span className="block text-xs text-[color:var(--j-626F86)]">{it.category}{it.location ? ` · ${it.location}` : ""}{it.note ? ` · ${it.note}` : ""}</span></span>
               </li>
             ))}
           </ul>
         </FormCard>
         <FormCard n={3} title={r.kind === "REPAIR" ? tr("Damage analysis") : tr("Reason for the procurement")}
           hint={`${tr("{0} photos", (r.media ?? []).filter((m) => m.kind === "PHOTO").length)}${(r.media ?? []).some((m) => m.kind === "VIDEO") ? ` · ${tr("1 video")}` : ""}`}>
-          <p className="whitespace-pre-line text-sm text-neutral-700">{r.analysis}</p>
+          <p className="whitespace-pre-line text-sm text-[color:var(--j-44546F)]">{r.analysis}</p>
           <ul className="grid grid-cols-5 gap-1.5">
             {(r.media ?? []).filter((m) => m.kind === "PHOTO").map((m) => (
               // eslint-disable-next-line @next/next/no-img-element -- private photo through the API
-              <li key={m.id}><img src={PORTAL_URLS.media(m.id)} alt={tr("Photo")} className="aspect-square w-full rounded-md object-cover ring-1 ring-neutral-200" /></li>
+              <li key={m.id}><img src={PORTAL_URLS.media(m.id)} alt={tr("Photo")} className="aspect-square w-full rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" /></li>
             ))}
           </ul>
         </FormCard>
         <FormCard n={4} title={tr("PIC Signature")} hint={tr("By signing I confirm this request is true and needed for the outlet.")} aside={<Badge tone="red">{tr("Required")}</Badge>}>
           <SignaturePad onChange={setSignature} />
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Signer's name")}</span>
+            <span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Signer's name")}</span>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={inputClass} />
           </label>
         </FormCard>
-        <p className="text-xs text-neutral-500">{tr("After sending: the status is Pending, the team checks it; you get a PDF and a link to share, and follow every step under My requests.")}</p>
+        <p className="text-xs text-[color:var(--j-626F86)]">{tr("After sending: the status is Pending, the team checks it; you get a PDF and a link to share, and follow every step under My requests.")}</p>
       </div>
     </Drawer>
   );
@@ -764,9 +764,9 @@ function PriorityCard({ r, value, onChange }: { r: Request; value: string; onCha
       <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={repair ? tr("Impact on the outlet") : tr("Why it is needed")}>
         {options.map((o) => (
           <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
-            className={cx("rounded-md border p-3 text-left transition-colors", value === o.value ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
-            <span className="block text-sm font-semibold text-neutral-900">{o.label()}</span>
-            <span className="mt-0.5 block text-xs leading-snug text-neutral-500">{o.hint()}</span>
+            className={cx("rounded-[3px] border p-3 text-left transition-colors", value === o.value ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] ring-1 ring-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-8590A2)]")}>
+            <span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{o.label()}</span>
+            <span className="mt-0.5 block text-xs leading-snug text-[color:var(--j-626F86)]">{o.hint()}</span>
           </button>
         ))}
       </div>
@@ -790,15 +790,15 @@ function BranchSearch({ value, onChange, branches, groups }: {
         {shown.map((b) => (
           <li key={b.code}>
             <button type="button" role="option" aria-selected={value === b.code} onClick={() => onChange(b.code)}
-              className={cx("flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-left transition-colors",
-                value === b.code ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
-              <span className="min-w-0"><span className="block truncate text-sm font-medium text-neutral-900">{b.name}</span>
-                <span className="block text-xs text-neutral-500">{b.code}{groups[b.code] ? ` · ${groups[b.code]}` : ""}</span></span>
-              {value === b.code && <Check size={16} className="flex-shrink-0 text-brand-700" />}
+              className={cx("flex w-full items-center justify-between gap-3 rounded-[3px] border px-3 py-2.5 text-left transition-colors",
+                value === b.code ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] ring-1 ring-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-8590A2)]")}>
+              <span className="min-w-0"><span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{b.name}</span>
+                <span className="block text-xs text-[color:var(--j-626F86)]">{b.code}{groups[b.code] ? ` · ${groups[b.code]}` : ""}</span></span>
+              {value === b.code && <Check size={16} className="flex-shrink-0 text-[color:var(--j-0C66E4)]" />}
             </button>
           </li>
         ))}
-        {!shown.length && <li className="rounded-xl bg-neutral-50 px-3 py-3 text-sm text-neutral-500">{tr("No outlet matches")}</li>}
+        {!shown.length && <li className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-3 text-sm text-[color:var(--j-626F86)]">{tr("No outlet matches")}</li>}
       </ul>
     </div>
   );

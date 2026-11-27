@@ -117,20 +117,20 @@ export default function LoginPage() {
         <PreferenceSwitches className="absolute right-4 top-4 sm:right-6 sm:top-6" />
         <div className="relative z-10 -mt-8 flex flex-1 justify-center rounded-t-[28px] bg-white px-5 pb-10 pt-8 sm:px-8 lg:mt-0 lg:items-center lg:rounded-none lg:py-12">
           <div className="w-full max-w-[420px] lg:max-w-[380px]">
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 lg:font-semibold">{tr('Sign in')}</h1>
-            <p className="mt-1.5 text-sm text-neutral-500">{tr('Kopi Calf Integration Platform')}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-[color:var(--j-172B4D)] lg:font-semibold">{tr('Sign in')}</h1>
+            <p className="mt-1.5 text-sm text-[color:var(--j-626F86)]">{tr('Kopi Calf Integration Platform')}</p>
 
             <div className="mt-8 space-y-6">
               {farewell && <FarewellCard farewell={farewell} />}
               {notice && (
-                <p className="flex items-start gap-2 rounded-lg bg-brand-50 px-3 py-2.5 text-sm text-brand-800" role="status">
+                <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-3 py-2.5 text-sm text-[color:var(--j-0055CC)]" role="status">
                   <Info size={16} className="mt-0.5 flex-shrink-0" /> {notice}
                 </p>
               )}
 
               <form onSubmit={submit} className="space-y-5" noValidate>
                 <Field id="identifier" label={tr('Username or Email')} error={fields.identifier}>
-                  <User size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <User size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
                   <input
                     id="identifier"
                     type="text"
@@ -149,7 +149,7 @@ export default function LoginPage() {
 
                 <Field id="password" label={tr('Password')} error={fields.password}
                   hint={capsLock && !fields.password ? tr('Caps Lock is on') : undefined}>
-                  <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
                   <input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -166,7 +166,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)]/40"
                     aria-label={showPassword ? tr('Hide password') : tr('Show password')}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -174,29 +174,29 @@ export default function LoginPage() {
                 </Field>
 
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <label className="flex cursor-pointer select-none items-center gap-2 text-neutral-600">
+                  <label className="flex cursor-pointer select-none items-center gap-2 text-[color:var(--j-44546F)]">
                     <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
-                      className="h-4 w-4 rounded border-neutral-300 text-brand-600 focus:ring-brand-600" />
+                      className="h-4 w-4 rounded border-[color:var(--j-8590A2)] text-[color:var(--j-0C66E4)] focus:ring-[color:var(--j-388BFF)]" />
                     {tr('Keep me signed in')}
                   </label>
                   <button type="button" onClick={() => setShowForgot(s => !s)} aria-expanded={showForgot}
-                    className="rounded font-medium text-brand-600 hover:text-brand-800 dark:hover:text-white hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/40">
+                    className="rounded font-medium text-[color:var(--j-0C66E4)] hover:text-[color:var(--j-0055CC)] dark:hover:text-white hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)]/40">
                     {tr('Forgot password?')}
                   </button>
                 </div>
                 {showForgot && (
-                  <p className="-mt-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600" role="status">
+                  <p className="-mt-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]" role="status">
                     {tr('Ask your administrator to reset it.')}
                   </p>
                 )}
 
                 {error && (
-                  <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">
+                  <p className="flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">
                     <AlertCircle size={16} className="mt-0.5 flex-shrink-0" /> {error}
                   </p>
                 )}
                 {operations && (
-                  <a href={operations} className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-brand-200 bg-brand-50 text-sm font-semibold text-brand-800 hover:bg-brand-100">
+                  <a href={operations} className="flex h-11 w-full items-center justify-center gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-sm font-semibold text-[color:var(--j-0055CC)] hover:bg-[color:var(--j-CCE0FF)]">
                     {tr('Open Operations')} <ArrowRight size={16} />
                   </a>
                 )}
@@ -204,7 +204,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-[#0B1385] lg:h-11  text-sm font-semibold text-white shadow-sm shadow-[#050A4A]/20 transition-colors hover:bg-[#050A4A] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-600/25 disabled:cursor-wait disabled:bg-[#0B1385]/80"
+                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-[#0B1385] lg:h-11  text-sm font-semibold text-white shadow-[#050A4A]/20 transition-colors hover:bg-[#050A4A] focus:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--j-388BFF)]/25 disabled:cursor-wait disabled:bg-[#0B1385]/80"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
                   {submitting ? tr('Signing in…') : tr('Sign in')}
@@ -215,7 +215,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <footer className="bg-white pb-6 text-center text-xs text-neutral-400" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <footer className="bg-white pb-6 text-center text-xs text-[color:var(--j-626F86)]" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
           © {new Date().getFullYear()} {tr('Kopi Calf · PT Yuda Prawira Group')}
         </footer>
       </div>
@@ -225,11 +225,11 @@ export default function LoginPage() {
 
 function inputClass(invalid: boolean) {
   return (
-    'h-12 w-full rounded-md border bg-white pl-10 pr-3 text-base text-neutral-900 lg:h-11  lg:text-sm placeholder:text-neutral-400 transition-colors ' +
+    'h-12 w-full rounded-[3px] border bg-white pl-10 pr-3 text-base text-[color:var(--j-172B4D)] lg:h-11  lg:text-sm placeholder:text-[color:var(--j-626F86)] transition-colors ' +
     'focus:outline-none focus:ring-4 ' +
     (invalid
       ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
-      : 'border-neutral-200 hover:border-neutral-300 focus:border-brand-600 focus:ring-brand-600/10')
+      : 'border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-8590A2)] focus:border-[color:var(--j-0C66E4)] focus:ring-[color:var(--j-388BFF)]/10')
   );
 }
 
@@ -238,7 +238,7 @@ function Field({ id, label, error, hint, children }: {
 }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-neutral-700">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[color:var(--j-44546F)]">{label}</label>
       <div className="relative">{children}</div>
       {error && <p id={`${id}-error`} className="mt-1.5 text-xs text-red-600">{error}</p>}
       {hint && <p id={`${id}-hint`} className="mt-1.5 text-xs text-amber-700">{hint}</p>}
@@ -292,14 +292,14 @@ function DashboardIllustration() {
   const bars = [38, 56, 46, 70, 60, 84, 66];
   return (
     <div className="relative w-full max-w-[460px]" aria-hidden>
-      <div className="rounded-md bg-white p-5 shadow-2xl shadow-brand-950/30">
+      <div className="rounded-[3px] bg-white p-5 shadow-2xl shadow-brand-950/30">
         <div className="flex items-center justify-between">
           <span className="space-y-1.5">
-            <span className="block h-2 w-20 rounded-full bg-neutral-200" />
+            <span className="block h-2 w-20 rounded-full bg-[color:var(--j-DCDFE4)]" />
             <span className="block h-3 w-32 rounded-full bg-[#0B1385]" />
           </span>
           <span className="flex gap-1.5">
-            <span className="h-6 w-12 rounded-md bg-[#ECEEF9]" /><span className="h-6 w-12 rounded-md bg-[#0B1385]" />
+            <span className="h-6 w-12 rounded-[3px] bg-[#ECEEF9]" /><span className="h-6 w-12 rounded-[3px] bg-[#0B1385]" />
           </span>
         </div>
         <svg viewBox="0 0 300 110" className="mt-4 h-32 w-full">
@@ -322,9 +322,9 @@ function DashboardIllustration() {
       </div>
       {/* floating KPI chip */}
       <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-[4px] bg-white px-3 py-2.5 shadow-xl shadow-brand-950/25">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ECEEF9] text-[#0B1385]"><TrendingUp size={16} /></span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-[3px] bg-[#ECEEF9] text-[#0B1385]"><TrendingUp size={16} /></span>
         <span className="space-y-1.5">
-          <span className="block h-1.5 w-12 rounded-full bg-neutral-200" />
+          <span className="block h-1.5 w-12 rounded-full bg-[color:var(--j-DCDFE4)]" />
           <span className="block h-2.5 w-16 rounded-full bg-[#0B1385]" />
         </span>
       </div>
@@ -336,14 +336,14 @@ function DashboardIllustration() {
 function FarewellCard({ farewell }: { farewell: Farewell }) {
   const Icon = DAY_PART_ICONS[farewell.part] ?? Info;
   return (
-    <div className="notice-in flex items-start gap-3 rounded-md bg-brand-50 px-4 py-3.5" role="status">
-      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-white">
+    <div className="notice-in flex items-start gap-3 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-4 py-3.5" role="status">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] text-white">
         <Icon size={18} />
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-neutral-900">{farewell.title}</p>
-        <p className="mt-0.5 text-sm leading-relaxed text-neutral-600">{farewell.message}</p>
-        <p className="mt-1.5 flex items-center gap-1 text-xs text-neutral-500">
+        <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{farewell.title}</p>
+        <p className="mt-0.5 text-sm leading-relaxed text-[color:var(--j-44546F)]">{farewell.message}</p>
+        <p className="mt-1.5 flex items-center gap-1 text-xs text-[color:var(--j-626F86)]">
           <Clock size={12} /> {tr('Signed Out')}{farewell.duration ? tr(' · session {0}', farewell.duration) : ''}
         </p>
       </div>

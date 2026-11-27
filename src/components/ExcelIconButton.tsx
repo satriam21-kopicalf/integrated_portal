@@ -7,9 +7,9 @@ import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
 
-const cls = 'inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-neutral-100 aria-disabled:pointer-events-none aria-disabled:opacity-50 disabled:cursor-not-allowed disabled:opacity-50';
+const cls = 'inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] transition-colors hover:bg-[color:var(--j-091E420F)] aria-disabled:pointer-events-none aria-disabled:opacity-50 disabled:cursor-not-allowed disabled:opacity-50';
 
-const boxedCls = 'inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60 sm:h-9 sm:w-9';
+const boxedCls = 'inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white transition-colors hover:bg-[color:var(--j-F7F8F9)] disabled:cursor-not-allowed disabled:opacity-60 sm:h-9 sm:w-9';
 
 export default function ExcelIconButton({ label, onClick, href, loading, disabled, boxed, className }: {
   /** bordered, for a filter toolbar */ boxed?: boolean;
@@ -21,7 +21,7 @@ export default function ExcelIconButton({ label, onClick, href, loading, disable
   disabled?: boolean;
 }) {
   const icon = loading
-    ? <Loader2 size={18} className="animate-spin text-neutral-600" />
+    ? <Loader2 size={18} className="animate-spin text-[color:var(--j-44546F)]" />
     : <span className="relative h-6 w-6"><Image src={assetUrl("assets/xlsx.png")} alt="" fill sizes="24px" className="object-contain" /></span>;
   if (href) {
     return <a href={href} className={cls} title={label} aria-label={label} aria-disabled={disabled || undefined}>{icon}</a>;

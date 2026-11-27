@@ -36,20 +36,20 @@ export default function ExcelExportMenu({ choices, footer, title }: { choices: E
     <div className="relative" ref={ref}>
       <PopoverButton label={tr('Export to Excel')} open={open} disabled={!!busy}
         title={busy ? tr('Export in progress') : tr('Export to Excel')} onClick={() => setOpen(!open)}
-        icon={busy ? <Loader2 className="animate-spin text-neutral-600" /> : <span className="relative block h-[18px] w-[18px]"><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="18px" className="object-contain" /></span>} />
+        icon={busy ? <Loader2 className="animate-spin text-[color:var(--j-44546F)]" /> : <span className="relative block h-[18px] w-[18px]"><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="18px" className="object-contain" /></span>} />
       <Popover open={open} onClose={() => setOpen(false)} title={title ?? `${tr('Export to')} Excel`} subtitle={footer}>
         <div className="p-1.5" role="menu">
           {choices.map((c) => (
             <button key={c.key} type="button" role="menuitem" disabled={c.count === 0 || !!busy} onClick={() => void pick(c)}
-              className="flex w-full items-start gap-3 rounded-lg px-2.5 py-3 text-left transition-colors hover:bg-neutral-50 active:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent sm:py-2">
-              <span className={`mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${c.tone ?? 'bg-neutral-100 text-neutral-500'}`}>
+              className="flex w-full items-start gap-3 rounded-[3px] px-2.5 py-3 text-left transition-colors hover:bg-[color:var(--j-F7F8F9)] active:bg-[color:var(--j-091E420F)] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-transparent sm:py-2">
+              <span className={`mt-0.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[3px] ${c.tone ?? 'bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]'}`}>
                 {busy === c.key ? <Loader2 size={16} className="animate-spin" /> : c.icon}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-neutral-800">{c.label}</span>
-                <span className="block text-xs text-neutral-500">{c.hint}</span>
+                <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{c.label}</span>
+                <span className="block text-xs text-[color:var(--j-626F86)]">{c.hint}</span>
               </span>
-              {c.count != null && <span className="mt-0.5 flex-shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-neutral-600">{fmtNumber(c.count)}</span>}
+              {c.count != null && <span className="mt-0.5 flex-shrink-0 rounded-full bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[color:var(--j-44546F)]">{fmtNumber(c.count)}</span>}
             </button>
           ))}
         </div>

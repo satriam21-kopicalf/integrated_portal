@@ -13,12 +13,12 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
   return (
     <label className={cx("flex items-start justify-between gap-4", disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer")}>
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-neutral-800">{label}</span>
-        {hint && <span className="mt-0.5 block text-xs text-neutral-500">{hint}</span>}
+        <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{label}</span>
+        {hint && <span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{hint}</span>}
       </span>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
-        className={cx("relative mt-0.5 inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-200 focus-visible:ring-offset-2",
-          checked ? "bg-brand-700" : "bg-neutral-300")}>
+        className={cx("relative mt-0.5 inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-85B8FF)] focus-visible:ring-offset-2",
+          checked ? "bg-[color:var(--j-0C66E4)]" : "bg-neutral-300")}>
         <span className={cx("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform", checked ? "translate-x-[22px]" : "translate-x-0.5")} />
       </button>
     </label>
@@ -28,12 +28,12 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
 /** A numbered step of a form in a drawer. */
 export function FormCard({ n, title, hint, children, aside }: { n?: number; title: string; hint?: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <section className="rounded-md border border-neutral-200 bg-white">
-      <header className="flex items-start gap-3 border-b border-neutral-100 px-4 py-3">
-        {n !== undefined && <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">{n}</span>}
+    <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+      <header className="flex items-start gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3">
+        {n !== undefined && <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-E9F2FF)] text-[11px] font-semibold text-[color:var(--j-0C66E4)] ring-1 ring-inset ring-[color:var(--j-85B8FF)]">{n}</span>}
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-neutral-900">{title}</span>
-          {hint && <span className="mt-0.5 block text-xs text-neutral-500">{hint}</span>}
+          <span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{title}</span>
+          {hint && <span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{hint}</span>}
         </span>
         {aside}
       </header>
@@ -44,7 +44,7 @@ export function FormCard({ n, title, hint, children, aside }: { n?: number; titl
 
 const NOTE_TONE = {
   info: "border-sky-100 bg-sky-50/70 text-sky-900 [&_.note-icon]:text-sky-600",
-  muted: "border-neutral-200/80 bg-neutral-50 text-neutral-600 [&_.note-icon]:text-neutral-400",
+  muted: "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] [&_.note-icon]:text-[color:var(--j-626F86)]",
   warn: "border-amber-200/70 bg-amber-50 text-amber-900 [&_.note-icon]:text-amber-600",
   ok: "border-emerald-200/70 bg-emerald-50 text-emerald-900 [&_.note-icon]:text-emerald-600",
 } as const;
@@ -54,7 +54,7 @@ export function Note({ icon, title, children, tone = "muted", action, className 
   icon?: ReactNode; title?: string; children: ReactNode; tone?: keyof typeof NOTE_TONE; action?: ReactNode; className?: string;
 }) {
   return (
-    <div className={cx("flex flex-col gap-2 rounded-md border px-3.5 py-3 text-xs leading-relaxed sm:flex-row sm:items-center", NOTE_TONE[tone], className)}>
+    <div className={cx("flex flex-col gap-2 rounded-[3px] border px-3.5 py-3 text-xs leading-relaxed sm:flex-row sm:items-center", NOTE_TONE[tone], className)}>
       <div className="flex min-w-0 flex-1 items-start gap-2.5">
         {icon && <span className="note-icon mt-px flex-shrink-0 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
         <div className="min-w-0">
@@ -77,7 +77,7 @@ export function Segmented<T extends string>({ value, options, onChange, label }:
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
           className={cx("min-h-8 flex-shrink-0 whitespace-nowrap rounded-[4px] border px-2 py-1 text-xs font-medium transition-colors sm:px-3 sm:text-[13px]",
-            value === o.value ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>{o.label}</button>
+            value === o.value ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>{o.label}</button>
       ))}
     </div>
   );

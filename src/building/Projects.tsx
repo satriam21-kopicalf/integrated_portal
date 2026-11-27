@@ -37,15 +37,15 @@ function ApproversDrawer({ list, can, onClose, onSaved }: { list: Approver[]; ca
       footer={can ? <div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button disabled={busy} onClick={() => void save()}>{tr("Save")}</Button></div> : undefined}>
       <ul className="space-y-2">
         {ids.map((id) => { const a = byId.get(id); return (
-          <li key={id} className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm">
-            <span><span className="block font-medium text-neutral-900">{a?.name ?? id}</span>{a?.jobTitle && <span className="text-xs text-neutral-500">{a.jobTitle}</span>}</span>
-            {can && <button type="button" onClick={() => setIds(ids.filter((x) => x !== id))} className="rounded p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", a?.name ?? id)}><X size={14} /></button>}
+          <li key={id} className="flex items-center justify-between gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm">
+            <span><span className="block font-medium text-[color:var(--j-172B4D)]">{a?.name ?? id}</span>{a?.jobTitle && <span className="text-xs text-[color:var(--j-626F86)]">{a.jobTitle}</span>}</span>
+            {can && <button type="button" onClick={() => setIds(ids.filter((x) => x !== id))} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", a?.name ?? id)}><X size={14} /></button>}
           </li>); })}
-        {!ids.length && <li className="text-sm text-neutral-500">{tr("Nobody listed: the superadmins approve")}</li>}
+        {!ids.length && <li className="text-sm text-[color:var(--j-626F86)]">{tr("Nobody listed: the superadmins approve")}</li>}
       </ul>
       {can && <div className="mt-4"><Row label={tr("Add an approver")}><JSelect value="" onChange={(v) => v && !ids.includes(v) && setIds([...ids, v])} label={tr("Add an approver")} placeholder={tr("Choose an account")}
         options={cands.filter((c) => !ids.includes(c.id)).map((c) => ({ value: c.id, label: c.name, hint: c.jobTitle ?? c.department ?? undefined }))} /></Row></div>}
-      {!can && <p className="mt-4 text-xs text-neutral-500">{tr("Only a superadmin changes this list.")}</p>}
+      {!can && <p className="mt-4 text-xs text-[color:var(--j-626F86)]">{tr("Only a superadmin changes this list.")}</p>}
     </Drawer>
   );
 }
@@ -53,8 +53,8 @@ function ApproversDrawer({ list, can, onClose, onSaved }: { list: Approver[]; ca
 export function ProgressBar({ value, plan, className }: { value: number | null; plan?: number | null; className?: string }) {
   const v = Math.max(0, Math.min(100, value ?? 0));
   return (
-    <span className={cx("relative block h-2 overflow-hidden rounded-full bg-neutral-100", className)} role="progressbar" aria-valuenow={v} aria-valuemin={0} aria-valuemax={100}>
-      <span className={cx("absolute inset-y-0 left-0 rounded-full", v >= 100 ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${v}%` }} />
+    <span className={cx("relative block h-2 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]", className)} role="progressbar" aria-valuenow={v} aria-valuemin={0} aria-valuemax={100}>
+      <span className={cx("absolute inset-y-0 left-0 rounded-full", v >= 100 ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${v}%` }} />
       {plan != null && plan > 0 && <span className="absolute inset-y-0 w-0.5 bg-neutral-900/60" style={{ left: `calc(${Math.min(100, plan)}% - 1px)` }} title={tr("Plan {0}%", plan)} />}
     </span>
   );
@@ -75,18 +75,18 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
   const chosen = [kind && { k: "kind", label: tr("Kind"), v: KIND_LABEL[kind as Kind](), clear: () => setKind("") }, status && { k: "status", label: tr("Status"), v: status === "OPEN" ? tr("Not finished") : STATUS_LABEL[status as Status](), clear: () => setStatus("") }].filter(Boolean) as { k: string; label: string; v: string; clear: () => void }[];
   return (
     <>
-      <div className="space-y-2.5 border-b border-neutral-200 p-4 sm:px-5">
+      <div className="space-y-2.5 border-b border-[color:var(--j-DCDFE4)] p-4 sm:px-5">
         <div className="flex flex-wrap items-center gap-2">
           <div className="min-w-0 flex-1 basis-full sm:basis-64 sm:max-w-md"><SearchBox value={q} onChange={setQ} placeholder={tr("Search number, project, outlet, PIC or contractor")} /></div>
           <div className="flex flex-1 items-center gap-2 sm:flex-none">
-            <button ref={btn} type="button" onClick={() => setOpen(true)} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", chosen.length ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-800")}>
-              <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
-            {chosen.length > 0 && <button type="button" onClick={() => { setKind(""); setStatus(""); }} aria-label={tr("Clear the filters")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-700 sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
+            <button ref={btn} type="button" onClick={() => setOpen(true)} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-[3px] border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", chosen.length ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-172B4D)]")}>
+              <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
+            {chosen.length > 0 && <button type="button" onClick={() => { setKind(""); setStatus(""); }} aria-label={tr("Clear the filters")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
             <Button variant="secondary" className="!h-11 sm:!h-10" onClick={() => setApprOpen(true)} title={tr("RAB approvers")}><ShieldCheck size={15} /><span className="hidden sm:inline">{tr("RAB approvers")}</span></Button>
             <Button className="!h-11 sm:!h-10" onClick={onAdd}><Plus size={15} />{tr("New project")}</Button>
           </div>
         </div>
-        {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((c) => <li key={c.k}><button type="button" onClick={c.clear} className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-brand-50 px-2.5 text-xs text-brand-900"><span className="text-brand-700/70">{c.label}:</span><span className="font-semibold">{c.v}</span><X size={13} /></button></li>)}</ul>}
+        {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((c) => <li key={c.k}><button type="button" onClick={c.clear} className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-2.5 text-xs text-[color:var(--j-0055CC)]"><span className="text-[color:var(--j-0C66E4)]/70">{c.label}:</span><span className="font-semibold">{c.v}</span><X size={13} /></button></li>)}</ul>}
         {apprOpen && appr && <ApproversDrawer list={appr.list} can={appr.can} onClose={() => setApprOpen(false)} onSaved={(list) => { setAppr({ ...appr, list }); setApprOpen(false); }} />}
         <Floating open={open} onClose={() => setOpen(false)} title={tr("Filter")} anchor={btn}
           footer={<><Button variant="secondary" className="flex-1" disabled={!chosen.length} onClick={() => { setKind(""); setStatus(""); }}>{tr("Clear")}</Button><Button className="flex-1" onClick={() => setOpen(false)}>{tr("Show")}</Button></>}>
@@ -100,24 +100,24 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
         <ul className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((p) => (
             <li key={p.id}>
-              <Link href={`/monitoring/building/${p.id}`} className="block h-full rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-brand-300 hover:bg-brand-50/30">
+              <Link href={`/monitoring/building/${p.id}`} className="block h-full rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 transition-colors hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-E9F2FF)]">
                 <span className="flex items-start justify-between gap-2">
-                  <span className="min-w-0"><span className="block text-[11px] font-medium text-neutral-500">{p.number} · {KIND_LABEL[p.kind]()}</span>
-                    <span className="block truncate font-semibold text-neutral-900">{p.name}</span></span>
+                  <span className="min-w-0"><span className="block text-[11px] font-medium text-[color:var(--j-626F86)]">{p.number} · {KIND_LABEL[p.kind]()}</span>
+                    <span className="block truncate font-semibold text-[color:var(--j-172B4D)]">{p.name}</span></span>
                   <Badge tone={STATUS_TONE[p.status]}>{STATUS_LABEL[p.status]()}</Badge>
                 </span>
-                <span className="mt-1 flex items-center gap-1 text-xs text-neutral-500"><MapPin size={12} className="shrink-0" /><span className="truncate">{placeOf(p)}</span></span>
-                <span className="mt-3 flex items-center justify-between text-xs"><span className="text-neutral-500">{tr("Progress")}</span><span className="font-semibold tabular-nums text-neutral-900">{(p.progress ?? 0).toLocaleString("id-ID")}%</span></span>
+                <span className="mt-1 flex items-center gap-1 text-xs text-[color:var(--j-626F86)]"><MapPin size={12} className="shrink-0" /><span className="truncate">{placeOf(p)}</span></span>
+                <span className="mt-3 flex items-center justify-between text-xs"><span className="text-[color:var(--j-626F86)]">{tr("Progress")}</span><span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{(p.progress ?? 0).toLocaleString("id-ID")}%</span></span>
                 <ProgressBar value={p.progress} className="mt-1" />
                 <span className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                  <span className="min-w-0"><span className="block text-[10px] uppercase text-neutral-400">{tr("RAB")}</span><span className="font-semibold tabular-nums text-neutral-900">{rp(p.rabTotal)}</span></span>
-                  <span className="min-w-0"><span className="block text-[10px] uppercase text-neutral-400">{tr("Actual")}</span><span className="font-semibold tabular-nums text-neutral-900">{rp(p.actualTotal)}</span>
-                    {p.budget != null && <span className="block text-[11px] text-neutral-500">{tr("Budget {0}", rp(p.budget))}</span>}</span>
+                  <span className="min-w-0"><span className="block text-[10px] uppercase text-[color:var(--j-626F86)]">{tr("RAB")}</span><span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{rp(p.rabTotal)}</span></span>
+                  <span className="min-w-0"><span className="block text-[10px] uppercase text-[color:var(--j-626F86)]">{tr("Actual")}</span><span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{rp(p.actualTotal)}</span>
+                    {p.budget != null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("Budget {0}", rp(p.budget))}</span>}</span>
                 </span>
                 <span className="mt-2 block"><Badge tone={RAB_TONE[p.rabStatus]}>{RAB_LABEL[p.rabStatus]()}{p.rabVersion ? ` · v${p.rabVersion}` : ""}</Badge></span>
-                <span className={cx("mt-3 flex items-center gap-1 text-[11px]", p.late ? "text-red-700" : "text-neutral-500")}><CalendarDays size={12} />
+                <span className={cx("mt-3 flex items-center gap-1 text-[11px]", p.late ? "text-red-700" : "text-[color:var(--j-626F86)]")}><CalendarDays size={12} />
                   {p.planStart ? `${dmy(p.planStart)} – ${p.planEnd ? dmy(p.planEnd) : "?"}` : tr("No plan dates yet")}{p.late && ` · ${tr("past the target")}`}</span>
-                {(p.picName || p.contractor) && <span className="mt-1 flex items-center gap-1 text-[11px] text-neutral-500"><HardHat size={12} />{[p.picName, p.contractor].filter(Boolean).join(" · ")}</span>}
+                {(p.picName || p.contractor) && <span className="mt-1 flex items-center gap-1 text-[11px] text-[color:var(--j-626F86)]"><HardHat size={12} />{[p.picName, p.contractor].filter(Boolean).join(" · ")}</span>}
               </Link>
             </li>
           ))}
@@ -179,7 +179,7 @@ export function ProjectForm({ p, onClose, onSaved }: { p?: Full | null; onClose:
           {p && <><Row label={tr("Actual start")}><DateField label={tr("Actual start")} value={f.actualStart} max={today()} quick={false} onChange={set("actualStart")} /></Row>
             <Row label={tr("Actual finish")}><DateField label={tr("Actual finish")} value={f.actualEnd} max={today()} quick={false} onChange={set("actualEnd")} /></Row></>}
         </div>
-        {!p && <p className="text-xs text-neutral-500">{tr("The plan dates spread the default stages by their weight; adjust them in Progress.")}</p>}
+        {!p && <p className="text-xs text-[color:var(--j-626F86)]">{tr("The plan dates spread the default stages by their weight; adjust them in Progress.")}</p>}
       </Group>
       <Group title={tr("Note")}><textarea rows={3} value={f.note} onChange={(e) => set("note")(e.target.value)} maxLength={2000} className={cx(ctl, "h-auto py-2")} /></Group>
     </Drawer>

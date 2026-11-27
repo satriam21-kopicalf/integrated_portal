@@ -63,14 +63,14 @@ export function BundleDrawer({ menu, cards, current, suggested, onClose, onSaved
       <div className="space-y-3">
         {/* one row per menu of the bundle: its recipe card, how many portions (2026-11-17) */}
         {rows.map((r, i) => (
-          <div key={i} className="rounded-md border border-neutral-200 p-3">
+          <div key={i} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs font-semibold text-neutral-500">{tr("Menu {0}", i + 1)}</span>
+              <span className="text-xs font-semibold text-[color:var(--j-626F86)]">{tr("Menu {0}", i + 1)}</span>
               <button type="button" onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((_, j) => j !== i) : [{ card: "", qty: "1" }]))}
-                aria-label={tr("Delete")} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
+                aria-label={tr("Delete")} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
             </div>
             <SearchSelect value={r.card} options={options} placeholder={tr("Choose the menu's recipe card")} onChange={(v) => set(i, { card: v ?? "" })} ariaLabel={tr("Recipe Card")} />
-            <label className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
+            <label className="mt-2 flex items-center gap-2 text-xs text-[color:var(--j-626F86)]">
               <span>{tr("Portions")}</span>
               <input value={r.qty} onChange={(e) => set(i, { qty: e.target.value })} inputMode="decimal" aria-label={tr("Portions")}
                 className={`${inputClass} w-24 text-right tabular-nums`} />
@@ -79,7 +79,7 @@ export function BundleDrawer({ menu, cards, current, suggested, onClose, onSaved
           </div>
         ))}
         <Button variant="secondary" size="sm" onClick={() => setRows((rs) => [...rs, { card: "", qty: "1" }])}><Plus size={14} />{tr("Add a menu")}</Button>
-        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+        <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">
           {tr("Example: BUNDLING PROMO GOFOOD 3 ES KOPI CALF PREMIUM = the card of Es Kopi Calf Premium × 3. A bundle with a choice (Chocolate or Es Kopi) takes the usual mix.")}
         </p>
       </div>

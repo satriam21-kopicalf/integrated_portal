@@ -45,7 +45,7 @@ export function AccessoriesSection({ onChanged }: { onChanged: () => void }) {
         ]}
         blank={(): Partial<Accessory> => ({ code: "", name: "", category: "", unit: "pcs", serial_no: null, condition: "good", is_active: true })}
         columns={[
-          { label: tr("Accessory"), render: (a) => <><span className="block font-medium text-neutral-900">{a.name}</span><span className="text-[11px] text-neutral-400">{a.code}{a.serial_no ? ` · SN ${a.serial_no}` : ""}</span></> },
+          { label: tr("Accessory"), render: (a) => <><span className="block font-medium text-[color:var(--j-172B4D)]">{a.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{a.code}{a.serial_no ? ` · SN ${a.serial_no}` : ""}</span></> },
           { label: tr("Category"), render: (a) => a.category || "—" },
           { label: tr("Unit"), render: (a) => a.unit },
           { label: tr("Condition"), render: (a) => <Badge tone={CONDITION[a.condition].tone} dot>{CONDITION[a.condition].label()}</Badge> },
@@ -78,10 +78,10 @@ function AccessoryUsage() {
         <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-sm">
           <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Day")}</th><th className="px-3 py-2">{tr("Driver")}</th><th className="px-3 py-2">{tr("Fleet")}</th>
             <th className="px-3 py-2">{tr("Accessory")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2">{tr("Used")}</th></tr></thead>
-          <tbody className="divide-y divide-neutral-100">{rows.map((u) => (
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{rows.map((u) => (
             <tr key={`${u.shift}:${u.code}`}><td className="px-3 py-2 whitespace-nowrap">{u.day}</td><td className="px-3 py-2">{u.driverName ?? u.driver}</td>
               <td className="px-3 py-2">{u.fleet ?? "—"}</td><td className="px-3 py-2">{u.name}</td><td className="px-3 py-2 text-right tabular-nums">{u.qty}</td>
-              <td className="px-3 py-2 text-xs text-neutral-500">{u.startedAt ? wibDateTime(u.startedAt) : "—"} – {u.endedAt ? wibDateTime(u.endedAt) : tr("on the road")}</td></tr>))}
+              <td className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{u.startedAt ? wibDateTime(u.startedAt) : "—"} – {u.endedAt ? wibDateTime(u.endedAt) : tr("on the road")}</td></tr>))}
           </tbody></table></div>
       )}
     </Panel>
@@ -116,8 +116,8 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
   return (
     <Drawer open onClose={onClose} icon={<Package size={18} />} title={tr("Accessories of {0}", fleet.code)} description={fleet.name || undefined}>
       <div className="space-y-4">
-        <section className="rounded-md border border-neutral-200 bg-neutral-50/60 p-3">
-          <p className="mb-2 text-xs font-medium text-neutral-600">{tr("Put an accessory on this fleet: the item, how many and the day it is used from")}</p>
+        <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-3">
+          <p className="mb-2 text-xs font-medium text-[color:var(--j-44546F)]">{tr("Put an accessory on this fleet: the item, how many and the day it is used from")}</p>
           <div className="grid gap-2 sm:grid-cols-[5rem_minmax(0,1fr)_auto]">
             <div className="min-w-0 sm:col-span-3"><SearchSelect value={pick} onChange={(v) => setPick(v ?? "")} placeholder={tr("Choose the accessory")}
               options={(all.rows ?? []).filter((a) => a.is_active && !on.some((r) => r.code === a.code)).map((a) => ({ value: a.code, label: a.name, hint: [a.code, a.category].filter(Boolean).join(" · ") }))} /></div>
@@ -127,22 +127,22 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
           </div>
         </section>
         {!rows ? <SkeletonList rows={3} /> : !on.length ? <Empty icon={<Package size={24} />} title={tr("No accessory on this fleet yet")} /> : (
-          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {on.map((r) => (
               <li key={r.id} className="flex items-center gap-3 px-3 py-2.5">
-                <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{r.name} <span className="tabular-nums text-neutral-500">× {r.qty} {r.unit}</span></span>
-                  <span className="block text-[11px] text-neutral-400">{r.code}{r.serialNo ? ` · SN ${r.serialNo}` : ""} · {tr("used since {0}", r.assignedOn)}</span></span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{r.name} <span className="tabular-nums text-[color:var(--j-626F86)]">× {r.qty} {r.unit}</span></span>
+                  <span className="block text-[11px] text-[color:var(--j-626F86)]">{r.code}{r.serialNo ? ` · SN ${r.serialNo}` : ""} · {tr("used since {0}", r.assignedOn)}</span></span>
                 <Badge tone={CONDITION[r.condition].tone} dot>{CONDITION[r.condition].label()}</Badge>
                 <button type="button" onClick={() => void remove(r.id)} title={tr("Take off")} aria-label={tr("Take off")}
-                  className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
+                  className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
               </li>
             ))}
           </ul>
         )}
         {off.length > 0 && (
-          <details className="rounded-md border border-neutral-200 px-3 py-2 text-sm">
-            <summary className="cursor-pointer text-xs font-medium text-neutral-600">{tr("Taken off before ({0})", off.length)}</summary>
-            <ul className="mt-2 space-y-1 text-xs text-neutral-500">{off.map((r) => <li key={r.id}>{r.name} × {r.qty} · {r.assignedOn} – {r.removedOn}</li>)}</ul>
+          <details className="rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm">
+            <summary className="cursor-pointer text-xs font-medium text-[color:var(--j-44546F)]">{tr("Taken off before ({0})", off.length)}</summary>
+            <ul className="mt-2 space-y-1 text-xs text-[color:var(--j-626F86)]">{off.map((r) => <li key={r.id}>{r.name} × {r.qty} · {r.assignedOn} – {r.removedOn}</li>)}</ul>
           </details>
         )}
       </div>

@@ -45,15 +45,15 @@ export function AreaRequests({ onDecided }: { onDecided?: () => void }) {
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonList rows={3} /> : listed.length === 0 ? (
         <EmptyState icon={<MapPinned />} title={tr("No area requests")} />
       ) : (
-        <ul className="divide-y divide-neutral-100">
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
           {listed.map((r) => (
             <li key={r.id}>
-              <button type="button" onClick={() => setOpen(r)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+              <button type="button" onClick={() => setOpen(r)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
                 <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-1.5"><span className="font-medium text-neutral-900">{r.areaName}</span>
+                  <span className="flex flex-wrap items-center gap-1.5"><span className="font-medium text-[color:var(--j-172B4D)]">{r.areaName}</span>
                     {r.isNew && <Badge tone="violet"><Plus size={11} />{tr("New place")}</Badge>}</span>
-                  <span className="block text-xs text-neutral-500">{r.driverName} · {dmyOf(r.day)}{r.start ? ` · ${r.start}–${r.end ?? "…"}` : ""}</span>
-                  {r.note && <span className="block text-xs text-neutral-600">“{r.note}”</span>}
+                  <span className="block text-xs text-[color:var(--j-626F86)]">{r.driverName} · {dmyOf(r.day)}{r.start ? ` · ${r.start}–${r.end ?? "…"}` : ""}</span>
+                  {r.note && <span className="block text-xs text-[color:var(--j-44546F)]">“{r.note}”</span>}
                 </span>
                 <Badge tone={TONE[r.status]}>{LABEL[r.status]()}</Badge>
               </button>
@@ -91,11 +91,11 @@ function Decide({ req, onClose, onDone }: { req: Req; onClose: () => void; onDon
       <div className="space-y-4">
         <DrawerSection title={tr("Request")}>
           <p className="text-sm">{req.start ? tr("From {0} to {1}", req.start, req.end ?? "…") : tr("No time given: the roster is not changed")}</p>
-          {req.areaAddress && <p className="text-sm text-neutral-600">{req.areaAddress}</p>}
-          {req.note && <p className="text-sm text-neutral-700">“{req.note}”</p>}
-          {req.lat != null && req.lng != null && <a href={`https://maps.google.com/?q=${req.lat},${req.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-brand-700">
+          {req.areaAddress && <p className="text-sm text-[color:var(--j-44546F)]">{req.areaAddress}</p>}
+          {req.note && <p className="text-sm text-[color:var(--j-44546F)]">“{req.note}”</p>}
+          {req.lat != null && req.lng != null && <a href={`https://maps.google.com/?q=${req.lat},${req.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[color:var(--j-0C66E4)]">
             <MapPin size={12} />{tr("Map")}{req.accuracy ? ` · ±${Math.round(req.accuracy)} m` : ""}</a>}
-          <p className="text-[11px] text-neutral-400">{tr("Sent")} {wibDateTime(req.at)}</p>
+          <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("Sent")} {wibDateTime(req.at)}</p>
         </DrawerSection>
         {pending && req.isNew && (
           <DrawerSection title={tr("New area of the master")}>
@@ -110,7 +110,7 @@ function Decide({ req, onClose, onDone }: { req: Req; onClose: () => void; onDon
         ) : (
           <DrawerSection title={tr("Decision")}>
             <Badge tone={TONE[req.status]}>{LABEL[req.status]()}</Badge>
-            <p className="text-xs text-neutral-500">{req.decidedBy ?? "—"} · {req.decidedAt ? wibDateTime(req.decidedAt) : "—"}</p>
+            <p className="text-xs text-[color:var(--j-626F86)]">{req.decidedBy ?? "—"} · {req.decidedAt ? wibDateTime(req.decidedAt) : "—"}</p>
             {req.decisionNote && <p className="text-sm">{req.decisionNote}</p>}
           </DrawerSection>
         )}

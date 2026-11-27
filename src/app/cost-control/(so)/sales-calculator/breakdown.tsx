@@ -90,7 +90,7 @@ export function BreakdownStep() {
           <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search menu, category or material")} filters={chips} onOpen={() => setSheet(true)}
             onClear={() => { setPeriod(DEFAULT()); setBranch(""); }}
             extra={<div className="ml-auto"><ExcelExportMenu title={tr("Export Breakdown")} choices={[
-              { key: "branch", label: tr("Per outlet"), hint: tr("One row per month × outlet × menu × additional × material, ready for a Pivot Table"), icon: <Store size={16} />, tone: "bg-brand-50 text-brand-600", run: exportJob(true) },
+              { key: "branch", label: tr("Per outlet"), hint: tr("One row per month × outlet × menu × additional × material, ready for a Pivot Table"), icon: <Store size={16} />, tone: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", run: exportJob(true) },
               { key: "all", label: tr("All outlets combined"), hint: tr("One row per month × menu × additional × material"), icon: <Layers size={16} />, tone: "bg-violet-50 text-violet-600", run: exportJob(false) },
             ]} footer={<>{branchName ?? tr("All Branches")} · {dmy(period.from)} – {dmy(period.to)}</>} /></div>} />
           <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={[
@@ -107,7 +107,7 @@ export function BreakdownStep() {
         <MonitorFilterSheet active={1 + (branch ? 1 : 0)} onClose={() => setSheet(false)} onApply={() => setSheet(false)} onReset={() => { setPeriod(DEFAULT()); setBranch(""); }}>
           <FilterRow icon={<CalendarDays size={15} />} label={tr("Sales Period")} value={`${dmy(period.from)} – ${dmy(period.to)}`}>
             <QuickPeriod value={period} onChange={setPeriod} maxDays={92} />
-            <p className="mt-2 text-[11px] text-neutral-500">{tr("Up to 3 months; the last 3 months by default")}</p>
+            <p className="mt-2 text-[11px] text-[color:var(--j-626F86)]">{tr("Up to 3 months; the last 3 months by default")}</p>
           </FilterRow>
           <FilterRow icon={<Store size={15} />} label={tr("Branch")} value={branchName ?? null} onClear={() => setBranch("")}>
             <ComboFilter value={branch} onChange={setBranch} options={branches.map((x) => ({ value: x.branch_code, label: x.branch_name, hint: x.branch_code }))}
@@ -133,32 +133,32 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
             {LEVELS.map((l) => <th key={l} className="px-3 py-2.5 text-right">{l}</th>)}
             <th className="px-3 py-2.5 text-right">{tr("Material Value")}</th><th className="w-8" />
           </tr></thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {paged.rows.map((m, i) => {
               const showHead = i === 0 || headOf(m) !== headOf(paged.rows[i - 1]);
               const isOpen = open === m.id;
               return (
                 <Fragment key={m.id}>
-                  {showHead && <tr><td colSpan={8} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{m.category || "—"} · {m.sub || "—"}</td></tr>}
-                  <tr className={cx("cursor-pointer", isOpen ? "bg-brand-50/50" : "hover:bg-neutral-50")} onClick={() => onOpen(m.id)}>
-                    <td className="px-3 py-2"><span className="font-medium text-neutral-900">{m.menu}</span>
-                      <span className="block text-[11px] text-neutral-400">{m.card ? tr("Card: {0}", m.card) : <Badge tone="amber">{tr("No recipe card")}</Badge>}
+                  {showHead && <tr><td colSpan={8} className="bg-[color:var(--j-F7F8F9)] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{m.category || "—"} · {m.sub || "—"}</td></tr>}
+                  <tr className={cx("cursor-pointer", isOpen ? "bg-[color:var(--j-E9F2FF)]" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => onOpen(m.id)}>
+                    <td className="px-3 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{m.menu}</span>
+                      <span className="block text-[11px] text-[color:var(--j-626F86)]">{m.card ? tr("Card: {0}", m.card) : <Badge tone="amber">{tr("No recipe card")}</Badge>}
                         {Object.keys(m.choices).length > 0 && ` · ${Object.entries(m.choices).map(([k, v]) => `${k} ${num(v, 0)}`).join(", ")}`}</span></td>
                     <td className="px-3 py-2.5 text-right font-medium tabular-nums">{num(m.portions, 0)}</td>
-                    {LEVELS.map((l) => <td key={l} className="px-3 py-2.5 text-right tabular-nums text-neutral-600">{m.levels[l] ? num(m.levels[l], 0) : <span className="text-neutral-300">—</span>}</td>)}
+                    {LEVELS.map((l) => <td key={l} className="px-3 py-2.5 text-right tabular-nums text-[color:var(--j-44546F)]">{m.levels[l] ? num(m.levels[l], 0) : <span className="text-[color:var(--j-8590A2)]">—</span>}</td>)}
                     <td className="px-3 py-2.5 text-right tabular-nums">{rp(m.value)}{m.unpriced > 0 && <span className="block text-[11px] text-amber-600">{tr("{0} without a price", m.unpriced)}</span>}</td>
-                    <td className="px-2 text-neutral-400"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
+                    <td className="px-2 text-[color:var(--j-626F86)]"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
                   </tr>
                   {isOpen && (
-                    <tr><td colSpan={8} className="bg-neutral-50/60 px-3 py-2">
-                      {m.materials.length === 0 || !m.card ? <p className="text-xs text-neutral-500">{tr("This menu has no recipe card yet: assign one in Assign Menus.")}</p> : (
+                    <tr><td colSpan={8} className="bg-[color:var(--j-F7F8F9)] px-3 py-2">
+                      {m.materials.length === 0 || !m.card ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("This menu has no recipe card yet: assign one in Assign Menus.")}</p> : (
                         <table className="w-full text-xs">
-                          <thead><tr className="text-left text-neutral-500"><th className="py-1 pr-3">{tr("Raw Material")}</th><th className="py-1 pr-3 text-right">{tr("Quantity")}</th>
+                          <thead><tr className="text-left text-[color:var(--j-626F86)]"><th className="py-1 pr-3">{tr("Raw Material")}</th><th className="py-1 pr-3 text-right">{tr("Quantity")}</th>
                             <th className="py-1 pr-3">{tr("Unit")}</th><th className="py-1 text-right">{tr("Value")}</th></tr></thead>
-                          <tbody className="divide-y divide-neutral-200/60">
+                          <tbody className="divide-y divide-[color:var(--j-DCDFE4)]/60">
                             {m.materials.map((x) => (
-                              <tr key={x.code ?? x.name}><td className="py-1 pr-3 text-neutral-800">{x.name}<span className="ml-1.5 text-[10px] text-neutral-400">{x.code}</span></td>
-                                <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-sky-700")}>{num(x.qty)}</td><td className="py-1 pr-3 text-neutral-500">{x.unit}</td>
+                              <tr key={x.code ?? x.name}><td className="py-1 pr-3 text-[color:var(--j-172B4D)]">{x.name}<span className="ml-1.5 text-[10px] text-[color:var(--j-626F86)]">{x.code}</span></td>
+                                <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-sky-700")}>{num(x.qty)}</td><td className="py-1 pr-3 text-[color:var(--j-626F86)]">{x.unit}</td>
                                 <td className="py-1 text-right tabular-nums">{x.priced === false ? <span className="text-amber-600">{tr("No price")}</span> : rp(x.value)}</td></tr>
                             ))}
                           </tbody>
@@ -172,7 +172,7 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end border-t border-neutral-100 px-4 py-2"><PageNav paged={paged} /></div>
+      <div className="flex justify-end border-t border-[color:var(--j-F1F2F4)] px-4 py-2"><PageNav paged={paged} /></div>
     </>
   );
 }
@@ -198,14 +198,14 @@ function MaterialTable({ rows }: { rows: Material[] }) {
             <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Value")}</SortTh>
             <SortTh k="menus" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Menus")}</SortTh>
           </tr></thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {paged.rows.map((m) => (
-              <tr key={m.code ?? m.name} className="hover:bg-neutral-50">
-                <td className="px-3 py-2"><span className="font-medium text-neutral-900">{m.name}</span><span className="block text-[11px] text-neutral-400">{m.code}</span></td>
-                <td className="px-3 py-2 text-right tabular-nums">{num(m.qty)}</td><td className="px-3 py-2 text-neutral-500">{m.unit}</td>
+              <tr key={m.code ?? m.name} className="hover:bg-[color:var(--j-F7F8F9)]">
+                <td className="px-3 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{m.name}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{m.code}</span></td>
+                <td className="px-3 py-2 text-right tabular-nums">{num(m.qty)}</td><td className="px-3 py-2 text-[color:var(--j-626F86)]">{m.unit}</td>
                 <td className="px-3 py-2 text-right tabular-nums" title={m.convUom ? `1 ${m.convUom} = ${num(m.convFactor ?? 0)} ${m.baseUom ?? ""}` : tr("No pack unit in the item master")}>
-                  {m.convQty == null ? <span className="text-neutral-300">–</span> : num(m.convQty)}</td>
-                <td className="px-3 py-2 text-neutral-500">{m.convUom ? <>{m.convUom} <span className="text-[11px] text-neutral-400">({num(m.convFactor ?? 0)} {m.baseUom})</span></> : null}</td>
+                  {m.convQty == null ? <span className="text-[color:var(--j-8590A2)]">–</span> : num(m.convQty)}</td>
+                <td className="px-3 py-2 text-[color:var(--j-626F86)]">{m.convUom ? <>{m.convUom} <span className="text-[11px] text-[color:var(--j-626F86)]">({num(m.convFactor ?? 0)} {m.baseUom})</span></> : null}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{m.price == null ? <span className="text-amber-600">{tr("No price")}</span> : rp(m.price)}</td>
                 <td className="px-3 py-2 text-right font-medium tabular-nums">{rp(m.value)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(m.menus ?? 0)}</td>
@@ -214,7 +214,7 @@ function MaterialTable({ rows }: { rows: Material[] }) {
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end border-t border-neutral-100 px-4 py-2"><PageNav paged={paged} /></div>
+      <div className="flex justify-end border-t border-[color:var(--j-F1F2F4)] px-4 py-2"><PageNav paged={paged} /></div>
     </>
   );
 }
@@ -232,29 +232,29 @@ function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string |
             <th className="px-3 py-2.5 text-right">{tr("Menus")}</th><th className="px-3 py-2.5 text-right">{tr("Raw Materials")}</th>
             <th className="px-3 py-2.5 text-right">{tr("Material Value")}</th><th className="w-8" />
           </tr></thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {paged.rows.map((o) => {
               const isOpen = open === `o:${o.code}`;
               const mats = q ? o.materials.filter((m) => matches(`${m.name} ${m.code ?? ""}`, q)) : o.materials;
               return (
                 <Fragment key={o.code}>
-                  <tr className={cx("cursor-pointer", isOpen ? "bg-brand-50/50" : "hover:bg-neutral-50")} onClick={() => onOpen(`o:${o.code}`)}>
-                    <td className="px-3 py-2"><span className="font-medium text-neutral-900">{o.name}</span><span className="block text-[11px] text-neutral-400">{o.code}</span></td>
+                  <tr className={cx("cursor-pointer", isOpen ? "bg-[color:var(--j-E9F2FF)]" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => onOpen(`o:${o.code}`)}>
+                    <td className="px-3 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{o.name}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{o.code}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{num(o.portions, 0)}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(o.menus)}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{fmtNumber(o.materials.length)}</td>
                     <td className="px-3 py-2.5 text-right font-medium tabular-nums">{rp(o.value)}</td>
-                    <td className="px-2 text-neutral-400"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
+                    <td className="px-2 text-[color:var(--j-626F86)]"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
                   </tr>
                   {isOpen && (
-                    <tr><td colSpan={6} className="bg-neutral-50/60 px-3 py-2">
+                    <tr><td colSpan={6} className="bg-[color:var(--j-F7F8F9)] px-3 py-2">
                       <table className="w-full text-xs">
-                        <thead><tr className="text-left text-neutral-500"><th className="py-1 pr-3">{tr("Raw Material")}</th><th className="py-1 pr-3 text-right">{tr("Quantity")}</th>
+                        <thead><tr className="text-left text-[color:var(--j-626F86)]"><th className="py-1 pr-3">{tr("Raw Material")}</th><th className="py-1 pr-3 text-right">{tr("Quantity")}</th>
                           <th className="py-1 pr-3">{tr("Unit")}</th><th className="py-1 text-right">{tr("Value")}</th></tr></thead>
-                        <tbody className="divide-y divide-neutral-200/60">
+                        <tbody className="divide-y divide-[color:var(--j-DCDFE4)]/60">
                           {mats.map((x) => (
-                            <tr key={x.code ?? x.name}><td className="py-1 pr-3 text-neutral-800">{x.name}<span className="ml-1.5 text-[10px] text-neutral-400">{x.code}</span></td>
-                              <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-sky-700")}>{num(x.qty)}</td><td className="py-1 pr-3 text-neutral-500">{x.unit}</td>
+                            <tr key={x.code ?? x.name}><td className="py-1 pr-3 text-[color:var(--j-172B4D)]">{x.name}<span className="ml-1.5 text-[10px] text-[color:var(--j-626F86)]">{x.code}</span></td>
+                              <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-sky-700")}>{num(x.qty)}</td><td className="py-1 pr-3 text-[color:var(--j-626F86)]">{x.unit}</td>
                               <td className="py-1 text-right tabular-nums">{x.priced === false ? <span className="text-amber-600">{tr("No price")}</span> : rp(x.value)}</td></tr>
                           ))}
                         </tbody>
@@ -267,7 +267,7 @@ function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string |
           </tbody>
         </table>
       </div>
-      <div className="flex justify-end border-t border-neutral-100 px-4 py-2"><PageNav paged={paged} /></div>
+      <div className="flex justify-end border-t border-[color:var(--j-F1F2F4)] px-4 py-2"><PageNav paged={paged} /></div>
     </>
   );
 }

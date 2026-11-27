@@ -87,34 +87,34 @@ export function ReportArmada() {
         {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonTable cols={8} /> : drivers.length === 0 ? (
           <EmptyState icon={<ClipboardList />} title={tr("No driver days in this period")} />
         ) : (
-          <div className="divide-y divide-neutral-100">
+          <div className="divide-y divide-[color:var(--j-F1F2F4)]">
             {paged.rows.map((d) => (
               <section key={d.code ?? d.label ?? d.name} className="p-4">
-                <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-neutral-900">{d.name}
-                  {d.label && <span className="text-xs font-normal text-neutral-500">{d.label}</span>}
+                <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{d.name}
+                  {d.label && <span className="text-xs font-normal text-[color:var(--j-626F86)]">{d.label}</span>}
                   {!pool && d.pool && <Badge tone="slate">{usable.find((p) => p.code === d.pool)?.name ?? d.pool}</Badge>}
                   {!d.code && <Badge tone="amber">{tr("Not matched to a driver")}</Badge>}</p>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[760px] text-xs">
-                    <thead className="text-neutral-500">
+                    <thead className="text-[color:var(--j-626F86)]">
                       <tr><th rowSpan={2} className="py-1 pr-2 text-left font-medium">{tr("Day")}</th>
-                        {menus.map((m) => <th key={m.code} colSpan={5} className="border-l border-neutral-100 px-1 py-1 text-center font-medium">{m.name}</th>)}
-                        <th rowSpan={2} className="border-l border-neutral-100 px-2 text-right font-medium">{tr("Total")}</th><th rowSpan={2} className="px-2 text-right font-medium">QRIS</th>
+                        {menus.map((m) => <th key={m.code} colSpan={5} className="border-l border-[color:var(--j-F1F2F4)] px-1 py-1 text-center font-medium">{m.name}</th>)}
+                        <th rowSpan={2} className="border-l border-[color:var(--j-F1F2F4)] px-2 text-right font-medium">{tr("Total")}</th><th rowSpan={2} className="px-2 text-right font-medium">QRIS</th>
                         <th rowSpan={2} className="px-2 text-right font-medium">{tr("Cash")}</th><th rowSpan={2} className="px-2 text-right font-medium">{tr("Actual Cash")}</th>
                         <th rowSpan={2} className="px-2 text-right font-medium">{tr("Operational")}</th></tr>
-                      <tr>{menus.map((m) => ["B", "S", "C", "W", "T"].map((h, i) => <th key={m.code + h} className={cx("px-1 py-1 text-right font-medium", i === 0 && "border-l border-neutral-100")}>{h}</th>))}</tr>
+                      <tr>{menus.map((m) => ["B", "S", "C", "W", "T"].map((h, i) => <th key={m.code + h} className={cx("px-1 py-1 text-right font-medium", i === 0 && "border-l border-[color:var(--j-F1F2F4)]")}>{h}</th>))}</tr>
                     </thead>
-                    <tbody className="divide-y divide-neutral-100">
+                    <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {d.days.map((x) => (
                         <tr key={x.day}>
                           <td className="whitespace-nowrap py-1.5 pr-2 tabular-nums">{dmyOf(x.day)}{x.status === "sheet" && <span className="ml-1 text-violet-600" title={tr("From the workbook")}>•</span>}{x.status === "open" && <span className="ml-1 text-sky-600" title={tr("On the road")}>•</span>}</td>
                           {menus.map((m) => { const l = x.lines[m.code]; return (["b", "s", "c", "w", "t"] as const).map((k, i) => (
-                            <td key={m.code + k} className={cx("px-1 py-1.5 text-right tabular-nums", i === 0 && "border-l border-neutral-100", k === "t" && "font-semibold text-neutral-900")}>{l && l[k] ? l[k] : "—"}</td>)); })}
-                          <td className="border-l border-neutral-100 px-2 py-1.5 text-right font-semibold tabular-nums">{rupiah(x.total)}</td>
+                            <td key={m.code + k} className={cx("px-1 py-1.5 text-right tabular-nums", i === 0 && "border-l border-[color:var(--j-F1F2F4)]", k === "t" && "font-semibold text-[color:var(--j-172B4D)]")}>{l && l[k] ? l[k] : "—"}</td>)); })}
+                          <td className="border-l border-[color:var(--j-F1F2F4)] px-2 py-1.5 text-right font-semibold tabular-nums">{rupiah(x.total)}</td>
                           <td className="px-2 py-1.5 text-right tabular-nums">{x.qris ? rupiah(x.qris) : "—"}</td>
                           <td className="px-2 py-1.5 text-right tabular-nums">{rupiah(x.cash)}</td>
                           <td className="px-2 py-1.5 text-right tabular-nums">{x.cashActual != null ? rupiah(x.cashActual) : "—"}</td>
-                          <td className="px-2 py-1.5 text-right tabular-nums" title={x.operationalNote ?? undefined}>{x.operational ? rupiah(x.operational) : "—"}{x.operationalNote ? <span className="block text-[10px] text-neutral-400">{x.operationalNote}</span> : null}</td>
+                          <td className="px-2 py-1.5 text-right tabular-nums" title={x.operationalNote ?? undefined}>{x.operational ? rupiah(x.operational) : "—"}{x.operationalNote ? <span className="block text-[10px] text-[color:var(--j-626F86)]">{x.operationalNote}</span> : null}</td>
                         </tr>
                       ))}
                     </tbody>

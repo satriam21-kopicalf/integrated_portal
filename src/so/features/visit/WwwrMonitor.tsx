@@ -57,40 +57,40 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
   return (
     <Panel title={tr("Audit Schedule")} description={tr("Plan the SWAT audits: outlet, day and team. Only the members open the form; the lead sends it.")}
       actions={<>
-        <label className="flex items-center gap-1.5 text-xs text-neutral-500"><input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} /> {tr("Show cancelled")}</label>
+        <label className="flex items-center gap-1.5 text-xs text-[color:var(--j-626F86)]"><input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} /> {tr("Show cancelled")}</label>
         <Button size="sm" onClick={() => setEdit("new")} disabled={!team.length}><CalendarPlus size={14} /> {tr("New audit")}</Button>
       </>}>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonList rows={4} /> : list.length === 0 ? (
         <Empty icon={<CalendarPlus size={28} />} title={tr("No audit scheduled")}>{tr("Schedule the first audit with New audit.")}</Empty>
       ) : (
-        <div className="divide-y divide-neutral-100">
+        <div className="divide-y divide-[color:var(--j-F1F2F4)]">
           {[[tr("Today and upcoming"), next], [tr("Earlier"), past]].map(([title, items]) => (items as Audit[]).length > 0 && (
             <div key={title as string}>
-              <p className="bg-neutral-50 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 sm:px-5">{title as string}</p>
-              <ul className="divide-y divide-neutral-100">
+              <p className="bg-[color:var(--j-F7F8F9)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)] sm:px-5">{title as string}</p>
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {(items as Audit[]).map((a) => (
                   <li key={a.id} className="flex flex-wrap items-start gap-3 px-4 py-3 sm:px-5">
                     <div className="w-28 flex-shrink-0 text-xs">
-                      <p className={cx("font-semibold", a.day === today ? "text-brand-700" : "text-neutral-900")}>{a.day === today ? tr("Today") : dayShort(a.day)}</p>
+                      <p className={cx("font-semibold", a.day === today ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-172B4D)]")}>{a.day === today ? tr("Today") : dayShort(a.day)}</p>
                       <Badge tone={STATUS[a.status].tone}>{STATUS[a.status].label()}</Badge>
                     </div>
                     <div className="min-w-0 flex-1 basis-48">
-                      <p className="truncate text-sm font-semibold text-neutral-900">{a.branchName}</p>
-                      <p className="mt-0.5 flex items-start gap-1 text-xs text-neutral-600"><UsersRound size={12} className="mt-0.5 flex-shrink-0" />
+                      <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{a.branchName}</p>
+                      <p className="mt-0.5 flex items-start gap-1 text-xs text-[color:var(--j-44546F)]"><UsersRound size={12} className="mt-0.5 flex-shrink-0" />
                         <span>{a.members.map((m) => m.id === a.lead.id ? `${m.name} (${tr("lead")})` : m.name).join(", ")}</span></p>
-                      {a.note && <p className="mt-0.5 truncate text-[11px] text-neutral-400">{a.note}</p>}
+                      {a.note && <p className="mt-0.5 truncate text-[11px] text-[color:var(--j-626F86)]">{a.note}</p>}
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-1">
                       {a.status === "follow_up" && <span className="text-[11px] text-amber-700">{tr("{0} of {1} action plans open", a.actions.filter((x) => x.status === "open").length, a.actions.length)}{a.revisitOn ? ` · ${tr("revisit {0}", dayShort(a.revisitOn))}` : ""}</span>}
                       {sentAudit(a.status) && a.visitId && (
-                        <button type="button" onClick={() => onOpenVisit(a.visitId!)} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50">
+                        <button type="button" onClick={() => onOpenVisit(a.visitId!)} className="inline-flex items-center gap-1.5 rounded-[3px] px-2 py-1 text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]">
                           <span className={cx("tabular-nums", scoreTone(a.score ?? null))}>{a.score ?? "—"}%</span> {tr("Result")}
                         </button>
                       )}
-                      {a.status === "in_progress" && <span className="text-[11px] tabular-nums text-neutral-500">{tr("{0} of {1} rated", a.counts?.rated ?? 0, a.counts?.total ?? 0)}</span>}
+                      {a.status === "in_progress" && <span className="text-[11px] tabular-nums text-[color:var(--j-626F86)]">{tr("{0} of {1} rated", a.counts?.rated ?? 0, a.counts?.total ?? 0)}</span>}
                       {(a.status === "scheduled" || a.status === "in_progress") && <>
-                        <button type="button" onClick={() => setEdit(a)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr("Edit")}><Pencil size={15} /></button>
-                        <button type="button" onClick={() => setCancel(a)} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Cancel the Audit")}><Trash2 size={15} /></button>
+                        <button type="button" onClick={() => setEdit(a)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]" aria-label={tr("Edit")}><Pencil size={15} /></button>
+                        <button type="button" onClick={() => setCancel(a)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Cancel the Audit")}><Trash2 size={15} /></button>
                       </>}
                     </div>
                   </li>
@@ -147,33 +147,33 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
           <input type="date" value={day} onChange={(e) => setDay(e.target.value)} className={cx(inputClass, "h-10")} />
         </Field>
         <Field label={tr("Team")} required hint={tr("Tick the members, then crown the lead who sends the audit")}>
-          <div className="overflow-hidden rounded-md border border-neutral-200">
-            <div className="flex items-center gap-2 border-b border-neutral-100 p-2">
+          <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+            <div className="flex items-center gap-2 border-b border-[color:var(--j-F1F2F4)] p-2">
               <div className="relative min-w-0 flex-1">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search member")} className={cx(searchClass, "h-9 pl-8 text-sm")} />
               </div>
-              <span className="flex-shrink-0 text-xs text-neutral-400">{tr("{0} users", team.length)}</span>
+              <span className="flex-shrink-0 text-xs text-[color:var(--j-626F86)]">{tr("{0} users", team.length)}</span>
             </div>
-            <ul className="max-h-64 divide-y divide-neutral-100 overflow-y-auto">
+            <ul className="max-h-64 divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto">
               {shown.map((t) => {
                 const on = members.has(t.id) || lead === t.id;
                 return (
-                  <li key={t.id} className={cx("flex items-center gap-2.5 px-3 py-2", on && "bg-brand-50/50")}>
+                  <li key={t.id} className={cx("flex items-center gap-2.5 px-3 py-2", on && "bg-[color:var(--j-E9F2FF)]")}>
                     <input type="checkbox" checked={on} onChange={() => { toggle(t.id); if (lead === t.id) setLead(""); }} aria-label={t.name} />
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm text-neutral-800">{t.name}</span><span className="text-[11px] text-neutral-400">@{t.username}{t.jobTitle ? ` · ${t.jobTitle}` : ""}</span></span>
-                    {isSwat(t) && <span className="rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">SWAT</span>}
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm text-[color:var(--j-172B4D)]">{t.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">@{t.username}{t.jobTitle ? ` · ${t.jobTitle}` : ""}</span></span>
+                    {isSwat(t) && <span className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--j-0C66E4)]">SWAT</span>}
                     <button type="button" onClick={() => { setLead(t.id); setMembers((s) => new Set(s).add(t.id)); }} aria-pressed={lead === t.id}
-                      className={cx("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", lead === t.id ? "bg-amber-100 text-amber-800" : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700")}>
+                      className={cx("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", lead === t.id ? "bg-amber-100 text-amber-800" : "text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>
                       <Crown size={12} /> {lead === t.id ? tr("Lead") : tr("Make lead")}
                     </button>
                   </li>
                 );
               })}
-              {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr("No match")}</li>}
+              {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-[color:var(--j-626F86)]">{tr("No match")}</li>}
             </ul>
           </div>
-          <p className="mt-1 text-xs text-neutral-500">{tr("{0} members", new Set([...members, ...(lead ? [lead] : [])]).size)}{lead ? ` · ${tr("lead {0}", team.find((t) => t.id === lead)?.name ?? "")}` : ` · ${tr("choose the lead")}`}</p>
+          <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{tr("{0} members", new Set([...members, ...(lead ? [lead] : [])]).size)}{lead ? ` · ${tr("lead {0}", team.find((t) => t.id === lead)?.name ?? "")}` : ` · ${tr("choose the lead")}`}</p>
         </Field>
         <Field label={tr("Note for the Team")}>
           <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={500} className={cx(inputClass, "py-2")} placeholder={tr("e.g. focus on the bar and the stock")} />
@@ -219,21 +219,21 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
       </div>
 
       <Panel title={tr("Evaluation per PIC")} description={tr("Lowest conformity first: the PIC's own visits against the SWAT audits of the same outlet ({0} days before)", res.days)}>
-        {res.pics.length === 0 ? <p className="px-4 py-10 text-center text-sm text-neutral-400">{tr("No audit with a PIC visit to compare in this period")}</p> : (
+        {res.pics.length === 0 ? <p className="px-4 py-10 text-center text-sm text-[color:var(--j-626F86)]">{tr("No audit with a PIC visit to compare in this period")}</p> : (
           <div className="overflow-x-auto">
             <table className="m-cards w-full text-xs">
               <thead className={theadClass}><tr>
                 <th className="py-2.5 pl-5 pr-3">{tr("PIC")}</th><th className="px-3 py-2.5 text-right">{tr("Audits")}</th><th className="px-3 py-2.5 text-right">{tr("Items Compared")}</th>
                 <th className="px-3 py-2.5 text-right">{tr("Overrated")}</th><th className="px-3 py-2.5 text-right">{tr("Underrated")}</th><th className="px-3 py-2.5 pr-5 text-right">{tr("Conformity")}</th>
               </tr></thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {res.pics.map((p) => (
                   <tr key={p.id}>
-                    <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-neutral-900">{p.name}</span><span className="block truncate text-[11px] text-neutral-400" title={p.branches.join(", ")}>{p.branches.join(", ")}</span></td>
+                    <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-[color:var(--j-172B4D)]">{p.name}</span><span className="block truncate text-[11px] text-[color:var(--j-626F86)]" title={p.branches.join(", ")}>{p.branches.join(", ")}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Audits")}>{p.audits}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Items Compared")}>{p.compared}</td>
-                    <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-neutral-400")} data-label={tr("Overrated")}>{p.overrated}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-neutral-600" data-label={tr("Underrated")}>{p.underrated}</td>
+                    <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-[color:var(--j-626F86)]")} data-label={tr("Overrated")}>{p.overrated}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums text-[color:var(--j-44546F)]" data-label={tr("Underrated")}>{p.underrated}</td>
                     <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Conformity")}><Meter pct={p.conformity} /></td>
                   </tr>
                 ))}
@@ -245,22 +245,22 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
 
       <Panel title={tr("Audits Against the PIC")} description={tr("Tap an audit to see every item side by side")}>
         {res.audits.length === 0 ? <Empty icon={<Scale size={28} />} title={tr("No audit sent in this period")}>{tr("The comparison appears when the SWAT team sends its audits.")}</Empty> : (
-          <ul className="divide-y divide-neutral-100">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {res.audits.map((a) => (
               <li key={a.visitId}>
-                <button type="button" onClick={() => setOpen(a.visitId)} className="grid w-full gap-3 px-4 py-3 text-left hover:bg-brand-50/40 sm:grid-cols-[minmax(0,14rem)_1fr_1fr] sm:px-5">
+                <button type="button" onClick={() => setOpen(a.visitId)} className="grid w-full gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-E9F2FF)] sm:grid-cols-[minmax(0,14rem)_1fr_1fr] sm:px-5">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-neutral-900">{a.branchName}</span>
-                    <span className="block text-[11px] text-neutral-500">{wibDateTime(a.submittedAt)}{a.team ? ` · ${a.team.lead.name}` : ""}</span>
+                    <span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{a.branchName}</span>
+                    <span className="block text-[11px] text-[color:var(--j-626F86)]">{wibDateTime(a.submittedAt)}{a.team ? ` · ${a.team.lead.name}` : ""}</span>
                   </span>
                   {a.parts.map((p) => (
-                    <span key={p.part} className="min-w-0 rounded-lg border border-neutral-100 bg-neutral-50/60 px-3 py-2">
-                      <span className="flex items-center justify-between text-xs font-semibold capitalize text-neutral-500">{PART[p.part]}
+                    <span key={p.part} className="min-w-0 rounded-[3px] border border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-3 py-2">
+                      <span className="flex items-center justify-between text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{PART[p.part]}
                         {p.pic?.conformity != null && <span className={cx("normal-case", scoreTone(p.pic.conformity))}>{tr("{0}% conform", p.pic.conformity)}</span>}</span>
                       {p.pic ? (
-                        <span className="mt-0.5 block truncate text-xs text-neutral-700">{p.pic.name} · PIC {p.pic.score ?? "—"}% · SWAT {p.swatScore ?? "—"}%
+                        <span className="mt-0.5 block truncate text-xs text-[color:var(--j-44546F)]">{p.pic.name} · PIC {p.pic.score ?? "—"}% · SWAT {p.swatScore ?? "—"}%
                           {p.pic.overrated > 0 && <span className="ml-1 font-semibold text-red-600">· {tr("{0} overrated", p.pic.overrated)}</span>}</span>
-                      ) : <span className="mt-0.5 block text-xs text-neutral-400">{tr("No PIC visit in the {0} days before", res.days)} · SWAT {p.swatScore ?? "—"}%</span>}
+                      ) : <span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{tr("No PIC visit in the {0} days before", res.days)} · SWAT {p.swatScore ?? "—"}%</span>}
                     </span>
                   ))}
                 </button>
@@ -284,15 +284,15 @@ function ComparisonDrawer({ id, onClose }: { id: string; onClose: () => void }) 
       description={c ? `${tr("SWAT audit")} · ${wibDateTime(c.submittedAt)}${c.team ? ` · ${c.team.members.map((m) => m.name).join(", ")}` : ""}` : undefined} focusFirstField={false}>
       {error ? <ErrorState message={error} /> : !c ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
-          <label className="flex items-center gap-2 text-sm text-neutral-700"><input type="checkbox" checked={only} onChange={(e) => setOnly(e.target.checked)} /> {tr("Only the items where the PIC and SWAT disagree")}</label>
+          <label className="flex items-center gap-2 text-sm text-[color:var(--j-44546F)]"><input type="checkbox" checked={only} onChange={(e) => setOnly(e.target.checked)} /> {tr("Only the items where the PIC and SWAT disagree")}</label>
           {c.parts.map((p) => {
             const rows = (p.items ?? []).filter((r) => !only || (r.verdict && r.verdict !== "agree"));
             return (
-              <section key={p.part} className="overflow-hidden rounded-md border border-neutral-200/80 bg-white shadow-sm">
-                <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
+              <section key={p.part} className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+                <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3">
                   <div>
-                    <h3 className="text-sm font-semibold text-neutral-900">{PART[p.part]}</h3>
-                    <p className="text-xs text-neutral-500">{p.pic ? tr("PIC {0} · sent {1}", p.pic.name, wibDateTime(p.pic.submittedAt)) : tr("No PIC visit in the {0} days before", c.days)}</p>
+                    <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{PART[p.part]}</h3>
+                    <p className="text-xs text-[color:var(--j-626F86)]">{p.pic ? tr("PIC {0} · sent {1}", p.pic.name, wibDateTime(p.pic.submittedAt)) : tr("No PIC visit in the {0} days before", c.days)}</p>
                   </div>
                   <div className="flex gap-1.5">
                     <Badge>PIC {p.pic?.score ?? "—"}%</Badge><Badge tone="blue">SWAT {p.swatScore ?? "—"}%</Badge>
@@ -303,16 +303,16 @@ function ComparisonDrawer({ id, onClose }: { id: string; onClose: () => void }) 
                   <div className="overflow-x-auto">
                     <table className="m-cards w-full min-w-[640px] text-xs">
                       <thead className={theadClass}><tr><th className="py-2 pl-4 pr-3">{tr("Item")}</th><th className="px-3 py-2">PIC</th><th className="px-3 py-2">SWAT</th><th className="px-3 py-2 pr-4">{tr("Verdict")}</th></tr></thead>
-                      <tbody className="divide-y divide-neutral-100">
+                      <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                         {rows.map((r) => (
                           <tr key={r.key} className={r.verdict === "overrated" ? "bg-red-50/40" : undefined}>
-                            <td className="py-2.5 pl-4 pr-3"><span className="block font-medium text-neutral-800">{tl(r)}</span><span className="text-[11px] text-neutral-400">{tl(r, "section")}</span></td>
-                            <td className="px-3 py-2.5"><Chip r={r.pic} />{r.picNote && <span className="mt-0.5 block max-w-[14rem] text-[11px] text-neutral-500">{r.picNote}</span>}</td>
-                            <td className="px-3 py-2.5"><Chip r={r.swat} />{r.swatNote && <span className="mt-0.5 block max-w-[14rem] text-[11px] text-neutral-500">{r.swatNote}</span>}
-                              {r.swatBy && <span className="block text-[10px] text-neutral-400">{r.swatBy}</span>}</td>
+                            <td className="py-2.5 pl-4 pr-3"><span className="block font-medium text-[color:var(--j-172B4D)]">{tl(r)}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{tl(r, "section")}</span></td>
+                            <td className="px-3 py-2.5"><Chip r={r.pic} />{r.picNote && <span className="mt-0.5 block max-w-[14rem] text-[11px] text-[color:var(--j-626F86)]">{r.picNote}</span>}</td>
+                            <td className="px-3 py-2.5"><Chip r={r.swat} />{r.swatNote && <span className="mt-0.5 block max-w-[14rem] text-[11px] text-[color:var(--j-626F86)]">{r.swatNote}</span>}
+                              {r.swatBy && <span className="block text-[10px] text-[color:var(--j-626F86)]">{r.swatBy}</span>}</td>
                             <td className="px-3 py-2.5 pr-4 text-xs">{r.verdict === "agree" ? <span className="text-emerald-700">{tr("Agree")}</span>
                               : r.verdict === "overrated" ? <span className="font-semibold text-red-600">{tr("PIC overrated")}</span>
-                              : r.verdict === "underrated" ? <span className="text-amber-700">{tr("PIC underrated")}</span> : <span className="text-neutral-400">—</span>}</td>
+                              : r.verdict === "underrated" ? <span className="text-amber-700">{tr("PIC underrated")}</span> : <span className="text-[color:var(--j-626F86)]">—</span>}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -329,13 +329,13 @@ function ComparisonDrawer({ id, onClose }: { id: string; onClose: () => void }) 
 }
 
 function Chip({ r }: { r: Rating | null }) {
-  return r ? <span className={cx("inline-flex rounded-md border px-1.5 py-0.5 text-[11px] font-semibold", RATING_STYLE[r].on)}>{ratingLabel(r)}</span> : <span className="text-xs text-neutral-400">—</span>;
+  return r ? <span className={cx("inline-flex rounded-[3px] border px-1.5 py-0.5 text-[11px] font-semibold", RATING_STYLE[r].on)}>{ratingLabel(r)}</span> : <span className="text-xs text-[color:var(--j-626F86)]">—</span>;
 }
 
 function Meter({ pct }: { pct: number | null }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="hidden h-1.5 w-20 rounded-full bg-neutral-100 sm:block"><span className="block h-full rounded-full bg-brand-600" style={{ width: `${pct ?? 0}%` }} /></span>
+      <span className="hidden h-1.5 w-20 rounded-full bg-[color:var(--j-091E420F)] sm:block"><span className="block h-full rounded-full bg-[color:var(--j-0C66E4)]" style={{ width: `${pct ?? 0}%` }} /></span>
       <span className={cx("w-12 text-right text-sm font-semibold tabular-nums", scoreTone(pct))}>{pct === null ? "—" : `${pct}%`}</span>
     </span>
   );
@@ -343,10 +343,10 @@ function Meter({ pct }: { pct: number | null }) {
 
 function Tile({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
   return (
-    <div className="rounded-2xl border border-neutral-200/70 bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-      <p className="text-xs font-semibold capitalize text-neutral-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums text-neutral-900">{value}</p>
-      <p className="mt-0.5 line-clamp-2 text-xs text-neutral-500">{note}</p>
+    <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value}</p>
+      <p className="mt-0.5 line-clamp-2 text-xs text-[color:var(--j-626F86)]">{note}</p>
     </div>
   );
 }
@@ -361,11 +361,11 @@ export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
   const url = audit.shareToken ? `${window.location.origin}/share/wwwr/${audit.shareToken}` : null;
   const copy = async () => { if (!url) return; try { await navigator.clipboard.writeText(url); toast(tr("Link copied: share it with the PIC")); } catch { toast(url); } };
   return (
-    <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-100 px-4 py-3">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3">
         <div>
-          <h3 className="text-sm font-semibold text-neutral-900">{tr("Evaluation & Action Plan")}</h3>
-          <p className="text-xs text-neutral-500">{audit.status === "completed" ? tr("Completed {0}", wibDateTime(audit.completedAt ?? null)) : tr("Follow-up: {0} of {1} action plans open", open, actions.length)}
+          <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Evaluation & Action Plan")}</h3>
+          <p className="text-xs text-[color:var(--j-626F86)]">{audit.status === "completed" ? tr("Completed {0}", wibDateTime(audit.completedAt ?? null)) : tr("Follow-up: {0} of {1} action plans open", open, actions.length)}
             {audit.revisitOn ? ` · ${tr("revisit {0}", dayShort(audit.revisitOn))}` : ""}</p>
         </div>
         {url && <div className="flex gap-1.5">
@@ -374,18 +374,18 @@ export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
         </div>}
       </header>
       <div className="space-y-3 px-4 py-3 text-sm">
-        <p className="whitespace-pre-line text-neutral-700">{audit.summary || <span className="text-neutral-400">{tr("No evaluation written")}</span>}</p>
-        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+        <p className="whitespace-pre-line text-[color:var(--j-44546F)]">{audit.summary || <span className="text-[color:var(--j-626F86)]">{tr("No evaluation written")}</span>}</p>
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           {actions.map((x) => (
             <li key={x.id} className="flex items-start gap-2.5 px-3 py-2">
               {x.status === "done" ? <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-emerald-600" /> : <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full border-2 border-amber-400" />}
-              <span className="min-w-0 flex-1"><span className={cx("block", x.status === "done" ? "text-neutral-500 line-through" : "font-medium text-neutral-900")}>{x.title}</span>
-                <span className="text-[11px] text-neutral-500">{x.assignee ?? "—"} · {tr("Due {0}", x.dueOn ? dayShort(x.dueOn) : "—")}{x.doneNote ? ` · “${x.doneNote}”` : ""}</span></span>
+              <span className="min-w-0 flex-1"><span className={cx("block", x.status === "done" ? "text-[color:var(--j-626F86)] line-through" : "font-medium text-[color:var(--j-172B4D)]")}>{x.title}</span>
+                <span className="text-[11px] text-[color:var(--j-626F86)]">{x.assignee ?? "—"} · {tr("Due {0}", x.dueOn ? dayShort(x.dueOn) : "—")}{x.doneNote ? ` · “${x.doneNote}”` : ""}</span></span>
             </li>
           ))}
-          {actions.length === 0 && <li className="px-3 py-3 text-xs text-neutral-400">{tr("No action plan yet")}</li>}
+          {actions.length === 0 && <li className="px-3 py-3 text-xs text-[color:var(--j-626F86)]">{tr("No action plan yet")}</li>}
         </ul>
-        {audit.revisitNote && <p className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-900">{tr("Revisit")}: {audit.revisitNote}</p>}
+        {audit.revisitNote && <p className="rounded-[3px] bg-emerald-50 px-3 py-2 text-xs text-emerald-900">{tr("Revisit")}: {audit.revisitNote}</p>}
       </div>
     </section>
   );

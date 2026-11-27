@@ -53,18 +53,18 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
     <Drawer open onClose={onClose} title={tr('Transaction Detail')} icon={<Receipt />} focusFirstField={false}
       description={<span className="font-mono">{tx.sales_num}</span>}>
           {/* Total */}
-          <div className="mb-6 rounded-md border border-neutral-200 bg-neutral-50 px-4 py-4">
+          <div className="mb-6 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-4 py-4">
             <div className="flex items-center justify-between gap-3">
-              <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyle(tx.status)}`}>
+              <span className={`inline-flex items-center rounded-[3px] px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${statusStyle(tx.status)}`}>
                 {tx.status || tr('Unknown')}
               </span>
-              <span className="flex min-w-0 items-center gap-1 text-xs text-neutral-500">
+              <span className="flex min-w-0 items-center gap-1 text-xs text-[color:var(--j-626F86)]">
                 <MapPin size={12} className="flex-shrink-0" />
                 <span className="truncate">{tx.branch_name || '-'}</span>
               </span>
             </div>
-            <p className="mt-3 text-xs text-neutral-500">{tr('Grand Total')}</p>
-            <p className="text-3xl font-semibold tabular-nums text-neutral-900">{formatCurrency(tx.total_amount)}</p>
+            <p className="mt-3 text-xs text-[color:var(--j-626F86)]">{tr('Grand Total')}</p>
+            <p className="text-3xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">{formatCurrency(tx.total_amount)}</p>
           </div>
 
           {/* Information */}
@@ -90,21 +90,21 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
                 {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-9 skeleton rounded" />)}
               </div>
             ) : rows.length === 0 ? (
-              <p className="text-sm text-neutral-500">{tr('No items recorded for this transaction.')}</p>
+              <p className="text-sm text-[color:var(--j-626F86)]">{tr('No items recorded for this transaction.')}</p>
             ) : (
-              <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                 {rows.map((r, i) => {
                   const addon = r.menu_name?.endsWith(')');
                   return (
-                    <li key={i} className={`flex items-start justify-between gap-3 px-3 py-2 ${addon ? 'bg-neutral-50/60' : ''}`}>
+                    <li key={i} className={`flex items-start justify-between gap-3 px-3 py-2 ${addon ? 'bg-[color:var(--j-F7F8F9)]' : ''}`}>
                       <div className="min-w-0">
-                        <p className={`truncate text-sm ${addon ? 'pl-3 text-neutral-500' : 'font-medium text-neutral-800'}`}>{r.menu_name}</p>
-                        <p className={`text-xs text-neutral-400 ${addon ? 'pl-3' : ''}`}>
+                        <p className={`truncate text-sm ${addon ? 'pl-3 text-[color:var(--j-626F86)]' : 'font-medium text-[color:var(--j-172B4D)]'}`}>{r.menu_name}</p>
+                        <p className={`text-xs text-[color:var(--j-626F86)] ${addon ? 'pl-3' : ''}`}>
                           {formatNumber(r.quantity)} × {formatCurrency(r.unit_price)}
                           {Number(r.discount_item) ? tr(' · disc. {0}', formatCurrency(r.discount_item)) : ''}
                         </p>
                       </div>
-                      <p className="whitespace-nowrap text-sm tabular-nums text-neutral-800">{formatCurrency(r.total_item)}</p>
+                      <p className="whitespace-nowrap text-sm tabular-nums text-[color:var(--j-172B4D)]">{formatCurrency(r.total_item)}</p>
                     </li>
                   );
                 })}
@@ -118,7 +118,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
               <Row label={tr('Subtotal')} value={formatCurrency(tx.subtotal)} />
               {discount > 0 && <Row label={tr('Discount')} value={`−${formatCurrency(discount)}`} tone="text-rose-600" />}
               {Number(tx.tax_amount) > 0 && <Row label={tr('Tax')} value={formatCurrency(tx.tax_amount)} />}
-              <div className="my-2 border-t border-neutral-200" />
+              <div className="my-2 border-t border-[color:var(--j-DCDFE4)]" />
               <Row label={tr('Grand Total')} value={formatCurrency(tx.total_amount)} strong />
               {tx.nett_sales !== undefined && <Row label={tr('Nett Sales')} value={formatCurrency(tx.nett_sales)} />}
             </dl>
@@ -145,17 +145,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-neutral-400">{label}</dt>
-      <dd className="truncate text-sm font-medium text-neutral-800" title={value}>{value}</dd>
+      <dt className="text-xs text-[color:var(--j-626F86)]">{label}</dt>
+      <dd className="truncate text-sm font-medium text-[color:var(--j-172B4D)]" title={value}>{value}</dd>
     </div>
   );
 }
 
-function Row({ label, value, strong = false, tone = 'text-neutral-700' }: { label: string; value: string; strong?: boolean; tone?: string }) {
+function Row({ label, value, strong = false, tone = 'text-[color:var(--j-44546F)]' }: { label: string; value: string; strong?: boolean; tone?: string }) {
   return (
     <div className="flex justify-between gap-3">
-      <dt className={strong ? 'font-semibold text-neutral-900' : 'text-neutral-500'}>{label}</dt>
-      <dd className={`tabular-nums ${strong ? 'font-semibold text-neutral-900' : tone}`}>{value}</dd>
+      <dt className={strong ? 'font-semibold text-[color:var(--j-172B4D)]' : 'text-[color:var(--j-626F86)]'}>{label}</dt>
+      <dd className={`tabular-nums ${strong ? 'font-semibold text-[color:var(--j-172B4D)]' : tone}`}>{value}</dd>
     </div>
   );
 }

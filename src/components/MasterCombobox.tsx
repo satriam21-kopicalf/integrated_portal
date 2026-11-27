@@ -90,13 +90,13 @@ export default function MasterCombobox({ kind, id, value, onChange, canAdd, plac
           } else if (e.key === 'Escape') setOpen(false);
         }} />
       {open && options > 0 && (
-        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-md border border-neutral-200/80 bg-white py-1 shadow-xl">
+        <ul id={listId} role="listbox" className="absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white py-1 shadow-xl">
           {shown.map((n, i) => (
             <li key={n.id} role="option" aria-selected={i === active}>
               <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => pick(n.name)} onMouseEnter={() => setActive(i)}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${i === active ? 'bg-neutral-100' : ''}`}>
-                <span className="min-w-0 flex-1 truncate text-neutral-800">{n.name}</span>
-                {n.name.toLowerCase() === q && <Check size={14} className="text-brand-600" />}
+                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${i === active ? 'bg-[color:var(--j-091E420F)]' : ''}`}>
+                <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{n.name}</span>
+                {n.name.toLowerCase() === q && <Check size={14} className="text-[color:var(--j-0C66E4)]" />}
               </button>
             </li>
           ))}
@@ -104,7 +104,7 @@ export default function MasterCombobox({ kind, id, value, onChange, canAdd, plac
             <li role="option" aria-selected={active === shown.length}>
               <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => void add()} disabled={adding}
                 onMouseEnter={() => setActive(shown.length)}
-                className={`flex w-full items-center gap-2 border-t border-neutral-100 px-3 py-2 text-left text-sm font-medium text-brand-700 ${active === shown.length ? 'bg-brand-50' : ''}`}>
+                className={`flex w-full items-center gap-2 border-t border-[color:var(--j-F1F2F4)] px-3 py-2 text-left text-sm font-medium text-[color:var(--j-0C66E4)] ${active === shown.length ? 'bg-[color:var(--j-E9F2FF)]' : ''}`}>
                 {adding ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
                 {tr('Add "{0}" to the list', value.trim())}
               </button>

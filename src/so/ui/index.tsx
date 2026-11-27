@@ -5,7 +5,7 @@
 
 import { NativeSelect } from "@/so/ui/Jira";
 import { tc } from '@/lib/title-case';
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, Inbox, Loader2, Search, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Inbox, Loader2, Search, X } from "lucide-react";
 import { Children, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { locale, tr } from "@/lib/i18n";
 
@@ -15,20 +15,21 @@ export function cx(...c: (string | false | null | undefined)[]) {
 
 // 16px text on phones: iOS zooms into a field with smaller text
 export const inputClass =
-  "h-11 w-full rounded-xl px-3 text-base lg:h-10 lg:rounded-lg lg:text-sm " +
-  "border border-transparent bg-neutral-100 text-neutral-900 placeholder:text-neutral-400 transition-colors hover:bg-neutral-200/60 focus:border-neutral-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400";
+  "h-11 w-full rounded-[3px] px-3 text-base lg:h-10 lg:text-sm " +
+  "border-2 border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] transition-colors hover:bg-[color:var(--j-091E420F)] focus:border-[color:var(--j-388BFF)] focus:bg-white focus:outline-none disabled:cursor-not-allowed disabled:bg-[color:var(--j-091E4208)] disabled:text-[color:var(--j-091E424F)]";
 
 /** A search field (2026-11-16, the kopicalf-hrms look): white with a border; the grey inputClass stays for the forms. */
 export const searchClass =
-  "h-11 w-full rounded-[4px] border border-neutral-300 bg-white px-3 text-base font-medium text-neutral-900 placeholder:text-neutral-500 " +
-  "transition-colors hover:border-neutral-300 focus:border-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-100 lg:h-10 lg:text-xs";
+  "h-11 w-full rounded-[3px] border-2 border-[color:var(--j-DCDFE4)] bg-white px-3 text-base text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] " +
+  "transition-colors hover:border-[color:var(--j-8590A2)] focus:border-[color:var(--j-388BFF)] focus:outline-none lg:h-10 lg:text-xs";
 
 
+// 2026-11-28 the Jira buttons (same as src/jira): flat, 3px, no shadow
 const BUTTON = {
-  primary: "bg-brand-700 font-medium text-white shadow-sm hover:bg-brand-800 active:bg-brand-900 disabled:shadow-none",
-  secondary: "border border-neutral-200 bg-white font-medium text-neutral-800 shadow-sm hover:bg-neutral-50",
-  danger: "bg-red-600 font-medium text-white shadow-sm hover:bg-red-700",
-  ghost: "font-medium text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+  primary: "bg-[color:var(--j-0C66E4)] font-medium text-white hover:bg-[color:var(--j-0055CC)]",
+  secondary: "bg-[color:var(--j-091E420F)] font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E4224)] active:bg-[color:var(--j-091E424F)]",
+  danger: "bg-[color:var(--j-C9372C)] font-medium text-white hover:bg-[color:var(--j-AE2E24)]",
+  ghost: "font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]",
 } as const;
 
 export function Button({
@@ -45,8 +46,8 @@ export function Button({
       {...p}
       disabled={p.disabled || loading}
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-[4px] text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-        size === "sm" ? "h-9 px-3 text-xs lg:h-8" : "h-11 px-4 lg:h-9 lg:px-3.5 lg:text-[13px]",
+        "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[3px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)] disabled:cursor-not-allowed disabled:bg-[color:var(--j-091E4208)] disabled:text-[color:var(--j-091E424F)]",
+        size === "sm" ? "h-9 px-2.5 text-[13px] sm:h-7" : "h-11 px-3 text-sm sm:h-8",
         BUTTON[variant],
         className,
       )}
@@ -62,12 +63,12 @@ export function Field({ label, hint, error, required, children, className }: {
 }) {
   return (
     <label className={cx("block", className)}>
-      <span className="mb-1.5 block text-xs font-medium text-neutral-600">
+      <span className="mb-1.5 block text-xs font-medium text-[color:var(--j-44546F)]">
         {tc(label)}{required && <span className="ml-0.5 text-red-500">*</span>}
       </span>
       {children}
       {error ? <span className="mt-1 block text-xs text-red-600">{error}</span>
-        : hint ? <span className="mt-1 block text-xs text-neutral-500">{hint}</span> : null}
+        : hint ? <span className="mt-1 block text-xs text-[color:var(--j-626F86)]">{hint}</span> : null}
     </label>
   );
 }
@@ -85,24 +86,25 @@ export function Select({ className, ...p }: React.SelectHTMLAttributes<HTMLSelec
 
 export function Checkbox({ label, hint, ...p }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
   return (
-    <label className="flex cursor-pointer select-none items-start gap-2.5 text-sm text-neutral-800">
-      <input type="checkbox" {...p} className="mt-0.5 h-4 w-4 rounded border-neutral-300 accent-brand-700" />
+    <label className="flex cursor-pointer select-none items-start gap-2.5 text-sm text-[color:var(--j-172B4D)]">
+      <input type="checkbox" {...p} className="mt-0.5 h-4 w-4 rounded border-[color:var(--j-8590A2)] accent-[color:var(--j-0C66E4)]" />
       <span>
         {label}
-        {hint && <span className="block text-xs text-neutral-500">{hint}</span>}
+        {hint && <span className="block text-xs text-[color:var(--j-626F86)]">{hint}</span>}
       </span>
     </label>
   );
 }
 
+// 2026-11-28 the Jira lozenges (same as src/jira Lozenge)
 const TONES = {
-  slate: "bg-neutral-100 text-neutral-600",
-  green: "bg-emerald-50 text-emerald-700",
-  amber: "bg-amber-50 text-amber-700",
-  red: "bg-red-50 text-red-700",
-  blue: "bg-brand-50 text-brand-700",
-  violet: "bg-violet-50 text-violet-700",
-  cyan: "bg-cyan-50 text-cyan-700",
+  slate: "bg-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)]",
+  green: "bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]",
+  amber: "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]",
+  red: "bg-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)]",
+  blue: "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0055CC)]",
+  violet: "bg-[color:var(--j-DFD8FD)] text-[color:var(--j-5E4DB2)]",
+  cyan: "bg-[color:var(--j-C6EDFB)] text-[color:var(--j-206A83)]",
 } as const;
 export type Tone = keyof typeof TONES;
 
@@ -124,12 +126,12 @@ export { Page, Panel } from "@/components/kc/compat";
 export function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
     <div className="relative flex-1">
-      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={placeholder}
         className={`${searchClass} pl-9 pr-9`} />
       {value && (
         <button type="button" onClick={() => onChange("")} aria-label={tr("Clear Search")}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 hover:text-neutral-700">
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]">
           <X size={14} />
         </button>
       )}
@@ -140,16 +142,16 @@ export function SearchBox({ value, onChange, placeholder }: { value: string; onC
 /** Table header row style shared by every list. */
 // the kopicalf-hrms table head (2026-11-16): grey with rounded ends, sentence-case labels in Title Case
 // Jira-like (2026-11-18): small grey caps over a double rule
-export const theadClass = "border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500";
+export const theadClass = "border-b-2 border-[color:var(--j-DCDFE4)] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]";
 
 export { SkeletonRows } from "@/components/kc/Skeleton";
 
 export function Empty({ icon, title, children }: { icon?: ReactNode; title?: string; children?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-4 py-14 text-center">
-      <span className="mb-2 text-neutral-300">{icon ?? <Inbox size={28} />}</span>
-      {title && <p className="text-sm font-medium text-neutral-700">{tc(title)}</p>}
-      {children && <p className="mt-1 max-w-md text-sm text-neutral-500">{children}</p>}
+      <span className="mb-2 text-[color:var(--j-8590A2)]">{icon ?? <Inbox size={28} />}</span>
+      {title && <p className="text-sm font-medium text-[color:var(--j-44546F)]">{tc(title)}</p>}
+      {children && <p className="mt-1 max-w-md text-sm text-[color:var(--j-626F86)]">{children}</p>}
     </div>
   );
 }
@@ -158,7 +160,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
       <AlertCircle className="text-red-500" />
-      <p className="text-sm text-neutral-700">{message}</p>
+      <p className="text-sm text-[color:var(--j-44546F)]">{message}</p>
       {onRetry && <Button variant="secondary" onClick={onRetry}>{tr("Try Again")}</Button>}
     </div>
   );
@@ -179,20 +181,28 @@ export function usePaged<T>(rows: T[], reset: unknown, size = PAGE_SIZE) {
 }
 
 /** "51–100 of 312 ‹ 2 / 7 ›" in a panel footer; nothing when everything fits on one page. */
+/** The one pager of the portal (2026-11-28, the Jira look): range, first / previous / n of N / next / last. */
 export function PageNav({ paged }: { paged: { page: number; pages: number; total: number; size: number; setPage: (p: number) => void } }) {
   const { page, pages, total, size, setPage } = paged;
   if (pages <= 1) return null;
-  const first = (page - 1) * size + 1;
+  return <Pager page={page} pages={pages} total={total} size={size} onPage={setPage} />;
+}
+
+export function Pager({ page, pages, total, size, onPage, className }: { page: number; pages: number; total?: number; size?: number; onPage: (p: number) => void; className?: string }) {
+  if (pages <= 1) return null;
+  const nav = (label: string, to: number, off: boolean, icon: ReactNode) => (
+    <button type="button" aria-label={label} title={label} disabled={off} onClick={() => onPage(to)}
+      className="inline-flex h-10 w-10 items-center justify-center rounded-[3px] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)] disabled:cursor-not-allowed disabled:text-[color:var(--j-091E424F)] disabled:hover:bg-transparent sm:h-8 sm:w-8">{icon}</button>);
   return (
-    <div className="flex items-center gap-2">
-      <span className="tabular-nums">{tr("{0}–{1} of {2}", fmtNumber(first), fmtNumber(Math.min(page * size, total)), fmtNumber(total))}</span>
-      <Button variant="secondary" size="sm" className="px-2" disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label={tr("Previous Page")}>
-        <ChevronLeft size={16} />
-      </Button>
-      <span className="tabular-nums">{page} / {pages}</span>
-      <Button variant="secondary" size="sm" className="px-2" disabled={page >= pages} onClick={() => setPage(page + 1)} aria-label={tr("Next Page")}>
-        <ChevronRight size={16} />
-      </Button>
+    <div className={cx("flex flex-wrap items-center justify-end gap-x-2 gap-y-1 text-xs text-[color:var(--j-626F86)]", className)}>
+      {total != null && size != null && <span className="whitespace-nowrap tabular-nums">{tr("{0}–{1} of {2}", fmtNumber((page - 1) * size + 1), fmtNumber(Math.min(page * size, total)), fmtNumber(total))}</span>}
+      <span className="inline-flex items-center">
+        {nav(tr("First page"), 1, page <= 1, <ChevronsLeft size={16} />)}
+        {nav(tr("Previous Page"), page - 1, page <= 1, <ChevronLeft size={16} />)}
+        <span className="px-1.5 font-medium tabular-nums text-[color:var(--j-172B4D)]">{page} / {pages}</span>
+        {nav(tr("Next Page"), page + 1, page >= pages, <ChevronRight size={16} />)}
+        {nav(tr("Last page"), pages, page >= pages, <ChevronsRight size={16} />)}
+      </span>
     </div>
   );
 }
@@ -216,7 +226,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="pointer-events-none fixed left-1/2 top-4 z-[90] flex w-[min(92vw,460px)] -translate-x-1/2 flex-col items-center gap-2">
         {toasts.map((t) => (
           <div key={t.id} role="status"
-            className={cx("notice-in pointer-events-auto flex max-w-full items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium text-white shadow-lg",
+            className={cx("notice-in pointer-events-auto flex max-w-full items-center gap-2 rounded-[3px] px-4 py-3 text-sm font-medium text-white shadow-lg",
               t.tone === "ok" ? "bg-neutral-900" : "bg-red-600")}>
             {t.tone === "ok" ? <CheckCircle2 size={16} className="flex-shrink-0 text-emerald-400" /> : <AlertCircle size={16} className="flex-shrink-0" />}
             <span className="min-w-0">{t.text}</span>

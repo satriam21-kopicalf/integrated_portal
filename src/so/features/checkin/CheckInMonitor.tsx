@@ -187,7 +187,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
       }>
 
       {s && s.unreviewed > 0 && f.location !== "unreviewed" && (
-        <div role="alert" className="flex flex-col gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:flex-row sm:items-center">
+        <div role="alert" className="flex flex-col gap-3 rounded-[3px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:flex-row sm:items-center">
           <AlertTriangle size={18} className="hidden flex-shrink-0 text-red-600 sm:block" />
           <div className="min-w-0 flex-1">
             <p className="font-semibold">{tr("{0} check-ins need review", fmtNumber(s.unreviewed))}</p>
@@ -215,15 +215,15 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
           </Empty>
         ) : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
               {paged.rows.map((c) => (
                 <li key={c.id}>
-                  <button type="button" onClick={() => setOpen(c)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+                  <button type="button" onClick={() => setOpen(c)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
                     {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                    <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-12 w-12 flex-shrink-0 rounded-lg bg-neutral-100 object-cover" />
+                    <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-12 w-12 flex-shrink-0 rounded-[3px] bg-[color:var(--j-091E420F)] object-cover" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-neutral-900">{c.name}</span>
-                      <span className="block truncate text-xs text-neutral-500">{c.branchName} · {wibDateTime(c.visitedAt)}</span>
+                      <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{c.name}</span>
+                      <span className="block truncate text-xs text-[color:var(--j-626F86)]">{c.branchName} · {wibDateTime(c.visitedAt)}</span>
                       <span className="mt-1 block"><SourceTag c={c} /></span>
                       <span className="mt-1 block"><LocationTags c={c} /></span>
                       {kind === "surveyor" && <span className="mt-1 block"><ClockOutCell c={c} /></span>}
@@ -250,13 +250,13 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                     <tr key={c.id} onClick={() => setOpen(c)} className={cx(jRow, (c.outsideRadius || suspect(c)) && !c.review && "bg-red-50/50 hover:bg-red-50")}>
                       <td className={jTd}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-9 w-9 rounded-md bg-neutral-100 object-cover" />
+                        <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-9 w-9 rounded-[3px] bg-[color:var(--j-091E420F)] object-cover" />
                       </td>
                       <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{c.branchCode}</span></td>
                       <td className={cx(jTd, "max-w-[14rem]")}><Person name={c.name} sub={`@${c.username}`} /></td>
-                      <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-neutral-800">{c.branchName}</span>
+                      <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-[color:var(--j-172B4D)]">{c.branchName}</span>
                         <span className="mt-0.5 block"><SourceTag c={c} /></span></td>
-                      <td className={cx(jTd, "whitespace-nowrap tabular-nums text-neutral-700")}>{wibDateTime(c.visitedAt)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap tabular-nums text-[color:var(--j-44546F)]")}>{wibDateTime(c.visitedAt)}</td>
                       <td className={jTd}><LocationTags c={c} /></td>
                       {kind === "surveyor" && <td className={jTd}><ClockOutCell c={c} /></td>}
                     </tr>
@@ -321,31 +321,31 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
   const verdict = !c.outletLocated ? { tone: "slate", icon: <MapPinOff size={20} />, title: tr("Outlet Has No Coordinates"), text: tr("Set the outlet's location in Cost Control → Outlet Locations") }
     : c.outsideRadius ? { tone: "red", icon: <MapPin size={20} />, title: tr("Outside Radius"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100) }
     : { tone: "green", icon: <CheckCircle2 size={20} />, title: tr("At the Outlet"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? 0, c.radiusM ?? 100) };
-  const toneBox: Record<string, string> = { green: "border-emerald-200 bg-emerald-50 text-emerald-900", red: "border-red-200 bg-red-50 text-red-900", slate: "border-neutral-200 bg-neutral-50 text-neutral-800" };
+  const toneBox: Record<string, string> = { green: "border-emerald-200 bg-emerald-50 text-emerald-900", red: "border-red-200 bg-red-50 text-red-900", slate: "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-172B4D)]" };
   const toneIcon: Record<string, string> = { green: "bg-emerald-600", red: "bg-red-600", slate: "bg-neutral-500" };
   return (
     <Drawer open onClose={onClose} size="lg" icon={<ScanFace size={18} />} title={c.name} description={`${c.branchName} · ${wibDateTime(c.visitedAt)}`}>
       <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
-          <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
+          <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-[3px] bg-[color:var(--j-091E420F)] ring-1 ring-[color:var(--j-DCDFE4)]">
             {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
             <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]" />
-            <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-lg bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
+            <span className="absolute inset-x-2 bottom-2 inline-flex items-center justify-center gap-1 rounded-[3px] bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur">
               <ScanFace size={12} />{tr("{0} face(s) detected", c.faces)}
             </span>
           </a>
           <div className="flex min-w-0 flex-col gap-3">
             <div>
-              <p className="text-base font-semibold text-neutral-900">{c.name}</p>
-              <p className="text-xs text-neutral-500">@{c.username}</p>
+              <p className="text-base font-semibold text-[color:var(--j-172B4D)]">{c.name}</p>
+              <p className="text-xs text-[color:var(--j-626F86)]">@{c.username}</p>
               <p className="mt-1.5"><SourceTag c={c} /></p>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <Fact icon={<Store size={14} />} label={tr("Outlet")} value={c.branchName} sub={c.branchCode} />
               <Fact icon={<CalendarDays size={14} />} label={tr("Visit Time")} value={wibDateTime(c.visitedAt)} />
             </div>
-            <div className={cx("flex items-start gap-3 rounded-md border px-3 py-2.5", toneBox[verdict.tone])}>
-              <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg text-white", toneIcon[verdict.tone])}>{verdict.icon}</span>
+            <div className={cx("flex items-start gap-3 rounded-[3px] border px-3 py-2.5", toneBox[verdict.tone])}>
+              <span className={cx("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] text-white", toneIcon[verdict.tone])}>{verdict.icon}</span>
               <span className="min-w-0">
                 <span className="block text-sm font-semibold">{verdict.title}</span>
                 <span className="block text-xs opacity-90">{verdict.text}</span>
@@ -359,7 +359,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         </div>
 
         <DrawerBlock title={tr("Location")}>
-          <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-md border border-neutral-200">
+          <div className="grid grid-cols-3 divide-x divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             <Figure label={tr("Distance")} value={c.distanceM !== null ? `${c.distanceM} m` : "—"} tone={c.outsideRadius ? "text-red-700" : undefined} />
             <Figure label={tr("Radius")} value={c.radiusM !== null ? `${c.radiusM} m` : "—"} />
             <Figure label={tr("GPS Accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-amber-700" : undefined} />
@@ -368,12 +368,12 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
             <MapLink href={mapsUrl(c.latitude, c.longitude)} label={tr("PIC Position")} value={`${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)}`} />
             {c.outletLatitude !== null && c.outletLongitude !== null
               ? <MapLink href={mapsUrl(c.outletLatitude, c.outletLongitude)} label={tr("Outlet Location")} value={`${c.outletLatitude.toFixed(5)}, ${c.outletLongitude.toFixed(5)}`} />
-              : <div className="rounded-md border border-dashed border-neutral-200 px-3 py-2 text-xs text-neutral-500">{tr("Outlet Location")}: {tr("No coordinates yet")}</div>}
+              : <div className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-2 text-xs text-[color:var(--j-626F86)]">{tr("Outlet Location")}: {tr("No coordinates yet")}</div>}
           </div>
         </DrawerBlock>
 
         <DrawerBlock title={tr("Time")}>
-          <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
+          <dl className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
             <DrawerRow k={tr("Visit Time")} v={`${wibDateTime(c.visitedAt)} · ${tr("server time")}`} />
             <DrawerRow k={tr("Phone clock")} v={c.deviceTime ? <>{wibDateTime(c.deviceTime)}{skew !== null && Math.abs(skew) >= 5 && <Badge tone="amber">{tr("differs {0} min", skew)}</Badge>}</> : "—"} />
           </dl>
@@ -381,7 +381,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
 
         {c.note && (
           <DrawerBlock title={tr("Note")}>
-            <p className="rounded-xl bg-neutral-50 px-3 py-2.5 text-sm leading-relaxed text-neutral-700">{c.note}</p>
+            <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-sm leading-relaxed text-[color:var(--j-44546F)]">{c.note}</p>
           </DrawerBlock>
         )}
 
@@ -389,12 +389,12 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
           <DrawerBlock title={tr("Clock Out")}>
             {c.clockOut ? (
               <div className="grid gap-3 sm:grid-cols-[7rem_minmax(0,1fr)]">
-                <a href={photoUrl(c.id, true)} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl bg-neutral-100 ring-1 ring-neutral-200">
+                <a href={photoUrl(c.id, true)} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-[3px] bg-[color:var(--j-091E420F)] ring-1 ring-[color:var(--j-DCDFE4)]">
                   {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
                   <img src={thumb(photoUrl(c.id, true), 320)} alt={tr("Face Photo")} loading="lazy" className="aspect-[3/4] w-full object-cover" />
                 </a>
                 <div className="min-w-0 space-y-2">
-                  <div className="grid grid-cols-3 divide-x divide-neutral-100 rounded-md border border-neutral-200">
+                  <div className="grid grid-cols-3 divide-x divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                     <Figure label={tr("Time")} value={wibClock(c.clockOut.at)} />
                     <Figure label={tr("At the Outlet")} value={duration(c.clockOut.durationMin)} />
                     <Figure label={tr("Distance")} value={c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"} tone={c.clockOut.outsideRadius ? "text-red-700" : undefined} />
@@ -408,15 +408,15 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
                   {c.clockOut.latitude !== null && c.clockOut.longitude !== null && (
                     <MapLink href={mapsUrl(c.clockOut.latitude, c.clockOut.longitude)} label={tr("Position at Clock Out")} value={`${c.clockOut.latitude.toFixed(5)}, ${c.clockOut.longitude.toFixed(5)}`} />
                   )}
-                  {c.clockOut.note && <p className="rounded-xl bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{c.clockOut.note}</p>}
+                  {c.clockOut.note && <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-sm text-[color:var(--j-44546F)]">{c.clockOut.note}</p>}
                 </div>
               </div>
-            ) : <p className="rounded-md border border-dashed border-neutral-200 px-3 py-3 text-sm text-neutral-500">{tr("Not clocked out yet")}</p>}
+            ) : <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-3 text-sm text-[color:var(--j-626F86)]">{tr("Not clocked out yet")}</p>}
           </DrawerBlock>
         )}
 
         <DrawerBlock title={tr("Location check")}>
-          <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             <Check ok={c.outletLocated ? !c.outsideRadius : null} title={tr("Position")}
               text={!c.outletLocated ? tr("The outlet has no coordinates yet: the distance cannot be checked")
                 : tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100)}
@@ -431,12 +431,12 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         </DrawerBlock>
         {(c.riskSignals ?? []).length > 0 && (
           <DrawerBlock title={`${tr("Signs found")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
-            <ul className={cx("space-y-1.5 rounded-md border p-3 text-xs", c.riskLevel === "high" ? "border-red-200 bg-red-50"
-              : c.riskLevel === "medium" ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-neutral-50")}>
+            <ul className={cx("space-y-1.5 rounded-[3px] border p-3 text-xs", c.riskLevel === "high" ? "border-red-200 bg-red-50"
+              : c.riskLevel === "medium" ? "border-amber-200 bg-amber-50" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]")}>
               {(c.riskSignals ?? []).map((x) => (
                 <li key={x.code} className="flex gap-2">
                   <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-red-500" : x.level === "medium" ? "bg-amber-500" : "bg-neutral-400")} />
-                  <span className="text-neutral-700">{x.text}</span>
+                  <span className="text-[color:var(--j-44546F)]">{x.text}</span>
                 </li>
               ))}
             </ul>
@@ -455,8 +455,8 @@ function ClockOutCell({ c }: { c: CheckIn }) {
   if (!c.clockOut) return <Badge tone="blue">{tr("Not clocked out yet")}</Badge>;
   return (
     <span className="inline-flex flex-wrap items-center gap-1.5 whitespace-nowrap">
-      <span className="tabular-nums text-neutral-700">{wibClock(c.clockOut.at)}</span>
-      <span className="text-xs text-neutral-500">{duration(c.clockOut.durationMin)}</span>
+      <span className="tabular-nums text-[color:var(--j-44546F)]">{wibClock(c.clockOut.at)}</span>
+      <span className="text-xs text-[color:var(--j-626F86)]">{duration(c.clockOut.durationMin)}</span>
       {c.clockOut.outsideRadius && <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
     </span>
   );
@@ -465,7 +465,7 @@ function ClockOutCell({ c }: { c: CheckIn }) {
 export function DrawerBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{title}</h3>
+      <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{title}</h3>
       {children}
     </section>
   );
@@ -474,18 +474,18 @@ export function DrawerBlock({ title, children }: { title: string; children: Reac
 export function DrawerRow({ k, v }: { k: string; v: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 px-3 py-2">
-      <dt className="text-neutral-500">{k}</dt>
-      <dd className="flex min-w-0 flex-wrap items-center gap-1.5 break-words text-neutral-900">{v}</dd>
+      <dt className="text-[color:var(--j-626F86)]">{k}</dt>
+      <dd className="flex min-w-0 flex-wrap items-center gap-1.5 break-words text-[color:var(--j-172B4D)]">{v}</dd>
     </div>
   );
 }
 
 function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub?: string }) {
   return (
-    <div className="min-w-0 rounded-md border border-neutral-200 px-3 py-2">
-      <p className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{label}</p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-neutral-900" title={value}>{value}</p>
-      {sub && <p className="font-mono text-[10px] text-neutral-400">{sub}</p>}
+    <div className="min-w-0 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2">
+      <p className="flex items-center gap-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{icon}{label}</p>
+      <p className="mt-0.5 truncate text-sm font-semibold text-[color:var(--j-172B4D)]" title={value}>{value}</p>
+      {sub && <p className="font-mono text-[10px] text-[color:var(--j-626F86)]">{sub}</p>}
     </div>
   );
 }
@@ -493,21 +493,21 @@ function Fact({ icon, label, value, sub }: { icon: React.ReactNode; label: strin
 function Figure({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="px-3 py-2.5 text-center">
-      <p className="text-xs font-semibold capitalize text-neutral-400">{label}</p>
-      <p className={cx("mt-0.5 text-base font-semibold tabular-nums text-neutral-900", tone)}>{value}</p>
+      <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{label}</p>
+      <p className={cx("mt-0.5 text-base font-semibold tabular-nums text-[color:var(--j-172B4D)]", tone)}>{value}</p>
     </div>
   );
 }
 
 function MapLink({ href, label, value }: { href: string; label: string; value: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-md border border-neutral-200 px-3 py-2 hover:border-brand-300 hover:bg-brand-50/40">
-      <MapPin size={15} className="flex-shrink-0 text-brand-700" />
+    <a href={href} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-E9F2FF)]">
+      <MapPin size={15} className="flex-shrink-0 text-[color:var(--j-0C66E4)]" />
       <span className="min-w-0 flex-1">
-        <span className="block text-xs font-medium text-neutral-700">{label}</span>
-        <span className="block truncate font-mono text-[11px] text-neutral-500">{value}</span>
+        <span className="block text-xs font-medium text-[color:var(--j-44546F)]">{label}</span>
+        <span className="block truncate font-mono text-[11px] text-[color:var(--j-626F86)]">{value}</span>
       </span>
-      <ExternalLink size={13} className="flex-shrink-0 text-neutral-400" />
+      <ExternalLink size={13} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
     </a>
   );
 }
@@ -548,21 +548,21 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
               { label: tr("Outside Radius"), value: summary.outside, color: "bg-amber-500" },
               { label: tr("Outlet Has No Coordinates"), value: summary.unlocated, color: "bg-neutral-300" },
             ]} />
-            {summary.low > 0 && <p className="text-xs text-neutral-500">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
+            {summary.low > 0 && <p className="text-xs text-[color:var(--j-626F86)]">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
           </>
         )}
-        <div className="overflow-hidden rounded-md border border-neutral-200">
+        <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           {kind === "outside" ? (
-            outside.length === 0 ? <p className="px-4 py-8 text-center text-sm text-neutral-400">{tr("No check in outside the radius")}</p> : (
-              <ul className="divide-y divide-neutral-100">
+            outside.length === 0 ? <p className="px-4 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No check in outside the radius")}</p> : (
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {outside.map((c) => (
                   <li key={c.id}>
-                    <button type="button" onClick={() => onOpen(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-neutral-50">
+                    <button type="button" onClick={() => onOpen(c)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-[color:var(--j-F7F8F9)]">
                       {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                      <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-neutral-100 object-cover" />
+                      <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-full bg-[color:var(--j-091E420F)] object-cover" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-neutral-900">{c.name} · {c.branchName}</span>
-                        <span className="block text-xs text-neutral-500">{wibDateTime(c.visitedAt)} · {c.source === "attendance" ? tr("Attendance") : tr("Visit form")}</span>
+                        <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{c.name} · {c.branchName}</span>
+                        <span className="block text-xs text-[color:var(--j-626F86)]">{wibDateTime(c.visitedAt)} · {c.source === "attendance" ? tr("Attendance") : tr("Visit form")}</span>
                       </span>
                       <span className="text-xs font-semibold tabular-nums text-amber-700">{c.distanceM} m</span>
                     </button>
@@ -580,15 +580,15 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
                   <th className="px-3 py-2 text-right">{tr("Outside")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {groups.map((g) => {
                   const click = kind === "pics" ? () => onPic(g.key) : kind === "outlets" ? () => onOutlet(g.key) : undefined;
                   return (
-                    <tr key={g.key} onClick={click} className={click ? "cursor-pointer hover:bg-neutral-50" : ""}>
-                      <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{g.label}</span>{g.sub && <span className="text-xs text-neutral-400">{g.sub}</span>}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-neutral-900">{fmtNumber(g.n)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-neutral-600">{fmtNumber(kind === "pics" ? g.places.size : g.people.size)}</td>
-                      <td className={`px-3 py-2 text-right tabular-nums ${g.outside ? "font-semibold text-amber-700" : "text-neutral-400"}`}>{fmtNumber(g.outside)}</td>
+                    <tr key={g.key} onClick={click} className={click ? "cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" : ""}>
+                      <td className="px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{g.label}</span>{g.sub && <span className="text-xs text-[color:var(--j-626F86)]">{g.sub}</span>}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-172B4D)]">{fmtNumber(g.n)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{fmtNumber(kind === "pics" ? g.places.size : g.people.size)}</td>
+                      <td className={`px-3 py-2 text-right tabular-nums ${g.outside ? "font-semibold text-amber-700" : "text-[color:var(--j-626F86)]"}`}>{fmtNumber(g.outside)}</td>
                     </tr>
                   );
                 })}
@@ -596,7 +596,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
             </table>
           )}
         </div>
-        {truncated && <p className="text-xs text-neutral-400">{tr("From the latest 1,000 check-ins of the period")}</p>}
+        {truncated && <p className="text-xs text-[color:var(--j-626F86)]">{tr("From the latest 1,000 check-ins of the period")}</p>}
       </div>
     </Drawer>
   );
@@ -624,13 +624,13 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
     }
   };
   return (
-    <section className="rounded-md border border-brand-200 bg-brand-50/40 p-3">
-      <p className="text-sm font-semibold text-neutral-900">{tr("Management review")}</p>
+    <section className="rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] p-3">
+      <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Management review")}</p>
       {c.review ? (
-        <p className="mt-1 text-xs text-neutral-600">
+        <p className="mt-1 text-xs text-[color:var(--j-44546F)]">
           {c.review.status === "valid" ? tr("Valid") : tr("Not valid")} · {c.review.by ?? "—"}{c.review.at ? ` · ${wibDateTime(c.review.at)}` : ""}
         </p>
-      ) : <p className="mt-1 text-xs text-neutral-500">{tr("Check the photo, the note and the location, then decide.")}</p>}
+      ) : <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{tr("Check the photo, the note and the location, then decide.")}</p>}
       <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder={tr("Review note (optional)")}
         className={cx(inputClass, "mt-2 h-auto py-2")} />
       <div className="mt-2 flex gap-2">
@@ -647,14 +647,14 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
 
 /** One location check of the drawer: green ok, red (or amber when `warn`) not ok, grey not checked. */
 function Check({ ok, title, text, verdict, warn }: { ok: boolean | null; title: string; text: string; verdict: string; warn?: boolean }) {
-  const tone = ok === null ? "bg-neutral-100 text-neutral-500" : ok ? "bg-emerald-50 text-emerald-700" : warn ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700";
+  const tone = ok === null ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]" : ok ? "bg-emerald-50 text-emerald-700" : warn ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700";
   return (
     <li className="flex items-start gap-3 px-3 py-2.5">
       <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full", tone)}>
         {ok === null ? <MapPinOff size={13} /> : ok ? <CheckCircle2 size={14} /> : <AlertTriangle size={13} />}</span>
-      <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-neutral-900">{title}</span>
-        <span className="block text-xs text-neutral-500">{text}</span></span>
-      <span className={cx("flex-shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold", tone)}>{verdict}</span>
+      <span className="min-w-0 flex-1"><span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{title}</span>
+        <span className="block text-xs text-[color:var(--j-626F86)]">{text}</span></span>
+      <span className={cx("flex-shrink-0 rounded-[3px] px-2 py-0.5 text-[11px] font-semibold", tone)}>{verdict}</span>
     </li>
   );
 }
@@ -670,13 +670,13 @@ function LocationLegend() {
     { badge: <Badge tone="slate" icon={<MapPinOff size={11} />}>{tr("Outlet Has No Coordinates")}</Badge>, text: tr("The distance cannot be checked until the outlet's location is set") },
   ];
   return (
-    <details className="group rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm">
-      <summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-neutral-800">
-        <MapPin size={15} className="text-neutral-400" />{tr("What the location badges mean")}
-        <span className="ml-auto text-xs text-neutral-400 group-open:hidden">{tr("Show")}</span></summary>
+    <details className="group rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 text-sm">
+      <summary className="flex cursor-pointer list-none items-center gap-2 font-medium text-[color:var(--j-172B4D)]">
+        <MapPin size={15} className="text-[color:var(--j-626F86)]" />{tr("What the location badges mean")}
+        <span className="ml-auto text-xs text-[color:var(--j-626F86)] group-open:hidden">{tr("Show")}</span></summary>
       <ul className="mt-3 grid gap-2 sm:grid-cols-2">
         {items.map((x, i) => (
-          <li key={i} className="flex items-start gap-2 text-xs text-neutral-600"><span className="flex-shrink-0">{x.badge}</span><span className="pt-0.5">{x.text}</span></li>
+          <li key={i} className="flex items-start gap-2 text-xs text-[color:var(--j-44546F)]"><span className="flex-shrink-0">{x.badge}</span><span className="pt-0.5">{x.text}</span></li>
         ))}
       </ul>
     </details>

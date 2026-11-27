@@ -18,7 +18,7 @@ export default function LoadingState({ height = 200, label = 'data' }: { height?
         <SkeletonBlock className="h-3 w-28" />
         <SkeletonBlock className="h-3 w-16" />
       </div>
-      <div className="skeleton flex flex-1 items-end gap-1.5 rounded-lg px-3 pb-3 pt-6" aria-hidden>
+      <div className="skeleton flex flex-1 items-end gap-1.5 rounded-[3px] px-3 pb-3 pt-6" aria-hidden>
         {[38, 55, 46, 70, 52, 82, 64, 74, 48, 60].map((h, i) => (
           <span key={i} className="flex-1 rounded-t bg-white/60" style={{ height: `${h}%` }} />
         ))}

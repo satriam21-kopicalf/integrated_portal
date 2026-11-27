@@ -87,7 +87,7 @@ export default function BranchFilter({ branches, loading, value, onChange }: Bra
         onClick={() => (isOpen ? close() : open())} />
 
       <Popover open={isOpen} onClose={close} title={tr('Branches')} subtitle={draft.size ? tr('{0} selected', draft.size) : tr('All Branches')}
-        actions={draft.size > 0 && <button type="button" className="rounded-md px-2 py-1 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900" onClick={() => setDraft(new Set())}>{tr('Clear')}</button>}
+        actions={draft.size > 0 && <button type="button" className="rounded-[3px] px-2 py-1 text-xs font-medium text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]" onClick={() => setDraft(new Set())}>{tr('Clear')}</button>}
         footer={
           <>
             <button type="button" onClick={close} className={cx(btn('outline'), 'h-10 flex-1 sm:h-9 sm:flex-none')}>{tr('Cancel')}</button>
@@ -96,17 +96,17 @@ export default function BranchFilter({ branches, loading, value, onChange }: Bra
             </button>
           </>
         }>
-        <div className="sticky top-0 z-10 space-y-2 border-b border-neutral-100 bg-white p-3">
+        <div className="sticky top-0 z-10 space-y-2 border-b border-[color:var(--j-F1F2F4)] bg-white p-3">
           <SearchInput value={query} onChange={setQuery} placeholder={tr('Search branch or code…')} />
-          <button type="button" className="text-xs font-medium text-brand-700 hover:underline disabled:text-neutral-300 disabled:no-underline"
+          <button type="button" className="text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline disabled:text-[color:var(--j-8590A2)] disabled:no-underline"
             disabled={!filtered.length} onClick={() => setDraft(d => new Set([...d, ...filtered.map(b => b.branch_code)]))}>
             {tr('Select')} {query ? tr('shown') : tr('all')}
           </button>
         </div>
         <div className="p-1.5" role="listbox" aria-multiselectable="true" aria-label={tr('Branches')}>
-          {loading && <p className="px-3 py-6 text-center text-sm text-neutral-400">{tr('Loading branches…')}</p>}
+          {loading && <p className="px-3 py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('Loading branches…')}</p>}
           {!loading && filtered.length === 0 && (
-            <p className="px-3 py-6 text-center text-sm text-neutral-400">{tr('No branch matches “')}{query}”</p>
+            <p className="px-3 py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('No branch matches “')}{query}”</p>
           )}
           {filtered.map(b => (
             <BranchOption
@@ -130,14 +130,14 @@ function BranchOption({ label, hint, checked, onClick }: { label: string; hint: 
       role="option"
       aria-selected={checked}
       onClick={onClick}
-      className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors ${checked ? 'bg-brand-50' : 'hover:bg-neutral-50'}`}
+      className={`flex w-full items-center gap-3 rounded-[3px] px-2.5 py-2.5 text-left transition-colors ${checked ? 'bg-[color:var(--j-E9F2FF)]' : 'hover:bg-[color:var(--j-F7F8F9)]'}`}
     >
-      <span className={`flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded border ${checked ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-300 bg-white'}`} aria-hidden>
+      <span className={`flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded border ${checked ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white' : 'border-[color:var(--j-8590A2)] bg-white'}`} aria-hidden>
         {checked && <Check size={12} strokeWidth={3} />}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-neutral-800">{label}</p>
-        <p className="truncate text-xs text-neutral-400">{hint}</p>
+        <p className="truncate text-sm font-medium text-[color:var(--j-172B4D)]">{label}</p>
+        <p className="truncate text-xs text-[color:var(--j-626F86)]">{hint}</p>
       </div>
     </button>
   );

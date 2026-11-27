@@ -38,7 +38,7 @@ type Key = 'outlet' | 'nett' | 'system' | 'actual' | 'usage' | 'difference' | 'u
 const rp = (n: number | null | undefined) => (n == null ? '—' : `Rp ${Math.round(n).toLocaleString('id-ID')}`);
 const pct = (n: number | null | undefined, d = 1) => (n == null ? '—' : `${(n * 100).toFixed(d)}%`);
 /** usage ratio: within ±5 % of the cards good, within ±15 % to watch, else wrong (stock, cards or the counts) */
-const usageTone = (u: number | null) => (u == null ? 'text-neutral-400' : Math.abs(u - 1) <= 0.05 ? 'text-emerald-700' : Math.abs(u - 1) <= 0.15 ? 'text-amber-700' : 'text-red-700');
+const usageTone = (u: number | null) => (u == null ? 'text-[color:var(--j-626F86)]' : Math.abs(u - 1) <= 0.05 ? 'text-emerald-700' : Math.abs(u - 1) <= 0.15 ? 'text-amber-700' : 'text-red-700');
 const DEF = (): Period => ({ from: wibDay(-7), to: wibDay(-1) });
 const sortValue = (r: Row, k: Key) => ({ outlet: r.branchName, nett: r.nett, system: r.systemRatio, actual: r.actualRatio,
   usage: r.usageRatio == null ? null : Math.abs(r.usageRatio - 1), difference: r.difference, unexplained: r.unexplained, anomalies: r.anomalies }[k]);
@@ -89,7 +89,7 @@ function Cogs() {
       }>
       <DataSources keys={['esbSales', 'esbIntegrity', 'so', 'gr', 'prices', 'recipes']} />
       {res && !t && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="rounded-[3px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           {tr('No outlet has an SO awal on {0} and an SO akhir the day after {1}: choose a period that starts on a stock opname day and ends the day before the next one.', dmy(period.from), dmy(period.to))}
           <span className="block text-xs">{tr('{0} outlets with an SO awal · {1} with an SO akhir', res.counts.start, res.counts.end)}</span>
         </div>
@@ -110,28 +110,28 @@ function Cogs() {
                 <SortTh k="unexplained" sort={sort} onSort={toggle} align="right" first="desc">{tr('Unexplained')}</SortTh>
                 <SortTh k="anomalies" sort={sort} onSort={toggle} align="right" first="desc">{tr('Data')}</SortTh>
               </tr></thead>
-              <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => (
-                <tr key={r.branch} className="hover:bg-neutral-50/70">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((r) => (
+                <tr key={r.branch} className="hover:bg-[color:var(--j-F7F8F9)]">
                   <td className="max-w-[16rem] py-2.5 pl-5 pr-3">
-                    <Link href={`/cost-control/sales-calculator?branch=${encodeURIComponent(r.branch)}&dateFrom=${period.from}&dateTo=${period.to}`} className="block truncate font-medium text-neutral-900 hover:text-brand-700">{r.branchName}</Link>
-                    <span className="text-[11px] text-neutral-400">{tr('SO {0} → {1}', dmy(r.so.start.date), dmy(r.so.end.date))}</span>
+                    <Link href={`/cost-control/sales-calculator?branch=${encodeURIComponent(r.branch)}&dateFrom=${period.from}&dateTo=${period.to}`} className="block truncate font-medium text-[color:var(--j-172B4D)] hover:text-[color:var(--j-0055CC)]">{r.branchName}</Link>
+                    <span className="text-[11px] text-[color:var(--j-626F86)]">{tr('SO {0} → {1}', dmy(r.so.start.date), dmy(r.so.end.date))}</span>
                     {!r.final && <Badge tone="amber">{tr('SO not approved')}</Badge>}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rp(r.nett)}</td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.systemRatio)}</span><span className="block text-[11px] text-neutral-400">{rp(r.systemCogs)}</span></td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.actualRatio)}</span><span className="block text-[11px] text-neutral-400">{rp(r.actualCogs)}</span></td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.systemRatio)}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{rp(r.systemCogs)}</span></td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.actualRatio)}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{rp(r.actualCogs)}</span></td>
                   <td className={cx('whitespace-nowrap px-4 py-2.5 text-right text-base font-semibold tabular-nums', usageTone(r.usageRatio))}>{pct(r.usageRatio, 0)}</td>
                   <td className={cx('whitespace-nowrap px-4 py-2.5 text-right tabular-nums', r.difference > 0 ? 'text-red-700' : 'text-emerald-700')}>{rp(r.difference)}
-                    {r.waste ? <span className="block text-[11px] text-neutral-400">{tr('waste {0}', rp(r.waste))}</span> : null}</td>
+                    {r.waste ? <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr('waste {0}', rp(r.waste))}</span> : null}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rp(r.unexplained)}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right text-xs">
-                    <span className={r.coverage.counted < r.coverage.materials ? 'text-amber-700' : 'text-neutral-500'}>{tr('SO {0}/{1}', r.coverage.counted, r.coverage.materials)}</span>
+                    <span className={r.coverage.counted < r.coverage.materials ? 'text-amber-700' : 'text-[color:var(--j-626F86)]'}>{tr('SO {0}/{1}', r.coverage.counted, r.coverage.materials)}</span>
                     {r.anomalies > 0 && <span className="block text-red-700">{tr('{0} anomalies', r.anomalies)}</span>}
                     {r.unpriced.length > 0 && <span className="block text-amber-700" title={r.unpriced.join(', ')}>{tr('{0} no price', r.unpriced.length)}</span>}
                   </td>
                 </tr>))}</tbody>
             </table>
-            <p className="px-5 py-2 text-[11px] text-neutral-500">{tr('Usage ratio = actual ÷ system on the materials counted at both ends; green within ±5 %, amber within ±15 %. Open an outlet for its materials in the Sales Calculator.')}</p></div>
+            <p className="px-5 py-2 text-[11px] text-[color:var(--j-626F86)]">{tr('Usage ratio = actual ÷ system on the materials counted at both ends; green within ±5 %, amber within ±15 %. Open an outlet for its materials in the Sales Calculator.')}</p></div>
           )}
       </Panel>
       <DocChecks from={period.from} to={period.to} onChanged={() => void load()} />
@@ -148,7 +148,7 @@ function PeriodSheet({ value, onApply, onClose }: { value: Period; onApply: (p: 
     <MonitorFilterSheet active={periodLabel(d, def) ? 1 : 0} onClose={onClose} onApply={() => onApply(d)} onReset={() => setD(def)} applyDisabled={days > 93}>
       <FilterRow icon={<CalendarDays size={15} />} label={tr('Period')} value={periodLabel(d, def) ?? tr('Last 7 Days')} onClear={() => setD(def)}>
         <QuickPeriod value={d} onChange={setD} maxDays={93} />
-        <p className="mt-2 text-xs text-neutral-500">{tr('Start on the day of a stock opname, end the day before the next one.')}</p>
+        <p className="mt-2 text-xs text-[color:var(--j-626F86)]">{tr('Start on the day of a stock opname, end the day before the next one.')}</p>
       </FilterRow>
     </MonitorFilterSheet>
   );

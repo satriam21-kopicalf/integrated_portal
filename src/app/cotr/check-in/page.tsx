@@ -27,7 +27,7 @@ const time = (iso: string | null) => (iso ? new Date(iso).toLocaleTimeString(loc
 const cups = (s: Stock) => Object.values(s ?? {}).reduce((a, v) => a + v, 0);
 const photoUrl = (kind: "check-in" | "signature" | "request", id: string) => `/api/cotr/photos/${kind}/${id}`;
 // the map reads window (Leaflet): loaded in the browser only
-const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loading: () => <div className="skeleton h-[480px] rounded-xl" /> });
+const DriverMap = dynamic(() => import("@/cotr/DriverMap"), { ssr: false, loading: () => <div className="skeleton h-[480px] rounded-[3px]" /> });
 const todayWib = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 type Card = "all" | "open" | "closed" | "attention";
 const attention = (s: Shift) => !!(s.recap.difference && Object.keys(s.recap.difference).length) || (s.recap.balance ?? 0) < 0 || s.recap.voided > 0;
@@ -119,7 +119,7 @@ export default function CotrCheckInPage() {
             onOpen={() => { setDraft({ day, pool }); setSheet(true); }} onClear={() => { setDay(todayWib()); setPool(""); }} />
         </Toolbar>
         {error ? <div className="p-4"><ErrorState message={error} onRetry={() => void load()} /></div> : !view ? (
-          <div className="p-4"><div className="skeleton h-64 rounded-xl" /></div>
+          <div className="p-4"><div className="skeleton h-64 rounded-[3px]" /></div>
         ) : tab === "attendance" ? <CotrAttendance day={day} pool={pool} q={q} />
           : tab === "shifts" ? <CardBody><Shifts data={view} show={show} /></CardBody>
           : tab === "location" ? <CardBody><DriverMap day={day} live={day === todayWib()} drivers={pool || q.trim() || show !== "all" ? new Set(view.shifts.filter((s) => inCard(s, show)).map((s) => s.driver)) : undefined} /></CardBody>
@@ -145,19 +145,19 @@ function Shifts({ data, show }: { data: Monitor; show: Card }) {
             return (
               <li key={s.id}>
                 <button type="button" onClick={() => setOpen(s)}
-                  className={cx("group flex h-full w-full flex-col rounded-2xl border bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
-                    attention(s) ? "border-red-200" : "border-neutral-200 hover:border-brand-200")}>
+                  className={cx("group flex h-full w-full flex-col rounded-[3px] border bg-white p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md",
+                    attention(s) ? "border-red-200" : "border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-85B8FF)]")}>
                   <span className="flex items-start gap-3">
-                    <span className={cx("flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold", s.status === "open" ? "bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200" : "bg-neutral-100 text-neutral-600")}>
+                    <span className={cx("flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold", s.status === "open" ? "bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>
                       {(s.driverName ?? s.driver).split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-neutral-900">{s.driverName ?? s.driver}</span>
-                      <span className="block truncate text-[11px] text-neutral-500">{[s.poolName ?? s.pool, s.fleet].filter(Boolean).join(" · ")}</span>
+                      <span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{s.driverName ?? s.driver}</span>
+                      <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{[s.poolName ?? s.pool, s.fleet].filter(Boolean).join(" · ")}</span>
                     </span>
                     {s.status === "open" ? <Badge tone="green" dot>{tr("On the road")}</Badge> : <Badge tone="slate">{tr("Ended")} {time(s.endedAt)}</Badge>}
                   </span>
                   {s.slots.length > 0 && (
-                    <span className="mt-2 flex flex-wrap gap-1">{s.slots.map((x, i) => <span key={i} className="rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-800">{x.start}–{x.end} · {x.area ?? "—"}</span>)}</span>
+                    <span className="mt-2 flex flex-wrap gap-1">{s.slots.map((x, i) => <span key={i} className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--j-0055CC)]">{x.start}–{x.end} · {x.area ?? "—"}</span>)}</span>
                   )}
                   <span className="mt-3 grid grid-cols-4 gap-2 text-center">
                     <Kpi label={tr("Sold")} value={String(s.recap.cups)} />
@@ -165,14 +165,14 @@ function Shifts({ data, show }: { data: Monitor; show: Card }) {
                     <Kpi label={tr("Cupping / Waste")} value={`${s.recap.cupping}/${s.recap.waste}`} tone={s.deductions.cups ? "amber" : undefined} />
                     <Kpi label={tr("Sales")} value={rupiah(s.recap.total).replace("Rp ", "")} />
                   </span>
-                  <span className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-neutral-100 pt-2.5 text-[11px] text-neutral-500">
+                  <span className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-[color:var(--j-F1F2F4)] pt-2.5 text-[11px] text-[color:var(--j-626F86)]">
                     <LogIn size={12} />{time(s.startedAt)}
                     {diff ? <Badge tone="red" icon={<TriangleAlert size={11} />}>{tr("Stock difference")}</Badge> : null}
                     {short ? <Badge tone="red">{tr("Cash short {0}", rupiah(Math.abs(s.recap.balance ?? 0)))}</Badge> : null}
                     {s.recap.voided ? <Badge tone="amber">{tr("{0} voided", s.recap.voided)}</Badge> : null}
                     {s.recap.recapCups ? <Badge tone="blue">{tr("Recap at the pool {0} cups", s.recap.recapCups)}</Badge> : null}
                     {s.deductions.value > 0 && <Badge tone="amber">{tr("Deductions {0}", rupiah(s.deductions.value))}</Badge>}
-                    <span className="ml-auto text-brand-700 opacity-0 transition group-hover:opacity-100">{tr("Details")} →</span>
+                    <span className="ml-auto text-[color:var(--j-0C66E4)] opacity-0 transition group-hover:opacity-100">{tr("Details")} →</span>
                   </span>
                 </button>
               </li>
@@ -199,31 +199,31 @@ function NotStarted({ people }: { people: { code: string; name: string; pool: st
     <Panel title={tr("Not checked in ({0})", people.length)} description={tr("Active employees without a shift on this day, per pool")}
       toolbar={<SearchInput value={q} onChange={setQ} placeholder={tr("Search name, code or pool")} />}>
       {shown.length === 0 ? <Empty title={tr("No one matches")} /> : (
-        <div className="divide-y divide-neutral-100">
+        <div className="divide-y divide-[color:var(--j-F1F2F4)]">
           {pools.map((pool) => {
             const list = shown.filter((p) => (p.pool ?? "—") === pool);
             const cut = all || words ? list : list.slice(0, LIMIT);
             return (
               <section key={pool} className="px-4 py-3">
-                <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-neutral-700"><Building2 size={13} className="text-neutral-400" />{pool}
+                <p className="mb-2 flex items-center gap-2 text-xs font-semibold text-[color:var(--j-44546F)]"><Building2 size={13} className="text-[color:var(--j-626F86)]" />{pool}
                   <span className="rounded-full bg-amber-50 px-1.5 text-[11px] font-semibold tabular-nums text-amber-700">{list.length}</span></p>
                 <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
                   {cut.map((d) => (
-                    <li key={d.code} className="flex min-w-0 items-center gap-2 rounded-lg bg-neutral-50 px-2.5 py-1.5 text-xs">
-                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold text-neutral-500 ring-1 ring-neutral-200">
+                    <li key={d.code} className="flex min-w-0 items-center gap-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-2.5 py-1.5 text-xs">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[color:var(--j-626F86)] ring-1 ring-[color:var(--j-DCDFE4)]">
                         {d.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase()}</span>
-                      <span className="min-w-0"><span className="block truncate font-medium text-neutral-800">{d.name}</span><span className="block truncate text-[10px] text-neutral-400">{d.code}</span></span>
+                      <span className="min-w-0"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{d.name}</span><span className="block truncate text-[10px] text-[color:var(--j-626F86)]">{d.code}</span></span>
                     </li>
                   ))}
                 </ul>
-                {cut.length < list.length && <p className="mt-1.5 text-[11px] text-neutral-400">{tr("+{0} more", list.length - cut.length)}</p>}
+                {cut.length < list.length && <p className="mt-1.5 text-[11px] text-[color:var(--j-626F86)]">{tr("+{0} more", list.length - cut.length)}</p>}
               </section>
             );
           })}
         </div>
       )}
       {!words && people.length > LIMIT && (
-        <div className="border-t border-neutral-100 px-4 py-2.5 text-center">
+        <div className="border-t border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-center">
           <Button size="sm" variant="ghost" onClick={() => setAll(!all)}>{all ? tr("Show less") : tr("Show all ({0})", people.length)}</Button>
         </div>
       )}
@@ -233,15 +233,15 @@ function NotStarted({ people }: { people: { code: string; name: string; pool: st
 
 function Kpi({ label, value, tone }: { label: string; value: string; tone?: "amber" }) {
   return (
-    <span className={cx("rounded-lg px-1.5 py-1.5", tone === "amber" ? "bg-amber-50" : "bg-neutral-50")}>
-      <span className="block truncate text-[15px] font-semibold tabular-nums text-neutral-900">{value}</span>
-      <span className="block truncate text-[10px] font-medium uppercase tracking-wide text-neutral-500">{label}</span>
+    <span className={cx("rounded-[3px] px-1.5 py-1.5", tone === "amber" ? "bg-amber-50" : "bg-[color:var(--j-F7F8F9)]")}>
+      <span className="block truncate text-[15px] font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value}</span>
+      <span className="block truncate text-[10px] font-medium uppercase tracking-wide text-[color:var(--j-626F86)]">{label}</span>
     </span>
   );
 }
 
 function Row({ label, value, strong, tone }: { label: string; value: React.ReactNode; strong?: boolean; tone?: string }) {
-  return <li className={cx("flex justify-between gap-3 py-1", strong && "font-semibold text-neutral-900", tone)}><span>{label}</span><span className="tabular-nums">{value}</span></li>;
+  return <li className={cx("flex justify-between gap-3 py-1", strong && "font-semibold text-[color:var(--j-172B4D)]", tone)}><span>{label}</span><span className="tabular-nums">{value}</span></li>;
 }
 
 /** Everything of one shift: the check ins with photo, location and signature, the sales, the deductions (cupping and
@@ -260,70 +260,70 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
         </div>
         {s.slots.length > 0 && (
           <Block title={tr("Areas of the day")}>
-            <ul className="flex flex-wrap gap-1.5">{s.slots.map((x, i) => <li key={i} className="rounded-lg bg-brand-50 px-2 py-1 text-xs text-brand-800"><b className="tabular-nums">{x.start}–{x.end}</b> · {x.area ?? "—"}</li>)}</ul>
+            <ul className="flex flex-wrap gap-1.5">{s.slots.map((x, i) => <li key={i} className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-2 py-1 text-xs text-[color:var(--j-0055CC)]"><b className="tabular-nums">{x.start}–{x.end}</b> · {x.area ?? "—"}</li>)}</ul>
           </Block>
         )}
         <Block title={tr("Check In & Check Out")}>
           <div className="grid gap-3 sm:grid-cols-2">
             {s.checkIns.map((c) => (
-              <section key={c.id} className="rounded-md border border-neutral-200 p-3">
-                <p className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+              <section key={c.id} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
+                <p className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]">
                   {c.kind === "start" ? <LogIn size={14} /> : <LogOut size={14} />}{c.kind === "start" ? tr("Start of shift") : tr("End of shift")}
-                  <span className="ml-auto font-normal tabular-nums text-neutral-500">{time(c.at)}</span></p>
+                  <span className="ml-auto font-normal tabular-nums text-[color:var(--j-626F86)]">{time(c.at)}</span></p>
                 {c.hasPhoto ? (
-                  <a href={photoUrl("check-in", c.id)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-lg">
+                  <a href={photoUrl("check-in", c.id)} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-[3px]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={thumb(photoUrl("check-in", c.id), 480)} decoding="async" alt={tr("Photo")} className="h-40 w-full bg-neutral-100 object-cover" loading="lazy" />
+                    <img src={thumb(photoUrl("check-in", c.id), 480)} decoding="async" alt={tr("Photo")} className="h-40 w-full bg-[color:var(--j-091E420F)] object-cover" loading="lazy" />
                   </a>
                 ) : <p className="mt-2 flex items-center gap-1 text-xs text-red-600"><Camera size={12} />{tr("Missing")}</p>}
                 {c.lat !== null && c.lng !== null && (
-                  <a href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-brand-700"><MapPin size={12} />{tr("Open the map")}</a>
+                  <a href={`https://maps.google.com/?q=${c.lat},${c.lng}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-[color:var(--j-0C66E4)]"><MapPin size={12} />{tr("Open the map")}</a>
                 )}
-                <p className="mt-1 text-xs text-neutral-600">{tr("Stock")}: {Object.entries(c.stock).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}</p>
-                {c.note && <p className="mt-1 text-xs text-neutral-500">“{c.note}”</p>}
+                <p className="mt-1 text-xs text-[color:var(--j-44546F)]">{tr("Stock")}: {Object.entries(c.stock).map(([k, v]) => `${k} ${v}`).join(" · ") || "—"}</p>
+                {c.note && <p className="mt-1 text-xs text-[color:var(--j-626F86)]">“{c.note}”</p>}
                 {c.hasSignature && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photoUrl("signature", c.id)} alt={tr("Signature")} className="mt-2 h-14 rounded-md border border-neutral-100 bg-white object-contain" loading="lazy" />
+                  <img src={photoUrl("signature", c.id)} alt={tr("Signature")} className="mt-2 h-14 rounded-[3px] border border-[color:var(--j-F1F2F4)] bg-white object-contain" loading="lazy" />
                 )}
               </section>
             ))}
-            {s.checkIns.length === 1 && <p className="flex items-center justify-center rounded-md border border-dashed border-neutral-200 p-3 text-xs text-neutral-400">{tr("Not checked out yet")}</p>}
+            {s.checkIns.length === 1 && <p className="flex items-center justify-center rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] p-3 text-xs text-[color:var(--j-626F86)]">{tr("Not checked out yet")}</p>}
           </div>
         </Block>
         <div className="grid gap-4 lg:grid-cols-2">
           <Block title={tr("Sales per menu")}>
-            {s.recap.perMenu.length === 0 ? <p className="text-xs text-neutral-400">{tr("No sale yet")}</p> : (
-              <ul className="divide-y divide-neutral-100 text-xs text-neutral-700">
+            {s.recap.perMenu.length === 0 ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("No sale yet")}</p> : (
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] text-xs text-[color:var(--j-44546F)]">
                 {s.recap.perMenu.map((m) => <Row key={m.code} label={`${m.name} × ${m.qty}`} value={rupiah(m.total)} />)}
                 <Row strong label={tr("Total")} value={rupiah(s.recap.total)} />
                 <Row label={tr("Cash")} value={rupiah(s.recap.cash)} /><Row label="QRIS" value={rupiah(s.recap.qris)} />
                 {s.recap.voided > 0 && <Row label={tr("Voided bills")} value={s.recap.voided} tone="text-amber-700" />}
-                {!!s.recap.recapCups && <Row label={tr("Recap at the pool (from the leftover)")} value={tr("{0} cups", s.recap.recapCups) + " · " + rupiah(s.recap.recapTotal ?? 0)} tone="text-brand-700" />}
+                {!!s.recap.recapCups && <Row label={tr("Recap at the pool (from the leftover)")} value={tr("{0} cups", s.recap.recapCups) + " · " + rupiah(s.recap.recapTotal ?? 0)} tone="text-[color:var(--j-0C66E4)]" />}
               </ul>
             )}
           </Block>
           <Block title={tr("Deductions (cupping & waste)")}>
-            {s.deductions.lines.length === 0 ? <p className="text-xs text-neutral-400">{tr("No cupping or waste")}</p> : (
+            {s.deductions.lines.length === 0 ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("No cupping or waste")}</p> : (
               <>
                 <table className="w-full text-xs">
-                  <thead className="text-left text-xs capitalize text-neutral-400"><tr><th className="py-1">{tr("Menu")}</th><th>{tr("Type")}</th><th className="text-right">{tr("Assigned")}</th><th className="text-right">{tr("Used")}</th><th className="text-right">{tr("Value")}</th></tr></thead>
-                  <tbody className="divide-y divide-neutral-100 text-neutral-700">
+                  <thead className="text-left text-xs capitalize text-[color:var(--j-626F86)]"><tr><th className="py-1">{tr("Menu")}</th><th>{tr("Type")}</th><th className="text-right">{tr("Assigned")}</th><th className="text-right">{tr("Used")}</th><th className="text-right">{tr("Value")}</th></tr></thead>
+                  <tbody className="divide-y divide-[color:var(--j-F1F2F4)] text-[color:var(--j-44546F)]">
                     {s.deductions.lines.map((d) => (
                       <tr key={`${d.kind}:${d.code}`}><td className="py-1.5">{d.name}</td><td><Badge tone={d.kind === "cupping" ? "violet" : "amber"}>{d.kind === "cupping" ? tr("Cupping") : tr("Waste")}</Badge></td>
                         <td className="text-right tabular-nums">{d.assigned ?? "—"}</td><td className="text-right tabular-nums">{d.qty}</td><td className="text-right tabular-nums">{rupiah(d.value)}</td></tr>))}
                   </tbody>
                 </table>
-                <ul className="mt-2 border-t border-neutral-100 pt-1 text-xs text-neutral-700">
+                <ul className="mt-2 border-t border-[color:var(--j-F1F2F4)] pt-1 text-xs text-[color:var(--j-44546F)]">
                   <Row label={tr("Cupping")} value={rupiah(s.deductions.cupping)} /><Row label={tr("Waste")} value={rupiah(s.deductions.waste)} />
                   <Row strong label={tr("Deducted from the sales")} value={rupiah(s.deductions.value)} />
                 </ul>
-                <p className="mt-1 text-[11px] text-neutral-400">{tr("Valued at the menu price; not counted as a sale, deducted as cupping / waste")}</p>
+                <p className="mt-1 text-[11px] text-[color:var(--j-626F86)]">{tr("Valued at the menu price; not counted as a sale, deducted as cupping / waste")}</p>
               </>
             )}
           </Block>
           <Block title={tr("Cash")}>
-            {s.recap.cashActual === null ? <p className="text-xs text-neutral-400">{tr("Counted at the end of the shift")}</p> : (
-              <ul className="divide-y divide-neutral-100 text-xs text-neutral-700">
+            {s.recap.cashActual === null ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("Counted at the end of the shift")}</p> : (
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] text-xs text-[color:var(--j-44546F)]">
                 <Row label={tr("Cash sales")} value={rupiah(s.recap.cash)} /><Row label={tr("Spent from the cash")} value={`− ${rupiah(s.recap.cashSpent)}`} />
                 <Row label={tr("Cash to Hand Over")} value={rupiah(s.recap.cashExpected)} /><Row label={tr("Cash counted")} value={rupiah(s.recap.cashActual)} />
                 <Row strong label={tr("Balance")} value={rupiah(s.recap.balance ?? 0)} tone={(s.recap.balance ?? 0) < 0 ? "text-red-600" : undefined} />
@@ -331,15 +331,15 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
             )}
           </Block>
           <Block title={tr("Stock & accessories")}>
-            <ul className="divide-y divide-neutral-100 text-xs text-neutral-700">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] text-xs text-[color:var(--j-44546F)]">
               <Row label={tr("Start stock")} value={`${cups(s.startStock)} ${tr("cups")}`} />
               <Row label={tr("Reloads received")} value={`${s.recap.reloaded} ${tr("cups")}`} />
               {s.status === "open" && <Row label={tr("On the Fleet")} value={`${cups(s.stock)} ${tr("cups")}`} />}
               <Row label={tr("Requests")} value={rupiah(s.recap.requested)} />
             </ul>
-            {diff && <p className="mt-2 rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-700">{tr("Stock difference")}: {Object.entries(diff).map(([k, v]) => `${k} ${v > 0 ? "+" : ""}${v}`).join(", ")}{s.endNote ? ` · ${s.endNote}` : ""}</p>}
-            <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{tr("Accessories carried")}</p>
-            <p className="text-xs text-neutral-700">{s.accessories.length ? s.accessories.map((x) => `${x.name} × ${x.qty}`).join(" · ") : "—"}</p>
+            {diff && <p className="mt-2 rounded-[3px] bg-red-50 px-2 py-1.5 text-xs text-red-700">{tr("Stock difference")}: {Object.entries(diff).map(([k, v]) => `${k} ${v > 0 ? "+" : ""}${v}`).join(", ")}{s.endNote ? ` · ${s.endNote}` : ""}</p>}
+            <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Accessories carried")}</p>
+            <p className="text-xs text-[color:var(--j-44546F)]">{s.accessories.length ? s.accessories.map((x) => `${x.name} × ${x.qty}`).join(" · ") : "—"}</p>
           </Block>
         </div>
       </div>
@@ -349,8 +349,8 @@ function ShiftDrawer({ s, onClose }: { s: Shift; onClose: () => void }) {
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-md border border-neutral-200 bg-white p-3.5">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{title}</p>
+    <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-3.5">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{title}</p>
       {children}
     </section>
   );
@@ -369,13 +369,13 @@ function Reloads({ data }: { data: Monitor }) {
   return (
     <div>
       {data.reloads.length === 0 ? <Empty title={tr("No reload on this day")} /> : (
-        <ul className="divide-y divide-neutral-100">
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
           {paged.rows.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
               <span className="min-w-0">
-                <span className="block font-medium text-neutral-900">{name(r.driver)} · {cups(r.lines)} {tr("cups")} <span className="font-normal text-neutral-400">{time(r.at)}</span></span>
-                <span className="text-xs text-neutral-500">{Object.entries(r.lines).map(([k, v]) => `${k} ${v}`).join(" · ")}{r.note ? ` · ${r.note}` : ""}</span>
-                {r.decisionNote && <span className="block text-xs text-neutral-400">{r.decisionNote}</span>}
+                <span className="block font-medium text-[color:var(--j-172B4D)]">{name(r.driver)} · {cups(r.lines)} {tr("cups")} <span className="font-normal text-[color:var(--j-626F86)]">{time(r.at)}</span></span>
+                <span className="text-xs text-[color:var(--j-626F86)]">{Object.entries(r.lines).map(([k, v]) => `${k} ${v}`).join(" · ")}{r.note ? ` · ${r.note}` : ""}</span>
+                {r.decisionNote && <span className="block text-xs text-[color:var(--j-626F86)]">{r.decisionNote}</span>}
               </span>
               <Badge tone={RELOAD[r.status].tone}>{RELOAD[r.status].label()}{r.receivedAt ? ` ${time(r.receivedAt)}` : ""}</Badge>
             </li>
@@ -383,7 +383,7 @@ function Reloads({ data }: { data: Monitor }) {
         </ul>
       )}
       <CotrPager paged={paged} className="px-4 pb-3" />
-      <p className="border-t border-neutral-100 px-4 py-2.5 text-[11px] text-neutral-500 sm:px-5">{tr("Decided and settled by the storage team in Storage & Assignment")}</p>
+      <p className="border-t border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-[11px] text-[color:var(--j-626F86)] sm:px-5">{tr("Decided and settled by the storage team in Storage & Assignment")}</p>
     </div>
   );
 }

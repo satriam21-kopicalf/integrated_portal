@@ -103,14 +103,14 @@ export function EsbCotr() {
             <table className="m-cards w-full text-sm">
               <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Document")}</th><th className="px-3 py-2.5">{tr("Day")}</th><th className="px-3 py-2.5">{tr("Branch")}</th>
                 <th className="px-3 py-2.5">{tr("Counterparty")}</th><th className="px-3 py-2.5">{tr("Note")}</th><th className="px-3 py-2.5 text-right">{tr("Total")}</th><th className="px-3 py-2">{tr("Status")}</th></tr></thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {paged.rows.map((r) => (
-                  <tr key={r.docNum} className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(r.docNum)}>
-                    <td className="px-3 py-2 font-mono text-xs font-semibold text-neutral-900">{r.docNum}<span className="block font-sans text-[11px] font-normal text-neutral-400">{tr("{0} lines", r.lines ?? 0)}</span></td>
+                  <tr key={r.docNum} className="cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => setOpen(r.docNum)}>
+                    <td className="px-3 py-2 font-mono text-xs font-semibold text-[color:var(--j-172B4D)]">{r.docNum}<span className="block font-sans text-[11px] font-normal text-[color:var(--j-626F86)]">{tr("{0} lines", r.lines ?? 0)}</span></td>
                     <td className="px-3 py-2.5 tabular-nums">{dmyOf(r.day)}</td>
                     <td className="px-3 py-2.5">{r.branch ?? "—"}</td>
                     <td className="px-3 py-2.5">{r.counterparty ?? "—"}</td>
-                    <td className="max-w-[260px] truncate px-3 py-2.5 text-xs text-neutral-600" title={r.info ?? undefined}>{r.info ?? "—"}</td>
+                    <td className="max-w-[260px] truncate px-3 py-2.5 text-xs text-[color:var(--j-44546F)]" title={r.info ?? undefined}>{r.info ?? "—"}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{r.total !== null ? rupiah(r.total) : "—"}</td>
                     <td className="px-3 py-2">{r.status ? <Badge tone={/author|approv|close|done/i.test(r.status) ? "green" : "slate"}>{r.status}</Badge> : "—"}</td>
                   </tr>
@@ -138,20 +138,20 @@ function DocDrawer({ module, docNum, onClose }: { module: string; docNum: string
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             {([[tr("Branch"), d.branch], [tr("Location"), d.location], [tr("Counterparty"), d.counterparty], [tr("Reference"), d.ref], [tr("Type"), d.type],
               [tr("Status"), d.status], [tr("Total"), d.total !== null ? rupiah(d.total) : null], [tr("Created by"), d.by]] as [string, string | null][])
-              .filter(([, v]) => v).map(([k, v]) => <div key={k}><dt className="text-[11px] text-neutral-500">{k}</dt><dd className="font-medium text-neutral-900">{v}</dd></div>)}
+              .filter(([, v]) => v).map(([k, v]) => <div key={k}><dt className="text-[11px] text-[color:var(--j-626F86)]">{k}</dt><dd className="font-medium text-[color:var(--j-172B4D)]">{v}</dd></div>)}
           </dl>
-          {d.info && <p className="rounded-lg bg-neutral-50 px-3 py-2 text-sm text-neutral-700">{d.info}</p>}
+          {d.info && <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-sm text-[color:var(--j-44546F)]">{d.info}</p>}
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="text-neutral-500"><tr><th className="py-1.5 text-left">{tr("Product")}</th><th className="py-1.5 text-right">{tr("Qty")}</th><th className="py-1.5 text-left pl-2">{tr("Unit")}</th>
+              <thead className="text-[color:var(--j-626F86)]"><tr><th className="py-1.5 text-left">{tr("Product")}</th><th className="py-1.5 text-right">{tr("Qty")}</th><th className="py-1.5 text-left pl-2">{tr("Unit")}</th>
                 <th className="py-1.5 text-right">{tr("Price")}</th><th className="py-1.5 text-right">{tr("Total")}</th></tr></thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {d.lines.map((l) => (
                   <tr key={`${l.type}:${l.no}`}>
-                    <td className="py-1.5 pr-2"><span className="font-medium text-neutral-900">{l.product ?? l.notes ?? "—"}</span>
-                      <span className="block text-[10px] text-neutral-400">{[l.code, l.purpose, l.type !== "detail" ? l.type : null].filter(Boolean).join(" · ")}</span></td>
+                    <td className="py-1.5 pr-2"><span className="font-medium text-[color:var(--j-172B4D)]">{l.product ?? l.notes ?? "—"}</span>
+                      <span className="block text-[10px] text-[color:var(--j-626F86)]">{[l.code, l.purpose, l.type !== "detail" ? l.type : null].filter(Boolean).join(" · ")}</span></td>
                     <td className="py-1.5 text-right tabular-nums">{num(l.qty)}</td>
-                    <td className="py-1.5 pl-2 text-neutral-500">{l.uom ?? ""}</td>
+                    <td className="py-1.5 pl-2 text-[color:var(--j-626F86)]">{l.uom ?? ""}</td>
                     <td className="py-1.5 text-right tabular-nums">{l.price !== null ? num(l.price) : "—"}</td>
                     <td className="py-1.5 text-right tabular-nums">{l.total !== null ? num(l.total) : "—"}</td>
                   </tr>
@@ -159,7 +159,7 @@ function DocDrawer({ module, docNum, onClose }: { module: string; docNum: string
               </tbody>
             </table>
           </div>
-          {d.synced && <p className="text-[11px] text-neutral-400">{tr("Synced {0}", wibDateTime(d.synced))}</p>}
+          {d.synced && <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("Synced {0}", wibDateTime(d.synced))}</p>}
         </div>
       )}
     </Drawer>

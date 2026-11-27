@@ -37,13 +37,13 @@ export function FlowNav<K extends string>({ groups, value, onChange, label }: { 
           const on = i === at;
           return (
             <button key={g.key} type="button" onClick={() => onChange(g.tabs[0].key)} aria-current={on ? "step" : undefined}
-              className={cx("flex w-[13.5rem] flex-none items-start sm:w-auto sm:min-w-[10.5rem] sm:flex-1 gap-2.5 rounded-xl px-3 py-2.5 text-left ring-1 transition-colors",
-                on ? "bg-brand-700 text-white shadow-sm ring-brand-700" : "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-50")}>
+              className={cx("flex w-[13.5rem] flex-none items-start sm:w-auto sm:min-w-[10.5rem] sm:flex-1 gap-2.5 rounded-[3px] px-3 py-2.5 text-left ring-1 transition-colors",
+                on ? "bg-[color:var(--j-0C66E4)] text-white ring-[color:var(--j-388BFF)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
               <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums",
-                on ? "bg-white text-brand-700" : "bg-neutral-100 text-neutral-600")}>{i + 1}</span>
+                on ? "bg-white text-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>{i + 1}</span>
               <span className="min-w-0">
                 <span className="block text-[13px] font-semibold leading-tight">{g.title}</span>
-                <span className={cx("mt-0.5 block text-[11px] leading-snug", on ? "text-white/75" : "text-neutral-500")}>{g.when}</span>
+                <span className={cx("mt-0.5 block text-[11px] leading-snug", on ? "text-white/75" : "text-[color:var(--j-626F86)]")}>{g.when}</span>
               </span>
             </button>
           );

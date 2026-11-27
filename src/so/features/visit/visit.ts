@@ -111,7 +111,7 @@ export type FormState = { definition: Definition; user: { id: string; username: 
 export const RATINGS: Rating[] = ["UNDER", "MEET", "EXCEED"];
 export const RATING_STYLE: Record<Rating, { on: string; text: string; dot: string; bar: string }> = {
   UNDER: { on: "border-red-500 bg-red-500 text-white", text: "text-red-700", dot: "bg-red-500", bar: "bg-red-500" },
-  MEET: { on: "border-brand-600 bg-brand-600 text-white", text: "text-brand-700", dot: "bg-brand-600", bar: "bg-brand-500" },
+  MEET: { on: "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white", text: "text-[color:var(--j-0C66E4)]", dot: "bg-[color:var(--j-0C66E4)]", bar: "bg-[color:var(--j-388BFF)]" },
   EXCEED: { on: "border-emerald-600 bg-emerald-600 text-white", text: "text-emerald-700", dot: "bg-emerald-500", bar: "bg-emerald-500" },
 };
 export const ratingLabel = (r: Rating) => ({ UNDER: tr("Under"), MEET: tr("Meet"), EXCEED: tr("Exceed") })[r];
@@ -136,4 +136,4 @@ export function missingOf(d: Definition, answers: Record<string, Answer>, photos
 }
 
 /** Score colour: green from 90 %, amber from 75 %, red below. */
-export const scoreTone = (s: number | null) => s === null ? "text-neutral-400" : s >= 90 ? "text-emerald-600" : s >= 75 ? "text-amber-600" : "text-red-600";
+export const scoreTone = (s: number | null) => s === null ? "text-[color:var(--j-626F86)]" : s >= 90 ? "text-emerald-600" : s >= 75 ? "text-amber-600" : "text-red-600";

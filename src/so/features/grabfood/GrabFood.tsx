@@ -14,7 +14,7 @@ import {
   UtensilsCrossed, X,
 } from "lucide-react";
 import {
-  Badge, Button, Empty, ErrorState, Input, PageNav, SkeletonRows, type Tone, cx, fmtNumber, usePaged, useToast,
+  Badge, Button, Empty, ErrorState, Input, PageNav, Pager, SkeletonRows, type Tone, cx, fmtNumber, usePaged, useToast,
 } from "@/so/ui";
 import { Page, Panel, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { Tabs, kcTable } from "@/components/kc";
@@ -93,13 +93,13 @@ const place = (name: string) => name.replace(/^kopi\s*calf(\s+to\s+go)?[\s-]*/i,
 const byName = (a: string, b: string) => place(a).localeCompare(place(b), "id");
 
 function Stars({ value, size = 13 }: { value: number | null; size?: number }) {
-  if (value === null) return <span className="text-xs text-neutral-400">—</span>;
+  if (value === null) return <span className="text-xs text-[color:var(--j-626F86)]">—</span>;
   return (
     <span className="inline-flex items-center gap-1.5" aria-label={tr("{0} of 5 stars", value)}>
-      <span className="font-semibold tabular-nums text-neutral-900">{value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
+      <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
       <span className="inline-flex" aria-hidden>
         {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-amber-400 text-amber-400" : value >= i - 0.75 ? "fill-amber-200 text-amber-400" : "text-neutral-300"} />
+          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-amber-400 text-amber-400" : value >= i - 0.75 ? "fill-amber-200 text-amber-400" : "text-[color:var(--j-8590A2)]"} />
         ))}
       </span>
     </span>
@@ -107,7 +107,7 @@ function Stars({ value, size = 13 }: { value: number | null; size?: number }) {
 }
 
 function StatusBadge({ s, inHours }: { s: Status; inHours?: boolean }) {
-  if (s.isOpen === null) return <span className="text-xs text-neutral-400">—</span>;
+  if (s.isOpen === null) return <span className="text-xs text-[color:var(--j-626F86)]">—</span>;
   if (!s.isOpen) {
     const paused = (s.label || "").toLowerCase().includes("pause");
     // closed or paused while its opening hours say open: red; outside its hours a closed outlet is normal
@@ -122,11 +122,11 @@ function StorePhoto({ o, size = 36 }: { o: Pick<Outlet, "photoUrl" | "branchName
   const [broken, setBroken] = useState(false);
   const style = { width: size, height: size };
   if (!o.photoUrl || broken) {
-    return <span style={style} className="flex flex-shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-xs font-bold text-emerald-700">
+    return <span style={style} className="flex flex-shrink-0 items-center justify-center rounded-[3px] bg-emerald-50 text-xs font-bold text-emerald-700">
       {(o.branchName.replace(/kopi calf( to go)?[\s-]*/i, "")[0] || "K").toUpperCase()}</span>;
   }
   // eslint-disable-next-line @next/next/no-img-element -- merchant photo from the Grab CDN
-  return <img src={o.photoUrl} alt="" style={style} loading="lazy" onError={() => setBroken(true)} className="flex-shrink-0 rounded-lg border border-neutral-200 bg-neutral-100 object-cover" />;
+  return <img src={o.photoUrl} alt="" style={style} loading="lazy" onError={() => setBroken(true)} className="flex-shrink-0 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)] object-cover" />;
 }
 
 const MENU_TONE: Record<MenuItem["status"], Tone> = { AVAILABLE: "green", OUT_OF_STOCK: "amber", OFF: "red" };
@@ -172,7 +172,7 @@ export default function GrabFood() {
     };
   }, [all]);
   const current = all.find((o) => o.merchantId === open) ?? null;
-  const iconBtn = "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-900";
+  const iconBtn = "inline-flex h-9 w-9 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] transition-colors hover:bg-[color:var(--j-F7F8F9)] hover:text-[color:var(--j-172B4D)]";
   const tabs = <PanelTabs view={view} onView={setView} counts={{ outlets: sum.outlets, reviews: sum.reviews, menu: sum.outOfStock + sum.off }} />;
 
   return (
@@ -208,7 +208,7 @@ export default function GrabFood() {
       }>
 
       {res?.canEdit && res.session && !res.session.valid && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-[3px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
           <span className="min-w-0 flex-1">{res.session.present ? tr("The Grab session has ended: the data stops updating until it is refreshed.") : tr("No Grab session yet: add one to start the updates.")}</span>
           <Button size="sm" onClick={() => setSessionOpen(true)}>{tr("Refresh")}</Button>
@@ -245,7 +245,7 @@ function PanelTabs({ view, onView, counts }: { view: View; onView: (v: View) => 
 }
 
 /** Two lines in a table cell: the value, and a small note under it. */
-function Cell({ children, note, noteClass = "text-neutral-400", align = "left" }: { children: ReactNode; note?: ReactNode; noteClass?: string; align?: "left" | "right" }) {
+function Cell({ children, note, noteClass = "text-[color:var(--j-626F86)]", align = "left" }: { children: ReactNode; note?: ReactNode; noteClass?: string; align?: "left" | "right" }) {
   return (
     <span className={cx("flex flex-col gap-0.5", align === "right" ? "items-end" : "items-start")}>
       <span className="tabular-nums">{children}</span>
@@ -331,17 +331,17 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
           <Empty icon={<Store size={28} />} title={all.length ? tr("Nothing matches the search or filters") : tr("No GrabFood outlet yet")} />
         ) : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
               {!res ? Array.from({ length: 6 }, (_, i) => <li key={i} className="px-4 py-3"><SkeletonList rows={3} /></li>) : paged.rows.map((o) => (
                 <li key={o.merchantId}>
-                  <button type="button" onClick={() => onOpen(o.merchantId)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+                  <button type="button" onClick={() => onOpen(o.merchantId)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
                     <StorePhoto o={o} size={40} />
                     <span className="min-w-0 flex-1 space-y-1">
                       <span className="flex items-start justify-between gap-2">
-                        <span className="min-w-0 truncate text-sm font-medium text-neutral-900">{o.branchName}</span>
+                        <span className="min-w-0 truncate text-sm font-medium text-[color:var(--j-172B4D)]">{o.branchName}</span>
                         <StatusBadge s={o.status} inHours={o.hours.closedInHours} />
                       </span>
-                      <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
+                      <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--j-626F86)]">
                         <Stars value={scoreOf(o)} size={12} />
                         {o.hours.week.length > 0 && <span className="tabular-nums">{rangesText(o.hours.today)}</span>}
                         {(o.hours.closedMinutesToday ?? 0) > 0 && <span className="text-red-600">{tr("closed {0} in hours", fmtDuration(o.hours.closedMinutesToday!))}</span>}
@@ -364,15 +364,15 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                     <th className={cx(TH, "text-right")}>{tr("Menu Unavailable")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {!res ? <SkeletonRows cols={6} /> : paged.rows.map((o) => (
-                    <tr key={o.merchantId} onClick={() => onOpen(o.merchantId)} className="cursor-pointer transition-colors hover:bg-brand-50/40">
+                    <tr key={o.merchantId} onClick={() => onOpen(o.merchantId)} className="cursor-pointer transition-colors hover:bg-[color:var(--j-E9F2FF)]">
                       <td className={cx(TD, "max-w-[20rem]")}>
                         <span className="flex items-center gap-3">
                           <StorePhoto o={o} />
                           <span className="min-w-0">
-                            <span className="block truncate font-medium text-neutral-900">{o.branchName}</span>
-                            <span className="block truncate text-xs text-neutral-400">
+                            <span className="block truncate font-medium text-[color:var(--j-172B4D)]">{o.branchName}</span>
+                            <span className="block truncate text-xs text-[color:var(--j-626F86)]">
                               {o.branchCode ?? <span className="text-amber-700">{tr("not mapped to a branch")}</span>}{o.cityName ? ` · ${o.cityName}` : ""}
                             </span>
                           </span>
@@ -382,15 +382,15 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                         <Cell note={o.hours.week.length ? rangesText(o.hours.today) : undefined}><StatusBadge s={o.status} inHours={o.hours.closedInHours} /></Cell>
                       </td>
                       <td className={cx(TD, "whitespace-nowrap text-right")}>
-                        {o.hours.closedMinutesToday ? <span className="font-semibold tabular-nums text-red-600">{fmtDuration(o.hours.closedMinutesToday)}</span> : <span className="text-neutral-300">—</span>}
+                        {o.hours.closedMinutesToday ? <span className="font-semibold tabular-nums text-red-600">{fmtDuration(o.hours.closedMinutesToday)}</span> : <span className="text-[color:var(--j-8590A2)]">—</span>}
                       </td>
                       <td className={cx(TD, "whitespace-nowrap")}>
                         <Cell note={o.rating.count ? tr("{0} ratings", fmtNumber(o.rating.count)) : undefined}><Stars value={scoreOf(o)} /></Cell>
                       </td>
                       <td className={cx(TD, "whitespace-nowrap text-right")}>
-                        <Cell align="right" noteClass={o.reviews30d.low ? "font-medium text-red-600" : "text-neutral-400"}
+                        <Cell align="right" noteClass={o.reviews30d.low ? "font-medium text-red-600" : "text-[color:var(--j-626F86)]"}
                           note={o.reviews30d.low ? tr("{0} ≤2★ in 30 days", o.reviews30d.low) : o.reviews30d.count ? tr("{0} in 30 days", o.reviews30d.count) : undefined}>
-                          <span className="text-neutral-800">{fmtNumber(o.reviewsAll.count)}</span>
+                          <span className="text-[color:var(--j-172B4D)]">{fmtNumber(o.reviewsAll.count)}</span>
                         </Cell>
                       </td>
                       <td className={cx(TD, "whitespace-nowrap text-right")}>
@@ -398,7 +398,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                           <Cell align="right" note={tr("{0} out of stock · {1} off", o.menu.outOfStock, o.menu.off)}>
                             <span className="font-semibold text-amber-700">{fmtNumber(unavailable(o))}</span>
                           </Cell>
-                        ) : <span className="text-neutral-300">—</span>}
+                        ) : <span className="text-[color:var(--j-8590A2)]">—</span>}
                       </td>
                     </tr>
                   ))}
@@ -415,7 +415,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
 
 /** Outlets for a SearchChoice: sorted on the location, with a quiet count on the right. */
 const outletChoices = (outlets: Outlet[], count: (o: Outlet) => number) => [...outlets].sort((a, b) => byName(a.branchName, b.branchName))
-  .map((o) => ({ value: o.merchantId, label: o.branchName, meta: count(o) ? <span className="flex-shrink-0 text-xs tabular-nums text-neutral-400">{fmtNumber(count(o))}</span> : undefined }));
+  .map((o) => ({ value: o.merchantId, label: o.branchName, meta: count(o) ? <span className="flex-shrink-0 text-xs tabular-nums text-[color:var(--j-626F86)]">{fmtNumber(count(o))}</span> : undefined }));
 
 const choicesOf = (map: Record<string, { label: () => string }>, all: string) =>
   [{ value: "", label: all }, ...Object.keys(map).map((k) => ({ value: k, label: map[k].label() }))];
@@ -470,15 +470,15 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
           <StorePhoto o={o} size={56} />
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2"><Stars value={score} size={16} />
-              {o.rating.count ? <span className="text-sm text-neutral-500">{tr("{0} ratings", fmtNumber(o.rating.count))}</span> : null}</div>
+              {o.rating.count ? <span className="text-sm text-[color:var(--j-626F86)]">{tr("{0} ratings", fmtNumber(o.rating.count))}</span> : null}</div>
             <div className="flex flex-wrap items-center gap-2"><StatusBadge s={o.status} inHours={o.hours.closedInHours} />
-              <span className="text-xs text-neutral-400">{o.status.isOpen && o.status.openUntil ? `${tr("open until {0}", fmtTime(o.status.openUntil))} · ` : ""}{tr("checked {0}", timeAgo(o.status.checkedAt))}</span></div>
+              <span className="text-xs text-[color:var(--j-626F86)]">{o.status.isOpen && o.status.openUntil ? `${tr("open until {0}", fmtTime(o.status.openUntil))} · ` : ""}{tr("checked {0}", timeAgo(o.status.checkedAt))}</span></div>
           </div>
         </div>
-        {o.address && <p className="flex items-start gap-1.5 rounded-md border border-neutral-200 p-3 text-sm text-neutral-700"><MapPin size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{o.address}</p>}
+        {o.address && <p className="flex items-start gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm text-[color:var(--j-44546F)]"><MapPin size={15} className="mt-0.5 flex-shrink-0 text-[color:var(--j-626F86)]" />{o.address}</p>}
 
         {(o.hours.closedInHours || (o.hours.closedMinutesToday ?? 0) > 0) && (
-          <p className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-800">
+          <p className="flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2.5 text-sm text-red-800">
             <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
             <span>{o.hours.closedInHours ? tr("Not open now although its opening hours say open.") : ""} {(o.hours.closedMinutesToday ?? 0) > 0 ? tr("Closed {0} during its opening hours today.", fmtDuration(o.hours.closedMinutesToday!)) : ""}</span>
           </p>
@@ -486,14 +486,14 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         {o.hours.week.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Opening Hours on GrabFood")}</h3>
-            <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
+            <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Opening Hours on GrabFood")}</h3>
+            <dl className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
               {o.hours.week.map((r, i) => {
                 const today = i === new Date(now + 7 * 3600e3).getUTCDay();
                 return (
-                  <div key={i} className={cx("flex justify-between gap-3 px-3 py-1.5", today && "bg-brand-50/60 font-medium")}>
-                    <dt className={today ? "text-neutral-900" : "text-neutral-500"}>{dayName(i)}</dt>
-                    <dd className="tabular-nums text-neutral-800">{rangesText(r)}</dd>
+                  <div key={i} className={cx("flex justify-between gap-3 px-3 py-1.5", today && "bg-[color:var(--j-E9F2FF)] font-medium")}>
+                    <dt className={today ? "text-[color:var(--j-172B4D)]" : "text-[color:var(--j-626F86)]"}>{dayName(i)}</dt>
+                    <dd className="tabular-nums text-[color:var(--j-172B4D)]">{rangesText(r)}</dd>
                   </div>
                 );
               })}
@@ -506,12 +506,12 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         {dist.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Rating Distribution")}</h3>
-            <ul className="space-y-1 rounded-md border border-neutral-200 p-3">
+            <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Rating Distribution")}</h3>
+            <ul className="space-y-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
               {dist.map((d) => (
-                <li key={d.score} className="flex items-center gap-2 text-xs text-neutral-600">
+                <li key={d.score} className="flex items-center gap-2 text-xs text-[color:var(--j-44546F)]">
                   <span className="w-6 tabular-nums">{d.score}★</span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-amber-400" style={{ width: `${Math.min(100, d.countPercentage)}%` }} /></span>
+                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-amber-400" style={{ width: `${Math.min(100, d.countPercentage)}%` }} /></span>
                   <span className="w-10 text-right tabular-nums">{Math.round(d.countPercentage)}%</span>
                 </li>
               ))}
@@ -521,34 +521,34 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold capitalize text-neutral-500">{tr("Menu Unavailable")} ({fmtNumber(unavailable(o))})</h3>
-            {unavailable(o) > 0 && <button type="button" onClick={onMenu} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
+            <h3 className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Menu Unavailable")} ({fmtNumber(unavailable(o))})</h3>
+            {unavailable(o) > 0 && <button type="button" onClick={onMenu} className="text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline">{tr("Show All")}</button>}
           </div>
           {items === null ? <SkeletonList rows={3} /> : items.length === 0
-            ? <p className="rounded-md border border-dashed border-neutral-200 px-3 py-5 text-center text-sm text-neutral-400">{o.menu.syncedAt ? tr("Everything on the menu is available") : tr("The menu has not been read yet")}</p>
+            ? <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-5 text-center text-sm text-[color:var(--j-626F86)]">{o.menu.syncedAt ? tr("Everything on the menu is available") : tr("The menu has not been read yet")}</p>
             : (
-              <ul className="divide-y divide-neutral-100 overflow-hidden rounded-md border border-neutral-200">
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                 {items.slice(0, 8).map((i) => (
                   <li key={i.itemId} className="flex items-center gap-3 px-3 py-2">
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm text-neutral-900">{i.name}</span>
-                      <span className="block truncate text-[11px] text-neutral-400">{[i.kind === "modifier" ? tr("Add-on") : null, i.category].filter(Boolean).join(" · ")}</span>
+                      <span className="block truncate text-sm text-[color:var(--j-172B4D)]">{i.name}</span>
+                      <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{[i.kind === "modifier" ? tr("Add-on") : null, i.category].filter(Boolean).join(" · ")}</span>
                     </span>
                     <Badge tone={MENU_TONE[i.status]}>{menuLabel(i.status)}</Badge>
                   </li>
                 ))}
-                {items.length > 8 && <li className="px-3 py-2 text-center text-xs text-neutral-500">{tr("and {0} more", items.length - 8)}</li>}
+                {items.length > 8 && <li className="px-3 py-2 text-center text-xs text-[color:var(--j-626F86)]">{tr("and {0} more", items.length - 8)}</li>}
               </ul>
             )}
         </section>
 
         <section>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold capitalize text-neutral-500">{tr("Latest Reviews")} ({fmtNumber(o.reviewsAll.count)})</h3>
-            {o.reviewsAll.count > 0 && <button type="button" onClick={onReviews} className="text-xs font-medium text-brand-700 hover:underline">{tr("Show All")}</button>}
+            <h3 className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Latest Reviews")} ({fmtNumber(o.reviewsAll.count)})</h3>
+            {o.reviewsAll.count > 0 && <button type="button" onClick={onReviews} className="text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline">{tr("Show All")}</button>}
           </div>
           {latest === null ? <SkeletonList rows={3} /> : latest.length === 0
-            ? <p className="rounded-md border border-dashed border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No review yet")}</p>
+            ? <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr("No review yet")}</p>
             : <ul className="space-y-2">{latest.map((r) => <li key={r.reviewId}><ReviewItem r={r} onOpen={() => onPreview(r)} /></li>)}</ul>}
         </section>
 
@@ -577,9 +577,9 @@ function BranchPicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
   const choices = (options ?? []).filter((b) => !b.usedBy || b.usedBy === o.merchantId)
     .map((b) => ({ value: b.code, label: `${b.name} (${b.code})` }));
   return (
-    <section className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
-      <h3 className="flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-500"><Link2 size={13} /> {tr("ESB Branch")}</h3>
-      <p className="mt-1 text-xs text-neutral-500">{o.branchCode ? tr("The users of this branch see this outlet.") : tr("Not mapped: only super admins see this outlet. Choose its ESB branch.")}</p>
+    <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-3">
+      <h3 className="flex items-center gap-1.5 text-xs font-semibold capitalize text-[color:var(--j-626F86)]"><Link2 size={13} /> {tr("ESB Branch")}</h3>
+      <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{o.branchCode ? tr("The users of this branch see this outlet.") : tr("Not mapped: only super admins see this outlet. Choose its ESB branch.")}</p>
       <div className="mt-2">
         <SearchChoice label={tr("Branch")} anyLabel={tr("Not mapped")} options={choices} value={value} onChange={setValue}
           placeholder={tr("Search Branch")} loading={options === null} />
@@ -640,7 +640,6 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
     ...(f.sort !== "newest" ? [{ key: "o", label: tr("Sort: {0}", REVIEW_SORTS[f.sort]()), onRemove: () => setF({ ...f, sort: "newest" }) }] : []),
   ];
   const pages = res ? Math.max(1, Math.ceil(res.total / res.size)) : 1;
-  const first = res ? (res.page - 1) * res.size + 1 : 0;
 
   return (
     <>
@@ -654,20 +653,13 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
             <span>{tr("{0} not replied", fmtNumber(res.counts.unreplied))}</span>
             <span className="text-red-600">{fmtNumber(res.counts.low)} ≤2★</span>
           </span>
-          {pages > 1 && (
-            <span className="flex items-center gap-2">
-              <span className="tabular-nums">{tr("{0}–{1} of {2}", fmtNumber(first), fmtNumber(Math.min(res.page * res.size, res.total)), fmtNumber(res.total))}</span>
-              <Button variant="secondary" size="sm" className="px-2" disabled={res.page <= 1} onClick={() => setPage(res.page - 1)} aria-label={tr("Previous Page")}><ChevronLeft size={16} /></Button>
-              <span className="tabular-nums">{res.page} / {pages}</span>
-              <Button variant="secondary" size="sm" className="px-2" disabled={res.page >= pages} onClick={() => setPage(res.page + 1)} aria-label={tr("Next Page")}><ChevronRight size={16} /></Button>
-            </span>
-          )}
+          <Pager page={res.page} pages={pages} total={res.total} size={res.size} onPage={setPage} />
         </> : undefined}>
         {err ? <ErrorState message={err} /> : res && res.data.length === 0 ? (
           <Empty icon={<MessageSquareText size={28} />} title={chips.length || q ? tr("No review matches the search or filters") : tr("No review yet")} />
         ) : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
               {!res ? Array.from({ length: 5 }, (_, i) => <li key={i} className="px-4 py-3"><SkeletonList rows={3} /></li>)
                 : res.data.map((r) => <li key={r.reviewId}><ReviewRow r={r} showOutlet={!f.merchant} onOpen={() => onPreview(r)} /></li>)}
             </ul>
@@ -686,28 +678,28 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
                     <th className={TH}>{tr("Reply")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {!res ? <SkeletonRows cols={f.merchant ? 5 : 6} /> : res.data.map((r) => (
-                    <tr key={r.reviewId} onClick={() => onPreview(r)} className={cx("cursor-pointer transition-colors hover:bg-brand-50/40", (r.rating ?? 5) <= 2 && "bg-red-50/30")}>
+                    <tr key={r.reviewId} onClick={() => onPreview(r)} className={cx("cursor-pointer transition-colors hover:bg-[color:var(--j-E9F2FF)]", (r.rating ?? 5) <= 2 && "bg-red-50/30")}>
                       <td className={cx(TD, "align-top")}>
-                        <Cell note={fmtTime(r.createdAt)}><span className="text-neutral-700">{fmtDay(r.createdAt)}</span></Cell>
+                        <Cell note={fmtTime(r.createdAt)}><span className="text-[color:var(--j-44546F)]">{fmtDay(r.createdAt)}</span></Cell>
                       </td>
-                      {!f.merchant && <td className={cx(TD, "align-top")}><span className="line-clamp-2 text-neutral-700">{r.branchName}</span></td>}
+                      {!f.merchant && <td className={cx(TD, "align-top")}><span className="line-clamp-2 text-[color:var(--j-44546F)]">{r.branchName}</span></td>}
                       <td className={cx(TD, "align-top")}>
                         <Cell note={(r.rating ?? 5) <= 2 ? <Badge tone="red">{tr("Low")}</Badge> : undefined}><Stars value={r.rating} size={12} /></Cell>
                       </td>
                       <td className={cx(TD, "align-top")}>
-                        <span className={cx("line-clamp-2", r.description ? "text-neutral-800" : "italic text-neutral-400")}>{r.description || tr("No written review (stars only)")}</span>
-                        {r.orderedItems.length > 0 && <span className="mt-0.5 block truncate text-xs text-neutral-400">{r.orderedItems.join(" · ")}</span>}
+                        <span className={cx("line-clamp-2", r.description ? "text-[color:var(--j-172B4D)]" : "italic text-[color:var(--j-626F86)]")}>{r.description || tr("No written review (stars only)")}</span>
+                        {r.orderedItems.length > 0 && <span className="mt-0.5 block truncate text-xs text-[color:var(--j-626F86)]">{r.orderedItems.join(" · ")}</span>}
                       </td>
                       <td className={cx(TD, "align-top")}>
                         {r.imageUrls.length > 0 ? (
                           <span className="relative inline-block">
                             {/* eslint-disable-next-line @next/next/no-img-element -- customer photo from the Grab CDN */}
-                            <img src={r.imageUrls[0]} alt="" loading="lazy" className="h-12 w-12 rounded-lg border border-neutral-200 bg-neutral-100 object-cover" />
+                            <img src={r.imageUrls[0]} alt="" loading="lazy" className="h-12 w-12 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)] object-cover" />
                             {r.imageUrls.length > 1 && <span className="absolute bottom-0.5 right-0.5 rounded bg-neutral-900/70 px-1 text-[10px] font-semibold text-white">+{r.imageUrls.length - 1}</span>}
                           </span>
-                        ) : <span className="text-neutral-300">—</span>}
+                        ) : <span className="text-[color:var(--j-8590A2)]">—</span>}
                       </td>
                       <td className={cx(TD, "align-top")}>{r.hasReply ? <Badge tone="green">{tr("Replied")}</Badge> : <Badge tone="blue" dot>{tr("not replied")}</Badge>}</td>
                     </tr>
@@ -762,7 +754,7 @@ function ReviewFilters({ outlets, cities, value, onApply, onClose }: { outlets: 
         <div className="mb-2 flex flex-wrap gap-1.5">
           {[[1, tr("Today")], [7, tr("7 days")], [30, tr("30 days")], [90, tr("90 Days")]].map(([n, l]) => (
             <button key={String(n)} type="button" onClick={() => preset(Number(n))}
-              className="rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600 hover:border-brand-300 hover:text-brand-700">{l}</button>
+              className="rounded-full border border-[color:var(--j-DCDFE4)] px-3 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-85B8FF)] hover:text-[color:var(--j-0055CC)]">{l}</button>
           ))}
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -780,20 +772,20 @@ function ReviewFilters({ outlets, cities, value, onApply, onClose }: { outlets: 
 /** A review in the phone list: stars, date, outlet, text (2 lines) and the first photo. */
 function ReviewRow({ r, showOutlet, onOpen }: { r: Review; showOutlet: boolean; onOpen: () => void }) {
   return (
-    <button type="button" onClick={onOpen} className="flex w-full gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+    <button type="button" onClick={onOpen} className="flex w-full gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <Stars value={r.rating} size={12} />
           {(r.rating ?? 5) <= 2 && <Badge tone="red">{tr("Low")}</Badge>}
           {!r.hasReply && <Badge tone="blue" dot>{tr("not replied")}</Badge>}
         </span>
-        <span className="mt-0.5 block text-xs text-neutral-400">{fmtDateTime(r.createdAt)}{showOutlet ? ` · ${r.branchName}` : ""}</span>
-        <span className={cx("mt-1 line-clamp-2 block text-sm", r.description ? "text-neutral-700" : "italic text-neutral-400")}>{r.description || tr("No written review (stars only)")}</span>
+        <span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{fmtDateTime(r.createdAt)}{showOutlet ? ` · ${r.branchName}` : ""}</span>
+        <span className={cx("mt-1 line-clamp-2 block text-sm", r.description ? "text-[color:var(--j-44546F)]" : "italic text-[color:var(--j-626F86)]")}>{r.description || tr("No written review (stars only)")}</span>
       </span>
       {r.imageUrls.length > 0 && (
         <span className="relative flex-shrink-0 self-center">
           {/* eslint-disable-next-line @next/next/no-img-element -- customer photo from the Grab CDN */}
-          <img src={r.imageUrls[0]} alt="" loading="lazy" className="h-14 w-14 rounded-lg border border-neutral-200 bg-neutral-100 object-cover" />
+          <img src={r.imageUrls[0]} alt="" loading="lazy" className="h-14 w-14 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)] object-cover" />
           {r.imageUrls.length > 1 && <span className="absolute bottom-1 right-1 rounded bg-neutral-900/70 px-1 text-[10px] font-semibold text-white">+{r.imageUrls.length - 1}</span>}
         </span>
       )}
@@ -804,21 +796,21 @@ function ReviewRow({ r, showOutlet, onOpen }: { r: Review; showOutlet: boolean; 
 /** The review card of the outlet drawer (Google Maps style). */
 function ReviewItem({ r, onOpen }: { r: Review; onOpen: () => void }) {
   return (
-    <button type="button" onClick={onOpen} className="w-full rounded-md border border-neutral-200 p-3 text-left hover:border-brand-200 hover:bg-brand-50/30">
+    <button type="button" onClick={onOpen} className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-left hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-E9F2FF)]">
       <span className="flex items-center gap-2">
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-500">{(r.eaterName || "?")[0].toUpperCase()}</span>
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-091E420F)] text-xs font-semibold text-[color:var(--j-626F86)]">{(r.eaterName || "?")[0].toUpperCase()}</span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-neutral-900">{r.eaterName || tr("GrabFood customer")}</span>
-          <span className="text-xs text-neutral-400">{fmtDateTime(r.createdAt)}</span>
+          <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{r.eaterName || tr("GrabFood customer")}</span>
+          <span className="text-xs text-[color:var(--j-626F86)]">{fmtDateTime(r.createdAt)}</span>
         </span>
         <Stars value={r.rating} size={11} />
       </span>
-      {r.description && <span className="mt-2 line-clamp-3 block whitespace-pre-line text-sm text-neutral-700">{r.description}</span>}
+      {r.description && <span className="mt-2 line-clamp-3 block whitespace-pre-line text-sm text-[color:var(--j-44546F)]">{r.description}</span>}
       {r.imageUrls.length > 0 && (
         <span className="mt-2 flex gap-1.5">
           {r.imageUrls.slice(0, 4).map((u) => (
             // eslint-disable-next-line @next/next/no-img-element -- customer photo from the Grab CDN
-            <img key={u} src={u} alt="" loading="lazy" className="h-12 w-12 rounded-lg border border-neutral-200 bg-neutral-100 object-cover" />
+            <img key={u} src={u} alt="" loading="lazy" className="h-12 w-12 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)] object-cover" />
           ))}
         </span>
       )}
@@ -833,23 +825,23 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
     <Drawer open onClose={onClose} size="lg" icon={<MessageSquareText size={18} />} title={r.branchName} description={fmtDateTime(r.createdAt)} focusFirstField={false}>
       <div className="space-y-5">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-neutral-100 text-sm font-semibold text-neutral-500">{(r.eaterName || "?")[0].toUpperCase()}</span>
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-091E420F)] text-sm font-semibold text-[color:var(--j-626F86)]">{(r.eaterName || "?")[0].toUpperCase()}</span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-neutral-900">{r.eaterName || tr("GrabFood customer")}</p>
+            <p className="truncate text-sm font-medium text-[color:var(--j-172B4D)]">{r.eaterName || tr("GrabFood customer")}</p>
             <div className="flex flex-wrap items-center gap-2"><Stars value={r.rating} size={14} />
               {r.hasReply ? <Badge tone="green">{tr("Replied")}</Badge> : <Badge tone="blue" dot>{tr("not replied")}</Badge>}</div>
           </div>
         </div>
-        <p className={cx("whitespace-pre-line rounded-md border border-neutral-200 p-3 text-sm leading-relaxed", r.description ? "text-neutral-800" : "italic text-neutral-400")}>
+        <p className={cx("whitespace-pre-line rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm leading-relaxed", r.description ? "text-[color:var(--j-172B4D)]" : "italic text-[color:var(--j-626F86)]")}>
           {r.description || tr("No written review (stars only)")}
         </p>
 
         {r.imageUrls.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("Photos ({0})", r.imageUrls.length)}</h3>
+            <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Photos ({0})", r.imageUrls.length)}</h3>
             <div className="grid grid-cols-3 gap-2">
               {r.imageUrls.map((u, i) => (
-                <button key={u} type="button" onClick={() => setZoom(i)} className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-100" aria-label={tr("Open photo {0}", i + 1)}>
+                <button key={u} type="button" onClick={() => setZoom(i)} className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)]" aria-label={tr("Open photo {0}", i + 1)}>
                   {/* eslint-disable-next-line @next/next/no-img-element -- customer photo from the Grab CDN */}
                   <img src={u} alt="" loading="lazy" className="aspect-square w-full object-cover transition-transform hover:scale-105" />
                 </button>
@@ -860,15 +852,15 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
 
         {aspects.length > 0 && (
           <section>
-            <h3 className="mb-2 text-xs font-semibold capitalize text-neutral-500">{tr("What the Customer Mentions")}</h3>
-            <p className="mb-2 text-[11px] text-neutral-400">{tr("Detected by Grab from the review: + positive, − negative")}</p>
+            <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("What the Customer Mentions")}</h3>
+            <p className="mb-2 text-[11px] text-[color:var(--j-626F86)]">{tr("Detected by Grab from the review: + positive, − negative")}</p>
             <div className="flex flex-wrap gap-1.5">
               {aspects.map((a, i) => <Badge key={`${a.aspectName}-${i}`} tone={a.rating < 0 ? "red" : a.rating > 0 ? "green" : "slate"}>{a.rating < 0 ? "− " : a.rating > 0 ? "+ " : ""}{a.aspectName}</Badge>)}
             </div>
           </section>
         )}
 
-        <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
+        <dl className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
           {r.orderedItems.length > 0 && <Row k={tr("Ordered")} v={r.orderedItems.join(", ")} />}
           {r.orderId && <Row k={tr("Order")} v={<span className="font-mono text-xs">{r.orderId}</span>} />}
           {r.serviceType && <Row k={tr("Service")} v={r.serviceType} />}
@@ -880,7 +872,7 @@ function ReviewPreview({ r, onClose }: { r: Review; onClose: () => void }) {
 }
 
 function Row({ k, v }: { k: string; v: ReactNode }) {
-  return <div className="flex gap-3 px-3 py-2"><dt className="w-24 flex-shrink-0 text-neutral-500">{k}</dt><dd className="min-w-0 flex-1 break-words text-neutral-800">{v}</dd></div>;
+  return <div className="flex gap-3 px-3 py-2"><dt className="w-24 flex-shrink-0 text-[color:var(--j-626F86)]">{k}</dt><dd className="min-w-0 flex-1 break-words text-[color:var(--j-172B4D)]">{v}</dd></div>;
 }
 
 function Lightbox({ urls, index, onIndex, onClose }: { urls: string[]; index: number; onIndex: (i: number) => void; onClose: () => void }) {
@@ -897,7 +889,7 @@ function Lightbox({ urls, index, onIndex, onClose }: { urls: string[]; index: nu
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-neutral-950/90 p-4" role="dialog" aria-modal="true" aria-label={tr("Photo")} onClick={onClose}>
       {/* eslint-disable-next-line @next/next/no-img-element -- customer photo from the Grab CDN */}
-      <img src={urls[index]} alt="" className="max-h-full max-w-full rounded-lg object-contain" onClick={(e) => e.stopPropagation()} />
+      <img src={urls[index]} alt="" className="max-h-full max-w-full rounded-[3px] object-contain" onClick={(e) => e.stopPropagation()} />
       <button type="button" onClick={onClose} aria-label={tr("Close")} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25"><X size={20} /></button>
       {urls.length > 1 && <>
         <button type="button" disabled={index === 0} onClick={(e) => { e.stopPropagation(); onIndex(index - 1); }} aria-label={tr("Previous Photo")} className={cx(nav, "left-3")}><ChevronLeft size={22} /></button>
@@ -970,18 +962,18 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
           <Empty icon={<PackageX size={28} />} title={f.status === "price" && !search ? tr("Every outlet asks the usual price of its city") : search || chips.length ? tr("Nothing matches the search or filters") : tr("Nothing is out of stock or switched off")} />
         ) : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
               {!items ? Array.from({ length: 6 }, (_, i) => <li key={i} className="px-4 py-3"><SkeletonList rows={3} /></li>) : paged.rows.map((i) => (
                 <li key={`${i.merchantId}-${i.itemId}`} className="flex items-center gap-3 px-4 py-3">
                   <MenuPhoto i={i} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-neutral-900">{i.name}</span>
-                    <span className="block truncate text-xs text-neutral-500">{[!f.merchant ? i.branchName : null, i.kind === "modifier" ? tr("Add-on") : i.category].filter(Boolean).join(" · ")}</span>
+                    <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{i.name}</span>
+                    <span className="block truncate text-xs text-[color:var(--j-626F86)]">{[!f.merchant ? i.branchName : null, i.kind === "modifier" ? tr("Add-on") : i.category].filter(Boolean).join(" · ")}</span>
                     {f.status === "price" && <span className="block text-xs text-amber-700">{rp(i.price)} · {tr("most: {0}", rp(i.refPrice))}</span>}
                   </span>
                   <span className="flex-shrink-0 text-right">
                     <Badge tone={MENU_TONE[i.status]}>{i.status === "OUT_OF_STOCK" ? tr("Out of stock") : i.status === "OFF" ? tr("Off") : tr("Available")}</Badge>
-                    {i.status === "OUT_OF_STOCK" && i.availableAt && <span className="mt-0.5 block text-[10px] text-neutral-400">{tr("back {0}", fmtDateTime(i.availableAt))}</span>}
+                    {i.status === "OUT_OF_STOCK" && i.availableAt && <span className="mt-0.5 block text-[10px] text-[color:var(--j-626F86)]">{tr("back {0}", fmtDateTime(i.availableAt))}</span>}
                   </span>
                 </li>
               ))}
@@ -997,21 +989,21 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
                     <th className={TH}>{tr("Status")}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {!items ? <SkeletonRows cols={f.merchant ? 4 : 5} /> : paged.rows.map((i) => (
-                    <tr key={`${i.merchantId}-${i.itemId}`} className="transition-colors hover:bg-neutral-50/70">
+                    <tr key={`${i.merchantId}-${i.itemId}`} className="transition-colors hover:bg-[color:var(--j-F7F8F9)]">
                       <td className={cx(TD, "max-w-[20rem]")}>
                         <span className="flex items-center gap-3">
                           <MenuPhoto i={i} />
                           <span className="min-w-0">
-                            <span className="block truncate font-medium text-neutral-900">{i.name}</span>
-                            <span className="block truncate text-xs text-neutral-400">{[i.kind === "modifier" ? tr("Add-on") : tr("Menu Item"), i.itemCode].filter(Boolean).join(" · ")}</span>
+                            <span className="block truncate font-medium text-[color:var(--j-172B4D)]">{i.name}</span>
+                            <span className="block truncate text-xs text-[color:var(--j-626F86)]">{[i.kind === "modifier" ? tr("Add-on") : tr("Menu Item"), i.itemCode].filter(Boolean).join(" · ")}</span>
                           </span>
                         </span>
                       </td>
-                      {!f.merchant && <td className={cx(TD, "max-w-[14rem]")}><Cell note={cityOf.get(i.merchantId) || undefined}><span className="block max-w-[13rem] truncate text-neutral-700">{i.branchName}</span></Cell></td>}
-                      <td className={cx(TD, "max-w-[12rem] truncate text-neutral-600")}>{i.category ?? "—"}</td>
-                      <td className={cx(TD, "whitespace-nowrap text-right text-neutral-700")}><PriceCell i={i} /></td>
+                      {!f.merchant && <td className={cx(TD, "max-w-[14rem]")}><Cell note={cityOf.get(i.merchantId) || undefined}><span className="block max-w-[13rem] truncate text-[color:var(--j-44546F)]">{i.branchName}</span></Cell></td>}
+                      <td className={cx(TD, "max-w-[12rem] truncate text-[color:var(--j-44546F)]")}>{i.category ?? "—"}</td>
+                      <td className={cx(TD, "whitespace-nowrap text-right text-[color:var(--j-44546F)]")}><PriceCell i={i} /></td>
                       <td className={cx(TD, "whitespace-nowrap")}>
                         <Cell note={i.status === "OUT_OF_STOCK" && i.availableAt ? tr("back {0}", fmtDateTime(i.availableAt)) : i.status === "OFF" ? tr("until the outlet switches it on") : undefined}>
                           <Badge tone={MENU_TONE[i.status]}>{menuLabel(i.status)}</Badge>
@@ -1037,7 +1029,7 @@ function PriceCell({ i }: { i: MenuItem }) {
   return (
     <span className="inline-flex flex-col items-end" title={tr("Most of the {0} outlets in the city ask {1}", fmtNumber(i.refOutlets ?? 0), rp(i.refPrice))}>
       <span className="font-semibold text-amber-700">{rp(i.price)}</span>
-      <span className="text-[11px] text-neutral-400">{tr("most: {0}", rp(i.refPrice))}</span>
+      <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("most: {0}", rp(i.refPrice))}</span>
     </span>
   );
 }
@@ -1045,8 +1037,8 @@ function PriceCell({ i }: { i: MenuItem }) {
 function MenuPhoto({ i }: { i: MenuItem }) {
   return i.imageUrl
     // eslint-disable-next-line @next/next/no-img-element -- menu photo from the Grab CDN
-    ? <img src={i.imageUrl} alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-lg border border-neutral-200 bg-neutral-100 object-cover" />
-    : <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-400"><UtensilsCrossed size={15} /></span>;
+    ? <img src={i.imageUrl} alt="" loading="lazy" className="h-9 w-9 flex-shrink-0 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)] object-cover" />
+    : <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]"><UtensilsCrossed size={15} /></span>;
 }
 
 function MenuFilters({ outlets, cities, categories, value, onApply, onClose }: {
@@ -1109,19 +1101,19 @@ function SessionDrawer({ session, onClose, onSaved }: { session: Session; onClos
         <Button loading={saving} disabled={cookie.trim().length < 20} onClick={() => void save()}>{tr("Save Session")}</Button>
       </>}>
       <div className="space-y-4">
-        <div className={cx("rounded-md border px-3 py-2.5 text-sm", ok ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
+        <div className={cx("rounded-[3px] border px-3 py-2.5 text-sm", ok ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
           <p className="font-medium">{ok ? tr("Grab session active") : session?.present ? tr("Grab session ended") : tr("No Grab session yet")}</p>
           {session?.updatedAt && <p className="text-xs opacity-80">{tr("updated {0}", fmtDateTime(session.updatedAt))}{session.updatedBy ? ` · ${tr("by {0}", session.updatedBy)}` : ""}</p>}
         </div>
-        <ol className="list-decimal space-y-1 pl-5 text-xs text-neutral-600">
+        <ol className="list-decimal space-y-1 pl-5 text-xs text-[color:var(--j-44546F)]">
           <li>{tr("Log in to merchant.grab.com in Chrome.")}</li>
           <li>{tr("Press F12 → Network, click any request, open Headers.")}</li>
           <li>{tr("Copy the whole value of the \"cookie:\" line and paste it below.")}</li>
         </ol>
         <textarea value={cookie} onChange={(e) => setCookie(e.target.value)} rows={6} spellCheck={false} placeholder="_gcl_au=...; mexusers_authn_token=...; ..."
           aria-label={tr("Cookie")}
-          className="w-full rounded-lg border border-neutral-200 p-2.5 font-mono text-xs text-neutral-800 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
-        <p className="text-[11px] text-neutral-400">{tr("The cookie is stored on the server for the sync only. Logging out of merchant.grab.com ends the session; refresh it here when it expires.")}</p>
+          className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] p-2.5 font-mono text-xs text-[color:var(--j-172B4D)] focus:border-[color:var(--j-388BFF)] focus:outline-none focus:ring-2 focus:ring-[color:var(--j-388BFF)]" />
+        <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("The cookie is stored on the server for the sync only. Logging out of merchant.grab.com ends the session; refresh it here when it expires.")}</p>
       </div>
     </Drawer>
   );

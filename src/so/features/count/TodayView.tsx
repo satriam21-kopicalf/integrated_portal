@@ -92,7 +92,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
       actions={<LiveClock />}>
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel>
         : rows === null ? (
-          <div className="space-y-3">{[0, 1].map((i) => <div key={i} className="skeleton h-40 rounded-xl" />)}</div>
+          <div className="space-y-3">{[0, 1].map((i) => <div key={i} className="skeleton h-40 rounded-[3px]" />)}</div>
         ) : rows.length === 0 ? (
           <Panel><Empty icon={<Store size={28} />} title={tr("No facility assigned to you")}>{tr("Ask your administrator to assign your outlet or hub in Access Center.")}</Empty></Panel>
         ) : (
@@ -100,17 +100,17 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
             <RecountNotice rows={recountsOf(rows)} basePath={basePath} multi={rows.length > 1} />
             <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
               <label className="relative block w-full sm:max-w-md">
-                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search outlet, code or count type")} aria-label={tr("Search outlet, code or count type")}
                   className={`${inputClass} h-11 bg-white pl-9 pr-9`} enterKeyHint="search" />
-                {q && <button type="button" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr("Clear Search")}><X size={15} /></button>}
+                {q && <button type="button" onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]" aria-label={tr("Clear Search")}><X size={15} /></button>}
               </label>
-              <p className="text-xs text-neutral-500">{q ? tr("{0} of {1} facilities", shown.length, rows.length) : tr("{0} facilities · {1} counts today", rows.length, total)}</p>
+              <p className="text-xs text-[color:var(--j-626F86)]">{q ? tr("{0} of {1} facilities", shown.length, rows.length) : tr("{0} facilities · {1} counts today", rows.length, total)}</p>
             </div>
             {q && shown.length === 0 && <Panel><Empty icon={<Search size={28} />} title={tr("No facility matches the search")}>{tr("Search by the outlet name, its code or the count type.")}</Empty></Panel>}
             {total === 0 && !q && (
-              <p className="flex items-start gap-2 rounded-md border border-neutral-200/80 bg-white px-4 py-3 text-sm text-neutral-600">
-                <ClipboardList size={16} className="mt-0.5 flex-shrink-0 text-neutral-400" />
+              <p className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 text-sm text-[color:var(--j-44546F)]">
+                <ClipboardList size={16} className="mt-0.5 flex-shrink-0 text-[color:var(--j-626F86)]" />
                 {tr("No count is due today. The next stock opname and how to get ready are shown below; the count opens here when its window starts.")}
               </p>
             )}
@@ -118,7 +118,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
               <Panel key={f.facility.id} title={f.facility.name}
                 description={`${f.facility.code} · ${f.facility.facility_type}${f.facility.latitude ? "" : ` · ${tr("no location set")}`}`}>
                 {f.counts.length > 0 && (
-                  <ul className="divide-y divide-neutral-100">
+                  <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                     {f.counts.map((c) => {
                       const s = c.session;
                       const st = STATUS[s?.status ?? "NOT_STARTED"];
@@ -127,9 +127,9 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                       return (
                         <li key={c.count_type} className="space-y-3 px-4 py-4 sm:px-5">
                           <div className="flex flex-wrap items-start gap-3">
-                            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><ClipboardList size={18} /></span>
+                            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]"><ClipboardList size={18} /></span>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-neutral-900">{countTypeLabel(c.count_type, c.name)}</p>
+                              <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{countTypeLabel(c.count_type, c.name)}</p>
                               <div className="mt-1 flex flex-wrap items-center gap-1.5">
                                 <Badge tone={st.tone} dot>{st.label()}</Badge>
                                 {win && <Badge wrap tone={win.tone} icon={<CalendarClock size={11} />}>{win.label(c)}</Badge>}
@@ -153,7 +153,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                               </Button>
                             )}
                           </div>
-                          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg bg-neutral-50 p-3 text-xs sm:grid-cols-4">
+                          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] p-3 text-xs sm:grid-cols-4">
                             <Info icon={<CalendarClock size={13} />} label={tr("Count Window")}
                               value={c.window_start ? periodText(c.period_start ?? f.business_date, c.period_end, c.window_start, c.window_end) : "—"} />
                             <Info icon={<Layers size={13} />} label={tr("Items")} value={c.items !== null && c.items !== undefined ? tr("{0} items · {1} areas", c.items, c.areas.length) : "—"} />
@@ -161,7 +161,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                             <Info icon={<ClipboardList size={13} />} label={tr("ESB Purpose")} value={c.esb_purpose ?? tr("Not set")} />
                           </dl>
                           {c.areas.length > 0 && (
-                            <p className="text-[11px] text-neutral-400">{tr("Areas")}: {c.areas.join(" · ")}</p>
+                            <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("Areas")}: {c.areas.join(" · ")}</p>
                           )}
                         </li>
                       );
@@ -169,13 +169,13 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                   </ul>
                 )}
                 {f.counts.length === 0 ? <NextCount upcoming={f.upcoming} /> : f.upcoming.length > 0 && (
-                  <div className="border-t border-neutral-100 px-4 py-3 sm:px-5">
-                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><CalendarDays size={12} /> {tr("Next 14 days")}</p>
+                  <div className="border-t border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
+                    <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold capitalize text-[color:var(--j-626F86)]"><CalendarDays size={12} /> {tr("Next 14 days")}</p>
                     <ul className="flex flex-wrap gap-2">
                       {f.upcoming.map((u) => (
-                        <li key={`${u.date}:${u.count_type}`} className="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs">
-                          <span className="font-semibold text-neutral-800">{countTypeLabel(u.count_type, u.name)}</span>
-                          <span className="text-neutral-500"> · {periodText(u.date, u.period_end, u.window_start, u.window_end)}</span>
+                        <li key={`${u.date}:${u.count_type}`} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] px-2.5 py-1.5 text-xs">
+                          <span className="font-semibold text-[color:var(--j-172B4D)]">{countTypeLabel(u.count_type, u.name)}</span>
+                          <span className="text-[color:var(--j-626F86)]"> · {periodText(u.date, u.period_end, u.window_start, u.window_end)}</span>
                         </li>
                       ))}
                     </ul>
@@ -183,7 +183,7 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
                 )}
               </Panel>
             ))}
-            <p className="flex items-start gap-2 px-1 text-xs text-neutral-400">
+            <p className="flex items-start gap-2 px-1 text-xs text-[color:var(--j-626F86)]">
               <MapPin size={14} className="mt-0.5 flex-shrink-0" />
               {tr("Your location is recorded when a count starts and when it is submitted, as evidence for Cost Control.")}
             </p>
@@ -202,8 +202,8 @@ export default function TodayView({ basePath = "" }: { basePath?: string }) {
 function Info({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="flex items-center gap-1 text-neutral-400">{icon}{label}</dt>
-      <dd className="break-words font-medium leading-snug text-neutral-700" title={value}>{value}</dd>
+      <dt className="flex items-center gap-1 text-[color:var(--j-626F86)]">{icon}{label}</dt>
+      <dd className="break-words font-medium leading-snug text-[color:var(--j-44546F)]" title={value}>{value}</dd>
     </div>
   );
 }

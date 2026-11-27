@@ -34,14 +34,14 @@ export function CorrectionHistory({ entry, version }: { entry: Entry; version?: 
   }, [entry.id, entry.corrections, version]);
   if (rows && !rows.length) return null;
   return (
-    <div className="rounded-md border border-amber-200 bg-amber-50/40 p-3">
+    <div className="rounded-[3px] border border-amber-200 bg-amber-50/40 p-3">
       <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-amber-800"><History size={13} />{tr("Corrected by Cost Control")}</p>
       {!rows ? <SkeletonList rows={2} /> : (
         <ul className="space-y-2 text-xs">
           {rows.map((r, i) => (
-            <li key={i} className="text-neutral-700">
-              <span className="font-medium">{FIELD[r.field]?.() ?? r.field}</span>: <span className="text-neutral-400 line-through">{r.old || "—"}</span> → <span className="font-medium text-neutral-900">{r.new || "—"}</span>
-              <span className="block text-neutral-500">“{r.reason}” · {r.by} · {wibDateTime(r.at)}</span>
+            <li key={i} className="text-[color:var(--j-44546F)]">
+              <span className="font-medium">{FIELD[r.field]?.() ?? r.field}</span>: <span className="text-[color:var(--j-626F86)] line-through">{r.old || "—"}</span> → <span className="font-medium text-[color:var(--j-172B4D)]">{r.new || "—"}</span>
+              <span className="block text-[color:var(--j-626F86)]">“{r.reason}” · {r.by} · {wibDateTime(r.at)}</span>
             </li>
           ))}
         </ul>
@@ -106,12 +106,12 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
   return (
     <Drawer open onClose={onClose} icon={<PencilLine size={18} />} title={tr("Correct the waste")} description={`${entry.branchName} · ${dmy(entry.businessDate)}`}
       footer={<>
-        <span className="mr-auto text-xs text-neutral-500">{changes ? tr("{0} changes", changes) : tr("No change yet")}</span>
+        <span className="mr-auto text-xs text-[color:var(--j-626F86)]">{changes ? tr("{0} changes", changes) : tr("No change yet")}</span>
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!valid} onClick={() => void save()}><Save size={14} />{tr("Save correction")}</Button>
       </>}>
       <div className="space-y-4">
-        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">{tr("The entry is changed in place; the value, COGS and Stock List follow. The old figures and the reason are kept in the history.")}</p>
+        <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">{tr("The entry is changed in place; the value, COGS and Stock List follow. The old figures and the reason are kept in the history.")}</p>
         {typed && (
           <Field label={tr("Type")} hint={scope !== entry.scope ? tr("Choose the item of the new type") : undefined}>
             <Select value={scope} onChange={(e) => pickType(e.target.value as Entry["scope"])}>
@@ -122,7 +122,7 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
         )}
         <Field label={tr("Item")}>
           {opts ? <SearchSelect value={itemCode} options={itemOptions} onChange={(v) => { if (v) { setItemCode(v); const it = opts.items.find((i) => i.code === v); if (it && scope === "premix") setUom(it.unit); } }} />
-            : <div className="skeleton h-10 rounded-lg" />}
+            : <div className="skeleton h-10 rounded-[3px]" />}
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label={tr("Quantity")} required hint={tr("0 when the photo shows nothing was wasted")}><Input inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} className="text-right tabular-nums" /></Field>
@@ -143,7 +143,7 @@ export default function WasteCorrect({ entry, onClose, onSaved }: { entry: Entry
         </div>
         <Field label={tr("Note / reason")}><Input value={note} maxLength={500} onChange={(e) => setNote(e.target.value)} /></Field>
         <Field label={tr("Reason for the correction")} required hint={tr("Shown in the history of the entry")}>
-          <textarea className="min-h-[80px] w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none" maxLength={500}
+          <textarea className="min-h-[80px] w-full rounded-[3px] border border-[color:var(--j-8590A2)] px-3 py-2 text-sm focus:border-[color:var(--j-388BFF)] focus:outline-none" maxLength={500}
             value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr("e.g. the branch entered 50 instead of 5")} />
         </Field>
       </div>

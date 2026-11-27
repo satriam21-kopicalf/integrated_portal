@@ -28,7 +28,7 @@ const addDays = (s: string, n: number) => { const d = new Date(`${s}T00:00:00`);
 const STATUS = {
   done: { icon: CheckCircle2, cls: 'bg-emerald-50 text-emerald-800 ring-emerald-200', label: () => tr('Done') },
   missed: { icon: XCircle, cls: 'bg-red-50 text-red-700 ring-red-200', label: () => tr('Missed') },
-  planned: { icon: CircleDashed, cls: 'bg-white text-neutral-700 ring-neutral-200', label: () => tr('Planned') },
+  planned: { icon: CircleDashed, cls: 'bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]', label: () => tr('Planned') },
 };
 
 export default function SchedulePage() {
@@ -71,39 +71,39 @@ export default function SchedulePage() {
       <Panel toolbar={
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="secondary" onClick={() => setFrom(addDays(from, -7))} aria-label={tr('Previous week')}><ChevronLeft size={15} /></Button>
-          <span className="min-w-[12rem] text-center text-sm font-semibold text-neutral-800">{label(days[0])} – {label(days[6])}</span>
+          <span className="min-w-[12rem] text-center text-sm font-semibold text-[color:var(--j-172B4D)]">{label(days[0])} – {label(days[6])}</span>
           <Button size="sm" variant="secondary" onClick={() => setFrom(addDays(from, 7))} aria-label={tr('Next week')}><ChevronRight size={15} /></Button>
           <Button size="sm" variant="ghost" onClick={() => setFrom(iso(monday(new Date())))}>{tr('This week')}</Button>
           {canEdit && <Button size="sm" variant="secondary" className="ml-auto" onClick={() => void copy()} loading={busy}><Copy size={14} /> {tr('Copy to the next week')}</Button>}
         </div>}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={8} /></tbody></table>
-          : !res.team.length ? <p className="px-5 py-8 text-center text-sm text-neutral-500">{tr('No Cost Control member yet: give an account the page Cost Control Clock In.')}</p> : (
+          : !res.team.length ? <p className="px-5 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr('No Cost Control member yet: give an account the page Cost Control Clock In.')}</p> : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[980px] table-fixed text-xs">
-                <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                <thead className="border-b-2 border-[color:var(--j-DCDFE4)] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">
                   <tr><th className="w-40 px-3 py-2.5 text-left">{tr('Member')}</th>
-                    {days.map((d) => <th key={d} className={cx('px-2 py-2.5 text-left', d === today && 'text-brand-700')}>{label(d)}</th>)}</tr>
+                    {days.map((d) => <th key={d} className={cx('px-2 py-2.5 text-left', d === today && 'text-[color:var(--j-0C66E4)]')}>{label(d)}</th>)}</tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {res.team.map((m) => (
                     <tr key={m.id} className="align-top">
-                      <td className="px-3 py-2"><span className="block truncate font-medium text-neutral-900">{m.name}</span><span className="text-[11px] text-neutral-400">{m.username}</span></td>
+                      <td className="px-3 py-2"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{m.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{m.username}</span></td>
                       {days.map((d) => {
                         const visits = res.data.filter((v) => v.userId === m.id && v.day === d);
                         const extra = res.unplanned.filter((v) => v.userId === m.id && v.day === d);
                         const editable = canEdit && d >= addDays(today, -1);
                         return (
-                          <td key={d} className={cx('px-1.5 py-1.5', d === today && 'bg-brand-50/30')}>
+                          <td key={d} className={cx('px-1.5 py-1.5', d === today && 'bg-[color:var(--j-E9F2FF)]')}>
                             <button type="button" disabled={!editable} onClick={() => setEdit({ member: m, day: d })}
-                              className={cx('flex min-h-14 w-full flex-col gap-1 rounded-lg p-1 text-left', editable && 'hover:bg-neutral-50')}
+                              className={cx('flex min-h-14 w-full flex-col gap-1 rounded-[3px] p-1 text-left', editable && 'hover:bg-[color:var(--j-F7F8F9)]')}
                               aria-label={tr('Schedule of {0} on {1}', m.name, label(d))}>
                               {visits.map((v) => {
                                 const S = STATUS[v.status];
-                                return <span key={v.id} title={[v.branchName, S.label(), v.note].filter(Boolean).join(' · ')} className={cx('flex items-center gap-1 truncate rounded-md px-1.5 py-1 ring-1 ring-inset', S.cls)}>
+                                return <span key={v.id} title={[v.branchName, S.label(), v.note].filter(Boolean).join(' · ')} className={cx('flex items-center gap-1 truncate rounded-[3px] px-1.5 py-1 ring-1 ring-inset', S.cls)}>
                                   <S.icon size={11} className="flex-shrink-0" /><span className="truncate">{short(v.branchName)}</span></span>;
                               })}
-                              {extra.map((v) => <span key={v.branchCode} title={tr('Clocked in outside the plan')} className="truncate rounded-md bg-amber-50 px-1.5 py-1 italic text-amber-800">+ {short(v.branchName)}</span>)}
-                              {!visits.length && !extra.length && editable && <span className="text-[11px] text-neutral-300">{tr('+ plan')}</span>}
+                              {extra.map((v) => <span key={v.branchCode} title={tr('Clocked in outside the plan')} className="truncate rounded-[3px] bg-amber-50 px-1.5 py-1 italic text-amber-800">+ {short(v.branchName)}</span>)}
+                              {!visits.length && !extra.length && editable && <span className="text-[11px] text-[color:var(--j-8590A2)]">{tr('+ plan')}</span>}
                             </button>
                           </td>
                         );

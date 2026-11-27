@@ -70,9 +70,9 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
                 const wibMin = h * 60 + m + shift;
                 const wib = `${String(Math.floor(wibMin / 60)).padStart(2, "0")}:${String(wibMin % 60).padStart(2, "0")}`;
                 return (
-                  <tr key={o.code} className={cx(dirty(o) && "bg-brand-50/40")}>
-                    <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
-                    <td className="px-3 py-2 tabular-nums text-neutral-600">{o.groupDeadline ?? <span className="text-neutral-400">{tr("Default {0}", res.defaultDeadline)}</span>}</td>
+                  <tr key={o.code} className={cx(dirty(o) && "bg-[color:var(--j-E9F2FF)]")}>
+                    <td className="px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{o.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
+                    <td className="px-3 py-2 tabular-nums text-[color:var(--j-44546F)]">{o.groupDeadline ?? <span className="text-[color:var(--j-626F86)]">{tr("Default {0}", res.defaultDeadline)}</span>}</td>
                     <td className="px-3 py-2">
                       {canEdit ? <Input type="time" value={v.deadline} onChange={(e) => setDraft((x) => ({ ...x, [o.code]: { ...v, deadline: e.target.value } }))} className="h-9 w-32" aria-label={tr("Own Deadline")} />
                         : <span className="tabular-nums">{o.deadline ?? "—"}</span>}
@@ -84,12 +84,12 @@ export function CheckInDeadlines({ canEdit }: { canEdit: boolean }) {
                         </Select>
                       ) : zoneLabel(o.timezone)}
                     </td>
-                    <td className="px-3 py-2 tabular-nums"><span className="font-semibold text-neutral-900">{local} {zoneLabel(v.timezone)}</span>{shift !== 0 && <span className="block text-[11px] text-neutral-500">= {wib} WIB</span>}</td>
+                    <td className="px-3 py-2 tabular-nums"><span className="font-semibold text-[color:var(--j-172B4D)]">{local} {zoneLabel(v.timezone)}</span>{shift !== 0 && <span className="block text-[11px] text-[color:var(--j-626F86)]">= {wib} WIB</span>}</td>
                     {canEdit && (
                       <td className="px-3 py-2 text-right">
                         {dirty(o) && <Button size="sm" loading={busy === o.code} onClick={() => void save(o)}><Save size={14} /> {tr("Save")}</Button>}
                         {!dirty(o) && (o.deadline || o.timezone !== "Asia/Jakarta") && (
-                          <button type="button" className="text-xs font-medium text-neutral-500 hover:text-neutral-900"
+                          <button type="button" className="text-xs font-medium text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]"
                             onClick={() => setDraft((x) => ({ ...x, [o.code]: { deadline: "", timezone: "Asia/Jakarta" } }))}>{tr("Back to Group")}</button>
                         )}
                       </td>
@@ -145,12 +145,12 @@ function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <div className="min-w-0 flex-1"><SearchInput value={q} onChange={setQ} placeholder={tr("Search outlet")} /></div>
-          <label className="flex items-center gap-2 text-xs text-neutral-600"><input type="checkbox" checked={only} onChange={(e) => setOnly(e.target.checked)} />{tr("Set apart only")}</label>
+          <label className="flex items-center gap-2 text-xs text-[color:var(--j-44546F)]"><input type="checkbox" checked={only} onChange={(e) => setOnly(e.target.checked)} />{tr("Set apart only")}</label>
         </div>
         {!outlets ? <table className="w-full"><tbody><SkeletonRows cols={2} rows={6} /></tbody></table> : !list.length ? (
           <EmptyState title={only ? tr("No outlet is set apart: every outlet follows its group") : tr("No outlet matches")} />
         ) : (
-          <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {paged.rows.map((o) => {
               const v = state(o.code);
               const byGroup = groupShown(o.groupCode);
@@ -158,17 +158,17 @@ function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product
               return (
                 <li key={o.code} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-neutral-900">{o.name}</span>
-                    <span className="text-[11px] text-neutral-500">{o.code} · {o.groupCode ?? tr("Without a Group")} · {byGroup ? tr("group: asked") : tr("group: not asked")}
-                      {" · "}<b className={effective ? "text-emerald-700" : "text-neutral-500"}>{effective ? tr("asked here") : tr("not asked here")}</b></span>
+                    <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{o.name}</span>
+                    <span className="text-[11px] text-[color:var(--j-626F86)]">{o.code} · {o.groupCode ?? tr("Without a Group")} · {byGroup ? tr("group: asked") : tr("group: not asked")}
+                      {" · "}<b className={effective ? "text-emerald-700" : "text-[color:var(--j-626F86)]"}>{effective ? tr("asked here") : tr("not asked here")}</b></span>
                   </span>
-                  <span role="radiogroup" aria-label={o.name} className="flex rounded-lg bg-neutral-100 p-0.5">
+                  <span role="radiogroup" aria-label={o.name} className="flex rounded-[3px] bg-[color:var(--j-091E420F)] p-0.5">
                     {OPTS.map((x) => (
                       <button key={String(x.v)} type="button" role="radio" aria-checked={v === x.v} disabled={!canEdit}
                         onClick={() => setDraft((d) => ({ ...d, [o.code]: x.v }))}
-                        className={cx("rounded-md px-2.5 py-1 text-xs font-medium disabled:opacity-60", v === x.v
-                          ? x.v === null ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : x.v ? "bg-emerald-600 text-white" : "bg-neutral-700 text-white"
-                          : "text-neutral-500")}>{x.label}</button>
+                        className={cx("rounded-[3px] px-2.5 py-1 text-xs font-medium disabled:opacity-60", v === x.v
+                          ? x.v === null ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : x.v ? "bg-emerald-600 text-white" : "bg-neutral-700 text-white"
+                          : "text-[color:var(--j-626F86)]")}>{x.label}</button>
                     ))}
                   </span>
                 </li>
@@ -249,7 +249,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
           <div role="radiogroup" aria-label={tr("Form")} className="flex gap-1">
             {(["product", "outlet", "travel"] as const).map((f) => (
               <button key={f} type="button" role="radio" aria-checked={form === f} onClick={() => setForm(f)}
-                className={cx("rounded-md px-3 py-1 text-xs font-semibold", form === f ? "rounded-[4px] border border-brand-700 bg-brand-700 text-white" : "text-neutral-500")}>
+                className={cx("rounded-[3px] px-3 py-1 text-xs font-semibold", form === f ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "text-[color:var(--j-626F86)]")}>
                 {f === "product" ? "Form Product" : f === "outlet" ? "Form Outlet" : "Travel Path"}
               </button>
             ))}
@@ -271,13 +271,13 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
               if (!items.length) return null;
               return (
                 <tbody key={sec.key} className={kcTable.tbody}>
-                  <tr><td colSpan={res.groups.length + 2} className="bg-neutral-50 px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+                  <tr><td colSpan={res.groups.length + 2} className="bg-[color:var(--j-F7F8F9)] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">
                     <span className="flex items-center justify-between gap-2">{en ? `${sec.group} · ${sec.titleEn}` : `${sec.groupTitle ?? sec.group} · ${sec.title}`}
                       {canEdit && ed && <button type="button" onClick={() => setEditing({ item: null, section: edSections.find((x) => x.key === sec.key) ?? null })}
-                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold normal-case tracking-normal text-brand-700 hover:bg-brand-50"><AddIcon size={12} /> {tr("Add item")}</button>}</span>
+                        className="inline-flex items-center gap-1 rounded-[3px] px-2 py-1 text-[11px] font-semibold normal-case tracking-normal text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]"><AddIcon size={12} /> {tr("Add item")}</button>}</span>
                   </td></tr>
                   {items.map((it) => (
-                    <tr key={it.key} className={cx("hover:bg-neutral-50", drag?.key === it.key && "opacity-40", over === it.key && drag && drag.key !== it.key && "outline outline-2 -outline-offset-2 outline-brand-500")}
+                    <tr key={it.key} className={cx("hover:bg-[color:var(--j-F7F8F9)]", drag?.key === it.key && "opacity-40", over === it.key && drag && drag.key !== it.key && "outline outline-2 -outline-offset-2 outline-brand-500")}
                       draggable={canEdit && !s} onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDrag({ section: sec.key, key: it.key }); }}
                       onDragOver={(e) => { if (drag?.section === sec.key) { e.preventDefault(); setOver(it.key); } }}
                       onDragLeave={() => setOver((o) => (o === it.key ? null : o))}
@@ -287,20 +287,20 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                         const e = edItem(it.key);
                         return (
                           <div className="flex items-start gap-2">
-                            {canEdit && !s && <span className="mt-0.5 flex-shrink-0 cursor-grab text-neutral-300 hover:text-neutral-500 active:cursor-grabbing" title={tr("Drag to change the order")} aria-hidden><GripVertical size={15} /></span>}
+                            {canEdit && !s && <span className="mt-0.5 flex-shrink-0 cursor-grab text-[color:var(--j-8590A2)] hover:text-[color:var(--j-626F86)] active:cursor-grabbing" title={tr("Drag to change the order")} aria-hidden><GripVertical size={15} /></span>}
                             <div className={cx("min-w-0 flex-1", e && !e.active && "opacity-50")}>
-                              <span className="text-neutral-900">{it.no}. {en ? it.labelEn : it.label}</span>{!it.required && <span className="ml-1.5 text-[11px] text-neutral-400">({tr("optional")})</span>}
+                              <span className="text-[color:var(--j-172B4D)]">{it.no}. {en ? it.labelEn : it.label}</span>{!it.required && <span className="ml-1.5 text-[11px] text-[color:var(--j-626F86)]">({tr("optional")})</span>}
                               <span className="mt-0.5 flex flex-wrap gap-1">
                                 {e?.category && <span className={cx("rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", categoryTone(e.category))}>{categoryLabel(e.category)}</span>}
-                                {e && !e.active && <span className="rounded bg-neutral-200 px-1.5 py-px text-[10px] font-semibold text-neutral-600">{tr("Inactive")}</span>}
-                                {e?.custom && <span className="rounded bg-brand-50 px-1.5 py-px text-[10px] font-semibold text-brand-700">{tr("Added")}</span>}
+                                {e && !e.active && <span className="rounded bg-[color:var(--j-DCDFE4)] px-1.5 py-px text-[10px] font-semibold text-[color:var(--j-44546F)]">{tr("Inactive")}</span>}
+                                {e?.custom && <span className="rounded bg-[color:var(--j-E9F2FF)] px-1.5 py-px text-[10px] font-semibold text-[color:var(--j-0C66E4)]">{tr("Added")}</span>}
                                 {e?.changed && <span className="rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold text-amber-700">{tr("Changed")}</span>}
-                                {e && e.photo !== "required" && <span className="text-[10px] text-neutral-400">{tr("photo {0}", e.photo === "none" ? tr("not asked") : tr("optional"))}</span>}
-                                {e && e.note !== "required" && <span className="text-[10px] text-neutral-400">{tr("note {0}", e.note === "none" ? tr("not asked") : tr("optional"))}</span>}
+                                {e && e.photo !== "required" && <span className="text-[10px] text-[color:var(--j-626F86)]">{tr("photo {0}", e.photo === "none" ? tr("not asked") : tr("optional"))}</span>}
+                                {e && e.note !== "required" && <span className="text-[10px] text-[color:var(--j-626F86)]">{tr("note {0}", e.note === "none" ? tr("not asked") : tr("optional"))}</span>}
                               </span>
                             </div>
                             {canEdit && e && <button type="button" onClick={() => setEditing({ item: e, section: null })} title={tr("Edit item")} aria-label={`${tr("Edit item")} ${it.no}`}
-                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-brand-700"><Pencil size={14} /></button>}
+                              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-0055CC)]"><Pencil size={14} /></button>}
                           </div>
                         );
                       })()}</td>
@@ -310,8 +310,8 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                         const changed = v !== c.default;
                         return (
                           <td key={g} className="px-3 py-2 text-center">
-                            <label className="relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg hover:bg-neutral-100">
-                              <input type="checkbox" className="h-[18px] w-[18px] cursor-pointer rounded border-neutral-300 accent-brand-700" checked={v} disabled={!canEdit}
+                            <label className="relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-[3px] hover:bg-[color:var(--j-091E420F)]">
+                              <input type="checkbox" className="h-[18px] w-[18px] cursor-pointer rounded border-[color:var(--j-8590A2)] accent-[color:var(--j-0C66E4)]" checked={v} disabled={!canEdit}
                                 aria-label={`${en ? it.labelEn : it.label} · ${g}`}
                                 onChange={() => setChanges((x) => { const n = { ...x }; const key = k(it.key, g); if (!v === c.shown) delete n[key]; else n[key] = !v; return n; })} />
                               {changed && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden title={tr("Changed from the standard")} />}
@@ -325,8 +325,8 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                           const on = ex.filter(Boolean).length, off = ex.length - on;
                           return (
                             <button type="button" onClick={() => setOutletsOf(it)}
-                              className={cx("inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ring-1 ring-inset",
-                                ex.length ? "bg-amber-50 text-amber-800 ring-amber-200 hover:bg-amber-100" : "text-neutral-500 ring-neutral-200 hover:bg-neutral-50")}>
+                              className={cx("inline-flex items-center gap-1.5 rounded-[3px] px-2.5 py-1.5 text-xs font-medium ring-1 ring-inset",
+                                ex.length ? "bg-amber-50 text-amber-800 ring-amber-200 hover:bg-amber-100" : "text-[color:var(--j-626F86)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
                               <Store size={13} />{ex.length ? <>{on > 0 && `+${on}`}{on > 0 && off > 0 && " · "}{off > 0 && `−${off}`}</> : tr("Follow group")}
                             </button>
                           );
@@ -382,7 +382,7 @@ export function SalesTargets() {
   useEffect(() => { void load(); }, [load]);
   const rows = useMemo(() => (res?.data ?? []).filter((o) => !q || `${o.name} ${o.code} ${o.groupCode ?? ""}`.toLowerCase().includes(q.toLowerCase())), [res, q]);
   const paged = usePaged(rows, `${q}|${month}`, 25);
-  const tone = (v: number | null | undefined) => (v == null ? "text-neutral-400" : v >= 100 ? "text-emerald-600" : v >= 85 ? "text-amber-600" : "text-red-600");
+  const tone = (v: number | null | undefined) => (v == null ? "text-[color:var(--j-626F86)]" : v >= 100 ? "text-emerald-600" : v >= 85 ? "text-amber-600" : "text-red-600");
   return (
     <Card flush title={<span className="inline-flex items-center gap-1.5">{tr("Net Sales of the Outlets")} <InfoTip info={SALES_INFO} /></span>}
       footer={res && rows.length > 0 ? <><span>{tr("{0} outlets", rows.length)}</span><PageNav paged={paged} /></> : undefined}
@@ -403,10 +403,10 @@ export function SalesTargets() {
             <tbody className={kcTable.tbody}>
               {paged.rows.map((o) => (
                 <tr key={o.code}>
-                  <td className="px-3 py-2"><span className="block font-medium text-neutral-900">{o.name}</span><span className="text-[11px] text-neutral-400">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
-                  <td className="px-3 py-2 text-right tabular-nums text-neutral-800" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-neutral-400">{tr("{0} selling days", o.days ?? 0)}</span></td>
-                  <td className="px-3 py-2 text-right tabular-nums" data-label={tr("Average per Day")}>{o.perDay == null ? <span className="text-neutral-400">—</span> : rupiah(o.perDay)}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-neutral-600" data-label={tr("Average per Day (1 Month Before)")}>{o.baselinePerDay == null ? <Pill>{tr("No sales data yet")}</Pill> : rupiah(o.baselinePerDay)}</td>
+                  <td className="px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{o.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{o.code}{o.groupCode ? ` · ${o.groupCode}` : ""}</span></td>
+                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-172B4D)]" data-label={tr("Net Sales This Month")}>{rupiah(o.netSales)}<span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} selling days", o.days ?? 0)}</span></td>
+                  <td className="px-3 py-2 text-right tabular-nums" data-label={tr("Average per Day")}>{o.perDay == null ? <span className="text-[color:var(--j-626F86)]">—</span> : rupiah(o.perDay)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]" data-label={tr("Average per Day (1 Month Before)")}>{o.baselinePerDay == null ? <Pill>{tr("No sales data yet")}</Pill> : rupiah(o.baselinePerDay)}</td>
                   <td className={cx("px-3 py-2 text-right font-semibold tabular-nums", tone(o.vsBaseline))} data-label={tr("Against 1 Month Before")}>{o.vsBaseline == null ? "—" : `${o.vsBaseline}%`}</td>
                 </tr>
               ))}

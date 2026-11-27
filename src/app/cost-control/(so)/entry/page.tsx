@@ -49,7 +49,7 @@ export default function EntryPage() {
 
   return (
     <Page title={tr("Enter / Import SO")} subtitle={tr("Optional: fill in or import the stock opname of branches. Branches can still count themselves.")}>
-      <p className="flex items-start gap-2 rounded-md border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+      <p className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-4 py-3 text-sm text-[color:var(--j-0055CC)]">
         <Info size={16} className="mt-0.5 flex-shrink-0" />
         <span>{tr("What you enter or import goes to Review as Submitted. Another Cost Control member approves it (you cannot approve your own entry).")}</span>
       </p>
@@ -113,8 +113,8 @@ function FormEntry({ facilities, types }: { facilities: Facility[]; types: Count
           <Input type="date" value={day} max={wibDate()} onChange={(e) => e.target.value && setDay(e.target.value)} />
         </Field>
       </div>
-      <div className="flex items-center justify-between gap-3 border-t border-neutral-100 px-4 py-3 sm:px-5">
-        <p className="min-w-0 truncate text-sm text-neutral-600">{facility ? facilities.find((f) => f.id === facility)?.name : tr("Choose a branch")}</p>
+      <div className="flex items-center justify-between gap-3 border-t border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
+        <p className="min-w-0 truncate text-sm text-[color:var(--j-44546F)]">{facility ? facilities.find((f) => f.id === facility)?.name : tr("Choose a branch")}</p>
         <Button loading={busy} disabled={!facility} onClick={open}><ClipboardEdit size={16} /> {tr("Open the Form")}</Button>
       </div>
     </Panel>
@@ -151,7 +151,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
     <Panel title={tr("Import a File")} description={tr('A file in the "Stock Opname Report" layout: Branch, Product Code, Unit and Actual Opname Qty per row. Rows without a quantity are skipped.')}>
       <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-[1fr_220px_180px]">
         <Field label={tr("File (.xlsx)")} required>
-          <label className={cx("flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 text-sm", file ? "border-brand-400 bg-brand-50 text-brand-800" : "border-neutral-300 text-neutral-500 hover:border-neutral-400")}>
+          <label className={cx("flex h-10 cursor-pointer items-center gap-2 rounded-[3px] border border-dashed px-3 text-sm", file ? "border-brand-400 bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-8590A2)] text-[color:var(--j-626F86)] hover:border-neutral-400")}>
             <Upload size={15} /> <span className="truncate">{file ? file.name : tr("Choose a file")}</span>
             <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); }} />
           </label>
@@ -165,14 +165,14 @@ function ImportEntry({ types }: { types: CountType[] }) {
           <Input type="date" value={day} max={wibDate()} onChange={(e) => { if (e.target.value) { setDay(e.target.value); setResult(null); } }} />
         </Field>
       </div>
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-neutral-100 px-4 py-3 sm:px-5">
+      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
         <Button variant="secondary" loading={busy === "check"} disabled={!file || !!busy} onClick={() => send(false)}><FileSpreadsheet size={16} /> {tr("Check the File")}</Button>
         <Button loading={busy === "apply"} disabled={!result || result.applied || ready.length === 0 || !!busy} onClick={() => send(true)}>
           <FileUp size={16} /> {tr("Import {0} branches", ready.length)}
         </Button>
       </div>
       {result && (
-        <div className="space-y-4 border-t border-neutral-100 p-4 sm:p-5">
+        <div className="space-y-4 border-t border-[color:var(--j-F1F2F4)] p-4 sm:p-5">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Stat label={tr("Branches in the File")} value={result.branches.length + (p?.branches.length ?? 0)} />
             <Stat label={result.applied ? tr("Imported") : tr("Ready to import")} value={result.applied ? result.branches.filter((b) => b.status === "CREATED").length : ready.length} tone="green" />
@@ -180,7 +180,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
             <Stat label={tr("Unknown Items / Units")} value={(p?.items.length ?? 0) + (p?.units.length ?? 0)} tone={(p?.items.length ?? 0) + (p?.units.length ?? 0) ? "amber" : undefined} />
           </div>
           {(p?.branches.length || p?.items.length || p?.units.length) ? (
-            <details className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <details className="rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               <summary className="cursor-pointer font-medium">{tr("Rows that are skipped")}</summary>
               <ul className="mt-2 space-y-1 text-xs">
                 {p.branches.map((b) => <li key={b}>{tr("Branch not found: {0}", b)}</li>)}
@@ -190,20 +190,20 @@ function ImportEntry({ types }: { types: CountType[] }) {
             </details>
           ) : null}
           {result.branches.length === 0 ? <Empty icon={<FileSpreadsheet size={28} />} title={tr("No branch of the file was recognised")} /> : (
-            <div className="overflow-x-auto rounded-lg border border-neutral-200">
+            <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
               <table className="m-cards w-full min-w-[560px] text-sm">
                 <thead className={theadClass}><tr><th className="px-3 py-2">{tr("Branch")}</th><th className="px-3 py-2 text-right">{tr("Rows")}</th>
                   <th className="px-3 py-2 text-right">{tr("Items with Quantity")}</th><th className="px-3 py-2">{tr("Status")}</th></tr></thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {result.branches.map((b) => (
                     <tr key={b.facility_id}>
-                      <td className="px-3 py-2 font-medium text-neutral-900">{b.facility}</td>
+                      <td className="px-3 py-2 font-medium text-[color:var(--j-172B4D)]">{b.facility}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(b.rows)}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{b.lines ?? "—"}</td>
                       <td className="px-3 py-2">
                         <Badge tone={STATUS_TONE[b.status] ?? "slate"}>{STATUS_LABEL[b.status]?.() ?? b.status}</Badge>
-                        {b.existing && <span className="ml-2 text-xs text-neutral-500">{b.existing.number}</span>}
-                        {b.count_id && <Link href={`/cost-control/reviews/${b.count_id}`} className="ml-2 text-xs font-semibold text-brand-700 hover:underline">{b.number}</Link>}
+                        {b.existing && <span className="ml-2 text-xs text-[color:var(--j-626F86)]">{b.existing.number}</span>}
+                        {b.count_id && <Link href={`/cost-control/reviews/${b.count_id}`} className="ml-2 text-xs font-semibold text-[color:var(--j-0C66E4)] hover:underline">{b.number}</Link>}
                       </td>
                     </tr>
                   ))}
@@ -223,9 +223,9 @@ function ImportEntry({ types }: { types: CountType[] }) {
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "green" | "amber" }) {
   return (
-    <div className={cx("rounded-lg border px-3 py-2", tone === "green" ? "border-emerald-200 bg-emerald-50" : tone === "amber" ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-white")}>
-      <p className="text-xs font-medium capitalize text-neutral-500">{label}</p>
-      <p className="text-lg font-semibold tabular-nums text-neutral-900">{fmtNumber(value)}</p>
+    <div className={cx("rounded-[3px] border px-3 py-2", tone === "green" ? "border-emerald-200 bg-emerald-50" : tone === "amber" ? "border-amber-200 bg-amber-50" : "border-[color:var(--j-DCDFE4)] bg-white")}>
+      <p className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{label}</p>
+      <p className="text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtNumber(value)}</p>
     </div>
   );
 }

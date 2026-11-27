@@ -23,7 +23,7 @@ export default function DownloadProgress() {
   const status = done ? tr('Done') : s.phase === 'preparing' ? tr('Preparing the file…') : tr('Downloading…');
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-neutral-900/30 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-label={status}>
-      <div className="w-full max-w-[320px] rounded-2xl border border-neutral-200 bg-white p-6 text-center shadow-xl">
+      <div className="w-full max-w-[320px] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-6 text-center shadow-xl">
         <div className="relative mx-auto h-[120px] w-[120px]">
           <svg viewBox="0 0 120 120" className={`h-full w-full -rotate-90 ${measured ? '' : 'animate-spin [animation-duration:1.4s]'}`} aria-hidden>
             <circle cx="60" cy="60" r={R} fill="none" strokeWidth="8" className="stroke-neutral-100" />
@@ -33,17 +33,17 @@ export default function DownloadProgress() {
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             {done ? <Check className="h-9 w-9 text-emerald-500" strokeWidth={2.5} />
-              : measured ? <span className="text-[26px] font-bold leading-none tabular-nums text-neutral-900" aria-live="polite">{pct}%</span> : null}
+              : measured ? <span className="text-[26px] font-bold leading-none tabular-nums text-[color:var(--j-172B4D)]" aria-live="polite">{pct}%</span> : null}
           </div>
         </div>
-        <p className="mt-4 text-sm font-semibold text-neutral-900">{status}</p>
-        <p className="mx-auto mt-1.5 flex max-w-full items-center justify-center gap-1.5 text-xs text-neutral-500">
+        <p className="mt-4 text-sm font-semibold text-[color:var(--j-172B4D)]">{status}</p>
+        <p className="mx-auto mt-1.5 flex max-w-full items-center justify-center gap-1.5 text-xs text-[color:var(--j-626F86)]">
           <Icon className="h-3.5 w-3.5 flex-shrink-0" /><span className="truncate" title={s.filename}>{s.filename}</span>
         </p>
-        {s.phase === 'preparing' && <p className="mt-2 text-[11px] text-neutral-400">{tr('The server is putting the data together, please wait')}</p>}
+        {s.phase === 'preparing' && <p className="mt-2 text-[11px] text-[color:var(--j-626F86)]">{tr('The server is putting the data together, please wait')}</p>}
         {!done && s.cancel && (
           <button type="button" onClick={s.cancel}
-            className="mt-5 inline-flex h-9 items-center gap-1.5 rounded-lg border border-neutral-200 px-4 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+            className="mt-5 inline-flex h-9 items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-4 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
             <X className="h-3.5 w-3.5" />{tr('Cancel')}
           </button>
         )}

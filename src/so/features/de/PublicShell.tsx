@@ -21,11 +21,11 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
     }
   }, [setLang]);
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-100">
+    <div className="flex min-h-screen flex-col bg-[color:var(--j-091E420F)]">
       <header className="bg-[#0b1f4d] text-white">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-4 sm:px-6">
           {/* eslint-disable-next-line @next/next/no-img-element -- brand logo from the assets bucket */}
-          <img src={assetUrl("assets/calf-logo.png")} alt="Kopi Calf" className="h-10 w-10 flex-shrink-0 rounded-md bg-white object-contain p-1" />
+          <img src={assetUrl("assets/calf-logo.png")} alt="Kopi Calf" className="h-10 w-10 flex-shrink-0 rounded-[3px] bg-white object-contain p-1" />
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold capitalize tracking-[0.14em] text-brand-200">{eyebrow}</p>
             <h1 className="truncate text-base font-semibold sm:text-lg">{title}</h1>
@@ -33,7 +33,7 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
           </div>
           <div className="flex flex-shrink-0 items-center gap-2">
             {actions}
-            <div className="flex overflow-hidden rounded-lg ring-1 ring-white/25" role="group" aria-label={tr("Language")}>
+            <div className="flex overflow-hidden rounded-[3px] ring-1 ring-white/25" role="group" aria-label={tr("Language")}>
               {(["id", "en"] as const).map((l) => (
                 <button key={l} type="button" onClick={() => setLang(l)} aria-pressed={lang === l}
                   className={lang === l ? "bg-white px-2 py-1 text-[11px] font-semibold text-[#0b1f4d]" : "px-2 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10"}>
@@ -42,20 +42,20 @@ export default function PublicShell({ eyebrow, title, subtitle, actions, childre
             </div>
           </div>
         </div>
-        <div className="h-1 bg-brand-600" />
+        <div className="h-1 bg-[color:var(--j-0C66E4)]" />
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-6">{children}</main>
-      <footer className="border-t border-neutral-200 bg-white">
-        <p className="mx-auto max-w-6xl px-4 py-3 text-center text-[11px] text-neutral-400 sm:px-6">Kopi Calf Integrated Portal · Maintenance Request</p>
+      <footer className="border-t border-[color:var(--j-DCDFE4)] bg-white">
+        <p className="mx-auto max-w-6xl px-4 py-3 text-center text-[11px] text-[color:var(--j-626F86)] sm:px-6">Kopi Calf Integrated Portal · Maintenance Request</p>
       </footer>
     </div>
   );
 }
 
 export function PublicLoading() {
-  return <div className="mx-auto max-w-2xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-56" /><SkeletonList rows={5} className="rounded-md border border-neutral-200 bg-white" /></div>;
+  return <div className="mx-auto max-w-2xl space-y-3 px-4 py-8"><Skeleton className="h-6 w-56" /><SkeletonList rows={5} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white" /></div>;
 }
 
 export function PublicError({ message }: { message: string }) {
-  return <div className="rounded-md border border-neutral-200 bg-white shadow-none"><ErrorState message={message} /></div>;
+  return <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-none"><ErrorState message={message} /></div>;
 }

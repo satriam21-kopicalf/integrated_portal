@@ -136,13 +136,13 @@ function PlanView() {
         ) : (
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2 text-right">{tr("Average / Day")}</th><th className="px-3 py-2 text-right">{tr("Highest Day")}</th><th className="px-3 py-2 text-right">{tr("Plan (Cups)")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {plan.menus.map((r) => (
-                <tr key={r.code} className="hover:bg-neutral-50">
-                  <td className="px-3 py-2"><span className="font-medium text-neutral-900">{r.name}</span> {!r.bom && <Badge tone="amber">{tr("No recipe yet")}</Badge>}</td>
+                <tr key={r.code} className="hover:bg-[color:var(--j-F7F8F9)]">
+                  <td className="px-3 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{r.name}</span> {!r.bom && <Badge tone="amber">{tr("No recipe yet")}</Badge>}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.average.toLocaleString(locale())}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-neutral-500">{r.highest}</td>
-                  <td className="px-3 py-2 text-right font-semibold tabular-nums text-brand-700">{r.plan}</td>
+                  <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-626F86)]">{r.highest}</td>
+                  <td className="px-3 py-2 text-right font-semibold tabular-nums text-[color:var(--j-0C66E4)]">{r.plan}</td>
                 </tr>
               ))}
             </tbody>
@@ -153,10 +153,10 @@ function PlanView() {
         <Panel title={tr("Raw Materials Needed")} description={tr("The plan exploded through the recipes (premix down to its materials), rounded up")}>
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2 text-right">{tr("Qty")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {plan.materials.map((m) => (
-                <tr key={m.item} className="hover:bg-neutral-50">
-                  <td className="px-3 py-2"><span className="inline-flex items-center gap-2"><ListTree size={14} className="text-neutral-400" />{m.item}</span></td>
+                <tr key={m.item} className="hover:bg-[color:var(--j-F7F8F9)]">
+                  <td className="px-3 py-2"><span className="inline-flex items-center gap-2"><ListTree size={14} className="text-[color:var(--j-626F86)]" />{m.item}</span></td>
                   <td className="px-3 py-2 text-right tabular-nums">{m.qty.toLocaleString(locale())} {m.unit}</td>
                 </tr>
               ))}

@@ -92,7 +92,7 @@ export default function CotrRequestsPage() {
                 onOpen={() => { setDraft(pool); setSheet(true); }} onClear={() => setPool("")} />
             </Toolbar>
             {error ? <div className="p-4"><ErrorState message={error} onRetry={() => void load()} /></div>
-              : !data ? <div className="p-4"><div className="skeleton h-48 rounded-xl" /></div>
+              : !data ? <div className="p-4"><div className="skeleton h-48 rounded-[3px]" /></div>
               : <CardBody><DriverRequests rows={rows} onDone={load} /></CardBody>}
           </>
         ) : <CardBody><FleetIssues onCount={onCount} /></CardBody>}

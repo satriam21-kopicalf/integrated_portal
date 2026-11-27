@@ -25,18 +25,18 @@ export default function FeatureSkeleton({ title, subtitle, endpoint, steps, icon
     <Page title={title} subtitle={subtitle} eyebrow={eyebrow}>
       <Card>
         <div className="flex flex-col items-center px-4 py-10 text-center sm:py-14">
-          <span className={logo ? "mb-3 flex h-12 items-center justify-center rounded-xl bg-white px-4 ring-1 ring-neutral-200" : "mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600"}>{icon}</span>
+          <span className={logo ? "mb-3 flex h-12 items-center justify-center rounded-[3px] bg-white px-4 ring-1 ring-[color:var(--j-DCDFE4)]" : "mb-3 flex h-12 w-12 items-center justify-center rounded-[3px] bg-amber-50 text-amber-600"}>{icon}</span>
           <Pill tone="gray" icon={<Construction size={12} />} className="uppercase tracking-wide">{soon ? tr('Coming Soon') : tr('Being built')}</Pill>
-          <p className="mt-3 max-w-md text-[13px] text-neutral-600">{soon ?? tr('This page is ready in the menu and in the access settings (User Accounts → Roles & pages). The screens come next.')}</p>
+          <p className="mt-3 max-w-md text-[13px] text-[color:var(--j-44546F)]">{soon ?? tr('This page is ready in the menu and in the access settings (User Accounts → Roles & pages). The screens come next.')}</p>
           <ol className="mt-6 w-full max-w-md space-y-2 text-left">
             {(steps ?? []).map((s, i) => (
-              <li key={s} className="flex items-start gap-3 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-[13px] text-neutral-700">
-                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 text-[10px] font-bold text-white">{i + 1}</span>
+              <li key={s} className="flex items-start gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-[13px] text-[color:var(--j-44546F)]">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] text-[10px] font-bold text-white">{i + 1}</span>
                 <span>{s}</span>
               </li>
             ))}
           </ol>
-          <p className="mt-6 inline-flex items-center gap-1.5 text-xs text-neutral-500">
+          <p className="mt-6 inline-flex items-center gap-1.5 text-xs text-[color:var(--j-626F86)]">
             {access === 'ok' ? <><CheckCircle2 size={14} className="text-emerald-600" /> {tr('Your account has access to this page')}</>
               : access === 'denied' ? <><ShieldAlert size={14} className="text-red-600" /> {tr('Your account has no access to this page')}</>
               : tr('Checking access…')}

@@ -25,11 +25,11 @@ export default function CotrDashboardPage() {
         <ul className="grid gap-2 p-4 sm:grid-cols-2">
           {LINKS.map((l) => (
             <li key={l.href}>
-              <Link href={l.href} className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-3 transition-colors hover:border-brand-200 hover:bg-neutral-50">
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">{l.icon}</span>
-                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-neutral-900">{l.title()}</span>
-                  <span className="block truncate text-xs text-neutral-500">{l.sub()}</span></span>
-                <ChevronRight size={15} className="text-neutral-300" />
+              <Link href={l.href} className="flex items-center gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 py-3 transition-colors hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-F7F8F9)]">
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]">{l.icon}</span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{l.title()}</span>
+                  <span className="block truncate text-xs text-[color:var(--j-626F86)]">{l.sub()}</span></span>
+                <ChevronRight size={15} className="text-[color:var(--j-8590A2)]" />
               </Link>
             </li>
           ))}

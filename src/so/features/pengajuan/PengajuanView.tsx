@@ -40,10 +40,10 @@ export function Steps({ p }: { p: Pengajuan }) {
         const here = i === at && !finished;
         return (
           <li key={i} className="min-w-0">
-            <span className={cx("block h-1.5 rounded-full", here && stopped ? (p.status === "REJECTED" ? "bg-red-500" : "bg-amber-500") : done ? (finished ? "bg-emerald-500" : "bg-brand-600") : here ? "bg-brand-200" : "bg-neutral-200")} />
-            <p className={cx("mt-1 truncate text-[11px] font-semibold", done ? "text-neutral-800" : here ? (stopped ? (p.status === "REJECTED" ? "text-red-700" : "text-amber-700") : "text-brand-700") : "text-neutral-400")} title={c.label}>
+            <span className={cx("block h-1.5 rounded-full", here && stopped ? (p.status === "REJECTED" ? "bg-red-500" : "bg-amber-500") : done ? (finished ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]") : here ? "bg-brand-200" : "bg-[color:var(--j-DCDFE4)]")} />
+            <p className={cx("mt-1 truncate text-[11px] font-semibold", done ? "text-[color:var(--j-172B4D)]" : here ? (stopped ? (p.status === "REJECTED" ? "text-red-700" : "text-amber-700") : "text-[color:var(--j-0C66E4)]") : "text-[color:var(--j-626F86)]")} title={c.label}>
               {here && stopped ? STATUS_LABEL[p.status]() : c.label}</p>
-            <p className="truncate text-[10px] text-neutral-400" title={c.users.join(", ")}>{i === 0 ? wibDateTime(p.firstSubmittedAt ?? p.submittedAt) : c.users.length ? c.users.join(", ") : "Superadmin"}</p>
+            <p className="truncate text-[10px] text-[color:var(--j-626F86)]" title={c.users.join(", ")}>{i === 0 ? wibDateTime(p.firstSubmittedAt ?? p.submittedAt) : c.users.length ? c.users.join(", ") : "Superadmin"}</p>
           </li>
         );
       })}
@@ -56,16 +56,16 @@ export function Balances({ p, out }: { p: Pengajuan; out?: number }) {
   const total = out ?? p.totalOut ?? 0;
   const closing = p.openingBalance === null ? null : p.openingBalance + (p.incomeAmount ?? 0) - total;
   const cells: [string, number | null, React.ReactNode, string][] = [
-    [tr("Opening Balance"), p.openingBalance, <Wallet key="o" size={13} />, "text-neutral-900"],
+    [tr("Opening Balance"), p.openingBalance, <Wallet key="o" size={13} />, "text-[color:var(--j-172B4D)]"],
     [tr("Money in"), p.incomeAmount, <ArrowDownLeft key="i" size={13} />, "text-emerald-700"],
     [tr("Money Out"), total, <ArrowUpRight key="u" size={13} />, "text-red-700"],
-    [tr("Closing balance"), closing, <Wallet key="c" size={13} />, closing !== null && closing < 0 ? "text-red-700" : "text-neutral-900"],
+    [tr("Closing balance"), closing, <Wallet key="c" size={13} />, closing !== null && closing < 0 ? "text-red-700" : "text-[color:var(--j-172B4D)]"],
   ];
   return (
     <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {cells.map(([k, v, icon, tone]) => (
-        <div key={k} className="rounded-xl bg-white px-3 py-2.5 ring-1 ring-neutral-200">
-          <dt className="flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400">{icon}{k}</dt>
+        <div key={k} className="rounded-[3px] bg-white px-3 py-2.5 ring-1 ring-[color:var(--j-DCDFE4)]">
+          <dt className="flex items-center gap-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{icon}{k}</dt>
           <dd className={cx("mt-0.5 truncate text-base font-semibold tabular-nums", tone)}>{fmtRp(v)}</dd>
         </div>
       ))}
@@ -81,9 +81,9 @@ export function FileChip({ f, onRemove }: { f: PgFile; onRemove?: () => void }) 
         className="group flex w-20 flex-col items-center gap-1">
         {image
           // eslint-disable-next-line @next/next/no-img-element -- private file through the API
-          ? <img src={fileUrl(f.id)} alt={docLabel(f.docType)} loading="lazy" className="h-16 w-20 rounded-lg object-cover ring-1 ring-neutral-200 group-hover:ring-2 group-hover:ring-brand-400" />
-          : <span className="flex h-16 w-20 items-center justify-center rounded-lg bg-neutral-50 text-neutral-500 ring-1 ring-neutral-200 group-hover:ring-2 group-hover:ring-brand-400"><FileText size={22} /></span>}
-        <span className="w-full truncate text-center text-[10px] font-medium text-neutral-600">{docLabel(f.docType)}</span>
+          ? <img src={fileUrl(f.id)} alt={docLabel(f.docType)} loading="lazy" className="h-16 w-20 rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)] group-hover:ring-2 group-hover:ring-brand-400" />
+          : <span className="flex h-16 w-20 items-center justify-center rounded-[3px] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-626F86)] ring-1 ring-[color:var(--j-DCDFE4)] group-hover:ring-2 group-hover:ring-brand-400"><FileText size={22} /></span>}
+        <span className="w-full truncate text-center text-[10px] font-medium text-[color:var(--j-44546F)]">{docLabel(f.docType)}</span>
       </a>
       {f.usedIn.length > 0 && (
         <span className="absolute left-0.5 top-0.5 rounded bg-amber-500 p-0.5 text-white" title={tr("Same file as in {0}", f.usedIn.join(", "))}><Copy size={10} /></span>
@@ -133,7 +133,7 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
   const vendor = p.kind === "VENDOR" || p.kind === "INTERCOMPANY";
   return (
     <div className="space-y-5">
-      <section className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+      <section className="space-y-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-4">
         <Steps p={p} />
         {petty && <Balances p={p} />}
         <div className="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
@@ -177,27 +177,27 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
         </div>
         {petty && p.purchaseRef && p.purchaseRef.docs === 0 && (
           // no Simple Purchase of the outlet in ESB (Wasgee: its ESB purchases are not synced, 2026-11-10): no Rp 0 reference
-          <p className="rounded-lg bg-white px-3 py-2 text-xs text-neutral-500 ring-1 ring-neutral-200">
-            <span className="font-semibold text-neutral-700">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("no purchase of this outlet in ESB in the last {0} weeks", p.purchaseRef.weeks)}
+          <p className="rounded-[3px] bg-white px-3 py-2 text-xs text-[color:var(--j-626F86)] ring-1 ring-[color:var(--j-DCDFE4)]">
+            <span className="font-semibold text-[color:var(--j-44546F)]">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("no purchase of this outlet in ESB in the last {0} weeks", p.purchaseRef.weeks)}
           </p>
         )}
         {petty && p.purchaseRef && p.purchaseRef.docs > 0 && (
-          <p className="rounded-lg bg-white px-3 py-2 text-xs text-neutral-600 ring-1 ring-neutral-200">
-            <span className="font-semibold text-neutral-800">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("{0} weeks up to {1}", p.purchaseRef.weeks, wibDay(p.purchaseRef.until))}:
+          <p className="rounded-[3px] bg-white px-3 py-2 text-xs text-[color:var(--j-44546F)] ring-1 ring-[color:var(--j-DCDFE4)]">
+            <span className="font-semibold text-[color:var(--j-172B4D)]">{tr("Reference: Simple Purchase in ESB")}</span> · {tr("{0} weeks up to {1}", p.purchaseRef.weeks, wibDay(p.purchaseRef.until))}:
             {" "}{tr("average {0} a week", fmtRp(p.purchaseRef.avgWeek))} · {tr("last 7 days {0}", fmtRp(p.purchaseRef.lastWeek))} · {tr("{0} documents", p.purchaseRef.docs)}
           </p>
         )}
         {(p.similar ?? []).length > 0 && (
-          <p className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-xs text-amber-900"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
+          <p className="flex items-start gap-1.5 rounded-[3px] bg-amber-50 px-2.5 py-2 text-xs text-amber-900"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
             {tr("Same account and same amount within 30 days: {0}. Check that it is not paid twice.", p.similar!.join(", "))}</p>
         )}
         {(differs || reused.length > 0 || (p.closingBalance ?? 0) < 0) && (
           <ul className="space-y-1 text-xs">
-            {differs && <li className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-amber-900"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
+            {differs && <li className="flex items-start gap-1.5 rounded-[3px] bg-amber-50 px-2.5 py-2 text-amber-900"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
               {tr("Opening balance differs from the previous closing balance ({0}): {1}", fmtRp(p.openingExpected), p.openingNote ?? "—")}</li>}
-            {(p.closingBalance ?? 0) < 0 && <li className="flex items-start gap-1.5 rounded-lg bg-red-50 px-2.5 py-2 text-red-800"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
+            {(p.closingBalance ?? 0) < 0 && <li className="flex items-start gap-1.5 rounded-[3px] bg-red-50 px-2.5 py-2 text-red-800"><AlertTriangle size={13} className="mt-px flex-shrink-0" />
               {tr("Closing balance is negative")}</li>}
-            {reused.length > 0 && <li className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-amber-900"><Copy size={13} className="mt-px flex-shrink-0" />
+            {reused.length > 0 && <li className="flex items-start gap-1.5 rounded-[3px] bg-amber-50 px-2.5 py-2 text-amber-900"><Copy size={13} className="mt-px flex-shrink-0" />
               {tr("{0} attachments are the same file as in another fund request: {1}", reused.length, [...new Set(reused.flatMap((f) => f.usedIn))].join(", "))}</li>}
           </ul>
         )}
@@ -206,105 +206,105 @@ export default function PengajuanView({ p, onReview }: { p: Pengajuan; onReview?
       <LifeSummary p={p} />
 
       <section className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-md border border-neutral-200 p-3 text-sm">
-          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-neutral-400"><Landmark size={12} /> {p.payeeType === "VA" ? tr("Virtual Account") : tr("Transfer to")}</p>
-          <p className="font-semibold text-neutral-900">{(p.payeeType === "VA" ? p.vaProvider : null) ?? p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
-          <p className="text-neutral-600">a/n {p.payeeName ?? "—"}{p.accountTypeName ? ` · ${p.accountTypeName}` : ""}</p>
+        <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm">
+          <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-[color:var(--j-626F86)]"><Landmark size={12} /> {p.payeeType === "VA" ? tr("Virtual Account") : tr("Transfer to")}</p>
+          <p className="font-semibold text-[color:var(--j-172B4D)]">{(p.payeeType === "VA" ? p.vaProvider : null) ?? p.payeeBank ?? "—"} · <span className="tabular-nums">{p.payeeAccount ?? "—"}</span></p>
+          <p className="text-[color:var(--j-44546F)]">a/n {p.payeeName ?? "—"}{p.accountTypeName ? ` · ${p.accountTypeName}` : ""}</p>
         </div>
         {!petty && (
-          <div className="rounded-md border border-neutral-200 p-3 text-sm">
-            <p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{personal ? tr("Description and Details") : tr("Purpose")}</p>
-            <p className="whitespace-pre-line text-neutral-800">{p.purpose ?? "—"}</p>
+          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm">
+            <p className="mb-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{personal ? tr("Description and Details") : tr("Purpose")}</p>
+            <p className="whitespace-pre-line text-[color:var(--j-172B4D)]">{p.purpose ?? "—"}</p>
           </div>
         )}
       </section>
 
       {petty && <section>
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><Users size={15} className="text-neutral-500" /> {tr("Baristas")}</h3>
-        <div className="flex flex-wrap gap-1.5">{p.baristas.length ? p.baristas.map((b) => <Badge key={b.name} tone={b.userId ? "blue" : "slate"}>{b.name}</Badge>) : <span className="text-sm text-neutral-400">—</span>}</div>
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Users size={15} className="text-[color:var(--j-626F86)]" /> {tr("Baristas")}</h3>
+        <div className="flex flex-wrap gap-1.5">{p.baristas.length ? p.baristas.map((b) => <Badge key={b.name} tone={b.userId ? "blue" : "slate"}>{b.name}</Badge>) : <span className="text-sm text-[color:var(--j-626F86)]">—</span>}</div>
       </section>}
 
       {petty && <section>
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><ArrowDownLeft size={15} className="text-emerald-600" /> {tr("Money in")}</h3>
-        <div className="rounded-md border border-neutral-200 p-3 text-sm">
-          <p className="font-semibold tabular-nums text-neutral-900">{fmtRp(p.incomeAmount)}</p>
-          {p.incomeNote && <p className="mt-0.5 text-neutral-600">{p.incomeNote}</p>}
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><ArrowDownLeft size={15} className="text-emerald-600" /> {tr("Money in")}</h3>
+        <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm">
+          <p className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(p.incomeAmount)}</p>
+          {p.incomeNote && <p className="mt-0.5 text-[color:var(--j-44546F)]">{p.incomeNote}</p>}
           {income.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{income.map((f) => <FileChip key={f.id} f={f} />)}</div>}
         </div>
       </section>}
 
       {!vendor && <section>
-        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><ArrowUpRight size={15} className="text-red-600" /> {petty || p.kind === "EMERGENCY" ? tr("Money out ({0})", lines.length) : tr("Cost details ({0})", lines.length)}
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><ArrowUpRight size={15} className="text-red-600" /> {petty || p.kind === "EMERGENCY" ? tr("Money out ({0})", lines.length) : tr("Cost details ({0})", lines.length)}
           <span className="ml-auto text-sm tabular-nums">{fmtRp(p.totalOut)}</span></h3>
-        <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200">
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           {lines.map((l, i) => (
             <li key={l.id ?? i} className={cx("px-3 py-3", l.review === "REJECTED" && "bg-red-50/50")}>
               <div className="flex items-start gap-2.5">
-                <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-neutral-400">{i + 1}</span>
+                <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-[color:var(--j-626F86)]">{i + 1}</span>
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
-                    <span className={cx("font-medium text-neutral-900", l.review === "REJECTED" && "line-through decoration-red-400")}>{l.description || "—"}</span>
-                    <span className="ml-auto font-semibold tabular-nums text-neutral-900">{fmtRp(l.amount)}</span>
+                    <span className={cx("font-medium text-[color:var(--j-172B4D)]", l.review === "REJECTED" && "line-through decoration-red-400")}>{l.description || "—"}</span>
+                    <span className="ml-auto font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(l.amount)}</span>
                   </p>
-                  <p className="text-xs text-neutral-500">{l.spentOn ? `${wibDay(l.spentOn)} · ` : ""}{categoryLabel(l.category, l.categoryLabel)}</p>
+                  <p className="text-xs text-[color:var(--j-626F86)]">{l.spentOn ? `${wibDay(l.spentOn)} · ` : ""}{categoryLabel(l.category, l.categoryLabel)}</p>
                   {l.review === "REJECTED" && <p className="mt-1 text-xs font-medium text-red-700">{tr("Rejected")}{l.reviewedBy ? ` (${l.reviewedBy})` : ""}: {l.reviewNote}</p>}
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {byLine(l.id).length ? byLine(l.id).map((f) => <FileChip key={f.id} f={f} />) : <span className={cx("text-xs", ["PETTY_CASH", "EMERGENCY", "BILL"].includes(p.kind) ? "text-red-600" : "text-neutral-400")}>{tr("No receipt")}</span>}
+                    {byLine(l.id).length ? byLine(l.id).map((f) => <FileChip key={f.id} f={f} />) : <span className={cx("text-xs", ["PETTY_CASH", "EMERGENCY", "BILL"].includes(p.kind) ? "text-red-600" : "text-[color:var(--j-626F86)]")}>{tr("No receipt")}</span>}
                   </div>
                   {onReview && l.id !== undefined && <div className="mt-2"><LineReview line={l} onReview={(r, n) => onReview(l.id!, r, n)} /></div>}
                 </div>
               </div>
             </li>
           ))}
-          {!lines.length && <li className="px-3 py-4 text-center text-sm text-neutral-400">{tr("No expense")}</li>}
+          {!lines.length && <li className="px-3 py-4 text-center text-sm text-[color:var(--j-626F86)]">{tr("No expense")}</li>}
         </ul>
       </section>}
 
       {petty && p.purchaseDocs && (
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("Reconciliation with Simple Purchase (ESB)")}</h3>
+          <h3 className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Reconciliation with Simple Purchase (ESB)")}</h3>
           <div className="grid grid-cols-3 gap-2 text-center">
             {[[tr("Money out (this request)"), p.totalOut ?? 0], [tr("Simple Purchase in the period"), p.purchaseDocs.total],
               [tr("Difference"), (p.totalOut ?? 0) - p.purchaseDocs.total]].map(([k, v], i) => (
-              <div key={String(k)} className="rounded-xl bg-white px-2 py-2 ring-1 ring-neutral-200">
-                <p className="text-xs font-semibold capitalize text-neutral-400">{k}</p>
-                <p className={cx("text-sm font-semibold tabular-nums", i === 2 && Math.abs(Number(v)) > 0 ? "text-amber-700" : "text-neutral-900")}>{fmtRp(Number(v))}</p>
+              <div key={String(k)} className="rounded-[3px] bg-white px-2 py-2 ring-1 ring-[color:var(--j-DCDFE4)]">
+                <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{k}</p>
+                <p className={cx("text-sm font-semibold tabular-nums", i === 2 && Math.abs(Number(v)) > 0 ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}>{fmtRp(Number(v))}</p>
               </div>
             ))}
           </div>
-          <p className="mt-1 text-[11px] text-neutral-500">{tr("Purchases the outlet entered in ESB from {0} to {1}; a difference means an expense not in ESB or the other way round.", wibDay(p.purchaseDocs.from), wibDay(p.purchaseDocs.to))}</p>
+          <p className="mt-1 text-[11px] text-[color:var(--j-626F86)]">{tr("Purchases the outlet entered in ESB from {0} to {1}; a difference means an expense not in ESB or the other way round.", wibDay(p.purchaseDocs.from), wibDay(p.purchaseDocs.to))}</p>
           {p.purchaseDocs.docs.length > 0 ? (
-            <ul className="mt-2 max-h-56 divide-y divide-neutral-100 overflow-auto rounded-md border border-neutral-200 text-xs">
+            <ul className="mt-2 max-h-56 divide-y divide-[color:var(--j-F1F2F4)] overflow-auto rounded-[3px] border border-[color:var(--j-DCDFE4)] text-xs">
               {p.purchaseDocs.docs.map((d) => (
                 <li key={d.number} className="flex items-center justify-between gap-2 px-3 py-1.5">
-                  <span className="min-w-0 truncate"><span className="font-mono text-neutral-500">{d.number}</span> · {wibDay(d.date)}{d.supplier ? ` · ${d.supplier}` : ""}</span>
+                  <span className="min-w-0 truncate"><span className="font-mono text-[color:var(--j-626F86)]">{d.number}</span> · {wibDay(d.date)}{d.supplier ? ` · ${d.supplier}` : ""}</span>
                   <span className="flex-shrink-0 font-semibold tabular-nums">{fmtRp(d.total)}</span>
                 </li>
               ))}
             </ul>
-          ) : <p className="mt-2 text-xs text-neutral-400">{tr("No Simple Purchase in ESB in the period")}</p>}
+          ) : <p className="mt-2 text-xs text-[color:var(--j-626F86)]">{tr("No Simple Purchase in ESB in the period")}</p>}
         </section>
       )}
 
       {(other.length > 0 || payment.length > 0 || p.note) && (
         <section className="space-y-3">
-          {p.note && <div><p className="mb-1 text-xs font-semibold capitalize text-neutral-400">{tr("Note")}</p><p className="whitespace-pre-line text-sm text-neutral-700">{p.note}</p></div>}
-          {other.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400"><Paperclip size={11} /> {tr("Other attachments")}</p>
+          {p.note && <div><p className="mb-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Note")}</p><p className="whitespace-pre-line text-sm text-[color:var(--j-44546F)]">{p.note}</p></div>}
+          {other.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]"><Paperclip size={11} /> {tr("Other attachments")}</p>
             <div className="flex flex-wrap gap-2">{other.map((f) => <FileChip key={f.id} f={f} />)}</div></div>}
-          {payment.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-xs font-semibold capitalize text-neutral-400"><Wallet size={11} /> {tr("Payment proof")}</p>
+          {payment.length > 0 && <div><p className="mb-1 flex items-center gap-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]"><Wallet size={11} /> {tr("Payment proof")}</p>
             <div className="flex flex-wrap gap-2">{payment.map((f) => <FileChip key={f.id} f={f} />)}</div></div>}
         </section>
       )}
 
       {!!p.events?.length && (
         <section>
-          <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("History")}</h3>
-          <ol className="space-y-2 border-l-2 border-neutral-100 pl-3">
+          <h3 className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("History")}</h3>
+          <ol className="space-y-2 border-l-2 border-[color:var(--j-F1F2F4)] pl-3">
             {[...p.events].reverse().map((e, i) => (
               <li key={i} className="text-sm">
-                <p className="text-xs text-neutral-400">{wibDateTime(e.at)} · {e.actor ?? "—"}</p>
-                <p className="text-neutral-800">{eventText(e)}</p>
-                {e.note && <p className="mt-0.5 whitespace-pre-line rounded-lg bg-neutral-50 px-2.5 py-1.5 text-neutral-700">{e.note}</p>}
+                <p className="text-xs text-[color:var(--j-626F86)]">{wibDateTime(e.at)} · {e.actor ?? "—"}</p>
+                <p className="text-[color:var(--j-172B4D)]">{eventText(e)}</p>
+                {e.note && <p className="mt-0.5 whitespace-pre-line rounded-[3px] bg-[color:var(--j-F7F8F9)] px-2.5 py-1.5 text-[color:var(--j-44546F)]">{e.note}</p>}
               </li>
             ))}
           </ol>
@@ -330,9 +330,9 @@ function eventText(e: NonNullable<Pengajuan["events"]>[number]): string {
 function DeSource({ de }: { de: NonNullable<Pengajuan["deRequest"]> }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs font-medium text-neutral-400">{tr("Maintenance & Procurement request")}</p>
-      <p className="truncate font-medium text-neutral-800">
-        <a href={`/monitoring/damaged-equipment?open=${de.id}`} className="text-brand-700 hover:underline">{de.number ?? "—"}</a>
+      <p className="text-xs font-medium text-[color:var(--j-626F86)]">{tr("Maintenance & Procurement request")}</p>
+      <p className="truncate font-medium text-[color:var(--j-172B4D)]">
+        <a href={`/monitoring/damaged-equipment?open=${de.id}`} className="text-[color:var(--j-0C66E4)] hover:underline">{de.number ?? "—"}</a>
         {de.vendor && ` · ${de.vendor}`}{de.pic && ` · PIC ${de.pic}`}</p>
     </div>
   );
@@ -341,8 +341,8 @@ function DeSource({ de }: { de: NonNullable<Pengajuan["deRequest"]> }) {
 function Info({ k, v }: { k: string; v: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
-      <p className="truncate font-medium text-neutral-800" title={v}>{v}</p>
+      <p className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{k}</p>
+      <p className="truncate font-medium text-[color:var(--j-172B4D)]" title={v}>{v}</p>
     </div>
   );
 }

@@ -81,23 +81,23 @@ export default function VendorBatch({ units, unit, onEdit, onSent }: { units: Un
   const picked = rows.filter((d) => pick.has(d.id));
   const unitName = (c: string | null) => units.find((u) => u.code === c)?.name ?? c ?? "—";
   return (
-    <div className="space-y-3 rounded-md border border-neutral-200 p-3">
+    <div className="space-y-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="mr-auto text-sm font-semibold text-neutral-900">{tr("Many invoices at once")}</p>
-        <a href="/api/pengajuan/vendor/template" className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-neutral-200 px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50"><Download size={13} /> {tr("Template")}</a>
-        <label className={cx("inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-700 px-3 text-xs font-medium text-white hover:bg-brand-800", busy && "pointer-events-none opacity-60")}>
+        <p className="mr-auto text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Many invoices at once")}</p>
+        <a href="/api/pengajuan/vendor/template" className="inline-flex h-9 items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]"><Download size={13} /> {tr("Template")}</a>
+        <label className={cx("inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-0055CC)]", busy && "pointer-events-none opacity-60")}>
           <FileSpreadsheet size={13} /> {busy === "check" ? tr("Reading …") : tr("Import Excel")}
           <input type="file" accept=".xlsx" className="hidden" onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} /></label>
       </div>
-      <p className="text-xs text-neutral-500">{tr("The Google Form recap can be used as it is. The unit follows the Departemen column, else the unit chosen above.")}</p>
+      <p className="text-xs text-[color:var(--j-626F86)]">{tr("The Google Form recap can be used as it is. The unit follows the Departemen column, else the unit chosen above.")}</p>
       {check && (
-        <div className="space-y-2 rounded-md bg-neutral-50 p-3">
-          <p className="text-sm font-medium text-neutral-900">{tr("{0} of {1} rows ready · {2}", check.ready, check.rows.length, fmtRp(check.total))}</p>
-          <ul className="max-h-72 divide-y divide-neutral-200 overflow-y-auto rounded border border-neutral-200 bg-white text-xs">
+        <div className="space-y-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] p-3">
+          <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr("{0} of {1} rows ready · {2}", check.ready, check.rows.length, fmtRp(check.total))}</p>
+          <ul className="max-h-72 divide-y divide-[color:var(--j-DCDFE4)] overflow-y-auto rounded border border-[color:var(--j-DCDFE4)] bg-white text-xs">
             {check.rows.map((r) => (
               <li key={r.row} className="flex items-start gap-2 px-3 py-2">
                 {r.problems.length ? <AlertTriangle size={14} className="mt-px flex-shrink-0 text-red-600" /> : <CheckCircle2 size={14} className="mt-px flex-shrink-0 text-emerald-600" />}
-                <span className="min-w-0 flex-1"><span className="block truncate text-neutral-900">{r.row}. {r.vendor || "—"} · {r.invoiceNo || "—"} · {unitName(r.unit)}</span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-[color:var(--j-172B4D)]">{r.row}. {r.vendor || "—"} · {r.invoiceNo || "—"} · {unitName(r.unit)}</span>
                   {r.problems.length > 0 && <span className="block text-red-700">{r.problems.join("; ")}</span>}
                   {r.warnings.length > 0 && <span className="block text-amber-700">{r.warnings.join("; ")}</span>}</span>
                 <span className="flex-shrink-0 font-semibold tabular-nums">{fmtRp(r.amount)}</span>
@@ -110,30 +110,30 @@ export default function VendorBatch({ units, unit, onEdit, onSent }: { units: Un
           </div>
         </div>
       )}
-      {notes.length > 0 && <ul className="max-h-40 list-disc overflow-y-auto rounded-md bg-amber-50 py-2 pl-6 pr-3 text-xs text-amber-900">{notes.map((n) => <li key={n}>{n}</li>)}</ul>}
+      {notes.length > 0 && <ul className="max-h-40 list-disc overflow-y-auto rounded-[3px] bg-amber-50 py-2 pl-6 pr-3 text-xs text-amber-900">{notes.map((n) => <li key={n}>{n}</li>)}</ul>}
       {rows.length > 0 && (
         <>
-          <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
-            <label className="inline-flex items-center gap-2 text-xs font-medium text-neutral-700"><input type="checkbox" checked={pick.size > 0 && pick.size === rows.length} onChange={(e) => setPick(e.target.checked ? new Set(rows.map((d) => d.id)) : new Set())} />
+          <div className="flex flex-wrap items-center gap-2 border-t border-[color:var(--j-F1F2F4)] pt-3">
+            <label className="inline-flex items-center gap-2 text-xs font-medium text-[color:var(--j-44546F)]"><input type="checkbox" checked={pick.size > 0 && pick.size === rows.length} onChange={(e) => setPick(e.target.checked ? new Set(rows.map((d) => d.id)) : new Set())} />
               {tr("{0} drafts · {1} complete", rows.length, ready.length)}</label>
-            <button type="button" className="text-xs font-medium text-brand-700 hover:underline" onClick={() => setPick(new Set(ready.map((d) => d.id)))}>{tr("Choose the complete ones")}</button>
+            <button type="button" className="text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline" onClick={() => setPick(new Set(ready.map((d) => d.id)))}>{tr("Choose the complete ones")}</button>
             <span className="ml-auto flex flex-wrap gap-2">
-              <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-200 px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+              <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
                 <Paperclip size={13} /> {busy === "attach" ? tr("Attaching …") : picked.length ? tr("Attach to {0} chosen", picked.length) : tr("Attach by invoice number")}
                 <input type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={(e) => { void attach(e.target.files, picked.length ? picked.map((d) => d.id) : undefined); e.target.value = ""; }} /></label>
               <Button variant="ghost" disabled={!picked.length || !!busy} onClick={() => setAsk("delete")}><Trash2 size={14} /> {tr("Delete")}</Button>
               <Button disabled={!picked.length || picked.some((d) => d.missing.length) || !!busy} loading={busy === "send"} onClick={() => setAsk("send")}><Send size={14} /> {tr("Send {0}", picked.length)}</Button>
             </span>
           </div>
-          <ul className="max-h-[28rem] divide-y divide-neutral-100 overflow-y-auto rounded border border-neutral-200 text-sm">
+          <ul className="max-h-[28rem] divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto rounded border border-[color:var(--j-DCDFE4)] text-sm">
             {rows.map((d) => (
               <li key={d.id} className="flex items-start gap-3 px-3 py-2">
                 <input type="checkbox" className="mt-1" checked={pick.has(d.id)} onChange={() => toggle(d.id)} aria-label={d.vendor ?? d.id} />
-                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-neutral-900">{d.vendor ?? "—"}</span>
-                  <span className="block truncate text-xs text-neutral-500">{unitName(d.unit)} · {d.term ?? "—"} · {d.invoiceNo ?? "—"} · {d.due ? wibDay(d.due) : "—"} · {tr("{0} files", d.files)}</span>
+                <span className="min-w-0 flex-1"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{d.vendor ?? "—"}</span>
+                  <span className="block truncate text-xs text-[color:var(--j-626F86)]">{unitName(d.unit)} · {d.term ?? "—"} · {d.invoiceNo ?? "—"} · {d.due ? wibDay(d.due) : "—"} · {tr("{0} files", d.files)}</span>
                   {d.missing.length > 0 && <span className="block text-xs text-red-700">{d.missing.join("; ")}</span>}</span>
                 <span className="flex-shrink-0 font-semibold tabular-nums">{fmtRp(d.amount)}</span>
-                <button type="button" onClick={() => onEdit(d.id)} className="rounded p-1 text-neutral-400 hover:text-brand-700" aria-label={tr("Edit")}><Pencil size={14} /></button>
+                <button type="button" onClick={() => onEdit(d.id)} className="rounded p-1 text-[color:var(--j-626F86)] hover:text-[color:var(--j-0055CC)]" aria-label={tr("Edit")}><Pencil size={14} /></button>
               </li>
             ))}
           </ul>

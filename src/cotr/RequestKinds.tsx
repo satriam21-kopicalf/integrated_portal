@@ -35,10 +35,10 @@ export default function RequestKindsTab() {
       <MasterTable noun={tr("request kind")} title={tr("Request Kinds")} master={master} filters={filters}
         blank={(): Partial<RequestKind> => ({ code: "", name: "", description: "", max_amount: null, needs_photo: true, sort: rows.length + 1, is_active: true })}
         columns={[
-          { label: tr("Order"), className: "w-16", render: (k) => <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-50 text-xs font-semibold tabular-nums text-brand-700">{k.sort}</span> },
-          { label: tr("Kind"), render: (k) => <><span className="block font-medium text-neutral-900">{k.name}</span><span className="text-[11px] text-neutral-400">{k.code}</span></> },
-          { label: tr("Hint for the driver"), render: (k) => k.description || <span className="text-neutral-400">—</span> },
-          { label: tr("Limit"), className: "text-right", render: (k) => k.max_amount ? <span className="tabular-nums">{rupiah(k.max_amount)}</span> : <span className="text-neutral-400">{tr("No limit")}</span> },
+          { label: tr("Order"), className: "w-16", render: (k) => <span className="flex h-8 w-8 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-xs font-semibold tabular-nums text-[color:var(--j-0C66E4)]">{k.sort}</span> },
+          { label: tr("Kind"), render: (k) => <><span className="block font-medium text-[color:var(--j-172B4D)]">{k.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{k.code}</span></> },
+          { label: tr("Hint for the driver"), render: (k) => k.description || <span className="text-[color:var(--j-626F86)]">—</span> },
+          { label: tr("Limit"), className: "text-right", render: (k) => k.max_amount ? <span className="tabular-nums">{rupiah(k.max_amount)}</span> : <span className="text-[color:var(--j-626F86)]">{tr("No limit")}</span> },
           { label: tr("Receipt photo"), render: (k) => <Badge tone={k.needs_photo ? "blue" : "slate"}>{k.needs_photo ? tr("Required") : tr("Not required")}</Badge> },
           { label: tr("Status"), render: (k) => <Badge tone={k.is_active ? "green" : "slate"}>{k.is_active ? tr("Active") : tr("Inactive")}</Badge> },
         ]}

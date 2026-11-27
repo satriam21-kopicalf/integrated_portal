@@ -42,16 +42,16 @@ export default function GuidePage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-neutral-50">
+      <div className="min-h-full bg-[color:var(--j-F7F8F9)]">
         <header className="px-4 pt-5 sm:px-6 sm:pt-6">
-          <h1 className="flex items-center gap-2 text-lg font-semibold text-neutral-900 sm:text-xl"><BookOpen size={20} /> {text.title}</h1>
-          <p className="text-xs text-neutral-500 sm:text-sm">{text.subtitle}</p>
+          <h1 className="flex items-center gap-2 text-lg font-semibold text-[color:var(--j-172B4D)] sm:text-xl"><BookOpen size={20} /> {text.title}</h1>
+          <p className="text-xs text-[color:var(--j-626F86)] sm:text-sm">{text.subtitle}</p>
           {parts.length > 1 && (
             <div className="-mx-4 mt-3 flex gap-1 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" role="tablist">
               {parts.map(p => (
                 <button key={p.key} type="button" role="tab" aria-selected={tab === p.key}
                   onClick={(e) => { setTab(p.key); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
-                  className={`inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ${tab === p.key ? 'bg-brand-700 text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
+                  className={`inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[3px] px-3 py-1.5 text-sm font-medium ${tab === p.key ? 'bg-[color:var(--j-0C66E4)] text-white' : 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]'}`}>
                   {p.icon}{p.label}
                 </button>
               ))}
@@ -61,28 +61,28 @@ export default function GuidePage() {
         <div className="mx-auto grid max-w-6xl gap-6 p-4 sm:p-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
           <nav className="hidden lg:block" aria-label={text.toc}>
             <div className="sticky top-4 space-y-1">
-              <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{text.toc}</p>
+              <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--j-626F86)]">{text.toc}</p>
               {part.sections.map((s, i) => (
-                <a key={s.id} href={`#${s.id}`} className="block rounded-md px-2 py-1 text-sm text-neutral-600 hover:bg-white hover:text-neutral-900">{i + 1}. {s.title}</a>
+                <a key={s.id} href={`#${s.id}`} className="block rounded-[3px] px-2 py-1 text-sm text-[color:var(--j-44546F)] hover:bg-white hover:text-[color:var(--j-172B4D)]">{i + 1}. {s.title}</a>
               ))}
             </div>
           </nav>
           <div className="min-w-0 space-y-4">
-            <p className="rounded-md border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700">{part.intro}</p>
+            <p className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 text-sm text-[color:var(--j-44546F)]">{part.intro}</p>
             {/* phones and tablets: the contents as a menu above the sections */}
             {part.sections.length > 2 && (
-              <details className="rounded-md border border-neutral-200 bg-white px-4 py-2.5 text-sm lg:hidden">
-                <summary className="cursor-pointer font-medium text-neutral-800">{text.toc} ({part.sections.length})</summary>
+              <details className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-2.5 text-sm lg:hidden">
+                <summary className="cursor-pointer font-medium text-[color:var(--j-172B4D)]">{text.toc} ({part.sections.length})</summary>
                 <div className="mt-2 space-y-1">
                   {part.sections.map((s, i) => (
-                    <a key={s.id} href={`#${s.id}`} className="block rounded-md py-1 text-neutral-600 hover:text-neutral-900">{i + 1}. {s.title}</a>
+                    <a key={s.id} href={`#${s.id}`} className="block rounded-[3px] py-1 text-[color:var(--j-44546F)] hover:text-[color:var(--j-172B4D)]">{i + 1}. {s.title}</a>
                   ))}
                 </div>
               </details>
             )}
             {part.sections.map((s, i) => (
-              <section key={s.id} id={s.id} className="scroll-mt-4 space-y-3 rounded-md border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
-                <h2 className="text-base font-semibold text-neutral-900">{i + 1}. {s.title}</h2>
+              <section key={s.id} id={s.id} className="scroll-mt-4 space-y-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 sm:p-5">
+                <h2 className="text-base font-semibold text-[color:var(--j-172B4D)]">{i + 1}. {s.title}</h2>
                 {s.body}
               </section>
             ))}

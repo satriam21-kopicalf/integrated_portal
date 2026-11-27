@@ -41,7 +41,7 @@ function PasswordInput({ id, value, onChange, autoComplete, invalid }: {
     <div className="relative">
       <input id={id} type={show ? 'text' : 'password'} autoComplete={autoComplete} value={value} onChange={e => onChange(e.target.value)}
         className={`${inputClass} pr-10 ${invalid ? 'border-red-300 bg-red-50/40' : ''}`} />
-      <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-neutral-400 hover:text-neutral-700"
+      <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]"
         aria-label={show ? tr('Hide password') : tr('Show password')} aria-pressed={show}>
         {show ? <EyeOff size={16} /> : <Eye size={16} />}
       </button>
@@ -120,11 +120,11 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
     >
       <form id="change-password" onSubmit={submit}>
         {user && (
-          <div className="-mx-5 -mt-5 mb-5 flex items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-5 py-3 sm:-mx-6 sm:px-6">
+          <div className="-mx-5 -mt-5 mb-5 flex items-center gap-3 border-b border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-5 py-3 sm:-mx-6 sm:px-6">
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="md" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-neutral-900">{user.displayName}</p>
-              <p className="truncate text-xs text-neutral-500">
+              <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{user.displayName}</p>
+              <p className="truncate text-xs text-[color:var(--j-626F86)]">
                 @{user.username} · {user.passwordChangedAt ? tr('Password changed {0}', formatDateTime(user.passwordChangedAt)) : tr('Password not changed yet')}
               </p>
             </div>
@@ -144,18 +144,18 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
           {next && (
             <div aria-live="polite">
               <div className="flex gap-1" aria-hidden>
-                {[1, 2, 3, 4].map(i => <span key={i} className={`h-1.5 flex-1 rounded-full ${strength(next) >= i ? level.bar : 'bg-neutral-200'}`} />)}
+                {[1, 2, 3, 4].map(i => <span key={i} className={`h-1.5 flex-1 rounded-full ${strength(next) >= i ? level.bar : 'bg-[color:var(--j-DCDFE4)]'}`} />)}
               </div>
               <p className={`mt-1 text-xs font-medium ${level.text}`}>{tr('Strength: {0}', level.label)}</p>
             </div>
           )}
-          <ul className="space-y-1.5 rounded-[4px] border-l-[3px] border-neutral-300 bg-neutral-50 px-3.5 py-3 text-xs">
+          <ul className="space-y-1.5 rounded-[4px] border-l-[3px] border-[color:var(--j-8590A2)] bg-[color:var(--j-F7F8F9)] px-3.5 py-3 text-xs">
             {RULES.map(r => {
               const ok = r.test(next, current);
               return (
-                <li key={r.label} className={`flex items-center gap-2 ${ok ? 'text-emerald-700' : 'text-neutral-500'}`}>
-                  <span className={`flex h-4 w-4 items-center justify-center rounded-full ${ok ? 'bg-emerald-100' : 'bg-neutral-200'}`}>
-                    {ok ? <Check size={11} strokeWidth={3} /> : <X size={10} strokeWidth={3} className="text-neutral-400" />}
+                <li key={r.label} className={`flex items-center gap-2 ${ok ? 'text-emerald-700' : 'text-[color:var(--j-626F86)]'}`}>
+                  <span className={`flex h-4 w-4 items-center justify-center rounded-full ${ok ? 'bg-emerald-100' : 'bg-[color:var(--j-DCDFE4)]'}`}>
+                    {ok ? <Check size={11} strokeWidth={3} /> : <X size={10} strokeWidth={3} className="text-[color:var(--j-626F86)]" />}
                   </span>
                   {r.label}
                 </li>
@@ -169,7 +169,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
         </DrawerSection>
 
         {!forced && (
-          <p className="mt-5 flex items-start gap-2 rounded-[4px] border-l-[3px] border-brand-700 bg-brand-50/60 px-3.5 py-3 text-xs text-brand-900">
+          <p className="mt-5 flex items-start gap-2 rounded-[4px] border-l-[3px] border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] px-3.5 py-3 text-xs text-[color:var(--j-0055CC)]">
             <Info size={14} className="mt-px flex-shrink-0" /> {tr('After saving, every other device signed in to your account is signed out. This device stays signed in.')}
           </p>
         )}

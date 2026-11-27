@@ -34,12 +34,12 @@ export default function RefundPanel({ p, base, onChanged }: { p: Pengajuan; base
     }
   };
   return (
-    <section className="rounded-md border border-amber-200 bg-amber-50/50 p-3">
-      <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Undo2 size={15} /> {tr("Money back: {0}", fmtRp(p.refundAmount))}</p>
-      <p className="mb-2 text-xs text-neutral-600">{tr("The actual cost was lower than paid. Attach the proof of the money received, then confirm.")}</p>
+    <section className="rounded-[3px] border border-amber-200 bg-amber-50/50 p-3">
+      <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><Undo2 size={15} /> {tr("Money back: {0}", fmtRp(p.refundAmount))}</p>
+      <p className="mb-2 text-xs text-[color:var(--j-44546F)]">{tr("The actual cost was lower than paid. Attach the proof of the money received, then confirm.")}</p>
       <div className="flex flex-wrap items-end gap-2">
         {proofs.map((f) => <FileChip key={f.id} f={f} onRemove={() => void run(() => call<Pengajuan>(`${base}/refund-files/${f.id}`, { method: "DELETE" }))} />)}
-        <label className={cx("inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50", busy && "pointer-events-none opacity-60")}>
+        <label className={cx("inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]", busy && "pointer-events-none opacity-60")}>
           <Paperclip size={13} /> {tr("Attach proof")}
           <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => { void attach(e.target.files); e.target.value = ""; }} />
         </label>

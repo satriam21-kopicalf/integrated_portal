@@ -51,12 +51,12 @@ export default function AppUpdate() {
 
   if (!ready || hidden) return null;
   return (
-    <div role="status" className="fixed left-1/2 top-3 z-[80] flex w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 items-center gap-3 rounded-md border border-neutral-200/80 bg-white px-4 py-3 shadow-xl">
-      <RefreshCw size={18} className="flex-shrink-0 text-brand-600" />
-      <p className="min-w-0 flex-1 text-sm text-neutral-700">{tr('A new version of the portal is available.')}</p>
+    <div role="status" className="fixed left-1/2 top-3 z-[80] flex w-[min(24rem,calc(100vw-1.5rem))] -translate-x-1/2 items-center gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 shadow-xl">
+      <RefreshCw size={18} className="flex-shrink-0 text-[color:var(--j-0C66E4)]" />
+      <p className="min-w-0 flex-1 text-sm text-[color:var(--j-44546F)]">{tr('A new version of the portal is available.')}</p>
       <button type="button" onClick={() => window.location.reload()}
-        className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-700">{tr('Reload')}</button>
-      <button type="button" onClick={() => setHidden(true)} aria-label={tr('Close')} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700">
+        className="rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[color:var(--j-0055CC)]">{tr('Reload')}</button>
+      <button type="button" onClick={() => setHidden(true)} aria-label={tr('Close')} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]">
         <X size={16} />
       </button>
     </div>

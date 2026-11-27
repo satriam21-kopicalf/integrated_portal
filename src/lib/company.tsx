@@ -146,13 +146,13 @@ export function CompanySwitch({ className = '', extra = [], value, onChange, com
         return (
           <button key={c.code} type="button" role="radio" aria-checked={on} aria-label={c.name} title={c.name} onClick={() => choose(c.code)}
             className={`flex flex-shrink-0 ${LOGOS[c.code] && !NAMED.has(c.code) ? 'h-8 w-20 px-2' : 'h-8 px-3'} min-w-0 items-center gap-2 justify-center rounded-[4px] border transition-colors ${
-              on ? 'border-brand-700 bg-white ring-1 ring-brand-700' : 'border-neutral-200 bg-neutral-50 hover:bg-neutral-100'}`}>
+              on ? 'border-[color:var(--j-0C66E4)] bg-white ring-1 ring-[color:var(--j-388BFF)]' : 'border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] hover:bg-[color:var(--j-091E420F)]'}`}>
             {/* the logo only (2026-11-02); the name is the label */}
             {LOGOS[c.code]
               // eslint-disable-next-line @next/next/no-img-element
               ? <img src={LOGOS[c.code]} alt="" aria-hidden className={`object-contain transition ${NAMED.has(c.code) ? 'max-h-6 max-w-14' : 'max-h-5 max-w-full'} ${on ? '' : 'opacity-60 grayscale'}`} />
               : null}
-            {(!LOGOS[c.code] || NAMED.has(c.code)) && <span className="truncate text-xs font-semibold text-neutral-600">{c.name}</span>}
+            {(!LOGOS[c.code] || NAMED.has(c.code)) && <span className="truncate text-xs font-semibold text-[color:var(--j-44546F)]">{c.name}</span>}
           </button>
         );
       })}
@@ -181,17 +181,17 @@ function NoView({ unit, onClose }: { unit: UnitTab; onClose: () => void }) {
   };
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-neutral-900/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div role="alertdialog" aria-modal="true" aria-labelledby="no-view-title" className="w-full rounded-t-lg bg-white p-5 shadow-xl sm:max-w-md sm:rounded-lg" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+      <div role="alertdialog" aria-modal="true" aria-labelledby="no-view-title" className="w-full rounded-t-lg bg-white p-5 shadow-xl sm:max-w-md sm:rounded-[3px]" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {LOGOS[unit.code] && <img src={LOGOS[unit.code]} alt="" aria-hidden className="mb-3 max-h-14 max-w-36 object-contain" />}
-        <p id="no-view-title" className="text-base font-semibold text-neutral-900">{brand ? tr('Your account has no {0} branch', unit.name) : tr('No view for {0} here', unit.name)}</p>
-        <p className="mt-1.5 text-sm text-neutral-600">{brand ? tr('The figures of {0} are here, but the Branch Access of your account holds none of its branches. A Superadmin adds them in User Accounts.', unit.name)
+        <p id="no-view-title" className="text-base font-semibold text-[color:var(--j-172B4D)]">{brand ? tr('Your account has no {0} branch', unit.name) : tr('No view for {0} here', unit.name)}</p>
+        <p className="mt-1.5 text-sm text-[color:var(--j-44546F)]">{brand ? tr('The figures of {0} are here, but the Branch Access of your account holds none of its branches. A Superadmin adds them in User Accounts.', unit.name)
           : tr('This page has no data of {0}. It is available in Fund Request; the page stays on the brand shown now.', unit.name)}</p>
         <div className="mt-4 flex flex-wrap justify-end gap-2">
-          <button type="button" onClick={onClose} className="h-9 rounded-[4px] border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50">{tr('Close')}</button>
-          {unit.code === 'COTR' && <button type="button" onClick={() => open('/overview')} className="h-9 rounded-[4px] border border-neutral-300 bg-white px-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50">{tr('Dashboard')}</button>}
-          {brand && user?.role === 'superadmin' && <button type="button" autoFocus onClick={() => open('/users')} className="h-9 rounded-[4px] bg-brand-700 px-3 text-sm font-medium text-white hover:bg-brand-800">{tr('Open User Accounts')}</button>}
-          {!brand && fund && <button type="button" autoFocus onClick={() => open('/monitoring/pengajuan')} className="h-9 rounded-[4px] bg-brand-700 px-3 text-sm font-medium text-white hover:bg-brand-800">{tr('Open Fund Request')}</button>}
+          <button type="button" onClick={onClose} className="h-9 rounded-[4px] border border-[color:var(--j-8590A2)] bg-white px-3 text-sm font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">{tr('Close')}</button>
+          {unit.code === 'COTR' && <button type="button" onClick={() => open('/overview')} className="h-9 rounded-[4px] border border-[color:var(--j-8590A2)] bg-white px-3 text-sm font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">{tr('Dashboard')}</button>}
+          {brand && user?.role === 'superadmin' && <button type="button" autoFocus onClick={() => open('/users')} className="h-9 rounded-[4px] bg-[color:var(--j-0C66E4)] px-3 text-sm font-medium text-white hover:bg-[color:var(--j-0055CC)]">{tr('Open User Accounts')}</button>}
+          {!brand && fund && <button type="button" autoFocus onClick={() => open('/monitoring/pengajuan')} className="h-9 rounded-[4px] bg-[color:var(--j-0C66E4)] px-3 text-sm font-medium text-white hover:bg-[color:var(--j-0055CC)]">{tr('Open Fund Request')}</button>}
         </div>
       </div>
     </div>, document.body);
@@ -213,23 +213,23 @@ function BrandMenu({ tabs, shown, pick, className }: { tabs: { code: string; nam
   const cur = tabs.find((t) => t.code === shown) ?? tabs[0];
   const logo = (code: string, name: string, cls: string) => (LOGOS[code]
     // eslint-disable-next-line @next/next/no-img-element
-    ? <img src={LOGOS[code]} alt="" aria-hidden className={`${cls} object-contain`} /> : <span className="truncate text-xs font-semibold text-neutral-700">{name}</span>);
+    ? <img src={LOGOS[code]} alt="" aria-hidden className={`${cls} object-contain`} /> : <span className="truncate text-xs font-semibold text-[color:var(--j-44546F)]">{name}</span>);
   return (
     <div ref={box} className={`relative ${className ?? ''}`}>
       <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`Brand: ${cur.name}`} title={cur.name}
-        className={`flex h-8 items-center gap-1.5 rounded-[4px] border px-2 transition-colors ${open ? 'border-brand-600 bg-white ring-2 ring-brand-100' : 'border-neutral-200 bg-white hover:bg-neutral-50'}`}>
+        className={`flex h-8 items-center gap-1.5 rounded-[4px] border px-2 transition-colors ${open ? 'border-[color:var(--j-0C66E4)] bg-white ring-2 ring-[color:var(--j-388BFF)]' : 'border-[color:var(--j-DCDFE4)] bg-white hover:bg-[color:var(--j-F7F8F9)]'}`}>
         <span className="flex h-5 w-12 items-center justify-center">{logo(cur.code, cur.name, 'max-h-4 max-w-full')}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-neutral-400 transition ${open ? 'rotate-180' : ''}`} aria-hidden><path d="m6 9 6 6 6-6" /></svg>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`text-[color:var(--j-626F86)] transition ${open ? 'rotate-180' : ''}`} aria-hidden><path d="m6 9 6 6 6-6" /></svg>
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-md border border-neutral-200 bg-white py-1 shadow-xl lg:left-0 lg:right-auto">
-          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500">Brand</p>
+        <div role="menu" className="absolute right-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white py-1 shadow-xl lg:left-0 lg:right-auto">
+          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-[color:var(--j-626F86)]">Brand</p>
           {tabs.map((t) => {
             const on = t.code === shown;
             return (
               <button key={t.code} type="button" role="menuitemradio" aria-checked={on} onClick={() => { setOpen(false); if (!on) pick(t.code); }}
-                className={`relative flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] ${on ? 'bg-brand-50 font-medium text-brand-800 before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:bg-brand-700' : 'text-neutral-800 hover:bg-neutral-100'}`}>
-                <span className="flex h-8 w-14 flex-shrink-0 items-center justify-center rounded-[4px] border border-neutral-200 bg-white px-1">{logo(t.code, t.name, NAMED.has(t.code) ? 'max-h-7 max-w-full' : 'max-h-4 max-w-full')}</span>
+                className={`relative flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] ${on ? 'bg-[color:var(--j-E9F2FF)] font-medium text-[color:var(--j-0055CC)] before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:bg-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-172B4D)] hover:bg-[color:var(--j-091E420F)]'}`}>
+                <span className="flex h-8 w-14 flex-shrink-0 items-center justify-center rounded-[4px] border border-[color:var(--j-DCDFE4)] bg-white px-1">{logo(t.code, t.name, NAMED.has(t.code) ? 'max-h-7 max-w-full' : 'max-h-4 max-w-full')}</span>
                 <span className="min-w-0 flex-1 truncate">{t.name}</span>
                 {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden><path d="M20 6 9 17l-5-5" /></svg>}
               </button>

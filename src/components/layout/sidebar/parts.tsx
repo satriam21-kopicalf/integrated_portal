@@ -23,7 +23,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   }
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-[3px] bg-white shadow-sm ring-1 ring-neutral-200">
+      <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-[3px] bg-white ring-1 ring-[color:var(--j-DCDFE4)]">
         <Image src={b.logo} alt={b.name} fill sizes="36px" className="object-contain p-1" />
       </div>
       {!compact && (
@@ -44,7 +44,7 @@ export function SectionLabel({ children, collapsed }: { children: ReactNode; col
 
 /** The look of an entry: active = white with a line and the navy icon, idle = quiet grey. */
 export const entryClass = (active: boolean, collapsed: boolean) => cx(
-  'group relative flex w-full items-center gap-2.5 rounded-[4px] py-1.5 text-left text-[13px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-200',
+  'group relative flex w-full items-center gap-2.5 rounded-[4px] py-1.5 text-left text-[13px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-85B8FF)]',
   collapsed ? 'justify-center px-0' : 'px-2.5',
   active ? 'bg-[color:var(--j-E9F2FF)] font-semibold text-[color:var(--j-0055CC)] before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:rounded-r before:bg-[color:var(--j-0C66E4)]'
     : 'font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]');

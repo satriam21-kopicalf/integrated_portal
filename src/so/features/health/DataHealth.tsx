@@ -27,7 +27,7 @@ export const STATUS: Record<Status, { icon: ReactNode; label: () => string; tone
   ok: { icon: <CheckCircle2 aria-hidden />, label: () => tr('Good'), tone: 'text-emerald-700 bg-emerald-50 border-emerald-200', dot: 'text-emerald-600' },
   warn: { icon: <AlertTriangle aria-hidden />, label: () => tr('Check'), tone: 'text-amber-800 bg-amber-50 border-amber-200', dot: 'text-amber-600' },
   high: { icon: <AlertOctagon aria-hidden />, label: () => tr('Figures affected'), tone: 'text-red-700 bg-red-50 border-red-200', dot: 'text-red-600' },
-  error: { icon: <XCircle aria-hidden />, label: () => tr('Check failed'), tone: 'text-neutral-700 bg-neutral-100 border-neutral-200', dot: 'text-neutral-500' },
+  error: { icon: <XCircle aria-hidden />, label: () => tr('Check failed'), tone: 'text-[color:var(--j-44546F)] bg-[color:var(--j-091E420F)] border-[color:var(--j-DCDFE4)]', dot: 'text-[color:var(--j-626F86)]' },
 };
 
 const num = (n: number | null | undefined, d = 0) => (n == null ? '—' : n.toLocaleString(numberLocale(), { maximumFractionDigits: d }));
@@ -114,8 +114,8 @@ export function DataSources({ keys, className }: { keys: string[]; className?: s
         <ChevronDown size={12} className={cx('transition', open && 'rotate-180')} aria-hidden />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-30 mt-1 w-80 overflow-hidden rounded-md border border-neutral-200 bg-white py-1 shadow-xl">
-          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500">{tr('Data sources')}</p>
+        <div className="absolute left-0 top-full z-30 mt-1 w-80 overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white py-1 shadow-xl">
+          <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-[color:var(--j-626F86)]">{tr('Data sources')}</p>
           <ul>
             {cards.map((c) => {
               const d = describe(c);
@@ -123,14 +123,14 @@ export function DataSources({ keys, className }: { keys: string[]; className?: s
               return (
                 <li key={c.key} className="flex items-start gap-2 px-3 py-1.5" title={d.text}>
                   <span className={cx('mt-0.5 [&>svg]:h-3.5 [&>svg]:w-3.5', st.dot)}>{st.icon}</span>
-                  <span className="min-w-0 flex-1 text-xs"><span className="block text-neutral-800">{d.title}</span>
-                    <span className="block text-[11px] text-neutral-500">{d.source}</span></span>
-                  <span className="text-xs font-semibold tabular-nums text-neutral-800">{d.value}</span>
+                  <span className="min-w-0 flex-1 text-xs"><span className="block text-[color:var(--j-172B4D)]">{d.title}</span>
+                    <span className="block text-[11px] text-[color:var(--j-626F86)]">{d.source}</span></span>
+                  <span className="text-xs font-semibold tabular-nums text-[color:var(--j-172B4D)]">{d.value}</span>
                 </li>
               );
             })}
           </ul>
-          <Link href="/cost-control/info" className="mt-1 flex items-center justify-between border-t border-neutral-100 px-3 py-2 text-xs font-medium text-brand-700 hover:bg-neutral-50">
+          <Link href="/cost-control/info" className="mt-1 flex items-center justify-between border-t border-[color:var(--j-F1F2F4)] px-3 py-2 text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-F7F8F9)]">
             {tr('Information Center')} <ChevronRight size={13} aria-hidden /></Link>
         </div>
       )}

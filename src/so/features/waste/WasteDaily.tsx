@@ -61,17 +61,17 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
   const missing = allMissing ? data.missingLast : data.missingLast.slice(0, 10);
   return (
     <div>
-      <div className="grid grid-cols-2 gap-3 border-b border-neutral-100 px-4 py-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:grid-cols-4">
         {([
           [tr("Branches Open"), fmtNumber(total), tr("selling in the period")],
           [tr("Reported {0}", short(data.lastDate!)), `${fmtNumber(lastOk)} / ${fmtNumber(total)}`, pct(lastOk, total)],
           [tr("Reporting Rate"), pct(reportedCells, cells), tr("{0} of {1} branch-days", fmtNumber(reportedCells), fmtNumber(cells))],
           [tr("Every Day Reported"), fmtNumber(full), tr("{0} branches with a gap", fmtNumber(total - full))],
         ] as const).map(([k, v, sub]) => (
-          <div key={k} className="rounded-lg bg-neutral-50 px-3 py-2">
-            <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
-            <p className="text-lg font-semibold tabular-nums text-neutral-900">{v}</p>
-            <p className="text-[11px] text-neutral-500">{sub}</p>
+          <div key={k} className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2">
+            <p className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{k}</p>
+            <p className="text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{v}</p>
+            <p className="text-[11px] text-[color:var(--j-626F86)]">{sub}</p>
           </div>
         ))}
       </div>
@@ -95,13 +95,13 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
       ) : (
         <p className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><CheckCircle2 size={16} />{tr("Every branch reported its waste for {0}", dmy(data.lastDate!))}</p>
       )}
-      <div className="flex flex-col gap-2 border-b border-neutral-100 px-4 py-3 sm:flex-row sm:items-center">
-        <div className="relative sm:w-72"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-          <input className="h-9 w-full rounded-lg border border-neutral-200 pl-8 pr-3 text-sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search branch")} /></div>
+      <div className="flex flex-col gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:flex-row sm:items-center">
+        <div className="relative sm:w-72"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
+          <input className="h-9 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] pl-8 pr-3 text-sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search branch")} /></div>
         <div className="inline-flex max-w-full flex-wrap gap-1 sm:ml-auto" role="radiogroup" aria-label={tr("Show")}>
           {([["", tr("All")], ["missing", tr("Not reported {0}", short(data.lastDate!))], ["late", tr("With a gap")], ["full", tr("Every day")]] as [DailyFilter, string][]).map(([v, l]) => (
             <button key={v} type="button" role="radio" aria-checked={show === v} onClick={() => setShow(v)}
-              className={cx("rounded-[4px] border px-2.5 py-1 text-xs font-medium", show === v ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>{l}</button>
+              className={cx("rounded-[4px] border px-2.5 py-1 text-xs font-medium", show === v ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>{l}</button>
           ))}
         </div>
       </div>
@@ -110,27 +110,27 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
           <table className="w-full text-sm">
             <thead className={theadClass}>
               <tr>
-                <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="sticky left-0 z-10 min-w-[13rem] bg-neutral-50 py-2 pl-5 pr-3">{tr("Branch")}</SortTh>
+                <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="sticky left-0 z-10 min-w-[13rem] bg-[color:var(--j-F7F8F9)] py-2 pl-5 pr-3">{tr("Branch")}</SortTh>
                 <SortTh k="reported" sort={sorted.sort} onSort={sorted.toggle} pad="px-2 py-2" align="right">{tr("Reported")}</SortTh>
                 <SortTh k="usage" sort={sorted.sort} onSort={sorted.toggle} pad="px-2 py-2" align="right">{tr("Usage List")}</SortTh>
                 {data.dates.map((d) => <th key={d} className="px-1 py-2 text-center font-medium">{short(d)}</th>)}
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {paged.rows.map((b) => (
-                <tr key={b.code} className="hover:bg-neutral-50">
+                <tr key={b.code} className="hover:bg-[color:var(--j-F7F8F9)]">
                   <td className="sticky left-0 z-10 max-w-[15rem] bg-white py-2 pl-5 pr-3">
-                    <button type="button" onClick={() => onBranch(b.code)} className="block max-w-full truncate text-left font-medium text-neutral-800 hover:text-brand-600" title={b.name}>{shortName(b.name)}</button>
-                    <span className="block h-1 w-full overflow-hidden rounded-full bg-neutral-100" aria-hidden>
+                    <button type="button" onClick={() => onBranch(b.code)} className="block max-w-full truncate text-left font-medium text-[color:var(--j-172B4D)] hover:text-[color:var(--j-0C66E4)]" title={b.name}>{shortName(b.name)}</button>
+                    <span className="block h-1 w-full overflow-hidden rounded-full bg-[color:var(--j-091E420F)]" aria-hidden>
                       <span className={cx("block h-full rounded-full", b.missing ? "bg-amber-400" : "bg-emerald-500")} style={{ width: `${b.days.length ? (b.reported / b.days.length) * 100 : 0}%` }} /></span>
                   </td>
-                  <td className={cx("whitespace-nowrap px-2 py-2 text-right tabular-nums", b.missing ? "font-medium text-amber-700" : "text-neutral-600")}>{b.reported}/{b.days.length}</td>
-                  <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-neutral-600">{b.usageDays}/{b.days.length}</td>
+                  <td className={cx("whitespace-nowrap px-2 py-2 text-right tabular-nums", b.missing ? "font-medium text-amber-700" : "text-[color:var(--j-44546F)]")}>{b.reported}/{b.days.length}</td>
+                  <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{b.usageDays}/{b.days.length}</td>
                   {b.days.map((c) => (
                     <td key={c.date} className="px-0.5 py-2 text-center">
                       <span title={`${dmy(c.date)} · ${c.entries ? tr("{0} waste entries", c.entries) : c.noWaste ? tr("No waste today") : tr("Not reported")}`}
-                        className={cx("inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1 text-[11px] font-semibold",
-                          c.entries ? "bg-brand-100 text-brand-700" : c.noWaste ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>
+                        className={cx("inline-flex h-6 min-w-6 items-center justify-center rounded-[3px] px-1 text-[11px] font-semibold",
+                          c.entries ? "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0C66E4)]" : c.noWaste ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>
                         {c.entries ? c.entries : c.noWaste ? "0" : "–"}
                       </span>
                     </td>
@@ -141,9 +141,9 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
           </table>
         </div>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--j-F1F2F4)] px-4 py-2 text-[11px] text-[color:var(--j-626F86)]">
         <span className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-brand-100" />{tr("waste entries")}</span>
+          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-[color:var(--j-CCE0FF)]" />{tr("waste entries")}</span>
           <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-emerald-100" />{tr("0 = no waste today")}</span>
           <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-amber-100" />{tr("– = not reported")}</span>
           <span>{tr("{0} branches shown · closed outlets (no sales) left out", fmtNumber(rows.length))}</span>
@@ -188,10 +188,10 @@ export function EsbCompare({ period, branch, onBranch }: { period: Period; branc
     <div>
       <div className="grid gap-3 p-4 sm:grid-cols-4">
         {tiles.map(([l, v, h], i) => (
-          <div key={l} className={cx("rounded-md border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-amber-300" : "border-neutral-200")}>
-            <p className="text-xs font-semibold capitalize text-neutral-500">{l}</p>
-            <p className={cx("mt-1 text-lg font-semibold tabular-nums", i === 3 && t.sameCount ? "text-amber-700" : "text-neutral-900")}>{v}</p>
-            <p className="text-xs text-neutral-500">{h}</p>
+          <div key={l} className={cx("rounded-[3px] border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-amber-300" : "border-[color:var(--j-DCDFE4)]")}>
+            <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{l}</p>
+            <p className={cx("mt-1 text-lg font-semibold tabular-nums", i === 3 && t.sameCount ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}>{v}</p>
+            <p className="text-xs text-[color:var(--j-626F86)]">{h}</p>
           </div>))}
       </div>
       <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-sm">
@@ -202,29 +202,29 @@ export function EsbCompare({ period, branch, onBranch }: { period: Period; branc
           <SortTh k="bills" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("ESB POS waste bills")}</SortTh>
           <SortTh k="same" sort={sorted.sort} onSort={sorted.toggle} align="right" first="desc">{tr("Same material, same day")}</SortTh>
         </tr></thead>
-        <tbody className="divide-y divide-neutral-100">{paged.rows.map((r) => (
+        <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((r) => (
           <Fragment key={r.branchCode}>
-            <tr className="align-top hover:bg-neutral-50/70">
-              <td className="max-w-[16rem] py-2.5 pl-5 pr-3"><button type="button" onClick={() => onBranch(r.branchCode)} className="block max-w-full truncate text-left font-medium text-neutral-900 hover:text-brand-700">{r.branchName}</button>
-                <span className="text-[11px] text-neutral-400">{r.branchCode}</span></td>
+            <tr className="align-top hover:bg-[color:var(--j-F7F8F9)]">
+              <td className="max-w-[16rem] py-2.5 pl-5 pr-3"><button type="button" onClick={() => onBranch(r.branchCode)} className="block max-w-full truncate text-left font-medium text-[color:var(--j-172B4D)] hover:text-[color:var(--j-0055CC)]">{r.branchName}</button>
+                <span className="text-[11px] text-[color:var(--j-626F86)]">{r.branchCode}</span></td>
               <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rpx(r.portalApproved)}
-                <span className="block text-[11px] text-neutral-400">{tr("{0} entries", r.portalEntries)}{r.portalWaiting ? ` · ${tr("{0} waiting", rpx(r.portalWaiting))}` : ""}{r.portalUnpriced ? ` · ${tr("{0} no price", r.portalUnpriced)}` : ""}</span></td>
-              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rpx(r.journalValue)}<span className="block text-[11px] text-neutral-400">{tr("{0} lines", r.journalLines)}</span></td>
-              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtNumber(r.billPortions)}<span className="block text-[11px] text-neutral-400">{tr("{0} bills", r.bills)}</span></td>
+                <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} entries", r.portalEntries)}{r.portalWaiting ? ` · ${tr("{0} waiting", rpx(r.portalWaiting))}` : ""}{r.portalUnpriced ? ` · ${tr("{0} no price", r.portalUnpriced)}` : ""}</span></td>
+              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rpx(r.journalValue)}<span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} lines", r.journalLines)}</span></td>
+              <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtNumber(r.billPortions)}<span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} bills", r.bills)}</span></td>
               <td className="whitespace-nowrap px-3 py-2 text-right">
                 {r.sameCount ? <button type="button" onClick={() => setOpen(open === r.branchCode ? null : r.branchCode)} aria-expanded={open === r.branchCode}
                   className="inline-flex items-center gap-1 font-semibold text-amber-700 hover:underline"><AlertTriangle size={13} aria-hidden /> {fmtNumber(r.sameCount)}</button>
                   : <span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 size={13} aria-hidden /> 0</span>}</td>
             </tr>
             {open === r.branchCode && (
-              <tr><td colSpan={5} className="bg-amber-50/50 px-5 py-2 text-xs text-neutral-700">
+              <tr><td colSpan={5} className="bg-amber-50/50 px-5 py-2 text-xs text-[color:var(--j-44546F)]">
                 {r.same.map((x) => <span key={`${x.day}${x.code}`} className="mr-3 inline-block">{dmy(x.day)} · {x.name}</span>)}
               </td></tr>
             )}
           </Fragment>
         ))}</tbody>
       </table></div>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 px-5 py-2 text-[11px] text-neutral-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--j-F1F2F4)] px-5 py-2 text-[11px] text-[color:var(--j-626F86)]">
         <span className="max-w-3xl">{tr("The Purchase Estimate and COGS & Usage take the approved portal waste. The ESB POS waste bills are already in the usage of the recipe cards. Check a material on the same day in both before counting the ESB journal too.")}</span>
         <PageNav paged={paged} />
       </div>

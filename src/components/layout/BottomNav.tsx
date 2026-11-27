@@ -105,7 +105,7 @@ function FormSheet({ links, on, onClose }: { links: FormLink[]; on: (href: strin
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 pt-4" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
-          <ul className="grid gap-px overflow-hidden rounded-[3px] bg-[color:var(--j-091E420F)] ring-1 ring-neutral-200/70 sm:grid-cols-2">
+          <ul className="grid gap-px overflow-hidden rounded-[3px] bg-[color:var(--j-091E420F)] ring-1 ring-[color:var(--j-DCDFE4)]/70 sm:grid-cols-2">
             {links.map((f) => {
               const here = on(f.href);
               return (

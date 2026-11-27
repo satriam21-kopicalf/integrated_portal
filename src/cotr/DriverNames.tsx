@@ -72,7 +72,7 @@ export function DriverNames() {
         {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonTable cols={4} /> : data.unmatched.length === 0 ? (
           <EmptyState icon={<Check />} title={tr("Every name in the workbooks has its driver")} />
         ) : (
-          <ul className="divide-y divide-neutral-100">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {namePage.rows.map((u) => (
               <LabelRow key={`${u.pool}:${u.label}`} u={u} drivers={drivers.rows ?? []} busy={busy === `${u.pool}:${u.label}`} onTie={(d, n) => void tie(u, d, n)} />
             ))}
@@ -84,13 +84,13 @@ export function DriverNames() {
         <Panel title={tr("Names tied by hand")} description={tr("Removing a tie lets the next import match the name by itself again; the rows already imported keep their driver.")}>
           <table className="m-cards w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Name in the workbook")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Driver")}</th><th className="w-12 px-3 py-2.5" /></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {tiedPage.rows.map((t) => (
                 <tr key={`${t.pool}:${t.label}`}>
-                  <td className="px-3 py-2 font-mono text-xs font-semibold text-neutral-900">{t.label}</td>
+                  <td className="px-3 py-2 font-mono text-xs font-semibold text-[color:var(--j-172B4D)]">{t.label}</td>
                   <td className="px-3 py-2.5">{t.poolName}</td>
                   <td className="px-3 py-2.5">{t.ignored ? <Badge tone="slate">{tr("Not a driver")}</Badge> : <span className="font-medium">{t.driverName ?? t.driver}</span>}</td>
-                  <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => void untie(t)} aria-label={tr("Remove")} className="rounded-md p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button></td>
+                  <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => void untie(t)} aria-label={tr("Remove")} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button></td>
                 </tr>
               ))}
             </tbody>
@@ -113,29 +113,29 @@ function LabelRow({ u, drivers, busy, onTie }: { u: Unmatched; drivers: Driver[]
   return (
     <li className="space-y-2.5 px-1 py-3.5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p><span className="font-mono text-sm font-semibold text-neutral-900">{u.label}</span> <span className="text-xs text-neutral-500">· {u.poolName}</span></p>
-        <p className="text-xs text-neutral-500">{tr("{0} rows", u.rows)} · {u.first === u.last ? dmyOf(u.first) : `${dmyOf(u.first)} – ${dmyOf(u.last)}`}</p>
+        <p><span className="font-mono text-sm font-semibold text-[color:var(--j-172B4D)]">{u.label}</span> <span className="text-xs text-[color:var(--j-626F86)]">· {u.poolName}</span></p>
+        <p className="text-xs text-[color:var(--j-626F86)]">{tr("{0} rows", u.rows)} · {u.first === u.last ? dmyOf(u.first) : `${dmyOf(u.first)} – ${dmyOf(u.last)}`}</p>
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{tr("Suggested")}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Suggested")}</span>
         {u.suggestions.map((s) => (
           <button key={s.code} type="button" disabled={busy} onClick={() => onTie(s.code, s.name)} title={[s.pool, s.fleet].filter(Boolean).join(" · ")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors disabled:opacity-50 ${s.score >= 0.9 ? "bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100" : "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-50"}`}>
-            <Users size={12} />{s.name}{s.fleet && <span className="text-neutral-400">{s.fleet}</span>}<span className="tabular-nums text-neutral-400">{Math.round(s.score * 100)}%</span>
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors disabled:opacity-50 ${s.score >= 0.9 ? "bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]"}`}>
+            <Users size={12} />{s.name}{s.fleet && <span className="text-[color:var(--j-626F86)]">{s.fleet}</span>}<span className="tabular-nums text-[color:var(--j-626F86)]">{Math.round(s.score * 100)}%</span>
           </button>
         ))}
         <Button size="sm" variant="ghost" disabled={busy} onClick={() => onTie(null)}><Ban size={13} /> {tr("Not a driver")}</Button>
       </div>
       <div className="relative max-w-sm">
-        <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search another driver (name, code, fleet)")} className="h-9 pl-8 text-sm" />
       </div>
       {found.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {found.map((d) => (
             <button key={d.code} type="button" disabled={busy} onClick={() => { onTie(d.code, d.name); setQ(""); }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-800 ring-1 ring-brand-100 hover:bg-brand-100 disabled:opacity-50">
-              {d.name}<span className="text-brand-500">{d.fleet_code ?? d.code}</span>
+              className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-3 py-1 text-xs font-medium text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-388BFF)] hover:bg-[color:var(--j-CCE0FF)] disabled:opacity-50">
+              {d.name}<span className="text-[color:var(--j-0C66E4)]">{d.fleet_code ?? d.code}</span>
             </button>
           ))}
         </div>

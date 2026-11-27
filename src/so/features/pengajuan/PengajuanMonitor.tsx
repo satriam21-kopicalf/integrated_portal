@@ -39,7 +39,7 @@ const NO_F = (): F => ({ period: { from: wibOffset(-89), to: wibOffset(0) }, bgr
 type GroupOpt = { id: string; code: string; name: string };
 type Tab = Status | "" | "OPEN" | "MINE";
 const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "PAID", "VERIFYING", "DONE", "REJECTED", "CANCELLED"];
-const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-brand-500", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
+const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-[color:var(--j-388BFF)]", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
   PAID: "bg-violet-500", VERIFYING: "bg-amber-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500", CANCELLED: "bg-neutral-400" };
 const sum = (rows: Pengajuan[], f: (p: Pengajuan) => number | null | undefined) => rows.reduce((a, p) => a + (f(p) ?? 0), 0);
 /** the requests that are a cost: the money between the PTs stays out of every total */
@@ -181,14 +181,14 @@ export default function PengajuanMonitor() {
               const n = res!.openByUnit?.[u.code] ?? 0;
               return (
                 <button key={u.code} type="button" role="radio" aria-checked={on} data-on={on || undefined} onClick={() => !on && pickUnit(u.code)} title={u.payer}
-                  className={cx("inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors", on ? "border-brand-700 bg-white text-brand-800 ring-1 ring-brand-700" : "border-neutral-200 bg-neutral-50 text-neutral-600 hover:bg-neutral-100")}>
+                  className={cx("inline-flex h-9 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded border px-3 text-sm font-medium transition-colors", on ? "border-[color:var(--j-0C66E4)] bg-white text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {LOGOS[u.code] && <img src={LOGOS[u.code]} alt="" aria-hidden className={cx("max-h-6 max-w-14 object-contain", !on && "opacity-60 grayscale")} />}
-                  {u.name}{n > 0 && <span className="rounded-full bg-neutral-200/80 px-1.5 text-[11px] tabular-nums text-neutral-700">{n}</span>}
+                  {u.name}{n > 0 && <span className="rounded-full bg-[color:var(--j-DCDFE4)]/80 px-1.5 text-[11px] tabular-nums text-[color:var(--j-44546F)]">{n}</span>}
                 </button>
               );
             })}
-            <span className="ml-auto hidden self-center text-xs text-neutral-500 sm:inline">{tr("Paid from {0}", res!.units!.find((u) => u.code === unit)?.payer ?? "—")}</span>
+            <span className="ml-auto hidden self-center text-xs text-[color:var(--j-626F86)] sm:inline">{tr("Paid from {0}", res!.units!.find((u) => u.code === unit)?.payer ?? "—")}</span>
           </div>
         )}
         <StatStrip label={tr("Summary")} columns={5} gridClassName="grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -205,7 +205,7 @@ export default function PengajuanMonitor() {
           ))}
         </StatStrip>
         {res?.pipeline && res.pipeline.count > 0 && (
-          <p className="mt-3 flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+          <p className="mt-3 flex items-start gap-2 rounded-[3px] border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
             <Clock size={14} className="mt-px shrink-0" />{tr("{0} requests ({1}) are still in approval: they appear here once every approval is given", fmtNumber(res.pipeline.count), fmtRp(res.pipeline.amount))}</p>
         )}
         </>
@@ -228,14 +228,14 @@ export default function PengajuanMonitor() {
           </Empty>
         ) : !res ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table> : (
           <>
-            <ul className="divide-y divide-neutral-100 md:hidden">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
               {paged.rows.map((p) => (
                 <li key={p.id}>
-                  <button type="button" onClick={() => setOpen(p.id)} className="w-full px-4 py-3 text-left hover:bg-neutral-50">
-                    <span className="flex items-center justify-between gap-2"><span className="flex items-center gap-2 text-xs font-semibold text-brand-700">{canPick(p) && <input type="checkbox" className="h-4 w-4" aria-label={p.number ?? p.id} checked={pick.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => togglePick(p.id)} />}{p.number}</span><PgLozenge s={p.status} /></span>
-                    <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-neutral-900">{placeOf(p)}</span>
+                  <button type="button" onClick={() => setOpen(p.id)} className="w-full px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
+                    <span className="flex items-center justify-between gap-2"><span className="flex items-center gap-2 text-xs font-semibold text-[color:var(--j-0C66E4)]">{canPick(p) && <input type="checkbox" className="h-4 w-4" aria-label={p.number ?? p.id} checked={pick.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => togglePick(p.id)} />}{p.number}</span><PgLozenge s={p.status} /></span>
+                    <span className="mt-1 flex items-baseline justify-between gap-2"><span className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{placeOf(p)}</span>
                       <span className="flex-shrink-0 text-sm font-semibold tabular-nums">{fmtRp(p.requestedAmount ?? p.totalOut)}</span></span>
-                    <span className="block truncate text-xs text-neutral-500">{requestLabel(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
+                    <span className="block truncate text-xs text-[color:var(--j-626F86)]">{requestLabel(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? "—"}</span>
                     <StepWaiting p={p} />
                     <Flags p={p} />
                   </button>
@@ -257,15 +257,15 @@ export default function PengajuanMonitor() {
                       <td className={jTd}><span className="flex items-center gap-2">{canPick(p) && <input type="checkbox" aria-label={p.number ?? p.id} checked={pick.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => togglePick(p.id)} />}<TypeIcon tone={KIND_TONE[p.kind] ?? "bg-neutral-500"} title={requestLabel(p)}><Wallet size={11} /></TypeIcon></span></td>
                       <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{p.number}</span></td>
                       <td className={cx(jTd, "max-w-[22rem]")}>
-                        <span className="block truncate text-neutral-900">{placeOf(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? requestLabel(p)}</span>
-                        <span className="block truncate text-[11px] text-neutral-400">{requestLabel(p)}{p.kind === "PERSONAL" ? ` · ${p.name}` : ""} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</span>
+                        <span className="block truncate text-[color:var(--j-172B4D)]">{placeOf(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? requestLabel(p)}</span>
+                        <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{requestLabel(p)}{p.kind === "PERSONAL" ? ` · ${p.name}` : ""} · {tr("{0} expenses", p.lines?.length ?? 0)} · {tr("{0} files", p.fileCount ?? 0)}</span>
                         <Flags p={p} />
                       </td>
                       <td className={jTd}><PgLozenge s={p.status} /><StepWaiting p={p} /></td>
                       <td className={cx(jTd, "max-w-[12rem]")}><Person name={p.requesterName || p.name} sub={`@${p.username}`} /></td>
-                      <td className={cx(jTd, "whitespace-nowrap text-right tabular-nums text-neutral-700")}>{fmtRp(p.totalOut)}</td>
-                      <td className={cx(jTd, "whitespace-nowrap text-right font-semibold tabular-nums text-neutral-900")}>{fmtRp(p.approvedAmount ?? p.requestedAmount)}</td>
-                      <td className={cx(jTd, "whitespace-nowrap text-neutral-600")}>{wibDateTime(p.submittedAt)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap text-right tabular-nums text-[color:var(--j-44546F)]")}>{fmtRp(p.totalOut)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap text-right font-semibold tabular-nums text-[color:var(--j-172B4D)]")}>{fmtRp(p.approvedAmount ?? p.requestedAmount)}</td>
+                      <td className={cx(jTd, "whitespace-nowrap text-[color:var(--j-44546F)]")}>{wibDateTime(p.submittedAt)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -293,15 +293,15 @@ function PgLozenge({ s }: { s: Status }) {
 function StepWaiting({ p }: { p: Pengajuan }) {
   const today = wibDate();
   const days = (d: string) => Math.round((Date.parse(d) - Date.parse(today)) / 86400000);
-  if (p.status === "PAID" && p.proofDueOn) return <span className={cx("mt-0.5 block truncate text-[11px]", p.proofOverdue ? "font-semibold text-red-700" : "text-neutral-500")}>
+  if (p.status === "PAID" && p.proofDueOn) return <span className={cx("mt-0.5 block truncate text-[11px]", p.proofOverdue ? "font-semibold text-red-700" : "text-[color:var(--j-626F86)]")}>
     {p.proofOverdue ? tr("Proof overdue since {0}", wibDay(p.proofDueOn)) : tr("Proof due {0}", wibDay(p.proofDueOn))}</span>;
   if (p.status === "APPROVED" && p.neededOn) {
     const n = days(p.neededOn);
-    return <span className={cx("mt-0.5 block truncate text-[11px]", n < 0 ? "font-semibold text-red-700" : n <= 3 ? "font-semibold text-amber-700" : "text-neutral-500")}>
+    return <span className={cx("mt-0.5 block truncate text-[11px]", n < 0 ? "font-semibold text-red-700" : n <= 3 ? "font-semibold text-amber-700" : "text-[color:var(--j-626F86)]")}>
       {n < 0 ? tr("Due date passed: {0}", wibDay(p.neededOn)) : n === 0 ? tr("Due today") : tr("Due {0}", wibDay(p.neededOn))}</span>;
   }
   if (!p.step || !["SUBMITTED", "APPROVED", "VERIFYING"].includes(p.status)) return null;
-  return <span className="mt-0.5 block truncate text-[11px] text-neutral-500">{p.step.label} · {p.step.users.length ? p.step.users.join(", ") : "Superadmin"}</span>;
+  return <span className="mt-0.5 block truncate text-[11px] text-[color:var(--j-626F86)]">{p.step.label} · {p.step.users.length ? p.step.users.join(", ") : "Superadmin"}</span>;
 }
 
 function Flags({ p }: { p: Pengajuan }) {
@@ -410,9 +410,9 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
             <div className="space-y-2">
               {action === "PAID" && (
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Amount transferred")}</span>
+                  <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Amount transferred")}</span>
                     <input value={paid.amount} inputMode="numeric" onChange={(e) => setPaid({ ...paid, amount: typeRp(parseRp(e.target.value)) })} className={cx(inputClass, "h-10 text-right font-semibold tabular-nums")} /></label>
-                  <label className="block"><span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Transfer date")}</span>
+                  <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Transfer date")}</span>
                     <input type="date" value={paid.on} max={wibDate()} onChange={(e) => setPaid({ ...paid, on: e.target.value })} className={cx(inputClass, "h-10")} /></label>
                 </div>
               )}
@@ -437,20 +437,20 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
       {error ? <ErrorState message={error} /> : !p ? <SkeletonList rows={5} /> : (
         <div className="space-y-5">
           {p.can?.step && ["SUBMITTED", "APPROVED", "VERIFYING"].includes(p.status) && (
-            <p className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 ring-1 ring-neutral-200"><UserCheck size={14} className="flex-shrink-0 text-neutral-500" />
+            <p className="flex items-center gap-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)] ring-1 ring-[color:var(--j-DCDFE4)]"><UserCheck size={14} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
               {tr("Waiting at {0}: {1}", p.can.step, p.can.stepUsers.length ? p.can.stepUsers.join(", ") : "Superadmin")}{!p.can.next.length && !p.can.verify && ` · ${tr("not your step")}`}</p>
           )}
           {p.can?.reviewLines && (
-            <p className="flex items-start gap-2 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900"><AlertTriangle size={14} className="mt-px flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]"><AlertTriangle size={14} className="mt-px flex-shrink-0" />
               {tr("Check every line and its receipt. A rejected line is left out of the approved amount (lines accepted {0} now).", fmtRp(acceptedTotal(p.lines ?? [])))}</p>
           )}
           {p.can?.payment && (
-            <section className="rounded-md border border-cyan-200 bg-cyan-50/40 p-3">
-              <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Wallet size={15} /> {tr("Payment: approved {0}", fmtRp(p.approvedAmount))}</p>
+            <section className="rounded-[3px] border border-cyan-200 bg-cyan-50/40 p-3">
+              <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><Wallet size={15} /> {tr("Payment: approved {0}", fmtRp(p.approvedAmount))}</p>
               {p.payer && <p className="mb-2 text-sm font-semibold text-cyan-900">{tr("Transfer from the account of {0}", p.payer)}</p>}
               <div className="flex flex-wrap items-end gap-2">
                 {payment.map((x) => <FileChip key={x.id} f={x} onRemove={() => void removeProof(x.id)} />)}
-                <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-brand-700 px-3 text-xs font-medium text-white hover:bg-brand-800">
+                <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-0055CC)]">
                   <Paperclip size={13} /> {tr("Attach transfer proof")}
                   <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="hidden" onChange={(e) => void proof(e.target.files)} />
                 </label>
@@ -462,7 +462,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
           {p.can?.refund && <RefundPanel p={p} base={base} onChanged={changed} />}
           <PengajuanView p={p} onReview={p.can?.reviewLines ? review : undefined} />
           <section>
-            <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><MessageSquareText size={15} className="text-neutral-500" /> {tr("Add a note to the history")}</p>
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><MessageSquareText size={15} className="text-[color:var(--j-626F86)]" /> {tr("Add a note to the history")}</p>
             <div className="flex gap-2">
               <input value={comment} onChange={(e) => setComment(e.target.value)} maxLength={2000} placeholder={tr("Seen by the team and the outlet")} className={cx(inputClass, "h-10 min-w-0 flex-1 text-sm")} />
               <Button variant="secondary" disabled={!comment.trim()} onClick={() => void addComment()}>{tr("Add")}</Button>
@@ -584,12 +584,12 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
       {error ? <ErrorState message={error} /> : !data ? <SkeletonList rows={5} /> : (
         <div className="grid gap-5 sm:grid-cols-[16rem_minmax(0,1fr)]">
           {/* the navigation of the settings (a select on a phone) */}
-          <nav className="hidden space-y-5 border-r border-neutral-200 pr-3 sm:block" aria-label={tr("Configurations")}>
+          <nav className="hidden space-y-5 border-r border-[color:var(--j-DCDFE4)] pr-3 sm:block" aria-label={tr("Configurations")}>
             {nav.map((g) => (
               <div key={g.title}>
-                <p className="flex items-center gap-1.5 px-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-600">
-                  <span className="text-neutral-400">{g.icon}</span>{g.title}</p>
-                <p className="mb-1.5 px-2 pl-[1.6rem] text-[11px] text-neutral-400">{g.hint}</p>
+                <p className="flex items-center gap-1.5 px-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-44546F)]">
+                  <span className="text-[color:var(--j-626F86)]">{g.icon}</span>{g.title}</p>
+                <p className="mb-1.5 px-2 pl-[1.6rem] text-[11px] text-[color:var(--j-626F86)]">{g.hint}</p>
                 <ul className="space-y-px">
                   {g.items.map((i) => {
                     const on = viewKey(i.view) === viewKey(view);
@@ -597,9 +597,9 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
                       <li key={viewKey(i.view)}>
                         <button type="button" onClick={() => setView(i.view)} aria-current={on ? "page" : undefined}
                           className={cx("flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-[13px]",
-                            on ? "bg-brand-50 font-medium text-brand-800" : "text-neutral-700 hover:bg-neutral-100")}>
-                          <span className={cx("min-w-0 flex-1 truncate", i.muted && !on && "text-neutral-500")}>{i.label}</span>
-                          {i.count !== undefined && <span className="rounded-full bg-neutral-200/70 px-1.5 text-[11px] tabular-nums text-neutral-600">{i.count}</span>}
+                            on ? "bg-[color:var(--j-E9F2FF)] font-medium text-[color:var(--j-0055CC)]" : "text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>
+                          <span className={cx("min-w-0 flex-1 truncate", i.muted && !on && "text-[color:var(--j-626F86)]")}>{i.label}</span>
+                          {i.count !== undefined && <span className="rounded-full bg-[color:var(--j-DCDFE4)]/70 px-1.5 text-[11px] tabular-nums text-[color:var(--j-44546F)]">{i.count}</span>}
                           {i.muted && <span className="h-1.5 w-1.5 rounded-full bg-neutral-300" title={tr("Uses the default flow")} />}
                         </button>
                       </li>
@@ -617,7 +617,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
           </div>
 
           <div className="min-w-0">
-            <p className="mb-1 flex items-center gap-1 text-[11px] text-neutral-500">{tr("Configurations")}<ChevronRight size={11} />{group?.title}</p>
+            <p className="mb-1 flex items-center gap-1 text-[11px] text-[color:var(--j-626F86)]">{tr("Configurations")}<ChevronRight size={11} />{group?.title}</p>
             {view.type === "flow" && (
               <section className="space-y-4">
                 <PanelHead title={current?.label ?? ""} action={data.canOptions && kind !== "PERSONAL"
@@ -628,14 +628,14 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
                   : tr("Who approves this kind of outlet request, in order, then the payment by Finance.")} />
                 <div className="flex flex-wrap items-center gap-2">
                   <QuickChips label={tr("Business unit")} value={flowUnit} onChange={setFlowUnit} items={[{ key: "", label: tr("Every unit") },
-                    ...(data.units ?? []).filter((u) => (kind !== "VENDOR" && kind !== "INTERCOMPANY") || u.vendor).map((u) => ({ key: u.code, label: u.name, dot: data.flows[`${kind}@${u.code}`]?.length ? "bg-brand-600" : undefined }))]} />
+                    ...(data.units ?? []).filter((u) => (kind !== "VENDOR" && kind !== "INTERCOMPANY") || u.vendor).map((u) => ({ key: u.code, label: u.name, dot: data.flows[`${kind}@${u.code}`]?.length ? "bg-[color:var(--j-0C66E4)]" : undefined }))]} />
                   {flowUnit && ownFlow && edit && <Button variant="ghost" size="sm" disabled={busy} onClick={() => void dropUnitFlow()}>{tr("Use the flow of every unit")}</Button>}
                 </div>
                 {flowUnit && !ownFlow && <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">{tr("This unit follows the flow of every unit. Saving here gives it its own.")}</p>}
                 {!flowUnit && personalFlow && kind !== "PERSONAL" && !ownFlow && (
                   <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">{tr("No flow of its own yet: the default personal flow applies. Saving here gives it its own.")}</p>
                 )}
-                {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin changes the approvals.")}</p>}
+                {!edit && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Only a superadmin changes the approvals.")}</p>}
                 <ol className="space-y-2">
                   {approvals.map((st, i) => (
                     <StepRow key={i} n={i + 1} step={st} users={data.users} names={names} edit={edit}
@@ -651,7 +651,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
                   <StepRow n={approvals.length + 1} step={pay} users={data.users} names={names} edit={edit} payment
                     onChange={(x) => setSteps([...approvals, x])} />
                 </ol>
-                <p className="text-xs text-neutral-500">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Fund requests page.")}</p>
+                <p className="text-xs text-[color:var(--j-626F86)]">{tr("Every step is approved in order by one of its users; a step without users is taken by a superadmin. The approvers get the Monitoring → Fund requests page.")}</p>
               </section>
             )}
 
@@ -668,7 +668,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
                   <PlafonRow key={b.branchCode} label={branchName(b.branchCode)} amount={b.amount} edit={data.canPlafon} onSave={(a) => void savePlafon(b.branchCode, a)} removable />
                 ))}
                 {data.canPlafon && (
-                  <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
+                  <div className="grid gap-2 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
                     <SearchChoice label="" anyLabel={tr("Choose the outlet")} options={outletOpts.filter((b) => !data.plafon.branches.some((x) => x.branchCode === b.value))}
                       value={plafon.branch} onChange={(branch) => setPlafon({ ...plafon, branch })} placeholder={tr("Search outlet")} />
                     <input value={plafon.amount} inputMode="numeric" placeholder="Rp" onChange={(e) => setPlafon({ ...plafon, amount: typeRp(parseRp(e.target.value)) })}
@@ -712,19 +712,19 @@ function UnitsPanel({ units, edit, onChanged, users, names, receivers, admin }: 
   return (
     <section className="space-y-3">
       <PanelHead title={tr("Paying PT")} text={tr("The account each unit is paid from. Requests already sent keep the PT they were sent with.")} />
-      <div className="overflow-x-auto rounded border border-neutral-200">
+      <div className="overflow-x-auto rounded border border-[color:var(--j-DCDFE4)]">
         <table className={cx(jTable, "min-w-[460px]")}>
           <thead><tr className={jHeadRow}><th className={jTh}>{tr("Business unit")}</th><th className={jTh}>{tr("Paid from")}</th></tr></thead>
           <tbody>{units.map((u) => (
-            <tr key={u.code} className="border-b border-neutral-100">
-              <td className={cx(jTd, "font-medium text-neutral-900")}><span className="flex items-center gap-2.5"><span className="flex h-8 w-14 flex-shrink-0 items-center justify-center">
+            <tr key={u.code} className="border-b border-[color:var(--j-F1F2F4)]">
+              <td className={cx(jTd, "font-medium text-[color:var(--j-172B4D)]")}><span className="flex items-center gap-2.5"><span className="flex h-8 w-14 flex-shrink-0 items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {LOGOS[u.code] && <img src={LOGOS[u.code]} alt="" aria-hidden className="max-h-8 max-w-full object-contain" />}</span>{u.name}</span></td>
               <td className={jTd}><input defaultValue={u.payer} disabled={!edit} maxLength={80} aria-label={tr("Paid from")} onBlur={(e) => void save(u, e.target.value)} className={cx(inputClass, "h-9 text-sm")} /></td>
             </tr>))}</tbody>
         </table>
       </div>
-      {!edit && <p className="text-xs text-neutral-500">{tr("Only management or Finance changes these rules.")}</p>}
+      {!edit && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Only management or Finance changes these rules.")}</p>}
       <PanelHead title={tr("Who confirms the money a PT receives")} text={tr("Between PTs: the request is done once one of them confirms; none = a superadmin. Who recorded the payment never confirms it.")} />
       <ol className="space-y-2">
         {[...new Set(units.map((u) => u.payer))].map((payer, i) => (
@@ -735,7 +735,7 @@ function UnitsPanel({ units, edit, onChanged, users, names, receivers, admin }: 
       {edit && (
         <>
           <PanelHead title={tr("Already paid through the Google Form")} text={tr("Upload the recap of what was paid there: the same account, invoice number and amount is refused here, so nothing is paid twice while both are used.")}
-            action={<label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-200 px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50"><Plus size={13} /> {tr("Upload recap")}
+            action={<label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]"><Plus size={13} /> {tr("Upload recap")}
               <input type="file" accept=".xlsx" className="hidden" onChange={(e) => { void history(e.target.files?.[0]); e.target.value = ""; }} /></label>} />
         </>
       )}
@@ -773,10 +773,10 @@ function RenameKind({ code, current, fallback, onClose, onSaved }: { code: strin
 
 function PanelHead({ title, text, action }: { title: string; text?: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-neutral-200 pb-3">
+    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--j-DCDFE4)] pb-3">
       <div className="min-w-0">
-        <h3 className="text-base font-semibold text-neutral-900">{title}</h3>
-        {text && <p className="mt-0.5 max-w-xl text-xs text-neutral-500">{text}</p>}
+        <h3 className="text-base font-semibold text-[color:var(--j-172B4D)]">{title}</h3>
+        {text && <p className="mt-0.5 max-w-xl text-xs text-[color:var(--j-626F86)]">{text}</p>}
       </div>
       {action}
     </div>
@@ -829,7 +829,7 @@ function OptionTable({ data, list, onChanged, onFlow, onRename }: { data: Settin
           { key: "inactive", label: tr("Inactive"), count: all.filter((o) => !o.isActive).length },
           { key: "all", label: tr("All"), count: all.length }]} />
       </div>
-      <div className="overflow-x-auto rounded border border-neutral-200">
+      <div className="overflow-x-auto rounded border border-[color:var(--j-DCDFE4)]">
         <table className={cx(jTable, "min-w-[520px]")}>
           <thead><tr className={jHeadRow}>
             <th className={jTh}>{tr("Name")}</th>
@@ -837,29 +837,29 @@ function OptionTable({ data, list, onChanged, onFlow, onRename }: { data: Settin
             <th className={jTh}>{tr("Status")}</th>
           </tr></thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={purpose ? 5 : 2} className="px-4 py-8 text-center text-sm text-neutral-400">
+            {rows.length === 0 && <tr><td colSpan={purpose ? 5 : 2} className="px-4 py-8 text-center text-sm text-[color:var(--j-626F86)]">
               {all.length ? tr("Nothing matches") : tr("Nothing yet: press Create")}</td></tr>}
             {rows.map((o) => {
               const t = PURPOSE_TYPE[o.settings.type ?? ""] ?? PURPOSE_TYPE[""];
               const n = steps(o);
               return (
-                <tr key={o.id} className={cx(jRow, drag === o.id && "opacity-40", over === o.id && drag !== o.id && "bg-brand-50")} onClick={() => edit && setEditing(o)}
+                <tr key={o.id} className={cx(jRow, drag === o.id && "opacity-40", over === o.id && drag !== o.id && "bg-[color:var(--j-E9F2FF)]")} onClick={() => edit && setEditing(o)}
                   onDragOver={(e) => { if (drag != null) { e.preventDefault(); setOver(o.id); } }}
                   onDrop={(e) => { e.preventDefault(); if (drag != null) void move(drag, o.id); setDrag(null); setOver(null); }}>
                   <td className={jTd}>{edit && <button type="button" draggable aria-label={tr("Move {0}: drag, or the arrow keys", o.name)} title={tr("Drag to order")}
                     onClick={(e) => e.stopPropagation()} onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", String(o.id)); setDrag(o.id); }}
                     onDragEnd={() => { setDrag(null); setOver(null); }}
                     onKeyDown={(e) => { if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); step(o.id, e.key === "ArrowUp" ? -1 : 1); } }}
-                    className="mr-1.5 inline-flex cursor-grab align-middle text-neutral-300 hover:text-neutral-600 active:cursor-grabbing"><GripVertical size={15} /></button>}<span className={cx(edit ? jKey : "font-medium text-neutral-900", !o.isActive && "text-neutral-400 no-underline")}>{o.name}</span></td>
+                    className="mr-1.5 inline-flex cursor-grab align-middle text-[color:var(--j-8590A2)] hover:text-[color:var(--j-44546F)] active:cursor-grabbing"><GripVertical size={15} /></button>}<span className={cx(edit ? jKey : "font-medium text-[color:var(--j-172B4D)]", !o.isActive && "text-[color:var(--j-626F86)] no-underline")}>{o.name}</span></td>
                   {purpose && <>
                     <td className={jTd}><Lozenge tone={t.tone}>{t.label()}</Lozenge></td>
                     <td className={jTd}><span className="flex gap-1 whitespace-nowrap">
                       {o.settings.receipt && <Lozenge tone="amber">{tr("Receipt")}</Lozenge>}
                       {o.settings.outlet && <Lozenge tone="cyan">{tr("Outlet")}</Lozenge>}
                       {o.settings.deptPlafon && <Lozenge tone="red">{tr("Plafon")}</Lozenge>}
-                      {!o.settings.receipt && !o.settings.outlet && !o.settings.deptPlafon && <span className="text-neutral-400">—</span>}
+                      {!o.settings.receipt && !o.settings.outlet && !o.settings.deptPlafon && <span className="text-[color:var(--j-626F86)]">—</span>}
                     </span></td>
-                    <td className={jTd}><button type="button" onClick={(e) => { e.stopPropagation(); onFlow(o); }} className="whitespace-nowrap text-xs font-medium text-brand-700 hover:underline">
+                    <td className={jTd}><button type="button" onClick={(e) => { e.stopPropagation(); onFlow(o); }} className="whitespace-nowrap text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline">
                       {n ? tr("{0} steps", n) : tr("Default Flow")}</button></td>
                   </>}
                   <td className={jTd}><Lozenge tone={o.isActive ? "green" : "grey"}>{o.isActive ? tr("Active") : tr("Inactive")}</Lozenge></td>
@@ -869,7 +869,7 @@ function OptionTable({ data, list, onChanged, onFlow, onRename }: { data: Settin
           </tbody>
         </table>
       </div>
-      {!edit && <p className="text-xs text-neutral-500">{tr("Only a superadmin or admin changes these lists.")}</p>}
+      {!edit && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Only a superadmin or admin changes these lists.")}</p>}
       {editing && <OptionDialog list={list} label={data.lists[list]} option={editing === "new" ? null : editing}
         onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onChanged(); }} />}
     </section>
@@ -902,9 +902,9 @@ function OptionDialog({ list, label, option, onClose, onSaved }: { list: OptionL
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   const rule = (key: keyof typeof rules, title: string, hint: string) => (
-    <label className="flex cursor-pointer items-start gap-3 rounded border border-neutral-200 px-3 py-2.5 hover:bg-neutral-50">
+    <label className="flex cursor-pointer items-start gap-3 rounded border border-[color:var(--j-DCDFE4)] px-3 py-2.5 hover:bg-[color:var(--j-F7F8F9)]">
       <input type="checkbox" className="mt-0.5" checked={rules[key]} onChange={(e) => setRules({ ...rules, [key]: e.target.checked })} />
-      <span><span className="block text-sm font-medium text-neutral-900">{title}</span><span className="block text-xs text-neutral-500">{hint}</span></span>
+      <span><span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{title}</span><span className="block text-xs text-[color:var(--j-626F86)]">{hint}</span></span>
     </label>
   );
   return (
@@ -925,16 +925,16 @@ function OptionDialog({ list, label, option, onClose, onSaved }: { list: OptionL
               <option value="">{tr("Regular")}</option><option value="ADVANCE">{tr("Cash in Advance")}</option><option value="SETTLEMENT">{tr("Settlement of a Cash in Advance")}</option>
             </NativeSelect></Field>
           <div className="space-y-2">
-            <p className="text-xs font-medium text-neutral-600">{tr("Rules")}</p>
+            <p className="text-xs font-medium text-[color:var(--j-44546F)]">{tr("Rules")}</p>
             {rule("receipt", tr("Receipt required"), tr("A bill, receipt or photo must be attached before sending"))}
             {rule("outlet", tr("Outlet required"), tr("The request must name the outlet it is for"))}
             {rule("deptPlafon", tr("Department plafon"), tr("Refused above the plafon of the requester's department (set in Plafon → Department)"))}
           </div>
         </>}
         {option && (
-          <label className="flex items-center justify-between gap-3 rounded border border-neutral-200 px-3 py-2.5">
-            <span><span className="block text-sm font-medium text-neutral-900">{tr("Active")}</span>
-              <span className="block text-xs text-neutral-500">{tr("Inactive: no longer on the form; requests that used it keep it")}</span></span>
+          <label className="flex items-center justify-between gap-3 rounded border border-[color:var(--j-DCDFE4)] px-3 py-2.5">
+            <span><span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Active")}</span>
+              <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Inactive: no longer on the form; requests that used it keep it")}</span></span>
             <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} aria-label={tr("Active")} />
           </label>
         )}
@@ -955,10 +955,10 @@ function DeptPlafon({ data, onChanged }: { data: Settings; onChanged: () => void
   return (
     <section className="space-y-3">
       <PanelHead title={tr("Department plafon")} text={tr("The most a department may ask at once for a purpose marked Department plafon. Empty: no limit.")} />
-      {data.deptPlafon.length === 0 && <p className="rounded border border-neutral-200 px-3 py-6 text-center text-sm text-neutral-400">{tr("No department has a plafon: no limit")}</p>}
+      {data.deptPlafon.length === 0 && <p className="rounded border border-[color:var(--j-DCDFE4)] px-3 py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr("No department has a plafon: no limit")}</p>}
       {data.deptPlafon.map((d) => <PlafonRow key={d.department} label={d.department} amount={d.amount} edit={edit} removable onSave={(a) => void put(d.department, a)} />)}
       {edit && (
-        <div className="grid gap-2 rounded-md border border-dashed border-neutral-300 p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
+        <div className="grid gap-2 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] p-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
           <NativeSelect value={dept.department} onChange={(e) => setDept({ ...dept, department: e.target.value })} aria-label={tr("Department")} className={cx(inputClass, "h-10")}>
             <option value="">{tr("Choose the department")}</option>
             {data.departments.filter((d) => !data.deptPlafon.some((x) => x.department === d)).map((d) => <option key={d} value={d}>{d}</option>)}
@@ -976,24 +976,24 @@ export function StepRow({ n, step, users, names, edit, payment, fixedName, onCha
   names: Map<string, string>; edit: boolean; payment?: boolean; /** the name is not edited (a PT) */ fixedName?: boolean; onChange: (s: StepEdit) => void; onUp?: () => void; onDown?: () => void; onRemove?: () => void }) {
   const [pick, setPick] = useState("");
   return (
-    <li className={cx("rounded-md border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-neutral-200 bg-white")}>
+    <li className={cx("rounded-[3px] border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-[color:var(--j-DCDFE4)] bg-white")}>
       <div className="flex items-center gap-2">
-        <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-brand-600")}>{n}</span>
+        <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-[color:var(--j-0C66E4)]")}>{n}</span>
         {edit && !fixedName ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step Name")}
-          className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm font-semibold")} /> : <p className="flex-1 text-sm font-semibold text-neutral-900">{step.label}</p>}
+          className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm font-semibold")} /> : <p className="flex-1 text-sm font-semibold text-[color:var(--j-172B4D)]">{step.label}</p>}
         {payment && <Badge tone="cyan">{tr("Payment")}</Badge>}
-        {edit && onUp && <button type="button" onClick={onUp} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move Up")}><ArrowUp size={15} /></button>}
-        {edit && onDown && <button type="button" onClick={onDown} className="rounded-md p-1 text-neutral-400 hover:bg-neutral-100" aria-label={tr("Move Down")}><ArrowDown size={15} /></button>}
-        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Step")}><Trash2 size={15} /></button>}
+        {edit && onUp && <button type="button" onClick={onUp} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Move Up")}><ArrowUp size={15} /></button>}
+        {edit && onDown && <button type="button" onClick={onDown} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Move Down")}><ArrowDown size={15} /></button>}
+        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Step")}><Trash2 size={15} /></button>}
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {step.userIds.map((id) => (
-          <span key={id} className="inline-flex items-center gap-1 rounded-full bg-neutral-100 py-1 pl-2.5 pr-1 text-xs font-medium text-neutral-700">
+          <span key={id} className="inline-flex items-center gap-1 rounded-full bg-[color:var(--j-091E420F)] py-1 pl-2.5 pr-1 text-xs font-medium text-[color:var(--j-44546F)]">
             {names.get(id) ?? id}
             {edit && <button type="button" onClick={() => onChange({ ...step, userIds: step.userIds.filter((x) => x !== id) })} className="rounded-full p-0.5 hover:bg-white" aria-label={tr("Remove {0}", names.get(id) ?? "")}>×</button>}
           </span>
         ))}
-        {!step.userIds.length && <span className="text-xs text-neutral-400">{tr("No user yet: a superadmin takes this step")}</span>}
+        {!step.userIds.length && <span className="text-xs text-[color:var(--j-626F86)]">{tr("No user yet: a superadmin takes this step")}</span>}
       </div>
       {edit && (
         <div className="mt-2">
@@ -1012,14 +1012,14 @@ function PlafonRow({ label, amount, edit, removable, onSave }: { label: string; 
   useEffect(() => setV(typeRp(amount)), [amount]);
   const changed = parseRp(v) !== amount;
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-md border border-neutral-200 px-3 py-2">
-      <p className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-800">{label}</p>
+    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2">
+      <p className="min-w-0 flex-1 truncate text-sm font-medium text-[color:var(--j-172B4D)]">{label}</p>
       {edit ? <>
         <input value={v} inputMode="numeric" placeholder={tr("No plafon")} onChange={(e) => setV(typeRp(parseRp(e.target.value)))} aria-label={tr("Plafon {0}", label)}
           className={cx(inputClass, "h-9 w-36 text-right font-semibold tabular-nums")} />
         {changed && <Button onClick={() => onSave(parseRp(v))}>{tr("Save")}</Button>}
-        {removable && <button type="button" onClick={() => onSave(null)} className="rounded-md p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>}
-      </> : <span className="text-sm font-semibold tabular-nums text-neutral-900">{fmtRp(amount)}</span>}
+        {removable && <button type="button" onClick={() => onSave(null)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>}
+      </> : <span className="text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(amount)}</span>}
     </div>
   );
 }
@@ -1059,22 +1059,22 @@ function Suggestions({ onApplied }: { onApplied: (p: Settings["plafon"]) => void
   }
   const withSug = (rows ?? []).filter((x) => x.suggested);
   return (
-    <div className="space-y-2 rounded-md border border-brand-200 bg-brand-50/40 p-3">
-      <p className="text-sm font-semibold text-neutral-900">{tr("Plafon from Simple Purchase")}</p>
-      <p className="text-xs text-neutral-600">{tr("Weekly average of what the outlet bought itself in ESB (13 weeks) × the factor, rounded up to Rp 50.000. Outlets without a plafon are ticked; adjust any of them afterwards.")}</p>
-      <label className="flex items-center gap-2 text-xs text-neutral-700">{tr("Factor")}
+    <div className="space-y-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] p-3">
+      <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Plafon from Simple Purchase")}</p>
+      <p className="text-xs text-[color:var(--j-44546F)]">{tr("Weekly average of what the outlet bought itself in ESB (13 weeks) × the factor, rounded up to Rp 50.000. Outlets without a plafon are ticked; adjust any of them afterwards.")}</p>
+      <label className="flex items-center gap-2 text-xs text-[color:var(--j-44546F)]">{tr("Factor")}
         <JSelect value={factor} onChange={setFactor} className="w-28" placeholder="× 1" label={tr("Factor")}
           options={["1", "1.1", "1.2", "1.3", "1.5", "2"].map((x) => ({ value: x, label: `× ${x}` }))} />
         <span className="ml-auto">{tr("{0} of {1} ticked", picked.size, withSug.length)}</span>
       </label>
       {!rows ? <SkeletonList rows={4} /> : (
-        <div className="max-h-72 overflow-auto rounded-lg border border-neutral-200 bg-white">
+        <div className="max-h-72 overflow-auto rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
           <table className="w-full text-xs">
             <thead className={theadClass}><tr><th className="w-8 px-2 py-1.5" /><th className="px-2 py-1.5 text-left">{tr("Outlet")}</th>
               <th className="px-2 py-1.5 text-right">{tr("Average / Week")}</th><th className="px-2 py-1.5 text-right">{tr("Suggested")}</th><th className="px-2 py-1.5 text-right">{tr("Now")}</th></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {rows.map((x) => (
-                <tr key={x.code} className={cx(!x.suggested && "text-neutral-400")}>
+                <tr key={x.code} className={cx(!x.suggested && "text-[color:var(--j-626F86)]")}>
                   <td className="px-2 py-1.5"><input type="checkbox" disabled={!x.suggested} checked={picked.has(x.code)} aria-label={x.name}
                     onChange={() => setPicked((s) => { const n = new Set(s); if (n.has(x.code)) n.delete(x.code); else n.add(x.code); return n; })} /></td>
                   <td className="max-w-[12rem] truncate px-2 py-1.5">{x.name}</td>

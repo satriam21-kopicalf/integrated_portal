@@ -66,17 +66,17 @@ export function FleetIssues({ onCount }: { onCount?: (open: number) => void }) {
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !rows ? <SkeletonList rows={4} /> : listed.length === 0 ? (
           <EmptyState icon={<Wrench />} title={tr("No issues here")} />
         ) : (
-          <ul className="divide-y divide-neutral-100">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {listed.map((r) => {
               const st = STATUS[r.status];
               return (
                 <li key={r.id}>
-                  <button type="button" onClick={() => setOpen(r.id)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-neutral-50">
+                  <button type="button" onClick={() => setOpen(r.id)} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]">
                     <span className="min-w-0 flex-1">
-                      <span className="flex flex-wrap items-center gap-1.5"><span className="font-medium text-neutral-900">{r.title}</span>
+                      <span className="flex flex-wrap items-center gap-1.5"><span className="font-medium text-[color:var(--j-172B4D)]">{r.title}</span>
                         <Badge tone={SEVERITY[r.severity].tone}>{SEVERITY[r.severity].label()}</Badge><Badge tone="slate">{ISSUE_CATEGORY[r.category]?.() ?? r.category}</Badge></span>
-                      <span className="mt-0.5 block text-xs text-neutral-500">{r.fleetName} · {r.plate ?? r.fleet} · {r.driverName ?? "—"} · {wibDateTime(r.at)}</span>
-                      {r.handler && <span className="block text-xs text-neutral-500">{tr("Handled by {0}", r.handler)}</span>}
+                      <span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{r.fleetName} · {r.plate ?? r.fleet} · {r.driverName ?? "—"} · {wibDateTime(r.at)}</span>
+                      {r.handler && <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Handled by {0}", r.handler)}</span>}
                     </span>
                     <Badge tone={st.tone}>{st.label()}</Badge>
                   </button>
@@ -118,15 +118,15 @@ function IssueDrawer({ id, onClose, onSaved }: { id: string; onClose: () => void
           <DrawerSection title={tr("Report")}>
             <div className="flex flex-wrap gap-1.5"><Badge tone={STATUS[x.status].tone}>{STATUS[x.status].label()}</Badge><Badge tone={SEVERITY[x.severity].tone}>{SEVERITY[x.severity].label()}</Badge>
               <Badge tone="slate">{ISSUE_CATEGORY[x.category]?.() ?? x.category}</Badge></div>
-            {x.description && <p className="text-sm text-neutral-700">{x.description}</p>}
-            <p className="flex items-center gap-1.5 text-xs text-neutral-500"><UserRound size={12} />{x.driverName ?? "—"} · {wibDateTime(x.at)}</p>
-            {x.lat != null && x.lng != null && <a href={`https://maps.google.com/?q=${x.lat},${x.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-brand-700"><MapPin size={12} />{tr("Map")}</a>}
-            {x.hasPhoto && <a href={`/api/cotr/photos/issue/${x.id}`} target="_blank" rel="noreferrer"><img src={`/api/cotr/photos/issue/${x.id}?w=640`} alt="" className="max-h-72 rounded-md border border-neutral-200 object-contain" /></a>}
+            {x.description && <p className="text-sm text-[color:var(--j-44546F)]">{x.description}</p>}
+            <p className="flex items-center gap-1.5 text-xs text-[color:var(--j-626F86)]"><UserRound size={12} />{x.driverName ?? "—"} · {wibDateTime(x.at)}</p>
+            {x.lat != null && x.lng != null && <a href={`https://maps.google.com/?q=${x.lat},${x.lng}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[color:var(--j-0C66E4)]"><MapPin size={12} />{tr("Map")}</a>}
+            {x.hasPhoto && <a href={`/api/cotr/photos/issue/${x.id}`} target="_blank" rel="noreferrer"><img src={`/api/cotr/photos/issue/${x.id}?w=640`} alt="" className="max-h-72 rounded-[3px] border border-[color:var(--j-DCDFE4)] object-contain" /></a>}
           </DrawerSection>
           {(x.handler || x.resolutionNote || x.cost != null) && (
             <DrawerSection title={tr("Handling")}>
               {x.handler && <p className="text-sm">{tr("Handled by {0}", x.handler)}</p>}
-              {x.resolutionNote && <p className="text-sm text-neutral-700">{x.resolutionNote}</p>}
+              {x.resolutionNote && <p className="text-sm text-[color:var(--j-44546F)]">{x.resolutionNote}</p>}
               {x.cost != null && <p className="text-sm">{tr("Cost")}: <span className="font-semibold tabular-nums">{rupiah(x.cost)}</span></p>}
             </DrawerSection>
           )}
@@ -135,7 +135,7 @@ function IssueDrawer({ id, onClose, onSaved }: { id: string; onClose: () => void
               <Field label={tr("Handled by")} hint={tr("Workshop or technician")}><Input value={handler} maxLength={120} onChange={(e) => setHandler(e.target.value)} /></Field>
               {to === "resolved" && <Field label={tr("Cost (Rp)")}><Input inputMode="numeric" value={cost} onChange={(e) => setCost(e.target.value.replace(/\D/g, ""))} className="text-right tabular-nums" /></Field>}
               <Field label={to === "resolved" ? tr("What was done") : to === "rejected" ? tr("Reason") : tr("Note")} required={needNote}>
-                <textarea className="min-h-[80px] w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none" maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
+                <textarea className="min-h-[80px] w-full rounded-[3px] border border-[color:var(--j-8590A2)] px-3 py-2 text-sm focus:border-[color:var(--j-388BFF)] focus:outline-none" maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
               </Field>
             </DrawerSection>
           ) : (
@@ -144,8 +144,8 @@ function IssueDrawer({ id, onClose, onSaved }: { id: string; onClose: () => void
           <DrawerSection title={tr("History")}>
             <ol className="space-y-2 text-xs">
               {(x.log ?? []).map((l, i) => (
-                <li key={i}><Badge tone={STATUS[l.status]?.tone ?? "slate"}>{STATUS[l.status]?.label() ?? l.status}</Badge> <span className="text-neutral-500">{l.by ?? "—"} · {wibDateTime(l.at)}</span>
-                  {l.note && <p className="mt-0.5 text-neutral-700">{l.note}</p>}</li>
+                <li key={i}><Badge tone={STATUS[l.status]?.tone ?? "slate"}>{STATUS[l.status]?.label() ?? l.status}</Badge> <span className="text-[color:var(--j-626F86)]">{l.by ?? "—"} · {wibDateTime(l.at)}</span>
+                  {l.note && <p className="mt-0.5 text-[color:var(--j-44546F)]">{l.note}</p>}</li>
               ))}
             </ol>
           </DrawerSection>

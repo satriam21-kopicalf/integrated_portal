@@ -49,7 +49,7 @@ const statusMatch = (r: Row, st: string) => !st || r.status === st || (st === "A
 /** the status tabs above the table, in the order of the day */
 const TABS: { key: string; color: string }[] = [
   { key: "APPROVED", color: "bg-emerald-500" }, { key: "SUBMITTED", color: "bg-violet-500" },
-  { key: "RECOUNT_REQUESTED", color: "bg-amber-500" }, { key: "IN_PROGRESS", color: "bg-brand-500" },
+  { key: "RECOUNT_REQUESTED", color: "bg-amber-500" }, { key: "IN_PROGRESS", color: "bg-[color:var(--j-388BFF)]" },
   { key: "NOT_STARTED", color: "bg-neutral-300" }, { key: "MISSED", color: "bg-red-500" },
 ];
 /** what happens next, per status of the day (who acts) */
@@ -60,7 +60,7 @@ const NEXT: Record<string, () => string> = {
 };
 /** the four steps of a count (2026-11-07): started, sent, reviewed, approved; a recount goes back to the second */
 const STEP: Record<string, { n: number; tone: string }> = {
-  NOT_STARTED: { n: 0, tone: "bg-neutral-300" }, IN_PROGRESS: { n: 1, tone: "bg-brand-500" }, SUBMITTED: { n: 2, tone: "bg-violet-500" },
+  NOT_STARTED: { n: 0, tone: "bg-neutral-300" }, IN_PROGRESS: { n: 1, tone: "bg-[color:var(--j-388BFF)]" }, SUBMITTED: { n: 2, tone: "bg-violet-500" },
   RECOUNT_REQUESTED: { n: 1, tone: "bg-amber-500" }, APPROVED: { n: 4, tone: "bg-emerald-500" }, EXPORTED: { n: 4, tone: "bg-emerald-500" }, MISSED: { n: 0, tone: "bg-red-500" },
 };
 function StatusSteps({ status }: { status: string }) {
@@ -71,7 +71,7 @@ function StatusSteps({ status }: { status: string }) {
     <span className="inline-flex flex-col gap-1">
       <Badge tone={st.tone} dot>{st.label()}</Badge>
       <span className="flex gap-0.5" role="img" aria-label={labels.slice(0, step.n).join(" → ") || st.label()}>
-        {labels.map((l, i) => <span key={l} title={l} className={cx("h-1 w-5 rounded-full", status === "MISSED" ? "bg-red-200" : i < step.n ? step.tone : "bg-neutral-200")} />)}
+        {labels.map((l, i) => <span key={l} title={l} className={cx("h-1 w-5 rounded-full", status === "MISSED" ? "bg-red-200" : i < step.n ? step.tone : "bg-[color:var(--j-DCDFE4)]")} />)}
       </span>
     </span>
   );
@@ -148,7 +148,7 @@ export default function MonitorPage() {
           <Stat label={tr("Completed")} emphasis value={rows ? `${pct}%` : <StatSkeleton />}>
             {rows && (
               <>
-                <div className="h-1.5 overflow-hidden rounded-full bg-neutral-200"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
                 <p>{tr("{0} of {1} submitted · {2} approved", fmtNumber(done), fmtNumber(all.length), fmtNumber(n("APPROVED") + n("EXPORTED")))}</p>
               </>
             )}
@@ -193,24 +193,24 @@ export default function MonitorPage() {
                     <th className="w-20 px-3 py-2" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {rows === null ? <SkeletonRows cols={6} /> : paged.rows.map((r) => {
                     return (
-                      <tr key={`${r.facility_id}:${r.count_type}`} className="hover:bg-neutral-50">
+                      <tr key={`${r.facility_id}:${r.count_type}`} className="hover:bg-[color:var(--j-F7F8F9)]">
                         <td className="max-w-[20rem] px-3 py-2">
-                          <span className="block truncate font-medium text-neutral-900">{r.facility_name}</span>
-                          <span className="block truncate text-xs text-neutral-400">{r.facility_code} · {r.facility_type}</span>
+                          <span className="block truncate font-medium text-[color:var(--j-172B4D)]">{r.facility_name}</span>
+                          <span className="block truncate text-xs text-[color:var(--j-626F86)]">{r.facility_code} · {r.facility_type}</span>
                         </td>
-                        <td className="px-3 py-2 text-neutral-700">{countTypeLabel(r.count_type)}</td>
-                        <td className="px-3 py-2"><StatusSteps status={r.status} /><span className="mt-1 block text-[11px] text-neutral-500">{NEXT[r.status]?.()}</span></td>
-                        <td className="px-3 py-2 text-xs tabular-nums text-neutral-500">{timeOf(r.session?.submitted_at ?? null) ? `${timeOf(r.session!.submitted_at)} WIB` : "—"}</td>
+                        <td className="px-3 py-2 text-[color:var(--j-44546F)]">{countTypeLabel(r.count_type)}</td>
+                        <td className="px-3 py-2"><StatusSteps status={r.status} /><span className="mt-1 block text-[11px] text-[color:var(--j-626F86)]">{NEXT[r.status]?.()}</span></td>
+                        <td className="px-3 py-2 text-xs tabular-nums text-[color:var(--j-626F86)]">{timeOf(r.session?.submitted_at ?? null) ? `${timeOf(r.session!.submitted_at)} WIB` : "—"}</td>
                         <td className="px-3 py-2">
                           <div className="flex flex-wrap gap-1">
                             {r.session?.is_late && <Badge tone="amber">{tr("Late")}</Badge>}
                             {r.session && <LocationBadges s={{ ...r.session, facility_located: r.facility_located }} />}
                             {!r.session && r.facility_located === false && <LocationBadges s={{ facility_located: false }} />}
                             {r.session && !r.session.is_late && !r.session.outside_radius && !r.session.low_accuracy && r.session.start_distance_m == null
-                              && r.facility_located !== false && <span className="text-xs text-neutral-400">—</span>}
+                              && r.facility_located !== false && <span className="text-xs text-[color:var(--j-626F86)]">—</span>}
                           </div>
                         </td>
                         <td className="px-3 py-2 text-right">
@@ -253,12 +253,12 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
   const done = TABS.filter((t) => ["APPROVED", "SUBMITTED"].includes(t.key)).reduce((n, t) => n + tabCount(t.key), 0);
   return (
     <div className="space-y-3">
-      <div className="rounded-md border border-neutral-200 bg-white p-3">
+      <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-3">
         <div className="mb-2 flex items-baseline justify-between gap-2 text-xs">
-          <span className="font-semibold text-neutral-700">{tr("Progress of the day")}</span>
-          <span className="tabular-nums text-neutral-500">{tr("{0} of {1} sent", fmtNumber(done), fmtNumber(total))} · <span className="font-semibold text-neutral-900">{total ? Math.round((done / total) * 100) : 0}%</span></span>
+          <span className="font-semibold text-[color:var(--j-44546F)]">{tr("Progress of the day")}</span>
+          <span className="tabular-nums text-[color:var(--j-626F86)]">{tr("{0} of {1} sent", fmtNumber(done), fmtNumber(total))} · <span className="font-semibold text-[color:var(--j-172B4D)]">{total ? Math.round((done / total) * 100) : 0}%</span></span>
         </div>
-        <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-neutral-200" role="img"
+        <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]" role="img"
           aria-label={TABS.map((t) => `${STATUS[t.key].label()} ${tabCount(t.key)}`).join(", ")}>
           {TABS.map((t) => tabCount(t.key) > 0 && <span key={t.key} className={cx(t.color, "first:rounded-l-full last:rounded-r-full")} style={{ width: `${(tabCount(t.key) / total) * 100}%` }} />)}
         </div>
@@ -269,10 +269,10 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
             return (
               <button key={t.key || "all"} type="button" role="tab" aria-selected={on} onClick={() => onStatus(t.key)} disabled={!!t.key && !count && !on}
                 className={cx("flex items-center gap-1.5 rounded-[4px] border px-2.5 py-1 text-left text-xs transition disabled:opacity-40",
-                  on ? "border-brand-700 bg-brand-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100")}>
+                  on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>
                 <span className={cx("h-2 w-2 flex-shrink-0 rounded-full", t.color)} aria-hidden />
                 <span className="font-medium">{t.key ? STATUS[t.key].label() : tr("All")}</span>
-                <span className={cx("tabular-nums", on ? "text-white/70" : "text-neutral-400")}>{fmtNumber(count)}</span>
+                <span className={cx("tabular-nums", on ? "text-white/70" : "text-[color:var(--j-626F86)]")}>{fmtNumber(count)}</span>
               </button>
             );
           })}
@@ -285,14 +285,14 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
             const on = type === t;
             return (
               <button key={t} type="button" onClick={() => onType(t)} aria-pressed={on}
-                className={cx("rounded-md border bg-white px-3 py-2.5 text-left shadow-sm transition",
-                  on ? "border-brand-600 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300")}>
+                className={cx("rounded-[3px] border bg-white px-3 py-2.5 text-left transition",
+                  on ? "border-[color:var(--j-0C66E4)] ring-1 ring-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-8590A2)]")}>
                 <span className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-xs font-semibold text-neutral-800">{countTypeLabel(t)}</span>
-                  <span className={cx("flex-shrink-0 text-sm font-semibold tabular-nums", p === 100 ? "text-emerald-700" : "text-neutral-900")}>{p}%</span>
+                  <span className="truncate text-xs font-semibold text-[color:var(--j-172B4D)]">{countTypeLabel(t)}</span>
+                  <span className={cx("flex-shrink-0 text-sm font-semibold tabular-nums", p === 100 ? "text-emerald-700" : "text-[color:var(--j-172B4D)]")}>{p}%</span>
                 </span>
-                <span className="mt-0.5 block text-[11px] tabular-nums text-neutral-500">{tr("{0} of {1} sent", x.done, x.due)}</span>
-                <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-neutral-100"><span className={cx("block h-full rounded-full", p === 100 ? "bg-emerald-500" : "bg-brand-600")} style={{ width: `${p}%` }} /></span>
+                <span className="mt-0.5 block text-[11px] tabular-nums text-[color:var(--j-626F86)]">{tr("{0} of {1} sent", x.done, x.due)}</span>
+                <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", p === 100 ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${p}%` }} /></span>
               </button>
             );
           })}
@@ -319,14 +319,14 @@ function MobileRow({ r }: { r: Row }) {
     <>
       <span className="flex items-start justify-between gap-3">
         <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold text-neutral-900">{r.facility_name}</span>
-          <span className="block truncate text-xs text-neutral-500">{countTypeLabel(r.count_type)} · {r.facility_code}</span>
+          <span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{r.facility_name}</span>
+          <span className="block truncate text-xs text-[color:var(--j-626F86)]">{countTypeLabel(r.count_type)} · {r.facility_code}</span>
         </span>
         <StatusSteps status={r.status} />
       </span>
       <span className="mt-2.5 flex items-center justify-between gap-2">
-        <span className="min-w-0 text-xs text-neutral-600">{NEXT[r.status]?.()}{sent ? ` · ${sent} WIB` : ""}</span>
-        {r.session && <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-brand-700">{r.status === "SUBMITTED" ? tr("Review") : tr("Open")}<ChevronRight size={14} /></span>}
+        <span className="min-w-0 text-xs text-[color:var(--j-44546F)]">{NEXT[r.status]?.()}{sent ? ` · ${sent} WIB` : ""}</span>
+        {r.session && <span className="flex flex-shrink-0 items-center gap-0.5 text-xs font-semibold text-[color:var(--j-0C66E4)]">{r.status === "SUBMITTED" ? tr("Review") : tr("Open")}<ChevronRight size={14} /></span>}
       </span>
       {(r.session?.is_late || r.session || r.facility_located === false) && (
         <span className="mt-2 flex flex-wrap items-center gap-1">
@@ -336,8 +336,8 @@ function MobileRow({ r }: { r: Row }) {
       )}
     </>
   );
-  const cls = "block rounded-md border border-neutral-200 bg-white p-3.5 shadow-sm";
-  return <li>{r.session ? <Link href={`/cost-control/reviews/${r.session.id}`} className={cx(cls, "active:bg-neutral-50")}>{body}</Link> : <div className={cls}>{body}</div>}</li>;
+  const cls = "block rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-3.5";
+  return <li>{r.session ? <Link href={`/cost-control/reviews/${r.session.id}`} className={cx(cls, "active:bg-[color:var(--j-F7F8F9)]")}>{body}</Link> : <div className={cls}>{body}</div>}</li>;
 }
 
 function MonitorFilters({ value, types, facilityTypes, onApply, onClose }: {

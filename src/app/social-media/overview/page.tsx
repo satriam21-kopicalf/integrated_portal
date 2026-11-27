@@ -15,11 +15,11 @@ export default function SocialOverviewPage() {
     <Page title={tr("Social Media Overview")} subtitle={tr("Being prepared")} media={<BarChart3 size={19} />}>
       <Panel title={tr("The overview is being prepared")} description={tr("Meanwhile every mention, its sentiment and its reach are in Social Media Analytics.")}>
         <div className="p-4">
-          <Link href="/social-media" className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-3 transition-colors hover:border-brand-200 hover:bg-neutral-50 sm:max-w-md">
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><MessageSquareText size={18} /></span>
-            <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-neutral-900">{tr("Social Media Analytics")}</span>
-              <span className="block text-xs text-neutral-500">{tr("Mentions, sentiment & reach")}</span></span>
-            <ChevronRight size={15} className="text-neutral-300" />
+          <Link href="/social-media" className="flex items-center gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 py-3 transition-colors hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-F7F8F9)] sm:max-w-md">
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]"><MessageSquareText size={18} /></span>
+            <span className="min-w-0 flex-1"><span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Social Media Analytics")}</span>
+              <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Mentions, sentiment & reach")}</span></span>
+            <ChevronRight size={15} className="text-[color:var(--j-8590A2)]" />
           </Link>
         </div>
       </Panel>

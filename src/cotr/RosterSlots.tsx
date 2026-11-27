@@ -59,17 +59,17 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
   return (
     <Drawer open onClose={onClose} size="lg" icon={<MapPinned size={18} />} title={tr("Assignments of {0}", driverName)} description={dayLabel}
       footer={<div className="flex w-full items-center gap-2">
-        <p className="min-w-0 flex-1 truncate text-xs text-neutral-500">{problems[0] ?? tr("{0} slots · {1}–{2}", sorted.length, sorted[0]?.start ?? "", sorted[sorted.length - 1]?.end ?? "")}</p>
+        <p className="min-w-0 flex-1 truncate text-xs text-[color:var(--j-626F86)]">{problems[0] ?? tr("{0} slots · {1}–{2}", sorted.length, sorted[0]?.start ?? "", sorted[sorted.length - 1]?.end ?? "")}</p>
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!slots.length || problems.length > 0} onClick={() => void save()}><Save size={15} />{tr("Save")}</Button></div>}>
       <div className="space-y-3">
-        <p className="text-xs text-neutral-500">{tr("Split the day into slots: each slot sends the driver to an area for a time. Pick a shift template to fill the times, then change them if needed.")}</p>
+        <p className="text-xs text-[color:var(--j-626F86)]">{tr("Split the day into slots: each slot sends the driver to an area for a time. Pick a shift template to fill the times, then change them if needed.")}</p>
         <ol className="space-y-3">
           {slots.map((s, i) => (
-            <li key={i} className="rounded-md border border-neutral-200 bg-white p-3">
+            <li key={i} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-3">
               <div className="mb-2 flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-700 ring-1 ring-brand-200">{i + 1}</span>
-                <span className="text-sm font-semibold text-neutral-900">{tr("Slot {0}", i + 1)}</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--j-E9F2FF)] text-[11px] font-bold text-[color:var(--j-0C66E4)] ring-1 ring-[color:var(--j-85B8FF)]">{i + 1}</span>
+                <span className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Slot {0}", i + 1)}</span>
                 <span className="ml-auto flex gap-1">
                   <IconBtn label={tr("Up")} disabled={i === 0} onClick={() => setSlots((x) => { const y = [...x]; [y[i - 1], y[i]] = [y[i], y[i - 1]]; return y; })}><ArrowUp size={14} /></IconBtn>
                   <IconBtn label={tr("Down")} disabled={i === slots.length - 1} onClick={() => setSlots((x) => { const y = [...x]; [y[i + 1], y[i]] = [y[i], y[i + 1]]; return y; })}><ArrowDown size={14} /></IconBtn>
@@ -78,7 +78,7 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
                 </span>
               </div>
               <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
-                <label className="text-[11px] font-medium text-neutral-500">{tr("Shift template")}
+                <label className="text-[11px] font-medium text-[color:var(--j-626F86)]">{tr("Shift template")}
                   <NativeSelect className={cx(inputClass, "mt-1 h-10")} value={s.template ?? ""} onChange={(e) => {
                     const t = active.find((x) => x.code === e.target.value);
                     set(i, t ? { template: t.code, start: hm(t.start_time), end: hm(t.end_time) } : { template: null });
@@ -86,16 +86,16 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
                     <option value="">{tr("Custom time")}</option>
                     {active.map((t) => <option key={t.code} value={t.code}>{t.name} · {hm(t.start_time)}–{hm(t.end_time)}</option>)}
                   </NativeSelect></label>
-                <label className="text-[11px] font-medium text-neutral-500">{tr("Start")}
+                <label className="text-[11px] font-medium text-[color:var(--j-626F86)]">{tr("Start")}
                   <TimeInput className="mt-1" value={s.start} onChange={(v) => set(i, { start: v })} /></label>
-                <label className="text-[11px] font-medium text-neutral-500">{tr("End")}
+                <label className="text-[11px] font-medium text-[color:var(--j-626F86)]">{tr("End")}
                   <TimeInput className="mt-1" value={s.end} invalid={s.end <= s.start} onChange={(v) => set(i, { end: v })} /></label>
               </div>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <div className="text-[11px] font-medium text-neutral-500">{tr("Area")}
+                <div className="text-[11px] font-medium text-[color:var(--j-626F86)]">{tr("Area")}
                   <div className="mt-1"><SearchSelect value={s.area ?? ""} required onChange={(v) => set(i, { area: v || null, areaName: (areas.rows ?? []).find((a) => a.code === v)?.name ?? null })} placeholder={tr("Choose the area")}
                     options={(areas.rows ?? []).filter((a) => a.is_active).map((a) => ({ value: a.code, label: a.name, hint: [a.city, a.address].filter(Boolean).join(" · ") }))} /></div></div>
-                <div className="text-[11px] font-medium text-neutral-500">{tr("Fleet (optional)")}
+                <div className="text-[11px] font-medium text-[color:var(--j-626F86)]">{tr("Fleet (optional)")}
                   <div className="mt-1"><SearchSelect value={s.fleet ?? ""} onChange={(v) => set(i, { fleet: v || null })} placeholder={tr("The driver's own fleet")}
                     options={(fleet.rows ?? []).filter((f) => f.is_active).map((f) => ({ value: f.code, label: f.code, hint: f.name ?? undefined }))} /></div></div>
               </div>
@@ -109,7 +109,7 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
             <Button key={t.code} variant="ghost" size="sm" onClick={() => setSlots((x) => [...x, blank(t)])}>+ {t.name}</Button>
           ))}
         </div>
-        {(areas.rows ?? []).length === 0 && areas.rows && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No area yet: add the areas in Master → Area first.")}</p>}
+        {(areas.rows ?? []).length === 0 && areas.rows && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No area yet: add the areas in Master → Area first.")}</p>}
       </div>
     </Drawer>
   );
@@ -118,6 +118,6 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
 function IconBtn({ label, onClick, disabled, danger, children }: { label: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: React.ReactNode }) {
   return (
     <button type="button" aria-label={label} title={label} disabled={disabled} onClick={onClick}
-      className={cx("rounded-md p-1.5 text-neutral-400 disabled:opacity-30", danger ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-neutral-100 hover:text-neutral-700")}>{children}</button>
+      className={cx("rounded-[3px] p-1.5 text-[color:var(--j-626F86)] disabled:opacity-30", danger ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>{children}</button>
   );
 }

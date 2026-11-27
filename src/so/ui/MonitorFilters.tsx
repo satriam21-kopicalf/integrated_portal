@@ -22,7 +22,7 @@ export function MonitorFilterSheet({ active, onClose, onReset, onApply, applyDis
       footer={
         <>
           <button type="button" onClick={onReset} disabled={!active}
-            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 disabled:opacity-40 disabled:hover:bg-transparent">
+            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-[3px] px-2 text-sm font-medium text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)] disabled:opacity-40 disabled:hover:bg-transparent">
             <RotateCcw size={14} /> {tr('Reset all')}
           </button>
           <Button onClick={onApply} disabled={applyDisabled} className="min-w-[9rem]">
@@ -30,7 +30,7 @@ export function MonitorFilterSheet({ active, onClose, onReset, onApply, applyDis
           </Button>
         </>
       }>
-      <div className="-mx-1 divide-y divide-neutral-100">{children}</div>
+      <div className="-mx-1 divide-y divide-[color:var(--j-F1F2F4)]">{children}</div>
     </Drawer>
   );
 }
@@ -42,11 +42,11 @@ export function FilterRow({ icon, label, value, onClear, children }: {
   return (
     <section className="px-1 py-4 first:pt-1">
       <header className="mb-2 flex items-center gap-1.5">
-        <span className="flex-shrink-0 text-neutral-400 [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{label}</h3>
+        <span className="flex-shrink-0 text-[color:var(--j-626F86)] [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
+        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{label}</h3>
         <span className="ml-auto flex min-w-0 items-center gap-2 text-xs">
-          {value ? <span className="truncate font-medium text-brand-700">{value}</span> : <span className="text-neutral-400">{tr('All')}</span>}
-          {value && onClear && <button type="button" onClick={onClear} className="flex-shrink-0 text-neutral-400 underline-offset-2 hover:text-neutral-700 hover:underline">{tr('Clear')}</button>}
+          {value ? <span className="truncate font-medium text-[color:var(--j-0C66E4)]">{value}</span> : <span className="text-[color:var(--j-626F86)]">{tr('All')}</span>}
+          {value && onClear && <button type="button" onClick={onClear} className="flex-shrink-0 text-[color:var(--j-626F86)] underline-offset-2 hover:text-[color:var(--j-172B4D)] hover:underline">{tr('Clear')}</button>}
         </span>
       </header>
       {children}
@@ -57,8 +57,8 @@ export function FilterRow({ icon, label, value, onClear, children }: {
 /** A filter of one option only (2026-11-07): nothing to choose, so it is told, not offered. */
 function OnlyOne({ label }: { label: string }) {
   return (
-    <p className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-500">
-      <Check size={13} className="flex-shrink-0 text-neutral-400" />
+    <p className="flex items-center gap-2 rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-626F86)]">
+      <Check size={13} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
       <span className="min-w-0 truncate">{tr('Only {0} in the data', label)}</span>
     </p>
   );
@@ -72,7 +72,7 @@ export function Segments({ value, onChange, choices }: { value: string; onChange
         const on = c.value === value;
         return (
           <button key={c.value || 'all'} type="button" role="radio" aria-checked={on} onClick={() => onChange(c.value)}
-            className={cx('min-w-0 truncate rounded-[4px] border px-2.5 py-1 text-xs font-medium transition', on ? 'border-brand-700 bg-brand-700 text-white' : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100')}>
+            className={cx('min-w-0 truncate rounded-[4px] border px-2.5 py-1 text-xs font-medium transition', on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white' : 'border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]')}>
             {c.label}
           </button>
         );
@@ -84,16 +84,16 @@ export function Segments({ value, onChange, choices }: { value: string; onChange
 /** Choices with longer names, one per line with a radio dot ('' = all). */
 export function OptionList({ value, onChange, choices }: { value: string; onChange: (v: string) => void; choices: { value: string; label: string; icon?: ReactNode }[] }) {
   return (
-    <div className="overflow-hidden rounded-md border border-neutral-200" role="radiogroup">
+    <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]" role="radiogroup">
       {choices.map((c) => {
         const on = c.value === value;
         return (
           <button key={c.value || 'all'} type="button" role="radio" aria-checked={on} onClick={() => onChange(c.value)}
-            className={cx('flex w-full items-center gap-2.5 border-b border-neutral-100 px-3 py-2 text-left text-sm last:border-b-0', on ? 'bg-brand-50/70 font-medium text-brand-900' : 'text-neutral-700 hover:bg-neutral-50')}>
-            <span className={cx('flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border', on ? 'border-brand-600' : 'border-neutral-300')}>
-              {on && <span className="h-2 w-2 rounded-full bg-brand-600" />}
+            className={cx('flex w-full items-center gap-2.5 border-b border-[color:var(--j-F1F2F4)] px-3 py-2 text-left text-sm last:border-b-0', on ? 'bg-[color:var(--j-E9F2FF)] font-medium text-[color:var(--j-0055CC)]' : 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]')}>
+            <span className={cx('flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border', on ? 'border-[color:var(--j-0C66E4)]' : 'border-[color:var(--j-8590A2)]')}>
+              {on && <span className="h-2 w-2 rounded-full bg-[color:var(--j-0C66E4)]" />}
             </span>
-            {c.icon && <span className="flex-shrink-0 text-neutral-400">{c.icon}</span>}
+            {c.icon && <span className="flex-shrink-0 text-[color:var(--j-626F86)]">{c.icon}</span>}
             <span className="min-w-0 flex-1 truncate">{c.label}</span>
           </button>
         );
@@ -128,34 +128,34 @@ export function ComboFilter({ value, onChange, options, allLabel, placeholder }:
   const item = (v: string, label: string, hint?: string) => (
     <li key={v || 'all'}>
       <button type="button" onClick={() => pick(v)} aria-pressed={v === value}
-        className={cx('flex min-h-[44px] w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left text-sm sm:min-h-0', v === value ? 'border-brand-700 bg-brand-50 font-medium text-brand-800' : 'border-transparent text-neutral-700 hover:bg-neutral-100')}>
+        className={cx('flex min-h-[44px] w-full items-center gap-2.5 border-l-2 px-3 py-2 text-left text-sm sm:min-h-0', v === value ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] font-medium text-[color:var(--j-0055CC)]' : 'border-transparent text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]')}>
         <span className="flex w-4 flex-shrink-0 justify-center">{v === value && <Check size={14} />}</span>
-        <span className="min-w-0 flex-1 truncate">{label}</span>{hint && <span className="flex-shrink-0 text-[11px] text-neutral-400">{hint}</span>}
+        <span className="min-w-0 flex-1 truncate">{label}</span>{hint && <span className="flex-shrink-0 text-[11px] text-[color:var(--j-626F86)]">{hint}</span>}
       </button>
     </li>
   );
   return (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className={cx(inputClass, 'flex h-11 items-center justify-between gap-2 rounded-[4px] bg-neutral-50 text-left hover:bg-neutral-100 sm:h-9', open && 'border-brand-500 bg-white ring-2 ring-brand-500/20')}>
-        <span className={cx('truncate text-sm', !current && 'text-neutral-500')}>{current ? current.label : allLabel}</span>
-        <span className="flex flex-shrink-0 items-center gap-1 text-neutral-400">
-          {current && <X size={14} className="hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); pick(''); }} aria-label={tr('Clear')} />}
+        className={cx(inputClass, 'flex h-11 items-center justify-between gap-2 rounded-[4px] bg-[color:var(--j-F7F8F9)] text-left hover:bg-[color:var(--j-091E420F)] sm:h-9', open && 'border-[color:var(--j-0C66E4)] bg-white ring-2 ring-[color:var(--j-388BFF)]')}>
+        <span className={cx('truncate text-sm', !current && 'text-[color:var(--j-626F86)]')}>{current ? current.label : allLabel}</span>
+        <span className="flex flex-shrink-0 items-center gap-1 text-[color:var(--j-626F86)]">
+          {current && <X size={14} className="hover:text-[color:var(--j-172B4D)]" onClick={(e) => { e.stopPropagation(); pick(''); }} aria-label={tr('Clear')} />}
           <ChevronDown size={15} className={cx('transition', open && 'rotate-180')} />
         </span>
       </button>
       {open && (
         // 2026-11-23: the list opens in the flow of the drawer (it pushes the next filters down) instead of floating:
         // a floating list was cut by the scrolling drawer body and hidden under its footer on phones
-        <div ref={list} className="mt-1 overflow-hidden rounded-md border border-neutral-200 bg-white shadow-sm">
-          <div className="relative border-b border-neutral-100 p-2">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <div ref={list} className="mt-1 overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
+          <div className="relative border-b border-[color:var(--j-F1F2F4)] p-2">
+            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder} aria-label={placeholder} className={cx(searchClass, 'h-10 pl-8 text-base sm:h-9 sm:text-sm')} />
           </div>
           <ul className="max-h-[min(16rem,45dvh)] overflow-y-auto overscroll-contain py-1">
             {!q && item('', allLabel)}
             {shown.map((o) => item(o.value, o.label, o.hint))}
-            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr('No match')}</li>}
+            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-[color:var(--j-626F86)]">{tr('No match')}</li>}
           </ul>
         </div>
       )}
@@ -191,17 +191,17 @@ export function QuickPeriod({ value, onChange, maxDays }: { value: Period; onCha
       }} choices={[...presets.map((p) => ({ value: p.key, label: p.label })), { value: 'custom', label: tr('Custom') }]} />
       {custom && (
         <div className="grid grid-cols-2 gap-2">
-          <label className="text-[11px] font-medium text-neutral-500">{tr('From')}
+          <label className="text-[11px] font-medium text-[color:var(--j-626F86)]">{tr('From')}
             <input type="date" value={value.from} max={value.to} className={cx(inputClass, 'mt-1 h-10')}
               onChange={(e) => e.target.value && onChange({ from: e.target.value, to: value.to < e.target.value ? e.target.value : value.to })} />
           </label>
-          <label className="text-[11px] font-medium text-neutral-500">{tr('To')}
+          <label className="text-[11px] font-medium text-[color:var(--j-626F86)]">{tr('To')}
             <input type="date" value={value.to} min={value.from} max={today} className={cx(inputClass, 'mt-1 h-10')}
               onChange={(e) => e.target.value && onChange({ from: value.from > e.target.value ? e.target.value : value.from, to: e.target.value })} />
           </label>
         </div>
       )}
-      <p className={cx('flex items-center gap-1.5 text-xs', tooLong ? 'text-red-600' : 'text-neutral-500')}>
+      <p className={cx('flex items-center gap-1.5 text-xs', tooLong ? 'text-red-600' : 'text-[color:var(--j-626F86)]')}>
         <CalendarDays size={13} /> {dmy(value.from)} – {dmy(value.to)} · {tr('{0} days', days)}{tooLong ? ` · ${tr('at most {0} days', maxDays)}` : ''}
       </p>
     </div>

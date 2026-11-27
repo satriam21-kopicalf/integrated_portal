@@ -107,11 +107,11 @@ export default function DateRangePicker({
         subtitle={pendingFrom ? tr('From {0} — select end date', formatDate(pendingFrom)) : active ? label : tr('Default: {0}', defaultLabel)}
         actions={active && (
           <button type="button" onClick={() => { onChange('', ''); close(); }}
-            className="rounded-md px-2 py-1 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">{tr('Clear')}</button>
+            className="rounded-[3px] px-2 py-1 text-xs font-medium text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]">{tr('Clear')}</button>
         )}>
           <div className="flex flex-col sm:flex-row">
             {/* Presets */}
-            <div className="flex gap-1.5 overflow-x-auto border-b border-neutral-100 p-2.5 sm:w-36 sm:flex-col sm:gap-0.5 sm:overflow-visible sm:border-b-0 sm:border-r">
+            <div className="flex gap-1.5 overflow-x-auto border-b border-[color:var(--j-F1F2F4)] p-2.5 sm:w-36 sm:flex-col sm:gap-0.5 sm:overflow-visible sm:border-b-0 sm:border-r">
               {ranges.map(r => {
                 const selected = r.from === dateFrom && r.to === dateTo;
                 return (
@@ -119,8 +119,8 @@ export default function DateRangePicker({
                     key={r.label}
                     type="button"
                     onClick={() => applyPreset(r.from, r.to)}
-                    className={`whitespace-nowrap rounded-lg px-3 py-2 text-left text-xs font-medium transition-colors sm:px-2.5 sm:py-1.5 ${
-                      selected ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 sm:bg-transparent sm:text-neutral-600 sm:hover:bg-neutral-100'
+                    className={`whitespace-nowrap rounded-[3px] px-3 py-2 text-left text-xs font-medium transition-colors sm:px-2.5 sm:py-1.5 ${
+                      selected ? 'bg-[color:var(--j-0C66E4)] text-white' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-DCDFE4)] sm:bg-transparent sm:text-[color:var(--j-44546F)] sm:hover:bg-[color:var(--j-091E420F)]'
                     }`}
                   >
                     {r.label}
@@ -135,18 +135,18 @@ export default function DateRangePicker({
                 <button
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-                  className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                  className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"
                   aria-label={tr('Previous Month')}
                 >
                   <ChevronLeft size={16} />
                 </button>
-                <span className="text-sm font-semibold text-neutral-900">
+                <span className="text-sm font-semibold text-[color:var(--j-172B4D)]">
                   {month.toLocaleDateString(locale(), { month: 'long', year: 'numeric' })}
                 </span>
                 <button
                   type="button"
                   onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-                  className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                  className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"
                   aria-label={tr('Next Month')}
                 >
                   <ChevronRight size={16} />
@@ -155,7 +155,7 @@ export default function DateRangePicker({
 
               <div className="grid grid-cols-7 text-center">
                 {WEEK_DAYS.map(d => (
-                  <div key={d} className="py-1 text-[11px] font-medium text-neutral-400">{d}</div>
+                  <div key={d} className="py-1 text-[11px] font-medium text-[color:var(--j-626F86)]">{d}</div>
                 ))}
                 {days.map((day, i) => {
                   if (day === null) return <div key={`blank-${i}`} />;
@@ -169,10 +169,10 @@ export default function DateRangePicker({
                       onClick={() => pick(day)}
                       className={`h-11 text-sm transition-colors sm:h-9 ${
                         isEdge
-                          ? 'rounded-lg bg-brand-700 font-semibold text-white'
+                          ? 'rounded-[3px] bg-[color:var(--j-0C66E4)] font-semibold text-white'
                           : inRange
-                          ? 'bg-brand-50 text-brand-900'
-                          : `rounded-lg hover:bg-neutral-100 ${value === today ? 'font-semibold text-brand-700' : 'text-neutral-700'}`
+                          ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]'
+                          : `rounded-[3px] hover:bg-[color:var(--j-091E420F)] ${value === today ? 'font-semibold text-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-44546F)]'}`
                       }`}
                     >
                       {day}

@@ -99,7 +99,7 @@ const PAGES: Record<string, string> = {
 /** category -> icon tile + bar colour */
 const TONES: Record<string, { tile: string; bar: string; label: string }> = {
   export: { tile: 'bg-emerald-50 text-emerald-700', bar: 'bg-emerald-500', get label() { return tr('Exports'); } },
-  auth: { tile: 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]', bar: 'bg-brand-500', get label() { return tr('Sign-in'); } },
+  auth: { tile: 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]', bar: 'bg-[color:var(--j-388BFF)]', get label() { return tr('Sign-in'); } },
   page: { tile: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]', bar: 'bg-neutral-400', get label() { return tr('Pages'); } },
   filter: { tile: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]', bar: 'bg-neutral-300', get label() { return tr('Filters'); } },
   transaction: { tile: 'bg-violet-50 text-violet-700', bar: 'bg-violet-500', get label() { return tr('Transactions'); } },

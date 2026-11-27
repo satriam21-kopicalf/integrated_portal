@@ -25,7 +25,7 @@ const CATEGORIES = ["Kritikal", "Mayor", "Minor"];
 const CATEGORY_LABEL: Record<string, () => string> = { Kritikal: () => tr("Critical"), Mayor: () => tr("Major"), Minor: () => tr("Minor") };
 export const categoryLabel = (c: string) => CATEGORY_LABEL[c]?.() ?? c;
 export const categoryTone = (c: string | null) =>
-  c === "Kritikal" ? "bg-red-600 text-white" : c === "Mayor" ? "bg-amber-100 text-amber-800" : c ? "bg-neutral-100 text-neutral-600" : "";
+  c === "Kritikal" ? "bg-red-600 text-white" : c === "Mayor" ? "bg-amber-100 text-amber-800" : c ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]" : "";
 const LEVELS: { value: Level; label: () => string }[] = [
   { value: "required", label: () => tr("Required") }, { value: "optional", label: () => tr("Optional") }, { value: "none", label: () => tr("Not asked") },
 ];
@@ -85,18 +85,18 @@ export function ItemDialog({ form, item, section, onClose, onSaved }: {
             <Select value={d.photo} onChange={(e) => set({ photo: e.target.value as Level })}>{LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label()}</option>)}</Select>
           </Field>
         </div>
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-800">
-          <label className="inline-flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-brand-700" checked={d.required} onChange={(e) => set({ required: e.target.checked })} /> {tr("Must be rated before sending")}</label>
-          <label className="inline-flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-brand-700" checked={d.active} onChange={(e) => set({ active: e.target.checked })} /> {tr("Active (asked and scored)")}</label>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[color:var(--j-172B4D)]">
+          <label className="inline-flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-[color:var(--j-0C66E4)]" checked={d.required} onChange={(e) => set({ required: e.target.checked })} /> {tr("Must be rated before sending")}</label>
+          <label className="inline-flex items-center gap-2"><input type="checkbox" className="h-4 w-4 accent-[color:var(--j-0C66E4)]" checked={d.active} onChange={(e) => set({ active: e.target.checked })} /> {tr("Active (asked and scored)")}</label>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label={tr("Description / photo points (ID)")}><textarea rows={3} className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" value={d.detail} maxLength={1000} onChange={(e) => set({ detail: e.target.value })} /></Field>
-          <Field label={tr("Description / photo points (EN)")}><textarea rows={3} className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" value={d.detailEn} maxLength={1000} onChange={(e) => set({ detailEn: e.target.value })} /></Field>
-          <Field label={tr("Standard (ID)")}><textarea rows={2} className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" value={d.standard} maxLength={1000} onChange={(e) => set({ standard: e.target.value })} /></Field>
-          <Field label={tr("Standard (EN)")}><textarea rows={2} className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm" value={d.standardEn} maxLength={1000} onChange={(e) => set({ standardEn: e.target.value })} /></Field>
+          <Field label={tr("Description / photo points (ID)")}><textarea rows={3} className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm" value={d.detail} maxLength={1000} onChange={(e) => set({ detail: e.target.value })} /></Field>
+          <Field label={tr("Description / photo points (EN)")}><textarea rows={3} className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm" value={d.detailEn} maxLength={1000} onChange={(e) => set({ detailEn: e.target.value })} /></Field>
+          <Field label={tr("Standard (ID)")}><textarea rows={2} className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm" value={d.standard} maxLength={1000} onChange={(e) => set({ standard: e.target.value })} /></Field>
+          <Field label={tr("Standard (EN)")}><textarea rows={2} className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm" value={d.standardEn} maxLength={1000} onChange={(e) => set({ standardEn: e.target.value })} /></Field>
         </div>
-        {!d.active && <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("An inactive item is not asked and not scored; the visits already sent keep their answers and score.")}</p>}
-        {item?.code && item.changed && <p className="text-xs text-neutral-500">{tr("Standard: {0}", `${item.code.label}${item.code.category ? ` · ${categoryLabel(item.code.category)}` : ""}`)}</p>}
+        {!d.active && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("An inactive item is not asked and not scored; the visits already sent keep their answers and score.")}</p>}
+        {item?.code && item.changed && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Standard: {0}", `${item.code.label}${item.code.category ? ` · ${categoryLabel(item.code.category)}` : ""}`)}</p>}
       </div>
     </Dialog>
   );
@@ -118,7 +118,7 @@ export function WeightsDialog({ weights, onClose, onSaved }: { weights: Editor["
   return (
     <Dialog open onClose={onClose} title={tr("Category weights")} description={tr("Final score = Σ weight of the items rated MEET or EXCEED ÷ Σ weight of the rated items. An item without a category weighs 1. Visits already sent keep their score.")}
       footer={<><Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Cancel")}</Button><Button onClick={() => void save()} loading={busy}>{tr("Save")}</Button></>}>
-      <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200">
+      <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
         {weights.map((x) => (
           <li key={x.category} className="flex items-center gap-3 px-3 py-2">
             <span className={cx("rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", categoryTone(x.category))}>{categoryLabel(x.category)}</span>

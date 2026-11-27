@@ -20,9 +20,9 @@ type Shared = Omit<Report, "id"> & { answers: Record<string, Answer>; photos: Tr
 const RATING: Record<"OK" | "NOK" | "NA", { label: () => string; cls: string }> = {
   OK: { label: () => tr("Meets"), cls: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
   NOK: { label: () => tr("Does not meet"), cls: "bg-red-50 text-red-700 ring-red-200" },
-  NA: { label: () => "N/A", cls: "bg-neutral-100 text-neutral-600 ring-neutral-200" },
+  NA: { label: () => "N/A", cls: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]" },
 };
-const CAT: Record<string, string> = { Kritikal: "bg-red-600 text-white", Mayor: "bg-amber-100 text-amber-800", Minor: "bg-neutral-100 text-neutral-600" };
+const CAT: Record<string, string> = { Kritikal: "bg-red-600 text-white", Mayor: "bg-amber-100 text-amber-800", Minor: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]" };
 
 export default function TravelShare() {
   return <Suspense><View /></Suspense>;
@@ -41,35 +41,35 @@ function View() {
       .catch((e) => setError((e as Error).message));
   }, [token]);
   const url = (id: string) => `/api/public/travel/${encodeURIComponent(token)}/photos/${id}`;
-  if (error) return <div className="flex min-h-dvh items-center justify-center bg-neutral-100 p-6 text-center text-sm text-neutral-600">{error}</div>;
-  if (!d) return <div className="min-h-dvh bg-neutral-100"><div className="mx-auto max-w-2xl space-y-3 px-4 py-6"><Skeleton className="h-24 w-full" /><SkeletonList rows={6} className="rounded-xl border border-neutral-200 bg-white" /></div></div>;
+  if (error) return <div className="flex min-h-dvh items-center justify-center bg-[color:var(--j-091E420F)] p-6 text-center text-sm text-[color:var(--j-44546F)]">{error}</div>;
+  if (!d) return <div className="min-h-dvh bg-[color:var(--j-091E420F)]"><div className="mx-auto max-w-2xl space-y-3 px-4 py-6"><Skeleton className="h-24 w-full" /><SkeletonList rows={6} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white" /></div></div>;
   const photosOf = (key: string, kind?: "MAIN" | "AFTER") => d.photos.filter((p) => p.item === key && (!kind || p.kind === kind));
   const c = d.counts;
   const Pics = ({ list }: { list: TravelPhoto[] }) => list.length ? (
     <div className="mt-2 flex gap-2 overflow-x-auto pb-1">{list.map((p) => (
       <button key={p.id} type="button" onClick={() => setBig(p.id)} className="relative shrink-0" aria-label={tr("Open the photo")}>
         {/* eslint-disable-next-line @next/next/no-img-element -- photo through the share link */}
-        <img src={thumb(url(p.id), 320)} alt="" loading="lazy" decoding="async" className="h-28 w-28 rounded-xl object-cover ring-1 ring-neutral-200 sm:h-32 sm:w-32" />
+        <img src={thumb(url(p.id), 320)} alt="" loading="lazy" decoding="async" className="h-28 w-28 rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)] sm:h-32 sm:w-32" />
         {p.kind === "AFTER" && <span className="absolute bottom-1 left-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{tr("After")}</span>}
       </button>))}</div>) : null;
   return (
-    <div className="min-h-dvh bg-neutral-100">
+    <div className="min-h-dvh bg-[color:var(--j-091E420F)]">
       <header className="bg-[#0b1f4d] text-white">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/calf-logo.png" alt="Kopi Calf" className="h-10 w-10 shrink-0 rounded-lg bg-white object-contain p-1" />
+          <img src="/assets/calf-logo.png" alt="Kopi Calf" className="h-10 w-10 shrink-0 rounded-[3px] bg-white object-contain p-1" />
           <div className="min-w-0 flex-1"><p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-200">Travel Path · {d.sessionLabel}</p>
             <h1 className="truncate text-lg font-semibold leading-tight">{d.branchName}</h1>
             <p className="text-xs text-white/70">{wibDateTime(d.submittedAt)}</p></div>
         </div>
       </header>
       <main className="mx-auto max-w-2xl space-y-3 px-3 py-4 sm:px-4">
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
+        <section className="rounded-[3px] bg-white p-4">
           <div className="flex items-center gap-4">
-            <span className={cx("rounded-2xl px-4 py-3 text-3xl font-bold tabular-nums", bandClass(d.band as Band | null))}>{d.score != null ? `${d.score}%` : "—"}</span>
-            <div className="min-w-0 text-sm"><p className="font-semibold text-neutral-900">{d.band ? bandText(d.band as Band) : "—"}</p>
-              <p className="text-neutral-600">{tr("{0} meet · {1} findings · {2} N/A", c?.ok ?? 0, c?.nok ?? 0, c?.na ?? 0)}</p>
-              <p className="text-xs text-neutral-500">{[d.crew, d.supervisor].filter(Boolean).join(" & ")}</p></div>
+            <span className={cx("rounded-[3px] px-4 py-3 text-3xl font-bold tabular-nums", bandClass(d.band as Band | null))}>{d.score != null ? `${d.score}%` : "—"}</span>
+            <div className="min-w-0 text-sm"><p className="font-semibold text-[color:var(--j-172B4D)]">{d.band ? bandText(d.band as Band) : "—"}</p>
+              <p className="text-[color:var(--j-44546F)]">{tr("{0} meet · {1} findings · {2} N/A", c?.ok ?? 0, c?.nok ?? 0, c?.na ?? 0)}</p>
+              <p className="text-xs text-[color:var(--j-626F86)]">{[d.crew, d.supervisor].filter(Boolean).join(" & ")}</p></div>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
             {d.late && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 font-medium text-amber-800"><Clock size={12} /> {tr("Sent late")}</span>}
@@ -77,36 +77,36 @@ function View() {
           </div>
         </section>
         {!!d.evaluation?.length && (
-          <section className="rounded-2xl bg-white p-4 shadow-sm"><h2 className="text-sm font-semibold text-neutral-900">{tr("Evaluation")}</h2>
-            <ul className="mt-2 space-y-1.5 text-sm text-neutral-700">{d.evaluation.map((e) => <li key={e} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-600" />{e}</li>)}</ul></section>)}
-        <section className="rounded-2xl bg-white p-4 shadow-sm">
-          <h2 className="flex items-center justify-between text-sm font-semibold text-neutral-900">{tr("Findings")}<span className="text-xs font-normal text-neutral-500">{d.findings?.length ?? 0}</span></h2>
+          <section className="rounded-[3px] bg-white p-4"><h2 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Evaluation")}</h2>
+            <ul className="mt-2 space-y-1.5 text-sm text-[color:var(--j-44546F)]">{d.evaluation.map((e) => <li key={e} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--j-0C66E4)]" />{e}</li>)}</ul></section>)}
+        <section className="rounded-[3px] bg-white p-4">
+          <h2 className="flex items-center justify-between text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Findings")}<span className="text-xs font-normal text-[color:var(--j-626F86)]">{d.findings?.length ?? 0}</span></h2>
           {!d.findings?.length ? <p className="mt-2 flex items-center gap-1.5 text-sm text-emerald-700"><CheckCircle2 size={15} /> {tr("No finding in this Travel Path.")}</p> : (
             <ul className="mt-2 space-y-3">{d.findings.map((f) => (
-              <li key={f.id} className={cx("rounded-xl border p-3", f.status === "FIXED" ? "border-emerald-100 bg-emerald-50/40" : "border-red-100 bg-red-50/40")}>
-                <p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-neutral-900">{f.category && <span className={cx("rounded px-1.5 py-px text-[10px] font-bold uppercase", CAT[f.category] ?? CAT.Minor)}>{f.category}</span>}{f.label}</p>
-                {f.zone && <p className="text-[11px] text-neutral-500">{f.zone}</p>}
-                {f.note && <p className="mt-1 text-sm text-neutral-700">{f.note}</p>}
+              <li key={f.id} className={cx("rounded-[3px] border p-3", f.status === "FIXED" ? "border-emerald-100 bg-emerald-50/40" : "border-red-100 bg-red-50/40")}>
+                <p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]">{f.category && <span className={cx("rounded px-1.5 py-px text-[10px] font-bold uppercase", CAT[f.category] ?? CAT.Minor)}>{f.category}</span>}{f.label}</p>
+                {f.zone && <p className="text-[11px] text-[color:var(--j-626F86)]">{f.zone}</p>}
+                {f.note && <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{f.note}</p>}
                 <p className={cx("mt-1 text-xs font-medium", f.status === "FIXED" ? "text-emerald-700" : f.overdue ? "text-red-700" : "text-amber-800")}>
                   {f.status === "FIXED" ? `${tr("Repaired")} ${wibDateTime(f.fixedAt)}${f.fixNote ? ` · ${f.fixNote}` : ""}` : f.overdue ? tr("Overdue, was due {0}", wibDateTime(f.dueAt)) : tr("Repair before {0}", wibDateTime(f.dueAt))}</p>
                 <Pics list={photosOf(f.itemKey)} />
               </li>))}</ul>)}
         </section>
         {d.definition.groups.flatMap((g) => g.sections).map((z) => (
-          <section key={z.key} className="overflow-hidden rounded-2xl bg-white shadow-sm">
-            <h2 className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-900">{tl(z, "title")}</h2>
-            <ul className="divide-y divide-neutral-100">{z.items.map((i) => {
+          <section key={z.key} className="overflow-hidden rounded-[3px] bg-white">
+            <h2 className="border-b border-[color:var(--j-F1F2F4)] px-4 py-3 text-sm font-semibold text-[color:var(--j-172B4D)]">{tl(z, "title")}</h2>
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)]">{z.items.map((i) => {
               const a = d.answers[i.key];
               return (
                 <li key={i.key} className="px-4 py-3">
-                  <div className="flex items-start justify-between gap-3"><p className="text-sm font-medium text-neutral-900">{i.no}. {tl(i)}</p>
-                    {a?.rating ? <span className={cx("shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset", RATING[a.rating].cls)}>{RATING[a.rating].label()}</span> : <span className="text-neutral-300">—</span>}</div>
-                  {a?.note && <p className="mt-0.5 text-sm text-neutral-600">{a.note}</p>}
+                  <div className="flex items-start justify-between gap-3"><p className="text-sm font-medium text-[color:var(--j-172B4D)]">{i.no}. {tl(i)}</p>
+                    {a?.rating ? <span className={cx("shrink-0 rounded-[3px] px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset", RATING[a.rating].cls)}>{RATING[a.rating].label()}</span> : <span className="text-[color:var(--j-8590A2)]">—</span>}</div>
+                  {a?.note && <p className="mt-0.5 text-sm text-[color:var(--j-44546F)]">{a.note}</p>}
                   <Pics list={photosOf(i.key)} />
                 </li>);
             })}</ul>
           </section>))}
-        <p className="flex items-center justify-center gap-1.5 pb-6 pt-2 text-center text-[11px] text-neutral-400"><ShieldCheck size={12} /> {tr("Read-only copy of the Travel Path sent by the outlet.")}</p>
+        <p className="flex items-center justify-center gap-1.5 pb-6 pt-2 text-center text-[11px] text-[color:var(--j-626F86)]"><ShieldCheck size={12} /> {tr("Read-only copy of the Travel Path sent by the outlet.")}</p>
       </main>
       {big && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-2" role="dialog" aria-modal="true" onClick={() => setBig(null)}>

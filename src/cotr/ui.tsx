@@ -153,7 +153,7 @@ export function MasterTable<T extends Row>({ title, description, master, columns
           <div className="flex flex-wrap items-center gap-2">
             <SearchInput value={q} onChange={setQ} placeholder={tr('Search {0}', noun)} />
             {!!filters?.length && <FilterButton count={chips.length} onClick={() => setSheet(true)} />}
-            <span className="text-xs tabular-nums text-neutral-500">{q || chips.length ? tr('{0} of {1}', shown?.length ?? 0, rows.length) : tr('{0} rows', rows.length)}</span>
+            <span className="text-xs tabular-nums text-[color:var(--j-626F86)]">{q || chips.length ? tr('{0} of {1}', shown?.length ?? 0, rows.length) : tr('{0} rows', rows.length)}</span>
           </div>
           <ActiveFilters filters={chips} onClear={() => setPicked({})} />
         </div>
@@ -176,7 +176,7 @@ export function MasterTable<T extends Row>({ title, description, master, columns
                   <td className="whitespace-nowrap px-2 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                     {rowActions?.(r)}
                     <button type="button" onClick={() => setOpen({ row: r, key: r.code })} aria-label={tr('Edit')} title={tr('Edit')}
-                      className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-brand-700"><Pencil size={15} /></button>
+                      className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-0055CC)]"><Pencil size={15} /></button>
                   </td>
                 </tr>
               ))}
@@ -252,8 +252,8 @@ function EditDrawer({ title, initial, fields, code, onClose, onSave, onDelete }:
       </>}>
       <div className="space-y-5">
         {sections.map((sec) => (
-          <section key={sec || 'main'} className={cx(sec && 'rounded-md border border-neutral-200 bg-white')}>
-            {sec && <h3 className="border-b border-neutral-100 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{sec}</h3>}
+          <section key={sec || 'main'} className={cx(sec && 'rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white')}>
+            {sec && <h3 className="border-b border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--j-626F86)]">{sec}</h3>}
             <div className={cx('grid gap-x-4 gap-y-3.5 sm:grid-cols-2', sec && 'p-4')}>
               {fields.filter((f) => (f.section ?? '') === sec).map((f) => (
                 <div key={f.key} className={cx(['textarea', 'image', 'coords'].includes(f.type ?? '') && 'sm:col-span-2')}>
@@ -385,16 +385,16 @@ export function SearchSelect({ value, options, onChange, required, placeholder, 
         title={current?.label}
         className={cx(inputClass, 'flex h-auto min-h-11 items-center justify-between gap-2 py-1.5 text-left lg:h-auto lg:min-h-10', disabled && 'cursor-not-allowed opacity-60')}>
         {/* the whole name, on two lines at most (2026-11-17); the full text is the tooltip */}
-        <span className={cx('line-clamp-2 min-w-0 flex-1 break-words leading-snug', !current && 'text-neutral-400')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
+        <span className={cx('line-clamp-2 min-w-0 flex-1 break-words leading-snug', !current && 'text-[color:var(--j-626F86)]')}>{current ? current.label : placeholder ?? tr('Choose')}</span>
         <span className="flex items-center gap-1">
-          {current && !required && !disabled && <X size={14} className="text-neutral-400 hover:text-neutral-700" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
-          <ChevronDown size={15} className={cx('text-neutral-400 transition-transform', open && 'rotate-180')} />
+          {current && !required && !disabled && <X size={14} className="text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]" onClick={(e) => { e.stopPropagation(); onChange(null); }} />}
+          <ChevronDown size={15} className={cx('text-[color:var(--j-626F86)] transition-transform', open && 'rotate-180')} />
         </span>
       </button>
       {open && at && createPortal(
-        <div ref={pop} className="fixed z-[90] flex flex-col overflow-hidden rounded-md border border-neutral-200 bg-white shadow-xl"
+        <div ref={pop} className="fixed z-[90] flex flex-col overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-xl"
           style={{ left: at.left, width: at.width, top: at.top, bottom: at.bottom, maxHeight: at.max }}>
-          <div className="flex-shrink-0 border-b border-neutral-100 p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
+          <div className="flex-shrink-0 border-b border-[color:var(--j-F1F2F4)] p-2"><input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
             placeholder={tr('Search')} className={cx(inputClass, 'h-9')} role="combobox" aria-expanded={true} aria-controls={listId}
             aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined} /></div>
           <ul ref={list} id={listId} role="listbox" className="min-h-0 flex-1 overflow-y-auto py-1">
@@ -402,12 +402,12 @@ export function SearchSelect({ value, options, onChange, required, placeholder, 
               <li key={o.value} id={`${listId}-${i}`} data-i={i} role="option" aria-selected={o.value === value}>
                 <button type="button" tabIndex={-1} onMouseEnter={() => setActive(i)} onClick={() => pick(o.value)}
                   className={cx('flex w-full items-start justify-between gap-3 px-3 py-2 text-left text-sm',
-                    i === active ? 'bg-neutral-100' : 'hover:bg-neutral-50', o.value === value && 'bg-brand-50 text-brand-800', o.value === value && i === active && 'ring-1 ring-inset ring-brand-300')}>
-                  <span className="min-w-0 break-words leading-snug">{o.label}</span>{o.hint && <span className="mt-0.5 flex-shrink-0 text-[11px] text-neutral-400">{o.hint}</span>}
+                    i === active ? 'bg-[color:var(--j-091E420F)]' : 'hover:bg-[color:var(--j-F7F8F9)]', o.value === value && 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]', o.value === value && i === active && 'ring-1 ring-inset ring-[color:var(--j-85B8FF)]')}>
+                  <span className="min-w-0 break-words leading-snug">{o.label}</span>{o.hint && <span className="mt-0.5 flex-shrink-0 text-[11px] text-[color:var(--j-626F86)]">{o.hint}</span>}
                 </button>
               </li>
             ))}
-            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-neutral-400">{tr('No match')}</li>}
+            {shown.length === 0 && <li className="px-3 py-4 text-center text-xs text-[color:var(--j-626F86)]">{tr('No match')}</li>}
           </ul>
         </div>,
         document.body,
@@ -433,12 +433,12 @@ export function ImageInput({ value, onChange, square }: { value: string | null; 
   };
   return (
     <div className="flex items-center gap-3">
-      <span className={cx('flex flex-shrink-0 items-center justify-center overflow-hidden border border-neutral-200 bg-neutral-50', square ? 'h-28 w-28 rounded-xl' : 'h-20 w-20 rounded-full')}>
+      <span className={cx('flex flex-shrink-0 items-center justify-center overflow-hidden border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]', square ? 'h-28 w-28 rounded-[3px]' : 'h-20 w-20 rounded-full')}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {value ? <img src={value} alt="" className={cx('h-full w-full', square ? 'object-contain' : 'object-cover')} /> : <ImageOff size={20} className="text-neutral-300" />}
+        {value ? <img src={value} alt="" className={cx('h-full w-full', square ? 'object-contain' : 'object-cover')} /> : <ImageOff size={20} className="text-[color:var(--j-8590A2)]" />}
       </span>
       <span className="flex flex-col gap-1.5">
-        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-1.5 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
           <Camera size={14} /> {value ? tr('Change') : tr('Upload')}
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
@@ -449,7 +449,7 @@ export function ImageInput({ value, onChange, square }: { value: string | null; 
 }
 
 // the map of the coordinates reads window (Leaflet): loaded in the browser only
-const CoordsMap = dynamic(() => import('./CoordsMap'), { ssr: false, loading: () => <div className="skeleton h-56 rounded-xl" /> });
+const CoordsMap = dynamic(() => import('./CoordsMap'), { ssr: false, loading: () => <div className="skeleton h-56 rounded-[3px]" /> });
 
 /** Latitude / longitude: typed, pasted from a Google Maps link, or picked on the map. */
 function CoordsInput({ lat, lng, onChange }: { lat: number | null; lng: number | null; onChange: (lat: number | null, lng: number | null) => void }) {
@@ -462,7 +462,7 @@ function CoordsInput({ lat, lng, onChange }: { lat: number | null; lng: number |
   return (
     <div className="space-y-2">
       <div className="relative">
-        <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <MapPin size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
         <input value={link} onChange={(e) => fromLink(e.target.value)} placeholder={tr('Paste a Google Maps link or “-6.18, 106.84”')} className={cx(inputClass, 'pl-9')} />
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -470,7 +470,7 @@ function CoordsInput({ lat, lng, onChange }: { lat: number | null; lng: number |
         <Input type="number" step="0.000001" value={lng ?? ''} placeholder={tr('Longitude')} onChange={(e) => onChange(lat, e.target.value === '' ? null : Number(e.target.value))} />
       </div>
       <CoordsMap lat={lat} lng={lng} onPick={onChange} />
-      <p className="text-[11px] text-neutral-400">{tr('Click the map to set the position')}</p>
+      <p className="text-[11px] text-[color:var(--j-626F86)]">{tr('Click the map to set the position')}</p>
     </div>
   );
 }
@@ -495,12 +495,12 @@ export function TimeInput({ value, onChange, invalid, className }: { value: stri
         className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
         <option value="">--</option>{hours.map((x) => <option key={x} value={x}>{x}</option>)}
       </NativeSelect>
-      <span className="font-semibold text-neutral-500">:</span>
+      <span className="font-semibold text-[color:var(--j-626F86)]">:</span>
       <NativeSelect value={m ?? ''} onChange={(e) => pick(h || '00', e.target.value)} aria-label={tr('Minute')}
         className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
         <option value="">--</option>{mins.map((x) => <option key={x} value={x}>{x}</option>)}
       </NativeSelect>
-      <span className="ml-1 text-xs text-neutral-400">WIB</span>
+      <span className="ml-1 text-xs text-[color:var(--j-626F86)]">WIB</span>
     </span>
   );
 }
@@ -509,5 +509,5 @@ export function TimeInput({ value, onChange, invalid, className }: { value: stri
 export const COTR_PAGE = 10;
 export function CotrPager({ paged, className }: { paged: ReturnType<typeof usePaged>; className?: string }) {
   if (paged.pages <= 1) return null;
-  return <div className={cx('flex items-center justify-between gap-3 px-1 pt-3 text-xs text-neutral-500', className)}><span>{tr('{0} rows', paged.total)}</span><PageNav paged={paged} /></div>;
+  return <div className={cx('flex items-center justify-between gap-3 px-1 pt-3 text-xs text-[color:var(--j-626F86)]', className)}><span>{tr('{0} rows', paged.total)}</span><PageNav paged={paged} /></div>;
 }

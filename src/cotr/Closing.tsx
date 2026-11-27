@@ -36,12 +36,12 @@ export function ClosingBar({ pool, poolName, day }: { pool: string; poolName: st
   }, [pool, day, tick]);
   return (
     <>
-      <div className={cx("flex flex-wrap items-center gap-3 rounded-xl px-4 py-3 ring-1", c?.closed ? "bg-emerald-50 ring-emerald-200" : "bg-white ring-neutral-200")}>
-        <span className={cx("flex h-9 w-9 items-center justify-center rounded-lg", c?.closed ? "bg-emerald-100 text-emerald-700" : "bg-brand-50 text-brand-700")}>
+      <div className={cx("flex flex-wrap items-center gap-3 rounded-[3px] px-4 py-3 ring-1", c?.closed ? "bg-emerald-50 ring-emerald-200" : "bg-white ring-[color:var(--j-DCDFE4)]")}>
+        <span className={cx("flex h-9 w-9 items-center justify-center rounded-[3px]", c?.closed ? "bg-emerald-100 text-emerald-700" : "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]")}>
           {c?.closed ? <Lock size={17} /> : <MoonStar size={17} />}</span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-neutral-900">{tr("Night closing")} · {poolName} · {dmyOf(day)}</p>
-          <p className="text-xs text-neutral-500">{!c ? "…" : c.closed ? tr("Closed by {0}, {1}", c.closed.by ?? "—", wibDateTime(c.closed.at))
+          <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Night closing")} · {poolName} · {dmyOf(day)}</p>
+          <p className="text-xs text-[color:var(--j-626F86)]">{!c ? "…" : c.closed ? tr("Closed by {0}, {1}", c.closed.by ?? "—", wibDateTime(c.closed.at))
             : tr("Waste & cupping → physical leftover → balance → close the day")}</p>
         </div>
         <Button size="sm" variant={c?.closed ? "secondary" : "primary"} onClick={() => setOpen(true)} disabled={!c}>
@@ -56,9 +56,9 @@ function Step({ n, title, done, warn, children }: { n: number; title: string; do
   return (
     <section className="relative pl-10">
       <span className={cx("absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold",
-        done ? "bg-emerald-600 text-white" : warn ? "bg-amber-100 text-amber-800" : "bg-neutral-100 text-neutral-600")}>
+        done ? "bg-emerald-600 text-white" : warn ? "bg-amber-100 text-amber-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>
         {done ? <CheckCircle2 size={16} /> : n}</span>
-      <h3 className="pb-2 pt-1 text-sm font-semibold text-neutral-900">{title}</h3>
+      <h3 className="pb-2 pt-1 text-sm font-semibold text-[color:var(--j-172B4D)]">{title}</h3>
       {children}
     </section>
   );
@@ -108,11 +108,11 @@ function ClosingDrawer({ initial, poolName, onClose }: { initial: Closing; poolN
       {!c ? <SkeletonList rows={4} /> : (
         <div className="space-y-6">
           {locked && (
-            <p className="flex items-start gap-2 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-emerald-200"><Lock size={16} className="mt-0.5 flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-[3px] bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-emerald-200"><Lock size={16} className="mt-0.5 flex-shrink-0" />
               <span>{tr("Closed by {0}, {1}", c.closed!.by ?? "—", wibDateTime(c.closed!.at))}{c.closed!.note && <span className="block text-xs">“{c.closed!.note}”</span>}</span></p>
           )}
           <Step n={0} title={tr("Drivers back at the pool")} done={step0} warn={!step0}>
-            {step0 ? <p className="text-xs text-neutral-500">{tr("Every driver checked out and no reload waits.")}</p> : (
+            {step0 ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("Every driver checked out and no reload waits.")}</p> : (
               <div className="space-y-1 text-xs text-amber-800">
                 {c.openShifts.length > 0 && <p className="flex items-start gap-1.5"><Truck size={13} className="mt-0.5" />{tr("Not checked out yet: {0}", c.openShifts.map((s) => s.name).join(", "))}</p>}
                 {c.reloads > 0 && <p className="flex items-start gap-1.5"><TriangleAlert size={13} className="mt-0.5" />{tr("{0} reloads wait for a decision", c.reloads)}</p>}
@@ -121,38 +121,38 @@ function ClosingDrawer({ initial, poolName, onClose }: { initial: Closing; poolN
           </Step>
 
           <Step n={1} title={tr("Waste & cupping of the pool")} done={step1}>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-[color:var(--j-626F86)]">
               {entries > 0 ? tr("{0} entries today ({1} cups waste, {2} cups cupping)", entries, (c.waste.storage?.qty ?? 0) + (c.waste.production?.qty ?? 0), c.waste.cupping?.qty ?? 0)
                 : ledgerWaste > 0 ? tr("{0} cups of waste and cupping in the figures of the day ({1})", ledgerWaste, c.source ?? "—") : tr("Nothing entered yet for today.")}</p>
             {!locked && (
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <Button size="sm" variant="secondary" onClick={() => { if (wasteOpen) void reload(); setWasteOpen(!wasteOpen); }}><Trash2 size={14} /> {wasteOpen ? tr("Hide the form") : tr("Enter waste & cupping")}</Button>
                 {entries === 0 && ledgerWaste === 0 && (
-                  <label className="flex items-center gap-2 text-xs text-neutral-700"><input type="checkbox" checked={noWaste} onChange={(e) => setNoWaste(e.target.checked)} className="h-4 w-4" />
+                  <label className="flex items-center gap-2 text-xs text-[color:var(--j-44546F)]"><input type="checkbox" checked={noWaste} onChange={(e) => setNoWaste(e.target.checked)} className="h-4 w-4" />
                     {tr("No waste or cupping today")}</label>
                 )}
               </div>
             )}
-            {wasteOpen && <div className="mt-3 rounded-xl ring-1 ring-neutral-200"><PoolWaste pool={c.pool} day={c.day} /></div>}
+            {wasteOpen && <div className="mt-3 rounded-[3px] ring-1 ring-[color:var(--j-DCDFE4)]"><PoolWaste pool={c.pool} day={c.day} /></div>}
           </Step>
 
           <Step n={2} title={tr("Physical leftover per batch code")} done={step2}>
-            <p className="text-xs text-neutral-500">{step2 ? tr("Counted for every menu.") : tr("Count the cups left at the pool, per production / batch code.")}</p>
+            <p className="text-xs text-[color:var(--j-626F86)]">{step2 ? tr("Counted for every menu.") : tr("Count the cups left at the pool, per production / batch code.")}</p>
             {!locked && <Button size="sm" variant={step2 ? "secondary" : "primary"} className="mt-2" onClick={() => void openCount()}><PackageOpen size={14} /> {step2 ? tr("Correct the count") : tr("Count the leftover")}</Button>}
           </Step>
 
           <Step n={3} title={tr("Check the balance")} done={step3 && step2} warn={step2 && c.balance !== 0}>
-            {!step2 ? <p className="text-xs text-neutral-400">{tr("After the count.")}</p> : (
+            {!step2 ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("After the count.")}</p> : (
               <>
-                <div className="overflow-x-auto rounded-lg border border-neutral-200">
+                <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                   <table className="w-full min-w-[30rem] text-xs">
-                    <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Menu")}</th>
+                    <thead className="border-b-2 border-[color:var(--j-DCDFE4)] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]"><tr><th className="px-3 py-2">{tr("Menu")}</th>
                       <th className="px-3 py-2 text-right">{tr("Opening")}</th><th className="px-3 py-2 text-right">{tr("In")}</th><th className="px-3 py-2 text-right">{tr("Out")}</th>
                       <th className="px-3 py-2 text-right">{tr("Calculated")}</th><th className="px-3 py-2 text-right">{tr("Actual")}</th><th className="px-3 py-2 text-right">{tr("Balance")}</th></tr></thead>
-                    <tbody className="divide-y divide-neutral-100">
+                    <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {c.menus.map((m) => (
                         <tr key={m.menu} className={m.balance ? "bg-red-50/50" : undefined}>
-                          <td className="px-3 py-1.5 font-medium text-neutral-800">{m.name}</td>
+                          <td className="px-3 py-1.5 font-medium text-[color:var(--j-172B4D)]">{m.name}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{m.opening ?? 0}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{(m.arrived ?? 0) + Math.max(0, m.transfer ?? 0)}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{(m.sold ?? 0) + (m.waste ?? 0) + (m.cupping ?? 0) + Math.max(0, -(m.transfer ?? 0))}</td>
@@ -176,15 +176,15 @@ function ClosingDrawer({ initial, poolName, onClose }: { initial: Closing; poolN
           </Step>
 
           <Step n={4} title={tr("Close the day")} done={locked}>
-            <p className="text-xs text-neutral-500">{locked ? tr("The figures of this moment are kept with the closing.")
+            <p className="text-xs text-[color:var(--j-626F86)]">{locked ? tr("The figures of this moment are kept with the closing.")
               : step0 && step1 && step3 ? tr("Everything is ready: close the day.") : tr("Finish the steps above first.")}</p>
             {!locked && <ul className="mt-2 space-y-1 text-xs">
               {[[step0, tr("Drivers back at the pool")], [step1, tr("Waste & cupping of the pool")], [step2, tr("Physical leftover per batch code")], [step3, tr("Check the balance")]].map(([ok, label]) => (
-                <li key={label as string} className={cx("flex items-center gap-1.5", ok ? "text-emerald-700" : "text-neutral-500")}>{ok ? <CheckCircle2 size={13} /> : <Circle size={13} />}{label as string}</li>
+                <li key={label as string} className={cx("flex items-center gap-1.5", ok ? "text-emerald-700" : "text-[color:var(--j-626F86)]")}>{ok ? <CheckCircle2 size={13} /> : <Circle size={13} />}{label as string}</li>
               ))}
             </ul>}
           </Step>
-          {c.source && <p className="flex items-center gap-1.5 text-[11px] text-neutral-400"><ClipboardCheck size={12} />{tr("Figures of the day from: {0}", c.source)} <Badge tone="slate">{c.pool}</Badge></p>}
+          {c.source && <p className="flex items-center gap-1.5 text-[11px] text-[color:var(--j-626F86)]"><ClipboardCheck size={12} />{tr("Figures of the day from: {0}", c.source)} <Badge tone="slate">{c.pool}</Badge></p>}
         </div>
       )}
       {counting && ledger && <CountDrawer pool={c.pool} day={c.day} ledger={ledger} onClose={() => setCounting(false)} onSaved={() => { setCounting(false); void reload(); }} />}

@@ -38,7 +38,7 @@ export function UnreadBadge({ n, className }: { n: number; className?: string })
 const SEVERITY = {
   high: { icon: AlertOctagon, chip: "bg-red-50 text-red-700" },
   warn: { icon: AlertTriangle, chip: "bg-amber-50 text-amber-700" },
-  info: { icon: Info, chip: "bg-brand-50 text-brand-700" },
+  info: { icon: Info, chip: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" },
 } as const;
 
 /** "5 min ago", "3 h ago", else the WIB date and time. */
@@ -78,7 +78,7 @@ export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boole
     <Drawer open={open} onClose={onClose} size="sm" icon={<Bell size={18} />} title={tr("Notifications")}
       description={tr("Proofs of funds that are overdue, documents that need a look, and the daily summaries")}
       footer={unread > 0 ? (
-        <button type="button" onClick={() => void markAlertsRead("all")} className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700 hover:underline">
+        <button type="button" onClick={() => void markAlertsRead("all")} className="inline-flex items-center gap-1.5 text-sm font-medium text-[color:var(--j-0C66E4)] hover:underline">
           <CheckCheck size={15} />{tr("Mark all as read")}
         </button>
       ) : undefined}>
@@ -90,26 +90,26 @@ export function NotificationsDrawer({ open, onClose, onNavigate }: { open: boole
         <div className="space-y-5">
           {groups.map(({ g, items }) => (
             <section key={g}>
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500">{GROUP_LABEL[g]}</p>
-              <ul className="-mx-5 divide-y divide-neutral-100 border-y border-neutral-100 sm:-mx-6">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[color:var(--j-626F86)]">{GROUP_LABEL[g]}</p>
+              <ul className="-mx-5 divide-y divide-[color:var(--j-F1F2F4)] border-y border-[color:var(--j-F1F2F4)] sm:-mx-6">
                 {items.map((a) => {
                   const S = SEVERITY[a.severity] ?? SEVERITY.info;
                   return (
                     <li key={a.id}>
                       <button type="button" onClick={() => go(a)}
-                        className={cx("group relative flex w-full items-start gap-3 px-5 py-3 text-left transition-colors hover:bg-neutral-50 sm:px-6",
-                          !a.read && "bg-brand-50/50 before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-brand-700")}>
-                        <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[4px]", a.read ? "bg-neutral-100 text-neutral-400" : S.chip)}>
+                        className={cx("group relative flex w-full items-start gap-3 px-5 py-3 text-left transition-colors hover:bg-[color:var(--j-F7F8F9)] sm:px-6",
+                          !a.read && "bg-[color:var(--j-E9F2FF)] before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:bg-[color:var(--j-0C66E4)]")}>
+                        <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[4px]", a.read ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]" : S.chip)}>
                           <S.icon size={13} aria-hidden />
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="flex items-start justify-between gap-2">
-                            <span className={cx("min-w-0 text-sm leading-snug", a.read ? "font-medium text-neutral-700" : "font-semibold text-neutral-900")}>{a.title}</span>
-                            {!a.read && <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-brand-600" aria-label={tr("Unread")} />}
+                            <span className={cx("min-w-0 text-sm leading-snug", a.read ? "font-medium text-[color:var(--j-44546F)]" : "font-semibold text-[color:var(--j-172B4D)]")}>{a.title}</span>
+                            {!a.read && <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-[color:var(--j-0C66E4)]" aria-label={tr("Unread")} />}
                           </span>
-                          {a.body && <span className="mt-0.5 block text-xs leading-relaxed text-neutral-500">{a.body}</span>}
-                          <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-neutral-400">
-                            {a.brand && companies.length > 1 && <span className="rounded border border-neutral-200 px-1 font-semibold uppercase tracking-wide text-neutral-500">
+                          {a.body && <span className="mt-0.5 block text-xs leading-relaxed text-[color:var(--j-626F86)]">{a.body}</span>}
+                          <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[color:var(--j-626F86)]">
+                            {a.brand && companies.length > 1 && <span className="rounded border border-[color:var(--j-DCDFE4)] px-1 font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">
                               {companies.find((c) => c.code === a.brand)?.name ?? a.brand}</span>}
                             <span title={wibDateTime(a.at)}>{when(a.at)}</span></span>
                         </span>

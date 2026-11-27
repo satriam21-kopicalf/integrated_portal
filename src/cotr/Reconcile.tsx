@@ -86,35 +86,35 @@ export function Reconcile() {
           <table className="w-full text-sm">
             <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Date")}</th><th className="px-3 py-2.5">{tr("Pool / HUB")}</th><th className="px-3 py-2.5">{tr("Status")}</th>
               <th className="px-3 py-2.5 text-right">{tr("Cups apart")}</th><th className="w-10 px-3 py-2.5" /></tr></thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {paged.rows.map((d) => {
                 const key = `${d.pool}:${d.day}`;
                 const on = open === key;
                 const shown = d.status === "diff" ? d.lines.filter((l) => l.diff) : d.lines;
                 return (
                   <Fragment key={key}>
-                    <tr className="cursor-pointer hover:bg-neutral-50" onClick={() => setOpen(on ? null : key)} aria-expanded={on}>
+                    <tr className="cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => setOpen(on ? null : key)} aria-expanded={on}>
                       <td className="px-3 py-2 tabular-nums">{dmyOf(d.day)}</td>
-                      <td className="px-3 py-2.5 font-medium text-neutral-900">{d.poolName}</td>
+                      <td className="px-3 py-2.5 font-medium text-[color:var(--j-172B4D)]">{d.poolName}</td>
                       <td className="px-3 py-2.5"><Badge tone={STATUS[d.status].tone}>{STATUS[d.status].label()}</Badge></td>
-                      <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${d.gap ? "text-red-700" : "text-neutral-400"}`}>{d.gap ? d.gap.toLocaleString("id-ID") : "—"}</td>
-                      <td className="px-3 py-2.5 text-neutral-400"><ChevronDown size={15} className={on ? "rotate-180 transition-transform" : "transition-transform"} /></td>
+                      <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${d.gap ? "text-red-700" : "text-[color:var(--j-626F86)]"}`}>{d.gap ? d.gap.toLocaleString("id-ID") : "—"}</td>
+                      <td className="px-3 py-2.5 text-[color:var(--j-626F86)]"><ChevronDown size={15} className={on ? "rotate-180 transition-transform" : "transition-transform"} /></td>
                     </tr>
                     {on && (
-                      <tr className="bg-neutral-50/70">
+                      <tr className="bg-[color:var(--j-F7F8F9)]">
                         <td colSpan={5} className="px-3 py-2">
-                          {d.status === "diff" && d.lines.length > shown.length && <p className="mb-2 text-xs text-neutral-500">{tr("{0} other movements match", d.lines.length - shown.length)}</p>}
-                          <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
+                          {d.status === "diff" && d.lines.length > shown.length && <p className="mb-2 text-xs text-[color:var(--j-626F86)]">{tr("{0} other movements match", d.lines.length - shown.length)}</p>}
+                          <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
                             <table className="w-full min-w-[34rem] text-xs">
-                              <thead className="border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500"><tr><th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2">{tr("Movement")}</th>
+                              <thead className="border-b-2 border-[color:var(--j-DCDFE4)] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]"><tr><th className="px-3 py-2">{tr("Menu")}</th><th className="px-3 py-2">{tr("Movement")}</th>
                                 <th className="px-3 py-2 text-right">{tr("Workbook")}</th><th className="px-3 py-2 text-right">ESB</th><th className="px-3 py-2 text-right">{tr("App")}</th><th className="px-3 py-2 text-right">{tr("Workbook − ESB")}</th></tr></thead>
-                              <tbody className="divide-y divide-neutral-100">
+                              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                                 {shown.map((l) => (
                                   <tr key={`${l.menu}:${l.kind}`}>
-                                    <td className="px-3 py-1.5 text-neutral-800">{l.name}</td><td className="px-3 py-1.5 text-neutral-600">{KIND[l.kind]()}</td>
+                                    <td className="px-3 py-1.5 text-[color:var(--j-172B4D)]">{l.name}</td><td className="px-3 py-1.5 text-[color:var(--j-44546F)]">{KIND[l.kind]()}</td>
                                     <td className="px-3 py-1.5 text-right tabular-nums">{num(l.sheet)}</td><td className="px-3 py-1.5 text-right tabular-nums">{num(l.esb)}</td>
-                                    <td className="px-3 py-1.5 text-right tabular-nums text-neutral-500">{num(l.app)}</td>
-                                    <td className={`px-3 py-1.5 text-right font-semibold tabular-nums ${l.diff ? "text-red-700" : "text-neutral-400"}`}>{l.diff === null ? "—" : l.diff > 0 ? `+${l.diff}` : l.diff}</td>
+                                    <td className="px-3 py-1.5 text-right tabular-nums text-[color:var(--j-626F86)]">{num(l.app)}</td>
+                                    <td className={`px-3 py-1.5 text-right font-semibold tabular-nums ${l.diff ? "text-red-700" : "text-[color:var(--j-626F86)]"}`}>{l.diff === null ? "—" : l.diff > 0 ? `+${l.diff}` : l.diff}</td>
                                   </tr>
                                 ))}
                               </tbody>

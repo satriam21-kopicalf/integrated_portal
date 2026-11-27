@@ -96,39 +96,39 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
     : draftOf(code) ? { label: tr("Draft"), tone: "draft" } : null;
   return (
     <Page title={title} subtitle={subtitle} actions={clock}>
-      {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={4} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {done && (
-            <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <div className="flex items-start gap-3 rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
               <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("{0} sent for {1}", title, done.branchName)}</p>
                 <p className="text-xs">{wibDateTime(done.submittedAt)} · {tr("{0} items rated", done.counts.rated)}</p>
               </div>
-              <button type="button" onClick={() => setDone(null)} className="rounded-md p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
+              <button type="button" onClick={() => setDone(null)} className="rounded-[3px] p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
             </div>
           )}
 
-          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-            <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3.5 sm:px-5">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+            <div className="flex items-center gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-neutral-900">{data.user.name}</p>
-                <p className="truncate text-xs text-neutral-500">@{data.user.username} · {tr("PIC of the visit")}</p>
+                <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{data.user.name}</p>
+                <p className="truncate text-xs text-[color:var(--j-626F86)]">@{data.user.username} · {tr("PIC of the visit")}</p>
               </div>
             </div>
             <div className="space-y-3 p-4 sm:p-5">
-              <p className="text-sm font-semibold text-neutral-900">{tr("Outlet Visited")}</p>
+              <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Outlet Visited")}</p>
               {data.branches.length === 0 ? (
-                <p className="rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-500">{tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}</p>
+                <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-3 text-sm text-[color:var(--j-626F86)]">{tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}</p>
               ) : (
                 <BranchPicker branches={data.branches} value={branch} onChange={setBranch} fix={fix} stateOf={stateOf} />
               )}
-              <p className="text-xs text-neutral-500">{tr("One visit per outlet per day (server time when sent); a day without a visit counts as a day off. With several outlets, fill them one after the other.")}</p>
+              <p className="text-xs text-[color:var(--j-626F86)]">{tr("One visit per outlet per day (server time when sent); a day without a visit counts as a day off. With several outlets, fill them one after the other.")}</p>
               {branch && data.today?.[branch] && (
-                <p className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
+                <p className="flex items-start gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
                   <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
                   <span>{tr("Already sent today for this outlet ({0}). The next one can be filled in tomorrow.", wibDateTime(data.today[branch].submittedAt))}</span>
                 </p>
@@ -140,18 +140,18 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
           </section>
 
           {data.drafts.length > 0 && (
-            <section className="rounded-md border border-amber-200 bg-white shadow-sm">
+            <section className="rounded-[3px] border border-amber-200 bg-white">
               <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("Drafts saved ({0})", data.drafts.length)}</p>
-              <ul className="divide-y divide-neutral-100">
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {data.drafts.map((d) => (
                   <li key={d.id}>
-                    <button type="button" onClick={() => void open(d.branchCode)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-neutral-50 sm:px-5">
+                    <button type="button" onClick={() => void open(d.branchCode)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)] sm:px-5">
                       <ClipboardList size={18} className="flex-shrink-0 text-amber-600" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-neutral-900">{d.branchName}</span>
-                        <span className="block text-xs text-neutral-500">{tr("{0} of {1} rated", d.counts.rated, d.counts.total)} · {tr("saved {0}", wibDateTime(d.updatedAt))}</span>
+                        <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{d.branchName}</span>
+                        <span className="block text-xs text-[color:var(--j-626F86)]">{tr("{0} of {1} rated", d.counts.rated, d.counts.total)} · {tr("saved {0}", wibDateTime(d.updatedAt))}</span>
                       </span>
-                      <ChevronRight size={16} className="text-neutral-300" />
+                      <ChevronRight size={16} className="text-[color:var(--j-8590A2)]" />
                     </button>
                   </li>
                 ))}
@@ -159,15 +159,15 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
             </section>
           )}
 
-          <section className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-            <p className="border-b border-neutral-100 px-4 py-2.5 text-sm font-semibold text-neutral-900 sm:px-5">{tr("My latest visits")}</p>
-            {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{tr("No visit sent yet")}</p> : (
-              <ul className="divide-y divide-neutral-100">
+          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+            <p className="border-b border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-sm font-semibold text-[color:var(--j-172B4D)] sm:px-5">{tr("My latest visits")}</p>
+            {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No visit sent yet")}</p> : (
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {data.recent.map((v) => (
                   <li key={v.id} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-neutral-900">{v.branchName}</span>
-                      <span className="block text-xs text-neutral-500">{wibDateTime(v.submittedAt)}</span>
+                      <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{v.branchName}</span>
+                      <span className="block text-xs text-[color:var(--j-626F86)]">{wibDateTime(v.submittedAt)}</span>
                     </span>
                     <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700"><CheckCircle2 size={14} /> {tr("Sent")}</span>
                   </li>
@@ -302,26 +302,26 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
   };
 
   return (
-    <div className="flex min-h-full flex-col bg-neutral-50">
+    <div className="flex min-h-full flex-col bg-[color:var(--j-F7F8F9)]">
       {/* the visit: outlet, PIC, progress — stays on top */}
-      <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-20 border-b border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 sm:px-6">
         <div className="mx-auto max-w-4xl">
           <div className="flex items-start gap-2">
-            <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
+            <button type="button" onClick={() => { void flush(); onClose(); }} className="-ml-1.5 mt-0.5 rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Back")}><ArrowLeft size={18} /></button>
             <div className="min-w-0 flex-1">
-              <h1 className="flex min-w-0 items-center gap-2 text-base font-semibold text-neutral-900 sm:text-lg"><span className="truncate">{tl(def, "title")} · {visit.branchName}</span>
-                {visit.branchGroup && <span className="flex-shrink-0 rounded-md bg-brand-50 px-1.5 py-0.5 text-[11px] font-semibold text-brand-700 ring-1 ring-inset ring-brand-200">{visit.branchGroup}</span>}</h1>
-              <p className="truncate text-xs text-neutral-500">{visit.audit ? tr("Team: {0}", visit.audit.members.map((m) => m.name).join(", ")) : visit.name} · {tr("started {0}", wibDateTime(visit.startedAt))}</p>
+              <h1 className="flex min-w-0 items-center gap-2 text-base font-semibold text-[color:var(--j-172B4D)] sm:text-lg"><span className="truncate">{tl(def, "title")} · {visit.branchName}</span>
+                {visit.branchGroup && <span className="flex-shrink-0 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-1.5 py-0.5 text-[11px] font-semibold text-[color:var(--j-0C66E4)] ring-1 ring-inset ring-[color:var(--j-85B8FF)]">{visit.branchGroup}</span>}</h1>
+              <p className="truncate text-xs text-[color:var(--j-626F86)]">{visit.audit ? tr("Team: {0}", visit.audit.members.map((m) => m.name).join(", ")) : visit.name} · {tr("started {0}", wibDateTime(visit.startedAt))}</p>
             </div>
-            <span className="flex-shrink-0 pt-1 text-xs text-neutral-400" aria-live="polite">
+            <span className="flex-shrink-0 pt-1 text-xs text-[color:var(--j-626F86)]" aria-live="polite">
               {saving > 0 ? <span className="inline-flex items-center gap-1"><CloudUpload size={13} /> {tr("Saving…")}</span> : <span className="inline-flex items-center gap-1"><Check size={13} /> {tr("Saved")}</span>}
             </span>
           </div>
           <div className="mt-2.5 flex items-center gap-2.5">
-            <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-neutral-100" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+            <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
               {RATINGS.map((r) => <span key={r} className={RATING_STYLE[r].bar} style={{ width: `${rated.length ? (counts[r] / rated.length) * 100 : 0}%` }} />)}
             </div>
-            <span className="text-xs font-semibold tabular-nums text-neutral-600">{done}/{rated.length}</span>
+            <span className="text-xs font-semibold tabular-nums text-[color:var(--j-44546F)]">{done}/{rated.length}</span>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium">
             {RATINGS.map((r) => <span key={r} className={cx("inline-flex items-center gap-1", RATING_STYLE[r].text)}><span className={cx("h-2 w-2 rounded-full", RATING_STYLE[r].dot)} />{ratingLabel(r)} {counts[r]}</span>)}
@@ -329,8 +329,8 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           <div className="mt-2.5 flex items-center gap-2">
             {evaluation && (
               <button type="button" onClick={openEval} aria-pressed={evalOpen}
-                className={cx("order-last inline-flex h-10 flex-shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold",
-                  evalOpen ? "border-brand-600 bg-brand-600 text-white" : evaluation.ready ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-800")}>
+                className={cx("order-last inline-flex h-10 flex-shrink-0 items-center gap-1.5 rounded-[3px] border px-3 text-xs font-semibold",
+                  evalOpen ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : evaluation.ready ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-800")}>
                 {evaluation.ready ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />} {tr("Evaluation")}
               </button>
             )}
@@ -348,18 +348,18 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
       ) : (
       <div className="mx-auto w-full max-w-4xl flex-1 space-y-4 px-3 py-4 sm:px-6">
         <div className="px-1">
-          <p className="text-xs font-semibold capitalize text-brand-700">{tl(current.group, "title")} · {tl(current.group, "subtitle")}</p>
+          <p className="text-xs font-semibold capitalize text-[color:var(--j-0C66E4)]">{tl(current.group, "title")} · {tl(current.group, "subtitle")}</p>
           <div className="mt-0.5 flex items-end justify-between gap-3">
-            <p className="text-lg font-semibold leading-tight text-neutral-900">{tl(current, "title")}</p>
-            <p className="flex-shrink-0 text-xs tabular-nums text-neutral-500">{tr("{0} of {1} rated", sectionDone(current.key)[0], sectionDone(current.key)[1])}</p>
+            <p className="text-lg font-semibold leading-tight text-[color:var(--j-172B4D)]">{tl(current, "title")}</p>
+            <p className="flex-shrink-0 text-xs tabular-nums text-[color:var(--j-626F86)]">{tr("{0} of {1} rated", sectionDone(current.key)[0], sectionDone(current.key)[1])}</p>
           </div>
         </div>
-        <p className="flex items-start gap-2 rounded-md border border-brand-100 bg-brand-50/70 px-3 py-2.5 text-xs leading-relaxed text-brand-900">
-          <ClipboardCheck size={15} className="mt-px flex-shrink-0 text-brand-700" />
+        <p className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2.5 text-xs leading-relaxed text-[color:var(--j-0055CC)]">
+          <ClipboardCheck size={15} className="mt-px flex-shrink-0 text-[color:var(--j-0C66E4)]" />
           <span><b>{tr("Items marked Required must be rated, with the note and photo they ask for")}</b> — {tr("optional items may be skipped. Write what you see and take a clear photo of it: they are the material for the analysis.")}</span>
         </p>
-        <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-          <ul className="divide-y divide-neutral-100">
+        <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {current.items.map((it) => (
               <ItemRow key={it.key} item={it} group={group} answer={answers[it.key] ?? {}} auto={visit.auto?.[it.key] ?? null} photos={photos.filter((p) => p.item === it.key)}
                 onAnswer={(v, now) => change(it.key, v, now)} onCamera={() => setCamera(it)} onRemovePhoto={(id) => void removePhoto(id)} />
@@ -379,7 +379,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           )}
         </div>
         {canDiscard && <div className="flex justify-center pt-1">
-          <button type="button" onClick={() => setDiscarding(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-red-600">
+          <button type="button" onClick={() => setDiscarding(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-[color:var(--j-626F86)] hover:text-red-600">
             <Trash2 size={13} /> {tr("Delete this draft")}
           </button>
         </div>}
@@ -387,11 +387,11 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
       )}
 
       {/* send */}
-      <div className="action-bar sticky bottom-0 z-30 border-t border-neutral-200/70 bg-white/95 px-4 pt-3 backdrop-blur"
+      <div className="action-bar sticky bottom-0 z-30 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 pt-3 backdrop-blur"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setShowMissing((v) => !v)} disabled={!todo.length}>
-            <p className="text-sm font-semibold text-neutral-900">{tr("{0} of {1} rated", done, rated.length)}</p>
+            <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("{0} of {1} rated", done, rated.length)}</p>
             <p className={cx("truncate text-xs", blocking ? "text-red-600" : unrated ? "text-amber-700" : "text-emerald-700")}>
               {requiredLeft.length ? tr("{0} required items not rated yet · see which", requiredLeft.length)
                 : missing.length ? tr("{0} rated items still need a note or a photo · see which", missing.length)
@@ -401,17 +401,17 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           {canSend ? (evaluation && !evaluation.ready && blocking === 0 && done > 0
             ? <Button variant="secondary" onClick={openEval}><ClipboardList size={15} /> {tr("Fill the Evaluation")}</Button>
             : <Button disabled={blocking > 0 || done === 0 || saving > 0 || (!!evaluation && !evaluation.ready)} onClick={() => setConfirm(true)}><ClipboardCheck size={15} /> {tr("Review & send")}</Button>)
-            : <span className="max-w-[9rem] text-right text-[11px] leading-tight text-neutral-500">{tr("The lead {0} sends the audit", visit.audit?.lead.name ?? "")}</span>}
+            : <span className="max-w-[9rem] text-right text-[11px] leading-tight text-[color:var(--j-626F86)]">{tr("The lead {0} sends the audit", visit.audit?.lead.name ?? "")}</span>}
         </div>
         {showMissing && todo.length > 0 && (
-          <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 text-xs">
+          <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-[3px] border border-amber-200 bg-amber-50 text-xs">
             {[...requiredLeft, ...missing, ...todo.filter((m) => m.need === "optional")].slice(0, 120).map((m) => (
               <li key={m.item.key}>
                 <button type="button" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-amber-100"
                   onClick={() => { setSection(m.item.sectionKey); setShowMissing(false); setTimeout(() => document.getElementById(`item-${m.item.key}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 80); }}>
-                  <AlertTriangle size={12} className={cx("flex-shrink-0", m.need === "optional" ? "text-neutral-400" : "text-red-500")} />
-                  <span className="min-w-0 flex-1 truncate text-neutral-800">{tl(m.item)}</span>
-                  <span className={cx("flex-shrink-0", m.need === "optional" ? "text-neutral-500" : "text-red-700")}>
+                  <AlertTriangle size={12} className={cx("flex-shrink-0", m.need === "optional" ? "text-[color:var(--j-626F86)]" : "text-red-500")} />
+                  <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{tl(m.item)}</span>
+                  <span className={cx("flex-shrink-0", m.need === "optional" ? "text-[color:var(--j-626F86)]" : "text-red-700")}>
                     {m.need === "rating" ? tr("required, not rated") : m.need === "optional" ? tr("optional") : needLabel(m.what)}
                   </span>
                 </button>
@@ -449,7 +449,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
       description={`${title} · ${visit.branchName}`} locked={busy} focusFirstField={false}
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <p className={cx("text-xs sm:mr-auto", nameMissing ? "text-red-600" : "text-neutral-500")}>
+          <p className={cx("text-xs sm:mr-auto", nameMissing ? "text-red-600" : "text-[color:var(--j-626F86)]")}>
             {nameMissing ? tr("Write the signer's name under the signature.") : tr("After sending the visit cannot be changed; your location is recorded.")}
           </p>
           <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the Form")}</Button>
@@ -459,7 +459,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
         </div>
       }>
       <div className="space-y-5">
-        <section className="rounded-md border border-neutral-200 bg-neutral-50 p-4">
+        <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-4">
           <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
             <Info k={tr("Outlet")} v={visit.branchName} />
             <Info k={tr("PIC")} v={visit.name} />
@@ -467,45 +467,45 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
           </div>
           <div className="mt-4 grid grid-cols-4 gap-2 text-center">
             {RATINGS.map((r) => (
-              <div key={r} className="rounded-lg bg-white px-1 py-2 ring-1 ring-neutral-200">
+              <div key={r} className="rounded-[3px] bg-white px-1 py-2 ring-1 ring-[color:var(--j-DCDFE4)]">
                 <p className={cx("text-xl font-semibold tabular-nums", RATING_STYLE[r].text)}>{counts[r]}</p>
-                <p className="text-xs font-semibold capitalize text-neutral-400">{r}</p>
+                <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{r}</p>
               </div>
             ))}
-            <div className="rounded-lg bg-white px-1 py-2 ring-1 ring-neutral-200">
-              <p className="text-xl font-semibold tabular-nums text-neutral-900">{photos}</p>
-              <p className="text-xs font-semibold capitalize text-neutral-400">{tr("Photos")}</p>
+            <div className="rounded-[3px] bg-white px-1 py-2 ring-1 ring-[color:var(--j-DCDFE4)]">
+              <p className="text-xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">{photos}</p>
+              <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Photos")}</p>
             </div>
           </div>
-          <p className="mt-2 text-xs text-neutral-500">{tr("{0} of {1} rated", counts.UNDER + counts.MEET + counts.EXCEED, total)}</p>
+          <p className="mt-2 text-xs text-[color:var(--j-626F86)]">{tr("{0} of {1} rated", counts.UNDER + counts.MEET + counts.EXCEED, total)}</p>
           {unrated > 0 && (
-            <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
+            <p className="mt-2 flex items-start gap-1.5 rounded-[3px] bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
               <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {tr("{0} optional items are not rated: they are sent empty and left out of the score.", unrated)}
             </p>
           )}
         </section>
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900"><AlertTriangle size={15} className="text-red-500" /> {tr("Findings (UNDER)")}</h3>
-          {under.length === 0 ? <p className="rounded-md border border-dashed border-neutral-200 px-3 py-4 text-sm text-neutral-500">{tr("No UNDER in this visit.")}</p> : (
-            <ul className="divide-y divide-neutral-100 rounded-md border border-red-100">
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><AlertTriangle size={15} className="text-red-500" /> {tr("Findings (UNDER)")}</h3>
+          {under.length === 0 ? <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-4 text-sm text-[color:var(--j-626F86)]">{tr("No UNDER in this visit.")}</p> : (
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-red-100">
               {under.map((u) => (
                 <li key={u.item.key} className="px-3 py-2.5 text-sm">
-                  <p className="font-medium text-neutral-900">{tl(u.item)}</p>
-                  <p className="text-xs text-neutral-500">{tl(u.item, "section")} · {tr("{0} photos", u.photos)}</p>
-                  {u.note && <p className="mt-1 text-neutral-700">{u.note}</p>}
+                  <p className="font-medium text-[color:var(--j-172B4D)]">{tl(u.item)}</p>
+                  <p className="text-xs text-[color:var(--j-626F86)]">{tl(u.item, "section")} · {tr("{0} photos", u.photos)}</p>
+                  {u.note && <p className="mt-1 text-[color:var(--j-44546F)]">{u.note}</p>}
                 </li>
               ))}
             </ul>
           )}
         </section>
 
-        <section className="rounded-md border border-neutral-200 p-4">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-900"><PenLine size={16} className="text-neutral-500" /> {tr("Signature")} <span className="font-normal text-neutral-500">({tr("optional")})</span></h3>
-          <p className="mb-3 mt-0.5 text-xs text-neutral-500">{tr("By signing, I confirm the ratings above reflect the visit.")}</p>
+        <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><PenLine size={16} className="text-[color:var(--j-626F86)]" /> {tr("Signature")} <span className="font-normal text-[color:var(--j-626F86)]">({tr("optional")})</span></h3>
+          <p className="mb-3 mt-0.5 text-xs text-[color:var(--j-626F86)]">{tr("By signing, I confirm the ratings above reflect the visit.")}</p>
           <SignaturePad onChange={setSignature} />
           <label className="mt-2 block">
-            <span className="mb-1 block text-xs font-medium text-neutral-600">{tr("Signer's name")}</span>
+            <span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Signer's name")}</span>
             <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={cx(inputClass, nameMissing && "border-red-400")} />
           </label>
         </section>
@@ -517,8 +517,8 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
 function Info({ k, v }: { k: string; v: string }) {
   return (
     <div className="min-w-0">
-      <p className="text-xs font-medium capitalize text-neutral-400">{k}</p>
-      <p className="truncate font-medium text-neutral-800" title={v}>{v}</p>
+      <p className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{k}</p>
+      <p className="truncate font-medium text-[color:var(--j-172B4D)]" title={v}>{v}</p>
     </div>
   );
 }
@@ -530,15 +530,15 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
   const name = PLATFORM_LABEL[item.platform!];
   if (item.platform === "google") {
     return (
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-sm">
         {auto ? (
           <>
-            <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-neutral-900"><Star size={15} className="fill-amber-400 text-amber-400" /> {fmtStars(auto.stars)}</span>
-            {auto.reviews != null && <span className="text-xs text-neutral-500">{tr("{0} reviews", auto.reviews.toLocaleString(locale()))}</span>}
-            <span className="text-xs text-neutral-400">{tr("Google Maps, automatic")}{auto.fetchedAt ? ` · ${wibDateTime(auto.fetchedAt)}` : ""}</span>
-            {auto.mapsUri && <a href={auto.mapsUri} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:underline">{tr("View on Maps")} <ExternalLink size={11} /></a>}
+            <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-[color:var(--j-172B4D)]"><Star size={15} className="fill-amber-400 text-amber-400" /> {fmtStars(auto.stars)}</span>
+            {auto.reviews != null && <span className="text-xs text-[color:var(--j-626F86)]">{tr("{0} reviews", auto.reviews.toLocaleString(locale()))}</span>}
+            <span className="text-xs text-[color:var(--j-626F86)]">{tr("Google Maps, automatic")}{auto.fetchedAt ? ` · ${wibDateTime(auto.fetchedAt)}` : ""}</span>
+            {auto.mapsUri && <a href={auto.mapsUri} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline">{tr("View on Maps")} <ExternalLink size={11} /></a>}
           </>
-        ) : <span className="text-xs text-neutral-500">{tr("No Google Maps rating for this outlet yet (Aggregator → Google Maps)")}</span>}
+        ) : <span className="text-xs text-[color:var(--j-626F86)]">{tr("No Google Maps rating for this outlet yet (Aggregator → Google Maps)")}</span>}
       </div>
     );
   }
@@ -561,15 +561,15 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
             inputMode="decimal" placeholder={auto ? fmtStars(auto.stars) : "4.5"} aria-label={tr("{0} stars", name)} aria-invalid={bad || undefined}
             className={cx(inputClass, "h-10 w-24 pl-8 text-sm font-semibold tabular-nums", bad && "border-red-300")} />
         </span>
-        <span className="text-xs text-neutral-500">{auto ? tr("Change it only when the app shows another figure") : tr("{0} rating, typed from the app (1.0–5.0)", name)}</span>
+        <span className="text-xs text-[color:var(--j-626F86)]">{auto ? tr("Change it only when the app shows another figure") : tr("{0} rating, typed from the app (1.0–5.0)", name)}</span>
       </label>
       {auto && (
-        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-neutral-500">
-          <span className="inline-flex items-center gap-1 font-semibold text-neutral-800"><Star size={12} className="fill-amber-400 text-amber-400" />{fmtStars(auto.stars)}</span>
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[color:var(--j-626F86)]">
+          <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--j-172B4D)]"><Star size={12} className="fill-amber-400 text-amber-400" />{fmtStars(auto.stars)}</span>
           {auto.reviews != null && <span>{tr("{0} reviews", auto.reviews.toLocaleString(locale()))}</span>}
-          <span className="text-neutral-400">{tr("{0}, automatic", name)}{auto.fetchedAt ? ` · ${auto.fetchedAt.slice(0, 10)}` : ""}</span>
+          <span className="text-[color:var(--j-626F86)]">{tr("{0}, automatic", name)}{auto.fetchedAt ? ` · ${auto.fetchedAt.slice(0, 10)}` : ""}</span>
           {answer.stars != null && answer.stars !== auto.stars
-            ? <button type="button" className="font-medium text-brand-700 hover:underline" onClick={() => { setText(""); onAnswer({ stars: null }, true); }}>{tr("Use the automatic figure")}</button>
+            ? <button type="button" className="font-medium text-[color:var(--j-0C66E4)] hover:underline" onClick={() => { setText(""); onAnswer({ stars: null }, true); }}>{tr("Use the automatic figure")}</button>
             : null}
         </p>
       )}
@@ -600,18 +600,18 @@ function QtyGrams({ answer, required, missing, label, units, onAnswer }: { answe
             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
             inputMode="numeric" placeholder="0" aria-label={tr("{0}: grams (net weight)", label)} aria-invalid={bad || missing || undefined}
             className={cx(inputClass, "h-11 w-32 pr-12 text-right text-base font-semibold tabular-nums sm:h-10 sm:text-sm", (bad || missing) && "border-red-300")} />
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-neutral-400">{UNIT_LABEL[unit] ?? unit}</span>
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[color:var(--j-626F86)]">{UNIT_LABEL[unit] ?? unit}</span>
         </span>
         {units?.length ? (
-          <span role="radiogroup" aria-label={tr("Unit")} className="inline-flex rounded-lg bg-neutral-100 p-0.5">
+          <span role="radiogroup" aria-label={tr("Unit")} className="inline-flex rounded-[3px] bg-[color:var(--j-091E420F)] p-0.5">
             {units.map((u) => (
               <button key={u} type="button" role="radio" aria-checked={unit === u} onClick={() => unit !== u && onAnswer({ unit: u }, true)}
-                className={cx("h-9 rounded-md px-3 text-xs font-medium capitalize transition-colors sm:h-8",
-                  unit === u ? "bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200" : "text-neutral-500 hover:text-neutral-800")}>{u === "gram" ? tr("Gram") : UNIT_LABEL[u]}</button>
+                className={cx("h-9 rounded-[3px] px-3 text-xs font-medium capitalize transition-colors sm:h-8",
+                  unit === u ? "bg-white text-[color:var(--j-172B4D)] ring-1 ring-[color:var(--j-DCDFE4)]" : "text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]")}>{u === "gram" ? tr("Gram") : UNIT_LABEL[u]}</button>
             ))}
           </span>
         ) : null}
-        <span className="text-xs text-neutral-500">{units?.length ? tr("Stock quantity") : tr("Qty in grams (net weight)")}{required ? "" : ` · ${tr("optional")}`}</span>
+        <span className="text-xs text-[color:var(--j-626F86)]">{units?.length ? tr("Stock quantity") : tr("Qty in grams (net weight)")}{required ? "" : ` · ${tr("optional")}`}</span>
       </label>
       {bad && <p className="mt-1 text-xs text-red-600">{tr("Type a number from 0 to 1,000,000 grams")}</p>}
     </div>
@@ -634,7 +634,7 @@ function LinkInput({ answer, missing, onAnswer }: { answer: Answer; missing: boo
         onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
         placeholder="https://…" aria-label={tr("Link of the request form")} aria-invalid={bad || missing || undefined}
         className={cx(inputClass, "h-11 text-base sm:h-10 sm:text-sm", (bad || missing) && "border-red-300")} />
-      <p className={cx("mt-1 text-[11px]", bad ? "text-red-600" : "text-neutral-500")}>{bad ? tr("The link starts with http:// or https://") : tr("Link of the request form (spreadsheet, drive …)")}</p>
+      <p className={cx("mt-1 text-[11px]", bad ? "text-red-600" : "text-[color:var(--j-626F86)]")}>{bad ? tr("The link starts with http:// or https://") : tr("Link of the request form (spreadsheet, drive …)")}</p>
     </div>
   );
 }
@@ -659,26 +659,26 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
   return (
     <li id={`item-${item.key}`} className={cx("px-4 py-3.5", under && "bg-red-50/40")}>
       <div className="flex items-start gap-2.5">
-        <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-neutral-400">{item.no}</span>
+        <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-[color:var(--j-626F86)]">{item.no}</span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-snug text-neutral-900">
+          <p className="text-sm font-medium leading-snug text-[color:var(--j-172B4D)]">
             {tl(item)}
             <span className={cx("ml-1.5 inline-block rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase tracking-wide",
-              required ? "bg-red-50 text-red-700" : "bg-neutral-100 text-neutral-500")}>{required ? tr("Required") : tr("Optional")}</span>
+              required ? "bg-red-50 text-red-700" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>{required ? tr("Required") : tr("Optional")}</span>
           </p>
           {item.category && <CategoryTag item={item} />}
-          {answer.by && <p className="mt-0.5 text-[11px] text-neutral-400">{tr("Filled by {0}", answer.by)}</p>}
-          {item.detail && <p className="mt-1 text-xs text-neutral-600"><span className="font-semibold">{tr("Photo")}:</span> {tl(item, "detail")}</p>}
-          {item.standard && <p className="mt-0.5 text-xs text-neutral-500"><span className="font-semibold">{tr("Standard")}:</span> {tl(item, "standard")}</p>}
-          {hint && <p className="mt-0.5 text-[11px] text-neutral-500">{hint}</p>}
+          {answer.by && <p className="mt-0.5 text-[11px] text-[color:var(--j-626F86)]">{tr("Filled by {0}", answer.by)}</p>}
+          {item.detail && <p className="mt-1 text-xs text-[color:var(--j-44546F)]"><span className="font-semibold">{tr("Photo")}:</span> {tl(item, "detail")}</p>}
+          {item.standard && <p className="mt-0.5 text-xs text-[color:var(--j-626F86)]"><span className="font-semibold">{tr("Standard")}:</span> {tl(item, "standard")}</p>}
+          {hint && <p className="mt-0.5 text-[11px] text-[color:var(--j-626F86)]">{hint}</p>}
           {item.platform && <PlatformStars item={item} answer={answer} auto={auto} onAnswer={onAnswer} />}
           {item.kind === "rating" && (
             <div className="mt-2 grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={tl(item)}>
               {RATINGS.map((r) => (
                 <button key={r} type="button" role="radio" aria-checked={answer.rating === r} title={answer.rating === r ? tr("Tap again to clear") : undefined}
                   onClick={() => onAnswer({ rating: answer.rating === r ? null : r }, true)}
-                  className={cx("h-10 rounded-lg border text-xs font-bold tracking-wide transition-colors",
-                    answer.rating === r ? RATING_STYLE[r].on : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300")}>{r}</button>
+                  className={cx("h-10 rounded-[3px] border text-xs font-bold tracking-wide transition-colors",
+                    answer.rating === r ? RATING_STYLE[r].on : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] hover:border-[color:var(--j-8590A2)]")}>{r}</button>
               ))}
             </div>
           )}
@@ -696,7 +696,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
                 <span key={p.id} className="relative">
                   <a href={visitPhotoUrl(p.id)} target="_blank" rel="noreferrer" title={p.takenAt ? wibDateTime(p.takenAt) : undefined}>
                     {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
-                    <img src={thumb(visitPhotoUrl(p.id), 160)} decoding="async" alt={tr("Photo")} loading="lazy" className="h-14 w-14 rounded-lg object-cover ring-1 ring-neutral-200" />
+                    <img src={thumb(visitPhotoUrl(p.id), 160)} decoding="async" alt={tr("Photo")} loading="lazy" className="h-14 w-14 rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" />
                   </a>
                   {p.outsideRadius && <span className="absolute bottom-0.5 left-0.5 rounded bg-amber-500 p-0.5 text-white" title={tr("Taken outside the outlet radius")}><MapPin size={9} /></span>}
                   <button type="button" onClick={() => onRemovePhoto(p.id)} aria-label={tr("Remove Photo")}
@@ -705,13 +705,13 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
               ))}
               {item.kind === "rating" && !noPhoto && photos.length < MAX_PHOTOS && (
                 <button type="button" onClick={onCamera}
-                  className={cx("inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium",
-                    needPhoto ? "border-red-300 bg-white text-red-700" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300")}>
+                  className={cx("inline-flex h-9 items-center gap-1.5 rounded-[3px] border px-2.5 text-xs font-medium",
+                    needPhoto ? "border-red-300 bg-white text-red-700" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
                   <Camera size={14} /> {photos.length ? tr("Photo ({0}/{1})", photos.length, MAX_PHOTOS) : tr("Photo")}
                 </button>
               )}
               {item.kind === "rating" && !noNote && !showNote && (
-                <button type="button" onClick={() => setNoteOpen(true)} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 text-xs font-medium text-neutral-600 hover:border-neutral-300">
+                <button type="button" onClick={() => setNoteOpen(true)} className="inline-flex h-9 items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2.5 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]">
                   <MessageSquareText size={14} /> {tr("Note")}
                 </button>
               )}
@@ -726,6 +726,6 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
 
 /** Travel Path category: Kritikal = food safety or safety, fixed in the same shift (2026-10-30). */
 export function CategoryTag({ item }: { item: Item }) {
-  const tone = item.category === "Kritikal" ? "bg-red-600 text-white" : item.category === "Mayor" ? "bg-amber-100 text-amber-800" : "bg-neutral-100 text-neutral-600";
+  const tone = item.category === "Kritikal" ? "bg-red-600 text-white" : item.category === "Mayor" ? "bg-amber-100 text-amber-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]";
   return <span className={cx("mt-1 inline-block rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", tone)}>{tl({ label: item.category, labelEn: item.categoryEn })}</span>;
 }

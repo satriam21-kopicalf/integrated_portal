@@ -50,18 +50,18 @@ export function DriverRequests({ rows, onDone }: { rows: Request[]; onDone: () =
   return (
     <Panel title={tr("Driver cost requests")} description={tr("Costs on the road with the receipt; the ones still waiting are listed whatever their day")}>
       {rows.length === 0 ? <Empty title={tr("No request")} /> : (
-        <ul className="divide-y divide-neutral-100">
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
           {paged.rows.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
               <span className="flex min-w-0 items-center gap-3">
-                <a href={photoUrl(r.id)} target="_blank" rel="noreferrer" className="flex-shrink-0 overflow-hidden rounded-lg ring-1 ring-neutral-200">
+                <a href={photoUrl(r.id)} target="_blank" rel="noreferrer" className="flex-shrink-0 overflow-hidden rounded-[3px] ring-1 ring-[color:var(--j-DCDFE4)]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={thumb(photoUrl(r.id), 160)} decoding="async" alt={tr("Receipt")} className="h-14 w-14 object-cover" loading="lazy" />
                 </a>
                 <span className="min-w-0">
-                  <span className="block font-medium text-neutral-900">{r.driverName ?? r.driverCode} · {kindName(r.kind)} · {rupiah(r.amount)}</span>
-                  <span className="text-xs text-neutral-500">{new Date(r.at).toLocaleDateString(locale(), { day: "numeric", month: "short", timeZone: "Asia/Jakarta" })} {time(r.at)} · {r.note}</span>
-                  {r.decisionNote && <span className="block text-xs text-neutral-400">{r.decisionNote}</span>}
+                  <span className="block font-medium text-[color:var(--j-172B4D)]">{r.driverName ?? r.driverCode} · {kindName(r.kind)} · {rupiah(r.amount)}</span>
+                  <span className="text-xs text-[color:var(--j-626F86)]">{new Date(r.at).toLocaleDateString(locale(), { day: "numeric", month: "short", timeZone: "Asia/Jakarta" })} {time(r.at)} · {r.note}</span>
+                  {r.decisionNote && <span className="block text-xs text-[color:var(--j-626F86)]">{r.decisionNote}</span>}
                 </span>
               </span>
               {r.status === "sent" ? <Decide url={`/api/cotr/requests/${r.id}/decide`} onDone={onDone} />

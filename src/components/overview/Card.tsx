@@ -160,7 +160,7 @@ export function Segmented<V extends string>({
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={`rounded-[3px] px-2.5 py-1 text-xs font-medium transition-colors ${
-            value === o.value ? 'bg-white text-[color:var(--j-172B4D)] shadow-sm' : 'text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'
+            value === o.value ? 'bg-white text-[color:var(--j-172B4D)]' : 'text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'
           }`}
         >
           {o.label}

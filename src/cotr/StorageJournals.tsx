@@ -41,16 +41,16 @@ export function StorageJournals() {
             <StatCard label={tr("Cupping")} icon={<Coffee />} value={rupiah(data.cupping)} sub={tr("{0} lines", data.rows.filter((r) => r.kind === "cupping").length)} />
             <StatCard label={tr("Waste")} icon={<Trash2 />} tone={data.waste ? "warn" : "default"} value={rupiah(data.waste)} sub={tr("{0} lines", data.rows.filter((r) => r.kind === "waste").length)} />
           </StatGrid>
-          {data.rows.length === 0 ? <p className="py-4 text-center text-sm text-neutral-400">{tr("Nothing in this period")}</p> : (
-            <div className="overflow-x-auto rounded-lg border border-neutral-200">
+          {data.rows.length === 0 ? <p className="py-4 text-center text-sm text-[color:var(--j-626F86)]">{tr("Nothing in this period")}</p> : (
+            <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
               <table className="w-full min-w-[36rem] text-sm">
                 <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Date")}</th><th className="px-3 py-2">{tr("Material")}</th><th className="px-3 py-2">{tr("Kind")}</th>
                   <th className="px-3 py-2 text-right">{tr("Qty")}</th><th className="px-3 py-2 text-right">{tr("Value")}</th></tr></thead>
-                <tbody className="divide-y divide-neutral-100">
+                <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {paged.rows.map((r, i) => (
                     <tr key={i}>
                       <td className="px-3 py-1.5 tabular-nums">{dmyOf(r.day)}</td>
-                      <td className="px-3 py-1.5 text-neutral-800">{r.item}<span className="block text-[11px] text-neutral-400">{r.branch}</span></td>
+                      <td className="px-3 py-1.5 text-[color:var(--j-172B4D)]">{r.item}<span className="block text-[11px] text-[color:var(--j-626F86)]">{r.branch}</span></td>
                       <td className="px-3 py-1.5"><Badge tone={r.kind === "waste" ? "red" : r.kind === "cupping" ? "amber" : "slate"}>{r.kind === "waste" ? tr("Waste") : r.kind === "cupping" ? tr("Cupping") : tr("Other")}</Badge></td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{r.qty.toLocaleString("id-ID")} {r.unit}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{rupiah(r.value)}</td>

@@ -40,7 +40,7 @@ const tr = (key: string, ...args: (string | number | null | undefined)[]) => swa
 const FRESH_MS = 3 * 60_000; // a position older than this is taken again when sending
 
 type Tone = "ok" | "warn" | "muted";
-const TONE: Record<Tone, string> = { ok: "text-emerald-700", warn: "text-amber-700", muted: "text-neutral-500" };
+const TONE: Record<Tone, string> = { ok: "text-emerald-700", warn: "text-amber-700", muted: "text-[color:var(--j-626F86)]" };
 const DOT: Record<Tone, string> = { ok: "bg-emerald-500", warn: "bg-amber-500", muted: "bg-neutral-300" };
 
 export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
@@ -178,7 +178,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   if (error || !data) {
     return (
       <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}>
-        {error ? <div className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div>
+        {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div>
           : <div className="mx-auto max-w-5xl space-y-4"><SkeletonList rows={3} /><SkeletonList rows={5} /></div>}
       </Page>
     );
@@ -187,25 +187,25 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   return (
     <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}
       stats={
-        <div className="mx-auto max-w-5xl rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <div className="mx-auto max-w-5xl rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
           <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 md:flex-row md:items-center md:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-neutral-900">{data.user.name}</p>
-                <p className="truncate text-xs text-neutral-500">@{data.user.username} · {tr("visit time is the server time when sent")}</p>
+                <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{data.user.name}</p>
+                <p className="truncate text-xs text-[color:var(--j-626F86)]">@{data.user.username} · {tr("visit time is the server time when sent")}</p>
               </div>
             </div>
             <ol className="flex items-center" aria-label={tr("Steps")}>
               {steps.map((s, i) => (
                 <li key={s.label} className="flex items-center">
-                  {i > 0 && <span className={cx("mx-2 h-px w-6 sm:w-10", steps[i - 1].ok ? "bg-emerald-400" : "bg-neutral-200")} />}
+                  {i > 0 && <span className={cx("mx-2 h-px w-6 sm:w-10", steps[i - 1].ok ? "bg-emerald-400" : "bg-[color:var(--j-DCDFE4)]")} />}
                   <span className="flex items-center gap-1.5">
                     <span className={cx("flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold",
-                      s.ok ? "bg-emerald-500 text-white" : i === current ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-500")}>
+                      s.ok ? "bg-emerald-500 text-white" : i === current ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
                       {s.ok ? <Check size={13} strokeWidth={3} /> : i + 1}
                     </span>
-                    <span className={cx("text-xs font-medium", s.ok ? "text-neutral-700" : i === current ? "text-neutral-900" : "text-neutral-400")}>{s.label}</span>
+                    <span className={cx("text-xs font-medium", s.ok ? "text-[color:var(--j-44546F)]" : i === current ? "text-[color:var(--j-172B4D)]" : "text-[color:var(--j-626F86)]")}>{s.label}</span>
                   </span>
                 </li>
               ))}
@@ -215,19 +215,19 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
       }>
       <div className="mx-auto max-w-5xl space-y-4">
         {openVisit && (
-          <section className="flex items-start gap-3 rounded-md border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-900">
-            <Clock size={18} className="mt-0.5 flex-shrink-0 text-brand-700" />
+          <section className="flex items-start gap-3 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-4 py-3 text-sm text-[color:var(--j-0055CC)]">
+            <Clock size={18} className="mt-0.5 flex-shrink-0 text-[color:var(--j-0C66E4)]" />
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{tr("At {0} since {1}", openVisit.branchName, wibTime(openVisit.visitedAt))}</p>
               <p className="text-xs opacity-90">{tr("Clock out when you leave the outlet: take the location and a face photo again. The next outlet can be clocked in after it.")}</p>
             </div>
-            {now && <span className="flex-shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold tabular-nums text-brand-800 ring-1 ring-brand-200">
+            {now && <span className="flex-shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold tabular-nums text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-85B8FF)]">
               {duration(Math.max(0, Math.floor((now.getTime() - Date.parse(openVisit.visitedAt)) / 60_000)))}</span>}
           </section>
         )}
         {kind === "surveyor" && (data.schedule?.length ?? 0) > 0 && (
-          <section className="rounded-2xl border border-neutral-200/70 bg-white px-4 py-3 text-sm text-neutral-700 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-            <p className="font-semibold text-neutral-900">{tr("Today's schedule")}</p>
+          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 text-sm text-[color:var(--j-44546F)] shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+            <p className="font-semibold text-[color:var(--j-172B4D)]">{tr("Today's schedule")}</p>
             <ul className="mt-1.5 flex flex-wrap gap-1.5">
               {data.schedule!.map((s) => {
                 const done = !!data.today?.[s.code];
@@ -235,18 +235,18 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                   <li key={s.code}>
                     <button type="button" disabled={outMode || done} onClick={() => setBranch(s.code)} title={s.note ?? undefined}
                       className={cx("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
-                        done ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : branch === s.code ? "bg-brand-700 text-white ring-brand-700" : "bg-white text-neutral-700 ring-neutral-200 hover:bg-neutral-50")}>
+                        done ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : branch === s.code ? "bg-[color:var(--j-0C66E4)] text-white ring-[color:var(--j-388BFF)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
                       {done && <CheckCircle2 size={12} />}{s.name}
                     </button>
                   </li>
                 );
               })}
             </ul>
-            {data.schedule!.some((s) => s.note) && <p className="mt-1.5 text-xs text-neutral-500">{data.schedule!.filter((s) => s.note).map((s) => `${s.name}: ${s.note}`).join(" · ")}</p>}
+            {data.schedule!.some((s) => s.note) && <p className="mt-1.5 text-xs text-[color:var(--j-626F86)]">{data.schedule!.filter((s) => s.note).map((s) => `${s.name}: ${s.note}`).join(" · ")}</p>}
           </section>
         )}
         {!outMode && Object.keys(data.today ?? {}).length > 0 && (
-          <section className={cx("flex items-start gap-3 rounded-md border px-4 py-3 text-sm", allDone ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-neutral-200 bg-white text-neutral-700")}>
+          <section className={cx("flex items-start gap-3 rounded-[3px] border px-4 py-3 text-sm", allDone ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)]")}>
             <CheckCircle2 size={18} className={cx("mt-0.5 flex-shrink-0", allDone ? "text-emerald-600" : "text-emerald-500")} />
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{allDone ? tr("You have checked in today") : tr("Checked in today")}</p>
@@ -257,7 +257,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
         )}
 
         {data.branches.length === 0 ? (
-          <div className="rounded-2xl border border-neutral-200/70 bg-white px-6 py-12 text-center text-sm text-neutral-500 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)] shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
             {tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}
           </div>
         ) : (
@@ -266,11 +266,11 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
               <Card n={1} ok={!!b} active={current === 0} title={outMode ? tr("Visit to Clock Out") : tr("Outlet Visited")}
                 hint={outMode ? tr("Clocked in at {0}", wibDateTime(openVisit!.visitedAt)) : tr("The outlet where you are now")}>
                 {outMode ? (
-                  <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2.5">
+                  <div className="flex items-center gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2.5">
                     {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                    <img src={thumb(photoUrl(openVisit!.id), 96)} alt="" className="h-10 w-10 flex-shrink-0 rounded-full bg-neutral-100 object-cover ring-1 ring-neutral-200" />
-                    <span className="min-w-0"><span className="block truncate text-sm font-semibold text-neutral-900">{openVisit!.branchName}</span>
-                      <span className="block text-xs text-neutral-500">{tr("Clock in {0}", wibTime(openVisit!.visitedAt))}{openVisit!.distanceM !== null ? ` · ${openVisit!.distanceM} m` : ""}</span></span>
+                    <img src={thumb(photoUrl(openVisit!.id), 96)} alt="" className="h-10 w-10 flex-shrink-0 rounded-full bg-[color:var(--j-091E420F)] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" />
+                    <span className="min-w-0"><span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{openVisit!.branchName}</span>
+                      <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Clock in {0}", wibTime(openVisit!.visitedAt))}{openVisit!.distanceM !== null ? ` · ${openVisit!.distanceM} m` : ""}</span></span>
                   </div>
                 ) : <BranchPicker branches={data.branches} value={branch} fix={fix} stateOf={stateOf}
                   onChange={(code) => { setBranch(code); setPhoto(null); setFaces(null); }} />}
@@ -279,15 +279,15 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                   const d = b.checkinDeadline;
                   const late = !!now && new Date(now.getTime() + 7 * 3600e3).toISOString().slice(11, 16) > d.wib;
                   return (
-                    <p className={cx("mt-2 flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm", late ? "border-amber-200 bg-amber-50 text-amber-900" : "border-neutral-200 bg-neutral-50 text-neutral-700")}>
-                      <Clock size={16} className={cx("mt-0.5 flex-shrink-0", late ? "text-amber-600" : "text-neutral-400")} />
+                    <p className={cx("mt-2 flex items-start gap-2 rounded-[3px] border px-3 py-2.5 text-sm", late ? "border-amber-200 bg-amber-50 text-amber-900" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]")}>
+                      <Clock size={16} className={cx("mt-0.5 flex-shrink-0", late ? "text-amber-600" : "text-[color:var(--j-626F86)]")} />
                       <span>{late ? tr("Past the on-time limit of this outlet ({0}): today's first check in is counted late.", `${d.deadline} ${d.zone}${d.zone !== "WIB" ? ` = ${d.wib} WIB` : ""}`)
                         : tr("Today's first check in is on time until {0}.", `${d.deadline} ${d.zone}${d.zone !== "WIB" ? ` (${d.wib} WIB)` : ""}`)}</span>
                     </p>
                   );
                 })()}
                 {doneToday && (
-                  <p className="mt-2 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
+                  <p className="mt-2 flex items-start gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
                     <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
                     <span>{tr("Already checked in here today at {0}. The next check in can be done tomorrow.", wibTime(doneToday.visitedAt))}</span>
                   </p>
@@ -297,49 +297,49 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
               <Card n={2} ok={!!fix} active={current === 1} title={tr("Location")} hint={tr("Compared with the outlet's coordinates")}
                 action={fix && (
                   <button type="button" disabled={locating} onClick={() => void findMe()}
-                    className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50">
+                    className="inline-flex items-center gap-1.5 rounded-[3px] px-2 py-1 text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)] disabled:opacity-50">
                     {locating ? <Loader2 size={13} className="animate-spin" /> : <Crosshair size={13} />}
                     <span className="hidden sm:inline">{tr("Update location")}</span>
                   </button>
                 )}>
                 {locating && !fix ? (
-                  <p className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-3 text-sm text-neutral-600"><Loader2 size={15} className="animate-spin text-brand-600" /> {tr("Finding your location…")}</p>
+                  <p className="flex items-center gap-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-3 text-sm text-[color:var(--j-44546F)]"><Loader2 size={15} className="animate-spin text-[color:var(--j-0C66E4)]" /> {tr("Finding your location…")}</p>
                 ) : fix ? (
                   <>
-                    <dl className="grid grid-cols-3 divide-x divide-neutral-100 rounded-lg border border-neutral-100">
+                    <dl className="grid grid-cols-3 divide-x divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-F1F2F4)]">
                       <Metric label={tr("Status")}>
                         <span className={cx("inline-flex items-center gap-1.5 text-sm font-semibold", TONE[status.tone])}>
                           <span className={cx("h-2 w-2 flex-shrink-0 rounded-full", DOT[status.tone])} />{status.text}
                         </span>
                       </Metric>
                       <Metric label={tr("Distance")}>
-                        <span className="text-sm font-semibold tabular-nums text-neutral-900">{where?.distance != null ? `${where.distance} m` : "—"}</span>
-                        {where?.located && b?.radius_m != null && <span className="block text-[11px] text-neutral-400">{tr("radius {0} m", b.radius_m)}</span>}
+                        <span className="text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{where?.distance != null ? `${where.distance} m` : "—"}</span>
+                        {where?.located && b?.radius_m != null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("radius {0} m", b.radius_m)}</span>}
                       </Metric>
                       <Metric label={tr("Accuracy")}>
-                        <span className={cx("text-sm font-semibold tabular-nums", fix.accuracy > 100 ? "text-amber-700" : "text-neutral-900")}>±{Math.round(fix.accuracy)} m</span>
+                        <span className={cx("text-sm font-semibold tabular-nums", fix.accuracy > 100 ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}>±{Math.round(fix.accuracy)} m</span>
                         {fix.accuracy > 100 && <span className="block text-[11px] text-amber-700">{tr("Low")}</span>}
                       </Metric>
                     </dl>
                     <a href={mapsUrl(fix.lat, fix.lng)} target="_blank" rel="noreferrer"
-                      className="mt-2 inline-flex items-center gap-1 text-xs text-neutral-500 hover:text-brand-700">
+                      className="mt-2 inline-flex items-center gap-1 text-xs text-[color:var(--j-626F86)] hover:text-[color:var(--j-0055CC)]">
                       {fix.lat.toFixed(5)}, {fix.lng.toFixed(5)} <ExternalLink size={11} />
                     </a>
                     {outside && b && (
-                      <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800">
+                      <div role="alert" className="mt-3 rounded-[3px] border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800">
                         <p className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} className="flex-shrink-0" /> {tr("You are outside the outlet's radius")}</p>
                         <p className="mt-1 text-xs leading-relaxed">
                           {tr("{0} m from {1} (radius {2} m). Move closer to the outlet and update the location, or write the reason in the note: the check in is marked outside the radius and reviewed by management.", where?.distance ?? "?", b.name, b.radius_m ?? 100)}
                         </p>
                         <button type="button" disabled={locating} onClick={() => void findMe()}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 ring-1 ring-red-200 hover:bg-red-100 disabled:opacity-50">
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-[3px] bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 ring-1 ring-red-200 hover:bg-red-100 disabled:opacity-50">
                           {locating ? <Loader2 size={13} className="animate-spin" /> : <Crosshair size={13} />} {tr("Update location")}
                         </button>
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-3 text-sm text-red-800">
+                  <div className="rounded-[3px] border border-red-100 bg-red-50 px-3 py-3 text-sm text-red-800">
                     <p className="flex items-center gap-2 font-semibold"><MapPinOff size={16} className="flex-shrink-0" /> {locError}</p>
                     <p className="mt-1 text-xs leading-relaxed">{tr("Turn on Location (GPS) and allow it for this site (padlock in the address bar), then try again.")}</p>
                     <Button variant="secondary" size="sm" className="mt-2.5" onClick={() => void findMe()}><RotateCcw size={13} /> {tr("Try Again")}</Button>
@@ -351,17 +351,17 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 {photo ? (
                   <div className="grid gap-3 sm:grid-cols-[16rem_minmax(0,1fr)]">
                     {/* eslint-disable-next-line @next/next/no-img-element -- the photo just taken (data URL) */}
-                    <img src={photo.image} alt={tr("Face Photo")} className="max-h-72 w-full rounded-lg bg-neutral-100 object-contain" />
+                    <img src={photo.image} alt={tr("Face Photo")} className="max-h-72 w-full rounded-[3px] bg-[color:var(--j-091E420F)] object-contain" />
                     <div className="flex flex-col gap-3">
                       {checking ? (
-                        <p className="flex items-center gap-2 text-sm text-neutral-600"><Loader2 size={15} className="animate-spin" /> {tr("Checking the face…")}</p>
+                        <p className="flex items-center gap-2 text-sm text-[color:var(--j-44546F)]"><Loader2 size={15} className="animate-spin" /> {tr("Checking the face…")}</p>
                       ) : faceOk ? (
-                        <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+                        <div className="rounded-[3px] border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
                           <p className="flex items-center gap-1.5 font-semibold"><CheckCircle2 size={15} /> {tr("Face detected")}</p>
                           <p className="mt-0.5 text-xs">{tr("Taken at {0}", wibDateTime(photo.takenAt))}</p>
                         </div>
                       ) : (
-                        <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-sm text-red-800">
+                        <div className="rounded-[3px] border border-red-100 bg-red-50 px-3 py-2.5 text-sm text-red-800">
                           <p className="flex items-center gap-1.5 font-semibold"><XCircle size={15} /> {tr("No face detected")}</p>
                           <p className="mt-0.5 text-xs leading-relaxed">{tr("Retake the photo with your face clearly visible, facing the camera, in good light.")}</p>
                         </div>
@@ -372,8 +372,8 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 ) : (
                   <div className="space-y-3">
                     <PhotoGuide />
-                    <div className="flex flex-col items-start gap-3 rounded-lg border border-dashed border-neutral-300 bg-neutral-50/60 px-4 py-3 sm:flex-row sm:items-center">
-                      <p className="min-w-0 flex-1 text-xs leading-relaxed text-neutral-600">
+                    <div className="flex flex-col items-start gap-3 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] bg-[color:var(--j-F7F8F9)] px-4 py-3 sm:flex-row sm:items-center">
+                      <p className="min-w-0 flex-1 text-xs leading-relaxed text-[color:var(--j-44546F)]">
                         {b && fix ? tr("Your face must be clearly visible; it is checked automatically") : tr("Choose the outlet and wait for the location first.")}
                       </p>
                       <Button disabled={!b || !fix || !!doneToday} onClick={() => setCamera(true)} className="w-full sm:w-auto"><Camera size={15} /> {tr("Take face photo")}</Button>
@@ -382,10 +382,10 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 )}
               </Card>
 
-              <section className={cx("rounded-md border bg-white p-4 shadow-sm sm:p-5", outside ? "border-red-200" : "border-neutral-200")}>
-                <label htmlFor="pic-note" className="text-sm font-semibold text-neutral-900">
+              <section className={cx("rounded-[3px] border bg-white p-4 sm:p-5", outside ? "border-red-200" : "border-[color:var(--j-DCDFE4)]")}>
+                <label htmlFor="pic-note" className="text-sm font-semibold text-[color:var(--j-172B4D)]">
                   {outside ? <>{outMode ? tr("Reason for clocking out outside the radius") : tr("Reason for checking in outside the radius")} <span className="font-normal text-red-600">({tr("required")})</span></>
-                    : <>{tr("Note")} <span className="font-normal text-neutral-400">({tr("optional")})</span></>}
+                    : <>{tr("Note")} <span className="font-normal text-[color:var(--j-626F86)]">({tr("optional")})</span></>}
                 </label>
                 <textarea id="pic-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={outside ? 3 : 2}
                   placeholder={outside ? tr("e.g. delivering stock to the warehouse next to the outlet") : outMode ? tr("e.g. what was done during the visit") : tr("e.g. the purpose of the visit")}
@@ -395,33 +395,33 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
             </div>
 
             <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-              <section className="hidden rounded-2xl border border-neutral-200/70 bg-white p-5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] lg:block">
-                <p className="text-sm font-semibold text-neutral-900">{tr("Summary")}</p>
-                <dl className="mt-3 divide-y divide-neutral-100 text-sm">
+              <section className="hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] lg:block">
+                <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Summary")}</p>
+                <dl className="mt-3 divide-y divide-[color:var(--j-F1F2F4)] text-sm">
                   <Row k={tr("Outlet")} v={b?.name ?? "—"} />
                   <Row k={tr("Location")} v={<span className={TONE[status.tone]}>{status.text}{where?.distance != null ? ` · ${where.distance} m` : ""}</span>} />
                   <Row k={tr("Face Photo")} v={faceOk ? tr("Face detected") : "—"} />
                   <Row k={outMode ? tr("Clock Out Time") : tr("Visit Time")} v={tr("Server time when sent")} />
                 </dl>
                 <Button loading={sending} disabled={!ready} onClick={() => void send()} className="mt-4 w-full"><Send size={15} /> {sendLabel}</Button>
-                {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-neutral-400")}>{pending}</p>}
+                {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-[color:var(--j-626F86)]")}>{pending}</p>}
               </section>
 
-              <section className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-                <p className="border-b border-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-900 sm:px-5">{tr("My latest check-ins")}</p>
-                {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-neutral-400">{tr("No check in yet")}</p> : (
-                  <ul className="divide-y divide-neutral-100">
+              <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+                <p className="border-b border-[color:var(--j-F1F2F4)] px-4 py-3 text-sm font-semibold text-[color:var(--j-172B4D)] sm:px-5">{tr("My latest check-ins")}</p>
+                {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No check in yet")}</p> : (
+                  <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                     {data.recent.map((r) => (
                       <li key={r.id}>
-                        <button type="button" onClick={() => setView(r)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-neutral-50 sm:px-5">
+                        <button type="button" onClick={() => setView(r)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[color:var(--j-F7F8F9)] sm:px-5">
                           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                          <img src={thumb(photoUrl(r.id), 96)} decoding="async" alt="" loading="lazy" className="h-10 w-10 flex-shrink-0 rounded-full bg-neutral-100 object-cover ring-1 ring-neutral-200" />
+                          <img src={thumb(photoUrl(r.id), 96)} decoding="async" alt="" loading="lazy" className="h-10 w-10 flex-shrink-0 rounded-full bg-[color:var(--j-091E420F)] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" />
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium text-neutral-900">{r.branchName}</span>
-                            <span className="block text-xs text-neutral-500">{wibDateTime(r.visitedAt)}</span>
+                            <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{r.branchName}</span>
+                            <span className="block text-xs text-[color:var(--j-626F86)]">{wibDateTime(r.visitedAt)}</span>
                             <span className="mt-1 flex flex-wrap gap-1"><ReviewBadge c={r} />{kind === "surveyor" && <ClockOutBadge c={r} />}</span>
                           </span>
-                          <ChevronRight size={16} className="flex-shrink-0 text-neutral-300" />
+                          <ChevronRight size={16} className="flex-shrink-0 text-[color:var(--j-8590A2)]" />
                         </button>
                       </li>
                     ))}
@@ -435,9 +435,9 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
 
       {/* phones & tablets: what is ready and the send button, at the bottom */}
       {data.branches.length > 0 && (
-        <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-neutral-200/70 bg-white/95 px-4 backdrop-blur pt-3 sm:-mx-6 sm:px-6 lg:hidden"
+        <div className="action-bar sticky bottom-0 z-10 -mx-4 -mb-5 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 backdrop-blur pt-3 sm:-mx-6 sm:px-6 lg:hidden"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-          <p className="mb-2 truncate text-xs text-neutral-500">
+          <p className="mb-2 truncate text-xs text-[color:var(--j-626F86)]">
             {ready ? `${b?.name} · ${status.text}${where?.distance != null ? ` · ${where.distance} m` : ""}` : pending}
           </p>
           <Button loading={sending} disabled={!ready} onClick={() => void send()} className="w-full"><Send size={15} /> {sendLabel}</Button>
@@ -462,13 +462,13 @@ function PhotoGuide() {
     { icon: <Lightbulb size={15} />, title: tr("Inside the outlet"), text: tr("Not in front of a plain wall or outside the outlet, so the visit can be verified") },
   ];
   return (
-    <div className="rounded-md border border-brand-100 bg-brand-50/60 p-3">
-      <p className="mb-2 text-xs font-semibold text-brand-900">{tr("For a valid check-in photo")}</p>
+    <div className="rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] p-3">
+      <p className="mb-2 text-xs font-semibold text-[color:var(--j-0055CC)]">{tr("For a valid check-in photo")}</p>
       <ul className="grid gap-2 sm:grid-cols-3">
         {tips.map((t) => (
-          <li key={t.title} className="flex gap-2 rounded-lg bg-white px-2.5 py-2 ring-1 ring-brand-100">
-            <span className="mt-0.5 flex-shrink-0 text-brand-700">{t.icon}</span>
-            <span className="min-w-0"><span className="block text-xs font-semibold text-neutral-900">{t.title}</span><span className="block text-[11px] leading-snug text-neutral-600">{t.text}</span></span>
+          <li key={t.title} className="flex gap-2 rounded-[3px] bg-white px-2.5 py-2 ring-1 ring-[color:var(--j-388BFF)]">
+            <span className="mt-0.5 flex-shrink-0 text-[color:var(--j-0C66E4)]">{t.icon}</span>
+            <span className="min-w-0"><span className="block text-xs font-semibold text-[color:var(--j-172B4D)]">{t.title}</span><span className="block text-[11px] leading-snug text-[color:var(--j-44546F)]">{t.text}</span></span>
           </li>
         ))}
       </ul>
@@ -500,30 +500,30 @@ function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?
   // on the body: above the app frame (a transformed ancestor would clip a fixed layer)
   return createPortal(
     <div className="fixed inset-0 z-[90] flex items-stretch justify-center bg-neutral-900/50 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Check in Sent")}>
-      <div className="flex w-full flex-col overflow-y-auto bg-white sm:max-h-[92vh] sm:max-w-md sm:rounded-xl sm:shadow-2xl">
+      <div className="flex w-full flex-col overflow-y-auto bg-white sm:max-h-[92vh] sm:max-w-md sm:rounded-[3px] sm:shadow-2xl">
         <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", outside ? "bg-gradient-to-b from-amber-50 to-white" : "bg-gradient-to-b from-emerald-50 to-white", "sm:rounded-t-2xl")}>
           <span className={cx("flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg", outside ? "bg-amber-500 shadow-amber-200" : "bg-emerald-500 shadow-emerald-200")}>
             {outside ? <AlertTriangle size={38} /> : <Check size={42} strokeWidth={3} />}
           </span>
-          <h2 className="mt-5 text-2xl font-semibold text-neutral-900">{o ? tr("Clock Out Successful") : tr("Check in Successful")}</h2>
-          <p className="mt-1 text-sm text-neutral-600">{c.branchName}</p>
+          <h2 className="mt-5 text-2xl font-semibold text-[color:var(--j-172B4D)]">{o ? tr("Clock Out Successful") : tr("Check in Successful")}</h2>
+          <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{c.branchName}</p>
           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-          <img src={thumb(photoUrl(c.id, !!o), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-xl object-cover shadow-md ring-4 ring-white" />
-          <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-neutral-100 rounded-md border border-neutral-200/80 bg-white text-left">
-            <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Time")}</dt>
-              <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-neutral-900"><Clock size={13} className="text-neutral-400" />{wibTime(o ? o.at : c.visitedAt)} WIB</dd></div>
-            <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-neutral-400">{tr("Location")}</dt>
-              <dd className={cx("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", outside ? "text-amber-700" : "text-neutral-900")}><MapPin size={13} className="text-neutral-400" />
+          <img src={thumb(photoUrl(c.id, !!o), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-[3px] object-cover shadow-md ring-4 ring-white" />
+          <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-left">
+            <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Time")}</dt>
+              <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><Clock size={13} className="text-[color:var(--j-626F86)]" />{wibTime(o ? o.at : c.visitedAt)} WIB</dd></div>
+            <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Location")}</dt>
+              <dd className={cx("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", outside ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}><MapPin size={13} className="text-[color:var(--j-626F86)]" />
                 {distance !== null ? tr("{0} m from the outlet", distance) : tr("No coordinates")}</dd></div>
           </dl>
-          {o && <p className="mt-3 text-sm font-medium text-neutral-700">{tr("{0} at the outlet (clock in {1})", duration(o.durationMin), wibTime(c.visitedAt))}</p>}
+          {o && <p className="mt-3 text-sm font-medium text-[color:var(--j-44546F)]">{tr("{0} at the outlet (clock in {1})", duration(o.durationMin), wibTime(c.visitedAt))}</p>}
           {!o && outside && <Note tone="warn" icon={<MapPin />} className="mt-3">{tr("Outside the radius: management reviews this check in. You can follow it under My latest check-ins.")}</Note>}
           {o ? <Note tone="ok" icon={<CheckCircle2 />} className="mt-3">{tr("The visit is closed; the next outlet can be clocked in now.")}</Note>
             : getKindNote()}
         </div>
-        <div className="space-y-2 border-t border-neutral-100 px-6 pt-4 sm:rounded-b-2xl" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
+        <div className="space-y-2 border-t border-[color:var(--j-F1F2F4)] px-6 pt-4 sm:rounded-b-2xl" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
           <Button className="h-12 w-full text-base" onClick={onClose}>{tr("Done")}</Button>
-          <button type="button" onClick={onDetail} className="w-full py-1 text-sm font-medium text-neutral-500 hover:text-neutral-800">{tr("See the Details")}</button>
+          <button type="button" onClick={onDetail} className="w-full py-1 text-sm font-medium text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]">{tr("See the Details")}</button>
         </div>
       </div>
     </div>,
@@ -532,7 +532,7 @@ function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?
 }
 
 function getKindNote() {
-  return <p className="mt-3 text-xs text-neutral-500">{swapKind("PIC") === "PIC" ? tr("One check in per outlet per day: the next one for this outlet is tomorrow.") : tr("Clock out here when you leave the outlet.")}</p>;
+  return <p className="mt-3 text-xs text-[color:var(--j-626F86)]">{swapKind("PIC") === "PIC" ? tr("One check in per outlet per day: the next one for this outlet is tomorrow.") : tr("Clock out here when you leave the outlet.")}</p>;
 }
 
 /** One of the PIC's check-ins: the photo, the time, the position and the management's review. */
@@ -543,47 +543,47 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
         <div className="grid gap-4 sm:grid-cols-[11rem_minmax(0,1fr)]">
           <a href={photoUrl(c.id)} target="_blank" rel="noreferrer" className="block">
             {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full rounded-xl bg-neutral-100 object-cover ring-1 ring-neutral-200" />
+            <img src={thumb(photoUrl(c.id), 640)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="aspect-[3/4] w-full rounded-[3px] bg-[color:var(--j-091E420F)] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" />
           </a>
-          <dl className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-sm">
+          <dl className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
             <Row k={tr("Outlet")} v={c.branchName} />
             <Row k={tr("Visit Time")} v={wibDateTime(c.visitedAt)} />
             <Row k={tr("Distance")} v={<span className={c.outsideRadius ? "text-amber-700" : undefined}>{c.distanceM !== null ? `${c.distanceM} m` : "—"}{c.radiusM != null ? ` / ${tr("radius {0} m", c.radiusM)}` : ""}</span>} />
             <Row k={tr("Accuracy")} v={c.accuracyM != null ? `±${Math.round(c.accuracyM)} m` : "—"} />
-            <Row k={tr("Position")} v={<a href={mapsUrl(c.latitude, c.longitude)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-brand-700 hover:underline">{tr("Open map")} <ExternalLink size={11} /></a>} />
+            <Row k={tr("Position")} v={<a href={mapsUrl(c.latitude, c.longitude)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[color:var(--j-0C66E4)] hover:underline">{tr("Open map")} <ExternalLink size={11} /></a>} />
           </dl>
         </div>
-        {c.note && <p className="flex items-start gap-2 rounded-xl bg-neutral-50 px-3 py-2.5 text-sm text-neutral-700"><MessageSquareText size={15} className="mt-0.5 flex-shrink-0 text-neutral-400" />{c.note}</p>}
+        {c.note && <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-sm text-[color:var(--j-44546F)]"><MessageSquareText size={15} className="mt-0.5 flex-shrink-0 text-[color:var(--j-626F86)]" />{c.note}</p>}
         {c.clockOut !== undefined && (
-          <section className="rounded-md border border-neutral-200 px-4 py-3">
-            <p className="text-xs font-semibold capitalize text-neutral-500">{tr("Clock Out")}</p>
+          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] px-4 py-3">
+            <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Clock Out")}</p>
             {c.clockOut ? (
               <div className="mt-2 grid gap-3 sm:grid-cols-[6rem_minmax(0,1fr)]">
                 <a href={photoUrl(c.id, true)} target="_blank" rel="noreferrer">
                   {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-                  <img src={thumb(photoUrl(c.id, true), 240)} alt={tr("Face Photo")} loading="lazy" className="aspect-[3/4] w-full rounded-lg bg-neutral-100 object-cover ring-1 ring-neutral-200" />
+                  <img src={thumb(photoUrl(c.id, true), 240)} alt={tr("Face Photo")} loading="lazy" className="aspect-[3/4] w-full rounded-[3px] bg-[color:var(--j-091E420F)] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" />
                 </a>
-                <dl className="divide-y divide-neutral-100 text-sm">
+                <dl className="divide-y divide-[color:var(--j-F1F2F4)] text-sm">
                   <Row k={tr("Time")} v={wibDateTime(c.clockOut.at)} />
                   <Row k={tr("At the Outlet")} v={duration(c.clockOut.durationMin)} />
                   <Row k={tr("Distance")} v={<span className={c.clockOut.outsideRadius ? "text-amber-700" : undefined}>{c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"}</span>} />
                   {c.clockOut.note && <Row k={tr("Note")} v={c.clockOut.note} />}
                 </dl>
               </div>
-            ) : <p className="mt-1 text-sm text-neutral-600">{tr("Not clocked out yet")}</p>}
+            ) : <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{tr("Not clocked out yet")}</p>}
           </section>
         )}
-        <section className={cx("rounded-md border px-4 py-3",
-          c.review?.status === "valid" ? "border-emerald-200 bg-emerald-50" : c.review?.status === "invalid" ? "border-red-200 bg-red-50" : "border-neutral-200 bg-white")}>
-          <p className="text-xs font-semibold capitalize text-neutral-500">{tr("Management review")}</p>
+        <section className={cx("rounded-[3px] border px-4 py-3",
+          c.review?.status === "valid" ? "border-emerald-200 bg-emerald-50" : c.review?.status === "invalid" ? "border-red-200 bg-red-50" : "border-[color:var(--j-DCDFE4)] bg-white")}>
+          <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Management review")}</p>
           {c.review ? (
             <>
               <p className={cx("mt-1 flex items-center gap-1.5 text-sm font-semibold", c.review.status === "valid" ? "text-emerald-800" : "text-red-800")}>
                 {c.review.status === "valid" ? <ShieldCheck size={16} /> : <ShieldX size={16} />}{c.review.status === "valid" ? tr("Valid") : tr("Not valid")}</p>
-              {c.review.note && <p className="mt-1 text-sm text-neutral-700">{c.review.note}</p>}
-              <p className="mt-1 text-xs text-neutral-500">{[c.review.by, c.review.at ? wibDateTime(c.review.at) : null].filter(Boolean).join(" · ")}</p>
+              {c.review.note && <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{c.review.note}</p>}
+              <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{[c.review.by, c.review.at ? wibDateTime(c.review.at) : null].filter(Boolean).join(" · ")}</p>
             </>
-          ) : <p className="mt-1 text-sm text-neutral-600">{c.outsideRadius ? tr("Waiting for the review of management (outside the radius).") : tr("No review needed: checked in at the outlet.")}</p>}
+          ) : <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{c.outsideRadius ? tr("Waiting for the review of management (outside the radius).") : tr("No review needed: checked in at the outlet.")}</p>}
         </section>
       </div>
     </Drawer>
@@ -594,15 +594,15 @@ function Card({ n, ok, active, title, hint, action, children }: {
   n: number; ok: boolean; active: boolean; title: string; hint: string; action?: ReactNode; children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-      <header className="flex items-start gap-3 border-b border-neutral-100 px-4 py-3 sm:px-5">
+    <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <header className="flex items-start gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
         <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-          ok ? "bg-emerald-500 text-white" : active ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-500")}>
+          ok ? "bg-emerald-500 text-white" : active ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
           {ok ? <Check size={13} strokeWidth={3} /> : n}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-neutral-900">{title}</p>
-          <p className="text-xs leading-snug text-neutral-500">{hint}</p>
+          <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{title}</p>
+          <p className="text-xs leading-snug text-[color:var(--j-626F86)]">{hint}</p>
         </div>
         {action}
       </header>
@@ -614,7 +614,7 @@ function Card({ n, ok, active, title, hint, action, children }: {
 function Metric({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="min-w-0 px-2.5 py-2 sm:px-3">
-      <dt className="truncate text-xs font-medium capitalize text-neutral-400">{label}</dt>
+      <dt className="truncate text-xs font-medium capitalize text-[color:var(--j-626F86)]">{label}</dt>
       <dd className="mt-1">{children}</dd>
     </div>
   );
@@ -623,8 +623,8 @@ function Metric({ label, children }: { label: string; children: ReactNode }) {
 function Row({ k, v }: { k: string; v: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 px-3 py-2 first:pt-2.5 last:pb-2.5">
-      <dt className="flex-shrink-0 text-neutral-500">{k}</dt>
-      <dd className="min-w-0 text-right font-medium text-neutral-800">{v}</dd>
+      <dt className="flex-shrink-0 text-[color:var(--j-626F86)]">{k}</dt>
+      <dd className="min-w-0 text-right font-medium text-[color:var(--j-172B4D)]">{v}</dd>
     </div>
   );
 }

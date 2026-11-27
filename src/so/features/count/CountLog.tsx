@@ -25,7 +25,7 @@ const LABEL: Record<string, () => string> = {
   COUNT_CORRECT: () => tr("Corrected by Cost Control"), COUNT_WIP: () => tr("Premix Saved"), FILE: () => tr("File Attached"),
   FILE_DELETE: () => tr("File Removed"),
 };
-const DOT: Record<string, string> = { START: "bg-brand-500", SUBMIT: "bg-emerald-500", RECOUNT: "bg-amber-500", APPROVE: "bg-emerald-600", CANCEL: "bg-red-500" };
+const DOT: Record<string, string> = { START: "bg-[color:var(--j-388BFF)]", SUBMIT: "bg-emerald-500", RECOUNT: "bg-amber-500", APPROVE: "bg-emerald-600", CANCEL: "bg-red-500" };
 
 export default function CountLog({ countId, reload, bare = false }: { countId: string; reload?: unknown; /** without its card (inside another one) */ bare?: boolean }) {
   const [log, setLog] = useState<Log | null>(null);
@@ -52,7 +52,7 @@ export default function CountLog({ countId, reload, bare = false }: { countId: s
               {(e.action === "START" || e.action === "SUBMIT") && (
                 e.lat != null && e.lng != null ? (
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-slate-600">
-                    <a className="inline-flex items-center gap-1 text-brand-700 hover:underline" href={mapsUrl(e.lat, e.lng)} target="_blank" rel="noreferrer">
+                    <a className="inline-flex items-center gap-1 text-[color:var(--j-0C66E4)] hover:underline" href={mapsUrl(e.lat, e.lng)} target="_blank" rel="noreferrer">
                       <MapPin size={12} />{e.lat.toFixed(5)}, {e.lng.toFixed(5)}
                     </a>
                     {e.distance_m != null && <span>{tr("{0} m from the outlet", e.distance_m)}</span>}

@@ -118,7 +118,7 @@ export default function UserMenu({ collapsed, onNavigate, placement = 'side' }: 
         )}
         {top ? (
           <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu" aria-label={tr('Account')} title={`${user.displayName} · ${role}`}
-            className={cx('relative flex rounded-full p-0.5 transition-shadow hover:ring-2 hover:ring-neutral-200', open && 'ring-2 ring-[color:var(--j-388BFF)]')}>
+            className={cx('relative flex rounded-full p-0.5 transition-shadow hover:ring-2 hover:ring-[color:var(--j-DCDFE4)]', open && 'ring-2 ring-[color:var(--j-388BFF)]')}>
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
             {!user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" title={tr('Profile Incomplete')} />}
           </button>

@@ -176,23 +176,23 @@ export function SocialOverviewFull() {
 
           {/* tone per keyword */}
           <Panel title={tr("Keyword tone analysis")} description={tr("The tone of the mentions per keyword: Kopi Calf, its brands and its founders")}>
-            {!data ? <div className="skeleton m-4 h-64 rounded-lg" /> : !chosen ? <p className="px-4 py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p> : (
+            {!data ? <div className="skeleton m-4 h-64 rounded-[3px]" /> : !chosen ? <p className="px-4 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No mention in this period")}</p> : (
               <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
                 <ul className="space-y-1.5">
                   {keywords.map((k) => (
                     <li key={k.keyword}>
                       <button type="button" onClick={() => setPick(k.keyword)}
-                        className={cx("flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-1.5 text-left text-sm transition-colors", k.keyword === chosen.keyword ? "border-brand-600 bg-brand-50" : "border-neutral-200 hover:bg-neutral-50")}>
-                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-800 text-[10px] font-bold text-white">{initials(k.keyword)}</span>
-                        <span className="min-w-0 flex-1 truncate text-neutral-900">{k.keyword}</span>
-                        <span className="flex-shrink-0 text-xs tabular-nums text-neutral-600">{tr("{0} posts", n(k.total))}</span>
+                        className={cx("flex w-full items-center gap-2.5 rounded-[3px] border px-2.5 py-1.5 text-left text-sm transition-colors", k.keyword === chosen.keyword ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)]" : "border-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
+                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0055CC)] text-[10px] font-bold text-white">{initials(k.keyword)}</span>
+                        <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{k.keyword}</span>
+                        <span className="flex-shrink-0 text-xs tabular-nums text-[color:var(--j-44546F)]">{tr("{0} posts", n(k.total))}</span>
                       </button>
                     </li>
                   ))}
                 </ul>
                 <div className="flex flex-col items-center justify-center">
                   <button type="button" onClick={() => setDrill({ ...range, keyword: chosen.keyword, title: chosen.keyword, description: tr("Every mention labelled {0}", chosen.keyword), icon: <Tag size={18} /> })}
-                    className="inline-flex items-center gap-1 text-base font-semibold text-neutral-900 hover:text-brand-700">{chosen.keyword}<ChevronRight size={16} /></button>
+                    className="inline-flex items-center gap-1 text-base font-semibold text-[color:var(--j-172B4D)] hover:text-[color:var(--j-0055CC)]">{chosen.keyword}<ChevronRight size={16} /></button>
                   {donut && <EChart option={donut} height={240} ariaLabel={tr("Tone of {0}", chosen.keyword)} className="w-full" />}
                 </div>
                 <div className="space-y-2">
@@ -200,10 +200,10 @@ export function SocialOverviewFull() {
                     const pct = chosen.total ? (chosen[f.key] / chosen.total) * 100 : 0;
                     return (
                       <button type="button" key={f.key} onClick={() => setDrill({ ...range, keyword: chosen.keyword, sentiment: f.key, title: `${chosen.keyword} · ${f.label()}`, icon: <Tag size={18} /> })}
-                        className="block w-full rounded-lg border border-neutral-200 px-4 py-3 text-left hover:border-brand-300 hover:bg-neutral-50">
-                        <p className="flex justify-between text-sm"><span className="text-neutral-800">{f.label()}</span><span className={cx("font-semibold tabular-nums", f.ink)}>{pct.toFixed(1)}%</span></p>
-                        <span className="mt-2 block h-2 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full" style={{ width: `${pct}%`, background: f.color }} /></span>
-                        <p className="mt-1 text-xs text-neutral-500">{tr("{0} posts", n(chosen[f.key]))}</p>
+                        className="block w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-4 py-3 text-left hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-F7F8F9)]">
+                        <p className="flex justify-between text-sm"><span className="text-[color:var(--j-172B4D)]">{f.label()}</span><span className={cx("font-semibold tabular-nums", f.ink)}>{pct.toFixed(1)}%</span></p>
+                        <span className="mt-2 block h-2 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full" style={{ width: `${pct}%`, background: f.color }} /></span>
+                        <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{tr("{0} posts", n(chosen[f.key]))}</p>
                       </button>
                     );
                   })}
@@ -214,34 +214,34 @@ export function SocialOverviewFull() {
 
           <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
             <Panel title={tr("Media tone analysis")} description={tr("Outside sources (not the official account): the tone of their mentions; the favourability index is in the tooltip")}>
-              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : mediaTone ? <EChart option={mediaTone} height={300} ariaLabel={tr("Media tone analysis")}
+              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-[3px]" /> : mediaTone ? <EChart option={mediaTone} height={300} ariaLabel={tr("Media tone analysis")}
                   onClick={(e) => { const m = [...data.media].reverse()[e.dataIndex]; if (m) setDrill({ ...range, who: m.source, posts: true, title: m.source, description: tr("Mentions from this source"), icon: <Tag size={18} /> }); }} />
-                : <p className="py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>}</div>
+                : <p className="py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No mention in this period")}</p>}</div>
             </Panel>
             <Panel title={tr("Word cloud analysis")} description={tr("The words used most in the mentions")}>
-              {!data ? <div className="skeleton m-4 h-[300px] rounded-lg" /> : <WordCloud words={data.words}
+              {!data ? <div className="skeleton m-4 h-[300px] rounded-[3px]" /> : <WordCloud words={data.words}
                 onPick={(w) => setDrill({ ...range, q: w, title: `"${w}"`, description: tr("Mentions that use this word"), icon: <Tag size={18} /> })} />}
             </Panel>
           </div>
 
           <div className="grid items-start gap-4 xl:grid-cols-[2fr_3fr]">
             <Panel title={tr("Cities named")} description={tr("The cities the mentions name (new outlets, events)")}>
-              {!data ? <div className="skeleton m-4 h-40 rounded-lg" /> : data.cities.length === 0 ? <p className="px-4 py-8 text-center text-sm text-neutral-500">—</p> : (
+              {!data ? <div className="skeleton m-4 h-40 rounded-[3px]" /> : data.cities.length === 0 ? <p className="px-4 py-8 text-center text-sm text-[color:var(--j-626F86)]">—</p> : (
                 <div className="grid gap-2 p-4 sm:grid-cols-2">
                   {data.cities.map((c) => (
                     <button type="button" key={c.city} onClick={() => setDrill({ ...range, q: c.city, title: c.city, description: tr("Mentions that name this city"), icon: <MapPin size={18} /> })}
-                      className="rounded-lg border border-neutral-200 px-3 py-2.5 text-left hover:border-brand-300 hover:bg-neutral-50">
-                      <p className="flex items-center justify-between gap-2 text-sm"><span className="flex items-center gap-1.5 text-neutral-900"><MapPin size={13} className="text-neutral-400" />{c.city}</span>
-                        <span className="text-xs italic text-neutral-500">{c.share}%</span></p>
-                      <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-700" style={{ width: `${c.share}%` }} /></span>
-                      <p className="mt-1 text-xs text-neutral-500">{tr("{0} mentions", n(c.n))}</p>
+                      className="rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2.5 text-left hover:border-[color:var(--j-85B8FF)] hover:bg-[color:var(--j-F7F8F9)]">
+                      <p className="flex items-center justify-between gap-2 text-sm"><span className="flex items-center gap-1.5 text-[color:var(--j-172B4D)]"><MapPin size={13} className="text-[color:var(--j-626F86)]" />{c.city}</span>
+                        <span className="text-xs italic text-[color:var(--j-626F86)]">{c.share}%</span></p>
+                      <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-0C66E4)]" style={{ width: `${c.share}%` }} /></span>
+                      <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{tr("{0} mentions", n(c.n))}</p>
                     </button>
                   ))}
                 </div>
               )}
             </Panel>
             <Panel title={tr("Keyword visibility")} description={tr("Mentions per keyword and month")}>
-              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-lg" /> : heat ? <EChart option={heat} height={Math.max(220, (heatAxes?.kws.length ?? 0) * 30 + 40)} ariaLabel={tr("Keyword visibility")} onClick={(e) => {
+              <div className="p-3">{!data ? <div className="skeleton h-[300px] rounded-[3px]" /> : heat ? <EChart option={heat} height={Math.max(220, (heatAxes?.kws.length ?? 0) * 30 + 40)} ariaLabel={tr("Keyword visibility")} onClick={(e) => {
                   const v = e.data as [number, number, number] | undefined;
                   if (!v || !heatAxes) return;
                   const m0 = heatAxes.weeks[v[0]], kw = heatAxes.kws[v[1]];
@@ -249,12 +249,12 @@ export function SocialOverviewFull() {
                   setDrill({ dateFrom: m0, dateTo: `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`,
                     keyword: kw, title: kw, description: month(m0), icon: <Tag size={18} /> });
                 }} />
-                : <p className="py-8 text-center text-sm text-neutral-500">{tr("No mention in this period")}</p>}</div>
+                : <p className="py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No mention in this period")}</p>}</div>
             </Panel>
           </div>
 
           <Panel title={tr("Trending highlights")} description={tr("The newest mentions and their reach")}>
-            {!data ? <div className="skeleton m-4 h-64 rounded-lg" /> : (
+            {!data ? <div className="skeleton m-4 h-64 rounded-[3px]" /> : (
               <div className="grid gap-3 p-4 md:grid-cols-2 2xl:grid-cols-4">
                 {data.trending.map((t) => <Highlight key={`${t.platform}:${t.post_id}`} t={t} onOpen={() => setPreview({ platform: t.platform, id: t.post_id })} />)}
               </div>
@@ -268,7 +268,7 @@ export function SocialOverviewFull() {
 
 /** The words used most, sized by how often (the most used larger and darker), in the colours of the portal. */
 function WordCloud({ words, onPick }: { words: { word: string; n: number }[]; onPick: (w: string) => void }) {
-  if (!words.length) return <p className="px-4 py-8 text-center text-sm text-neutral-500">—</p>;
+  if (!words.length) return <p className="px-4 py-8 text-center text-sm text-[color:var(--j-626F86)]">—</p>;
   const max = words[0].n, min = words.at(-1)!.n;
   const shuffled = [...words].sort((a, b) => (a.word.charCodeAt(1) % 7) - (b.word.charCodeAt(1) % 7));
   return (
@@ -290,23 +290,23 @@ function Highlight({ t, onOpen }: { t: Data["trending"][number]; onOpen: () => v
   const [title, ...rest] = (t.text ?? "").split("\n").filter(Boolean);
   return (
     <article role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => { if (e.key === "Enter") onOpen(); }}
-      className="flex cursor-pointer flex-col rounded-lg border border-neutral-200 bg-white transition-colors hover:border-brand-300 hover:shadow-sm">
-      <header className="flex items-start gap-3 border-b border-neutral-100 p-3">
-        <span className="w-14 flex-shrink-0 overflow-hidden rounded-md border border-neutral-200 text-center">
+      className="flex cursor-pointer flex-col rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white transition-colors hover:border-[color:var(--j-85B8FF)] hover:shadow-sm">
+      <header className="flex items-start gap-3 border-b border-[color:var(--j-F1F2F4)] p-3">
+        <span className="w-14 flex-shrink-0 overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] text-center">
           <span className={cx("block py-0.5 text-[11px] font-semibold text-white", t.dateApprox || !at ? "bg-neutral-400" : "bg-red-500")}>{at ? at.toLocaleDateString(locale(), { month: "short", timeZone: "Asia/Jakarta" }) : "—"}</span>
-          <span className="block text-xl font-bold leading-7 text-neutral-900" title={contentDate(t.createdAt, t.dateApprox)}>{at && !t.dateApprox ? at.toLocaleDateString(locale(), { day: "numeric", timeZone: "Asia/Jakarta" }) : at ? "≈" : "?"}</span>
-          <span className="block pb-0.5 text-[10px] text-neutral-500">{t.dateApprox ? "≈" : ""}{at?.getFullYear() ?? ""}</span>
+          <span className="block text-xl font-bold leading-7 text-[color:var(--j-172B4D)]" title={contentDate(t.createdAt, t.dateApprox)}>{at && !t.dateApprox ? at.toLocaleDateString(locale(), { day: "numeric", timeZone: "Asia/Jakarta" }) : at ? "≈" : "?"}</span>
+          <span className="block pb-0.5 text-[10px] text-[color:var(--j-626F86)]">{t.dateApprox ? "≈" : ""}{at?.getFullYear() ?? ""}</span>
         </span>
         <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-1.5 truncate text-xs text-brand-700">{ch && logo(ch.file, 12)}{site}</span>
-          <span className="block truncate text-sm font-semibold text-neutral-900">{t.author ?? "—"}</span>
-          {t.views !== null && <span className="block text-[11px] text-neutral-500">{tr("{0} views", compactNumber(t.views))}{t.likes !== null ? ` · ${tr("{0} likes", compactNumber(t.likes))}` : ""}</span>}
+          <span className="flex items-center gap-1.5 truncate text-xs text-[color:var(--j-0C66E4)]">{ch && logo(ch.file, 12)}{site}</span>
+          <span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{t.author ?? "—"}</span>
+          {t.views !== null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} views", compactNumber(t.views))}{t.likes !== null ? ` · ${tr("{0} likes", compactNumber(t.likes))}` : ""}</span>}
         </span>
-        {t.url && <a href={t.url} target="_blank" rel="noreferrer" aria-label={tr("Open")} onClick={(e) => e.stopPropagation()} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-800 text-white hover:bg-brand-900"><ExternalLink size={14} /></a>}
+        {t.url && <a href={t.url} target="_blank" rel="noreferrer" aria-label={tr("Open")} onClick={(e) => e.stopPropagation()} className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-0055CC)] text-white hover:bg-[color:var(--j-0055CC)]"><ExternalLink size={14} /></a>}
       </header>
       <div className="flex flex-1 flex-col p-3">
-        <p className="line-clamp-2 text-sm font-semibold text-neutral-900">{title ?? "—"}</p>
-        {rest.length > 0 && <p className="mt-1 line-clamp-3 text-xs text-neutral-600">{rest.join(" ")}</p>}
+        <p className="line-clamp-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{title ?? "—"}</p>
+        {rest.length > 0 && <p className="mt-1 line-clamp-3 text-xs text-[color:var(--j-44546F)]">{rest.join(" ")}</p>}
         {kws.length > 0 && <p className="mt-auto flex flex-wrap gap-1 pt-3">{kws.slice(0, 2).map((k) => <Lozenge key={k} tone="blue">{k}</Lozenge>)}
           {kws.length > 2 && <Lozenge tone="grey">{tr("+{0} more", kws.length - 2)}</Lozenge>}</p>}
       </div>

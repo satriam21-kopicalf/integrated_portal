@@ -77,8 +77,8 @@ export default function ActionMenu({ items, label = tr('Actions') }: { items: Ac
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={label}
-        className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
-          open ? 'border-neutral-300 bg-neutral-100 text-neutral-900' : 'border-transparent text-neutral-500 hover:border-neutral-200 hover:bg-white hover:text-neutral-900'
+        className={`inline-flex h-8 w-8 items-center justify-center rounded-[3px] border transition-colors ${
+          open ? 'border-[color:var(--j-8590A2)] bg-[color:var(--j-091E420F)] text-[color:var(--j-172B4D)]' : 'border-transparent text-[color:var(--j-626F86)] hover:border-[color:var(--j-DCDFE4)] hover:bg-white hover:text-[color:var(--j-172B4D)]'
         }`}
       >
         <MoreHorizontal size={18} />
@@ -88,11 +88,11 @@ export default function ActionMenu({ items, label = tr('Actions') }: { items: Ac
           ref={menu}
           role="menu"
           style={{ top: pos?.top ?? -9999, left: pos?.left ?? -9999, width: MENU_WIDTH }}
-          className="fixed z-[80] overflow-hidden rounded-md border border-neutral-200/80 bg-white p-1 shadow-xl"
+          className="fixed z-[80] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-1 shadow-xl"
         >
           {items.map(item => (
             <div key={item.label}>
-              {item.separated && <div className="my-1 h-px bg-neutral-100" />}
+              {item.separated && <div className="my-1 h-px bg-[color:var(--j-091E420F)]" />}
               <button
                 type="button"
                 role="menuitem"
@@ -103,11 +103,11 @@ export default function ActionMenu({ items, label = tr('Actions') }: { items: Ac
                   close();
                   item.onSelect();
                 }}
-                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                  item.danger ? 'text-red-600 hover:bg-red-50' : 'text-neutral-700 hover:bg-neutral-50'
+                className={`flex w-full items-center gap-2.5 rounded-[3px] px-2.5 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                  item.danger ? 'text-red-600 hover:bg-red-50' : 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]'
                 }`}
               >
-                <span className={item.danger ? 'text-red-500' : 'text-neutral-400'}>{item.icon}</span>
+                <span className={item.danger ? 'text-red-500' : 'text-[color:var(--j-626F86)]'}>{item.icon}</span>
                 {item.label}
               </button>
             </div>

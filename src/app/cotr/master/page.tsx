@@ -47,7 +47,7 @@ function Master() {
   return (
     <Page title={tr("Master")} subtitle={tr("The master data of Calf On The Road: employees, areas, pools, fleet & accessories, schedule, menus, request kinds, recipe cards and items")}>
       <Tabs label={tr("Master")} value={tab?.key ?? ""} onChange={(k) => router.replace(`/cotr/master?tab=${k}`, { scroll: false })}
-        tabs={tabs.map((t, i) => ({ key: t.key, label: <><span className="text-[11px] font-bold tabular-nums text-neutral-400">{i + 1}</span>{t.icon}{t.label()}</> }))} />
+        tabs={tabs.map((t, i) => ({ key: t.key, label: <><span className="text-[11px] font-bold tabular-nums text-[color:var(--j-626F86)]">{i + 1}</span>{t.icon}{t.label()}</> }))} />
       <EmbeddedPage.Provider value>{tab?.body}</EmbeddedPage.Provider>
     </Page>
   );

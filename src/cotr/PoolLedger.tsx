@@ -132,28 +132,28 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
       )}
       <Panel title={tr("Product stock of the pool")}
         description={data?.start ? tr("Counted from {0}; the physical leftover of a day is the opening stock of the next", dmyOf(data.start)) : tr("Cups per menu at the pool / HUB, as the sheet Product")}
-        actions={!pool ? <div className="flex flex-wrap items-center gap-2"><span className="text-xs text-neutral-500">{tr("All pools added up; choose a pool to enter")}</span>
+        actions={!pool ? <div className="flex flex-wrap items-center gap-2"><span className="text-xs text-[color:var(--j-626F86)]">{tr("All pools added up; choose a pool to enter")}</span>
           <Button variant="secondary" onClick={() => setMoves({ day: to, kind: "arrived" })}><Truck size={15} /> {tr("Arrived / Transfer")}</Button></div> : <div className="flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => setMoves({ day: to, kind: "arrived" })}><Truck size={15} /> {tr("Arrived / Transfer")}</Button>
           <Button disabled={!pool} onClick={() => setCount(to)}><PackageOpen size={15} /> {data?.start ? tr("Physical leftover") : tr("Set opening stock")}</Button>
         </div>}>
         {error ? <ErrorState message={error} onRetry={reload} /> : !data ? <SkeletonTable cols={6} /> : !data.start ? (
           <EmptyState icon={<Boxes />} title={tr("No opening stock yet")}>
-            <p className="mt-1 text-sm text-neutral-500">{tr("Count the pool once (per batch code); from the next day the stock of the pool runs by itself.")}</p>
+            <p className="mt-1 text-sm text-[color:var(--j-626F86)]">{tr("Count the pool once (per batch code); from the next day the stock of the pool runs by itself.")}</p>
             <div className="mt-3"><Button disabled={!pool} onClick={() => setCount(addDays(to, -1))}><PackageOpen size={15} /> {tr("Set opening stock")}</Button></div>
           </EmptyState>
         ) : days.length === 0 ? <EmptyState icon={<Boxes />} title={tr("The stock starts the day after the opening count")} /> : (
           <div className="space-y-3 p-2 sm:space-y-4 sm:p-4">
-            {short.length > 0 && <p className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700"><AlertTriangle size={14} className="mt-0.5" />
+            {short.length > 0 && <p className="flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-xs text-red-700"><AlertTriangle size={14} className="mt-0.5" />
               {tr("More went out than there was: {0}. Check the entries or count the pool.", [...new Set(short)].map(menuName).join(", "))}</p>}
             {paged.rows.map((d) => {
               const lots = data.menus.flatMap((m) => (d.rows[m.code]?.lots ?? []).map((l) => ({ ...l, menu: m.name })))
                 .sort((x, y) => (x.expiresOn ?? "9999").localeCompare(y.expiresOn ?? "9999") || x.menu.localeCompare(y.menu));
               const open = lotsOf === d.day;
               return (
-                <section key={d.day} className="overflow-hidden rounded-xl bg-white ring-1 ring-neutral-200">
-                  <header className="flex flex-wrap items-center gap-2 border-b border-neutral-100 bg-neutral-50/80 px-3 py-2">
-                    <span className="text-sm font-semibold text-neutral-900">{dmyOf(d.day)}</span>
+                <section key={d.day} className="overflow-hidden rounded-[3px] bg-white ring-1 ring-[color:var(--j-DCDFE4)]">
+                  <header className="flex flex-wrap items-center gap-2 border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-3 py-2">
+                    <span className="text-sm font-semibold text-[color:var(--j-172B4D)]">{dmyOf(d.day)}</span>
                     {d.source === "sheet" && <Badge tone="violet">{tr("From the workbook")}</Badge>}
                     {d.source === "esb" && <Badge tone="blue">{tr("From ESB COTR")}</Badge>}
                     {d.source === "sheet" && d.arrivedSource === "esb" && <Badge tone="blue">{tr("Arrived: ESB")}</Badge>}
@@ -166,11 +166,11 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                   </header>
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[640px] text-sm">
-                      <thead className="text-xs text-neutral-500"><tr><th className="sticky left-0 z-[1] bg-white px-3 py-2 text-left font-medium">&nbsp;</th>{data.menus.map((m) => <th key={m.code} className="px-3 py-2 text-right font-medium">{m.name}</th>)}</tr></thead>
-                      <tbody className="divide-y divide-neutral-100">
+                      <thead className="text-xs text-[color:var(--j-626F86)]"><tr><th className="sticky left-0 z-[1] bg-white px-3 py-2 text-left font-medium">&nbsp;</th>{data.menus.map((m) => <th key={m.code} className="px-3 py-2 text-right font-medium">{m.name}</th>)}</tr></thead>
+                      <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                         {FIGURES.map((f) => (
-                          <tr key={f.key} className={f.strong ? "bg-neutral-50/60" : undefined}>
-                            <td className={cx("sticky left-0 z-[1] whitespace-nowrap px-3 py-1.5 shadow-[inset_-1px_0_0_#e5e5e5]", f.strong ? "bg-neutral-50 font-semibold text-neutral-900" : "bg-white text-neutral-600")}>{f.label()}</td>
+                          <tr key={f.key} className={f.strong ? "bg-[color:var(--j-F7F8F9)]" : undefined}>
+                            <td className={cx("sticky left-0 z-[1] whitespace-nowrap px-3 py-1.5 shadow-[inset_-1px_0_0_#e5e5e5]", f.strong ? "bg-[color:var(--j-F7F8F9)] font-semibold text-[color:var(--j-172B4D)]" : "bg-white text-[color:var(--j-44546F)]")}>{f.label()}</td>
                             {data.menus.map((m) => {
                               const c = d.rows[m.code];
                               const v = c?.[f.key] as number | null | undefined;
@@ -182,7 +182,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                           </tr>
                         ))}
                         <tr>
-                          <td className="sticky left-0 z-[1] whitespace-nowrap bg-white px-3 py-1.5 text-xs text-neutral-500 shadow-[inset_-1px_0_0_#e5e5e5]">{tr("Batches")}</td>
+                          <td className="sticky left-0 z-[1] whitespace-nowrap bg-white px-3 py-1.5 text-xs text-[color:var(--j-626F86)] shadow-[inset_-1px_0_0_#e5e5e5]">{tr("Batches")}</td>
                           {data.menus.map((m) => {
                             const ls = d.rows[m.code]?.lots ?? [];
                             const first = ls.map((l) => l.expiresOn).filter(Boolean).sort()[0] as string | undefined;
@@ -190,10 +190,10 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                             const gone = d.rows[m.code]?.expired ?? 0;
                             return (
                               <td key={m.code} className="px-3 py-1.5 text-right text-xs">
-                                {ls.length === 0 ? <span className="text-neutral-300">—</span> : (
+                                {ls.length === 0 ? <span className="text-[color:var(--j-8590A2)]">—</span> : (
                                   <span className="block leading-tight">
-                                    <span className="text-neutral-700">{tr("{0} batches", ls.length)}</span>
-                                    {first && st && <span className={cx("block", st.tone === "red" ? "text-red-600" : st.tone === "amber" ? "text-amber-700" : "text-neutral-500")}>{tr("first exp {0}", dmyOf(first).slice(0, 5))}</span>}
+                                    <span className="text-[color:var(--j-44546F)]">{tr("{0} batches", ls.length)}</span>
+                                    {first && st && <span className={cx("block", st.tone === "red" ? "text-red-600" : st.tone === "amber" ? "text-amber-700" : "text-[color:var(--j-626F86)]")}>{tr("first exp {0}", dmyOf(first).slice(0, 5))}</span>}
                                   </span>
                                 )}
                                 {gone > 0 && <span className="block text-[11px] font-medium text-red-600">{tr("{0} expired", gone)}</span>}
@@ -205,9 +205,9 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                     </table>
                   </div>
                   {lots.length > 0 && (
-                    <div className="border-t border-neutral-100">
+                    <div className="border-t border-[color:var(--j-F1F2F4)]">
                       <button type="button" onClick={() => setLotsOf(open ? null : d.day)} aria-expanded={open}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-brand-700 hover:bg-neutral-50">
+                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-F7F8F9)]">
                         <ChevronDown size={14} className={cx("transition-transform", open && "rotate-180")} />
                         {open ? tr("Hide batches & expiry") : tr("Batches & expiry ({0})", lots.length)}
                         {lots.some((l) => lotState(l, d.day).tone === "red") && <Badge tone="red">{tr("Expired / today")}</Badge>}
@@ -216,26 +216,26 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
                       {open && (
                         <div className="overflow-x-auto px-3 pb-3">
                           <table className="w-full min-w-[480px] text-sm">
-                            <thead className="text-left text-xs capitalize text-neutral-500"><tr>
+                            <thead className="text-left text-xs capitalize text-[color:var(--j-626F86)]"><tr>
                               <th className="py-1.5 pr-3 font-medium">{tr("Menu")}</th><th className="py-1.5 pr-3 font-medium">{tr("Batch Code")}</th>
                               <th className="py-1.5 pr-3 text-right font-medium">{tr("Cups")}</th><th className="py-1.5 pr-3 font-medium">{tr("Expiry")}</th><th className="py-1.5 font-medium">{tr("Status")}</th>
                             </tr></thead>
-                            <tbody className="divide-y divide-neutral-100">
+                            <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                               {lots.map((l, i) => {
                                 const st = lotState(l, d.day);
                                 return (
                                   <tr key={i}>
-                                    <td className="py-1.5 pr-3 text-neutral-800">{l.menu}</td>
-                                    <td className="py-1.5 pr-3 font-mono text-xs text-neutral-700">{l.batchNo ?? "—"}</td>
+                                    <td className="py-1.5 pr-3 text-[color:var(--j-172B4D)]">{l.menu}</td>
+                                    <td className="py-1.5 pr-3 font-mono text-xs text-[color:var(--j-44546F)]">{l.batchNo ?? "—"}</td>
                                     <td className="py-1.5 pr-3 text-right tabular-nums">{l.qty}</td>
-                                    <td className="py-1.5 pr-3 tabular-nums text-neutral-600">{l.expiresOn ? dmyOf(l.expiresOn) : "—"}</td>
+                                    <td className="py-1.5 pr-3 tabular-nums text-[color:var(--j-44546F)]">{l.expiresOn ? dmyOf(l.expiresOn) : "—"}</td>
                                     <td className="py-1.5"><Badge tone={st.tone}>{st.label}</Badge></td>
                                   </tr>
                                 );
                               })}
                             </tbody>
                           </table>
-                          <p className="mt-2 text-[11px] text-neutral-500">{tr("Batch code SSDD: the batch of the day and the day it was made (0210 = batch 2 of the 10th); the expiry follows the shelf life of the menu.")}</p>
+                          <p className="mt-2 text-[11px] text-[color:var(--j-626F86)]">{tr("Batch code SSDD: the batch of the day and the day it was made (0210 = batch 2 of the 10th); the expiry follows the shelf life of the menu.")}</p>
                         </div>
                       )}
                     </div>
@@ -301,14 +301,14 @@ export function CountDrawer({ pool: p0, pools = [], day: first, ledger: shown, o
         {!p0 && <Field label={tr("Pool / HUB")}><Select value={pool} onChange={(e) => setPool(e.target.value)}>
           <option value="">{tr("Choose a pool")}</option>{pools.map((x) => <option key={x.code} value={x.code}>{x.name}</option>)}</Select></Field>}
         <Field label={tr("End of the day")}><Input type="date" value={day} max={todayWib()} onChange={(e) => setDay(e.target.value)} /></Field>
-        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600">{tr("Batch code SSDD: the batch of the day and the day it was made (0210 = batch 2 of the 10th); the expiry follows the shelf life of the menu.")}</p>
+        <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">{tr("Batch code SSDD: the batch of the day and the day it was made (0210 = batch 2 of the 10th); the expiry follows the shelf life of the menu.")}</p>
         {counted && <Field label={tr("Reason for the revision")}><Input value={reason} maxLength={300} onChange={(e) => setReason(e.target.value)} placeholder={tr("e.g. 12 cups typed as 21 at the night count")} /></Field>}
         {revs.length > 0 && (
           <section>
-            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-neutral-500">{tr("Revisions of this day")}</p>
-            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-xs">
-              {revs.map((x, i) => <li key={i} className="px-3 py-2"><b className="text-neutral-800">{ledger.menus.find((m) => m.code === x.menu)?.name ?? x.menu}</b> <span className="tabular-nums">{x.old} → {x.new}</span>
-                <span className="block text-neutral-500">{x.reason ?? "—"} · {x.by ?? "—"}</span></li>)}
+            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Revisions of this day")}</p>
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-xs">
+              {revs.map((x, i) => <li key={i} className="px-3 py-2"><b className="text-[color:var(--j-172B4D)]">{ledger.menus.find((m) => m.code === x.menu)?.name ?? x.menu}</b> <span className="tabular-nums">{x.old} → {x.new}</span>
+                <span className="block text-[color:var(--j-626F86)]">{x.reason ?? "—"} · {x.by ?? "—"}</span></li>)}
             </ul>
           </section>
         )}
@@ -319,10 +319,10 @@ export function CountDrawer({ pool: p0, pools = [], day: first, ledger: shown, o
               <div key={i} className="flex items-center gap-2">
                 <Input value={r.batch} placeholder={tr("Batch code")} maxLength={20} onChange={(e) => set(i, "batch", e.target.value.toUpperCase())} className="h-9 w-32" />
                 <Input inputMode="numeric" value={r.qty} placeholder="0" onChange={(e) => set(i, "qty", e.target.value.replace(/\D/g, ""))} className="h-9 flex-1 text-right tabular-nums" />
-                <button type="button" aria-label={tr("Delete")} onClick={() => setRows((s) => s.filter((_, j) => j !== i))} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={15} /></button>
+                <button type="button" aria-label={tr("Delete")} onClick={() => setRows((s) => s.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={15} /></button>
               </div>
             ))}
-            <button type="button" onClick={() => setRows((s) => [...s, { menu: m.code, batch: "", qty: "" }])} className="inline-flex items-center gap-1 text-xs font-medium text-brand-700"><Plus size={13} />{tr("Add batch")}</button>
+            <button type="button" onClick={() => setRows((s) => [...s, { menu: m.code, batch: "", qty: "" }])} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)]"><Plus size={13} />{tr("Add batch")}</button>
           </DrawerSection>
         ))}
       </div>
@@ -387,7 +387,7 @@ function MovesDrawer({ pool: p0, day: first, kind: k0, ledger, pools, onClose, o
           ? <Field label={tr("Came from (optional)")}>{poolSelect(peer, setPeer, true, pool)}</Field>
           : <Field label={tr("To pool (destination)")}>{poolSelect(peer, setPeer, false, pool)}</Field>}
         {kind === "transfer" && pool && peer && (
-          <p className="flex items-center gap-2 rounded-md border-l-[3px] border-l-blue-600 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+          <p className="flex items-center gap-2 rounded-[3px] border-l-[3px] border-l-blue-600 bg-blue-50 px-3 py-2 text-xs text-blue-900">
             <Truck size={14} /><b>{name(pool)}</b> → <b>{name(peer)}</b> · {tr("{0} cups", total)}</p>
         )}
       </DrawerSection>
@@ -403,12 +403,12 @@ function MovesDrawer({ pool: p0, day: first, kind: k0, ledger, pools, onClose, o
         <Field label={tr("Note")}><Input value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} /></Field>
         {saved && saved.length > 0 && (
           <section>
-            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-neutral-500">{tr("Entered for {0} on this day", name(pool))}</p>
-            <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-200 text-xs">
+            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Entered for {0} on this day", name(pool))}</p>
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-xs">
               {saved.map((x, i) => (
                 <li key={i} className="flex items-center justify-between gap-2 px-3 py-2">
-                  <span className="min-w-0 truncate"><b className="text-neutral-800">{menuName(x.menu)}</b>{" "}
-                    <span className="text-neutral-500">{x.kind === "arrived" ? tr("arrived{0}", x.peer ? ` · ${tr("from {0}", name(x.peer))}` : "")
+                  <span className="min-w-0 truncate"><b className="text-[color:var(--j-172B4D)]">{menuName(x.menu)}</b>{" "}
+                    <span className="text-[color:var(--j-626F86)]">{x.kind === "arrived" ? tr("arrived{0}", x.peer ? ` · ${tr("from {0}", name(x.peer))}` : "")
                       : x.qty < 0 ? tr("out to {0}", name(x.peer)) : x.peer ? tr("in from {0}", name(x.peer)) : tr("transfer")}</span></span>
                   <span className={`font-semibold tabular-nums ${x.qty < 0 ? "text-red-700" : "text-emerald-700"}`}>{x.qty > 0 ? `+${x.qty}` : x.qty}</span>
                 </li>
@@ -479,7 +479,7 @@ function ImportDrawer({ pools, onClose, onSaved }: { pools: Pool[]; pool: string
       <div className="space-y-4">
         <Field label={tr("From")} hint={tr("The days from here are replaced by the workbook; the physical leftover of the day before becomes the opening stock")}>
           <Input type="date" value={from} max={todayWib()} onChange={(e) => { setFrom(e.target.value); setFiles((s) => s.map((x) => ({ ...x, check: undefined, saved: false }))); }} /></Field>
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-neutral-300 px-3 py-3 text-sm text-neutral-600">
+        <label className="flex cursor-pointer items-center gap-2 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] px-3 py-3 text-sm text-[color:var(--j-44546F)]">
           <FileSpreadsheet size={16} />{tr("Choose the .xlsx files (one per pool)")}
           <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(e) => { pick(e.target.files); e.target.value = ""; }} />
         </label>
@@ -489,20 +489,20 @@ function ImportDrawer({ pools, onClose, onSaved }: { pools: Pool[]; pool: string
               <Select value={f.pool} onChange={(e) => set(f.name, { pool: e.target.value, check: undefined })} className="flex-1">
                 <option value="">{tr("Choose the pool")}</option>{pools.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}
               </Select>
-              <button type="button" aria-label={tr("Delete")} onClick={() => setFiles((s) => s.filter((x) => x.name !== f.name))} className="rounded p-1.5 text-neutral-400 hover:text-red-600"><Trash2 size={15} /></button>
+              <button type="button" aria-label={tr("Delete")} onClick={() => setFiles((s) => s.filter((x) => x.name !== f.name))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={15} /></button>
             </div>
             {f.error && <p className="text-xs text-red-600">{f.error}</p>}
             {f.saved && <Badge tone="green">{tr("Saved")}</Badge>}
             {f.check && !f.saved && (
               <>
                 <p className="text-sm">{tr("Days: {0}", f.check.days.map(dmyOf).join(", ") || "—")}</p>
-                <p className="text-xs text-neutral-600">{tr("{0} batch counts · {1} figures · {2} driver days", f.check.counts, f.check.figures, f.check.reports)}</p>
+                <p className="text-xs text-[color:var(--j-44546F)]">{tr("{0} batch counts · {1} figures · {2} driver days", f.check.counts, f.check.figures, f.check.reports)}</p>
                 {f.check.unmatched.length > 0 && <p className="text-xs text-amber-700">{tr("Not matched to a driver (kept with the sheet's name): {0}", f.check.unmatched.join(", "))}</p>}
               </>
             )}
           </DrawerSection>
         ))}
-        {checked && <p className="text-xs text-neutral-500">{tr("Saving replaces the earlier import of these days.")}</p>}
+        {checked && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Saving replaces the earlier import of these days.")}</p>}
       </div>
     </Drawer>
   );

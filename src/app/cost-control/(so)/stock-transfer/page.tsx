@@ -34,9 +34,9 @@ export default function StockTransferPage() {
   const [tab, setTab] = useState<"transfers" | "settings">("transfers");
   return (
     <Page title={tr("Transfer Stock")} subtitle={tr("Requests of the outlets: approve, process in ESB, export")}
-      actions={<div className="inline-flex rounded-lg border border-neutral-200 bg-white p-0.5">
+      actions={<div className="inline-flex rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-0.5">
         {([["transfers", tr("Transfers"), Truck], ["settings", tr("Settings"), Settings2]] as const).map(([v, l, Icon]) => (
-          <button key={v} type="button" onClick={() => setTab(v)} className={cx("inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium", tab === v ? "bg-brand-700 text-white" : "text-neutral-600 hover:bg-neutral-100")}><Icon size={14} />{l}</button>))}
+          <button key={v} type="button" onClick={() => setTab(v)} className={cx("inline-flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 text-xs font-medium", tab === v ? "bg-[color:var(--j-0C66E4)] text-white" : "text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}><Icon size={14} />{l}</button>))}
       </div>}>
       {tab === "transfers" ? <Transfers /> : <Settings />}
     </Page>
@@ -119,7 +119,7 @@ function Transfers() {
       </StatStrip>
       <Panel className="mt-4" toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search number, outlet or person")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
         extra={<div className="ml-auto"><ExcelExportMenu footer={<>{dmy(f.period.from)} – {dmy(f.period.to)}</>} choices={[
-          { key: "list", label: tr("Transfers"), hint: tr("Every transfer with its steps and ESB number"), icon: <Truck size={16} />, tone: "bg-brand-50 text-brand-600", count: res ? rows.length : null, run: safe(exportList) },
+          { key: "list", label: tr("Transfers"), hint: tr("Every transfer with its steps and ESB number"), icon: <Truck size={16} />, tone: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", count: res ? rows.length : null, run: safe(exportList) },
           { key: "lines", label: tr("Transfer Lines"), hint: tr("Every material of every transfer"), icon: <ClipboardList size={16} />, tone: "bg-violet-50 text-violet-600", run: safe(exportLines) },
           { key: "outlets", label: tr("Per Outlet"), hint: tr("Value in and out of every outlet (processed)"), icon: <Store size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportOutlets) },
           { key: "materials", label: tr("Per Material"), hint: tr("Quantity and value per material (processed)"), icon: <Package size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportMaterials) },
@@ -132,15 +132,15 @@ function Transfers() {
                 <SortTh k="requested" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" first="desc">{tr("Requested")}</SortTh><SortTh k="lines" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Materials")}</SortTh>
                 <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Value")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh>
                 <SortTh k="label" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("ESB document")}</SortTh></tr></thead>
-              <tbody className="divide-y divide-neutral-100">{paged.rows.map((t) => (
-                <tr key={t.id} className={cx("cursor-pointer", (t.status === "submitted" || t.status === "accepted" || t.status === "approved") && res.canDecide ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-neutral-50/70")} onClick={() => setOpen(t.id)}>
-                  <td className="py-2.5 pl-5 pr-3 font-mono text-[13px] font-medium text-neutral-900">{t.number}</td>
-                  <td className="max-w-[18rem] px-3 py-2.5"><p className="truncate text-neutral-800">{shortBranch(t.fromName)} → {shortBranch(t.toName)}</p></td>
-                  <td className="whitespace-nowrap px-3 py-2.5"><p className="text-neutral-700">{wibDateTime(t.requested.at)}</p><p className="text-[11px] text-neutral-400">{t.requested.by}</p></td>
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((t) => (
+                <tr key={t.id} className={cx("cursor-pointer", (t.status === "submitted" || t.status === "accepted" || t.status === "approved") && res.canDecide ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => setOpen(t.id)}>
+                  <td className="py-2.5 pl-5 pr-3 font-mono text-[13px] font-medium text-[color:var(--j-172B4D)]">{t.number}</td>
+                  <td className="max-w-[18rem] px-3 py-2.5"><p className="truncate text-[color:var(--j-172B4D)]">{shortBranch(t.fromName)} → {shortBranch(t.toName)}</p></td>
+                  <td className="whitespace-nowrap px-3 py-2.5"><p className="text-[color:var(--j-44546F)]">{wibDateTime(t.requested.at)}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{t.requested.by}</p></td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{t.lines}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{t.value != null ? rpText(t.value) : "—"}</td>
                   <td className="px-3 py-2.5"><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge></td>
-                  <td className="px-3 py-2.5 pr-5 font-mono text-xs text-neutral-700">{t.esb?.number ?? (t.esbLabel ? ESB_LABEL[t.esbLabel.value]() : "—")}</td>
+                  <td className="px-3 py-2.5 pr-5 font-mono text-xs text-[color:var(--j-44546F)]">{t.esb?.number ?? (t.esbLabel ? ESB_LABEL[t.esbLabel.value]() : "—")}</td>
                 </tr>))}</tbody>
             </table></div>
           )}
@@ -191,11 +191,11 @@ function Settings() {
     <Panel title={tr("Approvers of Transfer Stock")} description={tr("The Cost Control accounts that approve, reject and process the transfers in ESB; superadmins always may")}
       actions={data?.canEdit ? <Button size="sm" loading={busy} onClick={() => void save()}><Save size={14} />{tr("Save")}</Button> : undefined}>
       {!data ? <table className="w-full"><tbody><SkeletonRows cols={3} /></tbody></table> : !data.candidates.length ? <Empty title={tr("No Cost Control account yet")} /> : (
-        <ul className="divide-y divide-neutral-100">{data.candidates.map((p) => (
-          <li key={p.id}><label className={cx("flex items-center gap-3 px-5 py-2.5 text-sm", data.canEdit && "cursor-pointer hover:bg-neutral-50")}>
+        <ul className="divide-y divide-[color:var(--j-F1F2F4)]">{data.candidates.map((p) => (
+          <li key={p.id}><label className={cx("flex items-center gap-3 px-5 py-2.5 text-sm", data.canEdit && "cursor-pointer hover:bg-[color:var(--j-F7F8F9)]")}>
             <input type="checkbox" disabled={!data.canEdit} checked={picked.has(p.id) || p.role === "superadmin"}
               onChange={(e) => { const n = new Set(picked); if (e.target.checked) n.add(p.id); else n.delete(p.id); setPicked(n); }} />
-            <span className="min-w-0 flex-1"><span className="block font-medium text-neutral-900">{p.name}</span><span className="text-xs text-neutral-500">@{p.username}</span></span>
+            <span className="min-w-0 flex-1"><span className="block font-medium text-[color:var(--j-172B4D)]">{p.name}</span><span className="text-xs text-[color:var(--j-626F86)]">@{p.username}</span></span>
             <Badge tone={p.role === "superadmin" ? "violet" : "slate"}>{p.role === "superadmin" ? tr("Superadmin") : tr("Cost Control")}</Badge>
           </label></li>))}</ul>
       )}

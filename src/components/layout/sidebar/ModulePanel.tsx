@@ -105,10 +105,10 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
                 return (
                   <li key={item.href} className="min-w-0">
                     <Link href={item.href} onClick={go} role="menuitem" aria-current={on ? 'page' : undefined}
-                      className={cx('group relative flex items-center gap-3 rounded-[4px] px-3 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-200',
+                      className={cx('group relative flex items-center gap-3 rounded-[4px] px-3 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[color:var(--j-85B8FF)]',
                         on ? 'bg-[color:var(--j-E9F2FF)] before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-[color:var(--j-0C66E4)]' : 'hover:bg-[color:var(--j-091E420F)]')}>
                       {item.logo ? (
-                        <span className="flex h-8 w-20 flex-shrink-0 items-center justify-center rounded-[3px] bg-white px-2 ring-1 ring-neutral-200">
+                        <span className="flex h-8 w-20 flex-shrink-0 items-center justify-center rounded-[3px] bg-white px-2 ring-1 ring-[color:var(--j-DCDFE4)]">
                           {/* eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets */}
                           <img src={item.logo} alt="" className="max-h-4 max-w-full object-contain" />
                         </span>
