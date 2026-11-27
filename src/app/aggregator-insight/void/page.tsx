@@ -67,13 +67,13 @@ export default function VoidOrder() {
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   const cols: Col<Row>[] = [
-    { key: "at", label: tr("Time (WIB)"), sort: (r) => `${r.day} ${r.time ?? ""}`, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-[#626F86]">{r.time ?? tr("no time")}</span></> },
+    { key: "at", label: tr("Time (WIB)"), sort: (r) => `${r.day} ${r.time ?? ""}`, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-[color:var(--j-626F86)]">{r.time ?? tr("no time")}</span></> },
     { key: "outlet", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
     { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "order", card: "wide", label: tr("Order no."), sort: (r) => r.orderNo, className: "text-xs", render: (r) => <><span className="text-[#172B4D]">{r.orderNo}</span>{r.manual && <span className="ml-1.5"><Lozenge>{tr("Manual")}</Lozenge></span>}{r.bill && <span className="block text-[11px] text-[#626F86]">{r.bill}</span>}</> },
+    { key: "order", card: "wide", label: tr("Order no."), sort: (r) => r.orderNo, className: "text-xs", render: (r) => <><span className="text-[color:var(--j-172B4D)]">{r.orderNo}</span>{r.manual && <span className="ml-1.5"><Lozenge>{tr("Manual")}</Lozenge></span>}{r.bill && <span className="block text-[11px] text-[color:var(--j-626F86)]">{r.bill}</span>}</> },
     { key: "amount", card: "side", label: tr("Value"), sort: (r) => r.amount, first: "desc", right: true, className: "whitespace-nowrap", render: (r) => rp(r.amount) },
-    { key: "cashier", label: tr("Voided by"), sort: (r) => r.editedBy, className: "text-xs text-[#44546F]", render: (r) => r.editedBy ?? "—" },
-    { key: "reason", card: "wide", label: tr("Reason"), sort: (r) => r.reason, render: (r) => r.reason ? <><span className="text-[#172B4D]">{r.reason}</span>{(r.note || r.by) && <span className="block text-[11px] text-[#626F86]">{[r.note, r.by].filter(Boolean).join(" · ")}</span>}</> : <Lozenge tone="amber">{tr("No reason yet")}</Lozenge> },
+    { key: "cashier", label: tr("Voided by"), sort: (r) => r.editedBy, className: "text-xs text-[color:var(--j-44546F)]", render: (r) => r.editedBy ?? "—" },
+    { key: "reason", card: "wide", label: tr("Reason"), sort: (r) => r.reason, render: (r) => r.reason ? <><span className="text-[color:var(--j-172B4D)]">{r.reason}</span>{(r.note || r.by) && <span className="block text-[11px] text-[color:var(--j-626F86)]">{[r.note, r.by].filter(Boolean).join(" · ")}</span>}</> : <Lozenge tone="amber">{tr("No reason yet")}</Lozenge> },
     { key: "member", label: tr("On duty"), sort: (r) => r.member, hide: noMembers(scoped), render: (r) => r.member ?? "—" },
   ];
   const exportXlsx = async () => {
@@ -90,7 +90,7 @@ export default function VoidOrder() {
   const filter = (
     <FilterBar a={a} ctx={ctx} extra={[{ key: "why", label: tr("Reason"), value: why, onChange: setWhy, options: [{ value: NONE, label: tr("No reason yet") }, ...(data?.choices ?? []).map((c) => ({ value: c, label: c }))] }, { key: "cashier", label: tr("Voided by"), value: cashier, onChange: setCashier, options: cashiers.map((c) => ({ value: c, label: c })) }]} q={tab === "list" ? q : undefined} onQ={setQ} placeholder={tr("Search outlet, order, bill or cashier")} excel={() => void exportXlsx()} excelOff={!data}>{tab === "list" && <><QuickChips<"none" | "all" | "manual"> value={only} onChange={setOnly} label={tr("Filter")} items={[{ key: "none", label: tr("Without a reason"), dot: "bg-amber-400", count: noReason }, { key: "all", label: tr("All"), count: scoped.length }, { key: "manual", label: tr("Manual"), count: manual }]} /></>}</FilterBar>
   );
-  const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
+  const card = <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">{filter}</section>;
   return (
     <Page title={tr("Void Order")} eyebrow={tr("Aggregator Insight")} subtitle={tr("The void orders of the delivery apps in ESB and those the team enters, with their reason")} media={<Receipt size={19} />}
       actions={<><Button size="sm" disabled={!data} onClick={() => setAdding(true)}><Plus size={14} /> {tr("Manual void")}</Button></>}>
@@ -103,8 +103,8 @@ export default function VoidOrder() {
             <Stat label={tr("Without a reason")} info={<Tip k="voidReason" />} value={s ? nf(noReason) : <StatSkeleton />}>{s && scoped.length > 0 && <p>{pct((noReason / scoped.length) * 100)}</p>}</Stat>
           </StatStrip>
           {tab === "list" && pick.size > 0 && (
-            <section aria-label={tr("Give a reason")} className="sticky top-16 z-[15] space-y-3 rounded-[3px] border border-[#85B8FF] bg-white p-3 shadow-lg sm:p-4">
-              <p className="text-sm font-semibold text-[#172B4D]">{tr("Give a reason to {0} voids", nf(pick.size))}</p>
+            <section aria-label={tr("Give a reason")} className="sticky top-16 z-[15] space-y-3 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-white p-3 shadow-lg sm:p-4">
+              <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Give a reason to {0} voids", nf(pick.size))}</p>
               <div className="grid gap-3 sm:grid-cols-[1fr_1.3fr_auto] sm:items-end"><Line label={tr("Reason")} required><JSelect label={tr("Reason")} value={reason} onChange={setReason} placeholder={tr("Choose the reason")} options={(data?.choices ?? []).map((c) => ({ value: c, label: c }))} /></Line>
                 <Line label={tr("Note")} required={reason === "Lainnya"}><input aria-label={tr("Note")} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder={reason === "Lainnya" ? tr("Note (required)") : tr("Note (optional)")} className={ctl} /></Line>
                 <div className="grid grid-cols-2 gap-2"><Button variant="secondary" onClick={() => setPick(new Set())}>{tr("Cancel")}</Button><Button loading={busy} disabled={!reason || (reason === "Lainnya" && !note.trim())} onClick={() => void save()}><Save size={14} /> {tr("Save")}</Button></div></div>
@@ -114,7 +114,7 @@ export default function VoidOrder() {
             {tab === "outlet" ? <DataTable key={tab} rows={outs} loading={!data} rowKey={(r) => r.outlet} resetKey={key} initial={{ key: "n", dir: "desc" }} minWidth={560} onRow={(r) => { setQ(r.outlet); setOnly("all"); setTab("list"); }}
                 cols={[{ key: "o", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> }, { key: "n", card: "side", label: tr("Void orders"), sort: (r) => r.n, first: "desc", right: true, render: (r) => nf(r.n) }, { key: "a", label: tr("Value"), sort: (r) => r.amount, first: "desc", right: true, render: (r) => rp(r.amount) }, { key: "x", label: tr("Without a reason"), sort: (r) => r.noReason, first: "desc", right: true, render: (r) => nf(r.noReason) }]} />
               : tab === "cashier" ? <DataTable key={tab} rows={count((r) => r.editedBy ?? "—")} loading={!data} rowKey={(r) => r.key} resetKey={key} initial={{ key: "n", dir: "desc" }} minWidth={360} onRow={(r) => { if (r.key !== "—") { setCashier(r.key); setOnly("all"); setTab("list"); } }}
-                cols={[{ key: "c", label: tr("Voided by"), sort: (r) => r.label, render: (r) => <span className="font-medium text-[#172B4D]">{r.label}</span> }, { key: "n", card: "side", label: tr("Void orders"), sort: (r) => r.n, first: "desc", right: true, render: (r) => nf(r.n) }]} note={tr("The POS account that changed the bill; a shared account is not one person.")} />
+                cols={[{ key: "c", label: tr("Voided by"), sort: (r) => r.label, render: (r) => <span className="font-medium text-[color:var(--j-172B4D)]">{r.label}</span> }, { key: "n", card: "side", label: tr("Void orders"), sort: (r) => r.n, first: "desc", right: true, render: (r) => nf(r.n) }]} note={tr("The POS account that changed the bill; a shared account is not one person.")} />
               : tab === "reason" ? <Bars rows={count((r) => r.reason ?? tr("No reason yet")).sort((x, y) => y.n - x.n)} />
               : tab === "hour" ? <Bars rows={count((r) => (r.time ? `${r.time.slice(0, 2)}:00` : "—")).sort((x, y) => (x.key < y.key ? -1 : 1))} />
               : <DataTable key={tab} cols={cols} rows={rows} loading={!data} rowKey={(r) => r.key} resetKey={key} initial={{ key: "at", dir: "desc" }} minWidth={1060} select={{ picked: pick, onChange: setPick, label: (r) => r.orderNo }}

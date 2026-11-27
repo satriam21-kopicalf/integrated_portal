@@ -96,25 +96,25 @@ export default function TicketDrawer({ id, topics, onClose, onSaved }: { id: num
     <Drawer open onClose={onClose} size="lg" icon={<MessageSquareText size={18} />} title={tr("Complaint #{0}", id)}
       description={t ? <span className="flex flex-wrap items-center gap-2"><Lozenge tone={STATUS_TONE[t.status]}>{STATUS_LABEL[t.status]()}</Lozenge>{t.outlet} · <Platform p={t.platform} /></span> : "…"}
       footer={<div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs text-[#626F86]">{f.status === "done" && todo.length ? tr("{0} left before done", todo.length) : t?.handledBy ? tr("Last handled by {0}", t.handledBy) : ""}</span>
+        <span className="text-xs text-[color:var(--j-626F86)]">{f.status === "done" && todo.length ? tr("{0} left before done", todo.length) : t?.handledBy ? tr("Last handled by {0}", t.handledBy) : ""}</span>
         <span className="flex gap-2"><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
           <Button loading={busy} disabled={!t || (f.status === "done" && todo.length > 0)} onClick={() => void save()}><Save size={14} />{tr("Save")}</Button></span></div>}>
-      {!t ? <p className="text-sm text-[#626F86]">…</p> : <>
+      {!t ? <p className="text-sm text-[color:var(--j-626F86)]">…</p> : <>
         <Group title={tr("The complaint")}>
-          <p className="whitespace-pre-line rounded-[3px] bg-[#F7F8F9] px-3 py-2.5 text-sm text-[#172B4D]">{t.detail}</p>
+          <p className="whitespace-pre-line rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-sm text-[color:var(--j-172B4D)]">{t.detail}</p>
           <Facts rows={[[tr("Outlet"), t.outlet], [tr("Platform"), <Platform key="p" p={t.platform} />], [tr("Date"), fmtDay(t.day)], [tr("Order no."), t.orderNo ?? "—"],
             [tr("Source"), SOURCE[t.source]?.() ?? t.source], ...(t.member ? [[tr("On duty"), t.member] as [string, string]] : [])]} />
         </Group>
         {t.review && <Group title={tr("The review")}>
-          <p className="flex items-center gap-1 text-sm font-semibold text-[#172B4D]">{[1, 2, 3, 4, 5].map((n) => <Star key={n} size={14} className={n <= t.review!.rating ? "fill-[#E2B203] text-[#E2B203]" : "text-[#DCDFE4]"} />)}<span className="ml-1">{t.review.rating}/5</span></p>
+          <p className="flex items-center gap-1 text-sm font-semibold text-[color:var(--j-172B4D)]">{[1, 2, 3, 4, 5].map((n) => <Star key={n} size={14} className={n <= t.review!.rating ? "fill-[#E2B203] text-[#E2B203]" : "text-[color:var(--j-DCDFE4)]"} />)}<span className="ml-1">{t.review.rating}/5</span></p>
           <Facts rows={[[tr("Customer"), t.review.customer ?? "—"], [tr("Item"), t.review.item ?? "—"], [tr("Order"), t.review.orderId ?? "—"], [tr("Time"), fmtStamp(t.review.at)],
-            [tr("Reply in the merchant app"), t.review.appReply ? <span key="r"><span className="block whitespace-pre-line">{t.review.appReply}</span><span className="text-xs text-[#626F86]">{fmtStamp(t.review.appReplyAt)}</span></span> : <span key="n" className="text-[#AE2E24]">{tr("not replied yet")}</span>]]} />
+            [tr("Reply in the merchant app"), t.review.appReply ? <span key="r"><span className="block whitespace-pre-line">{t.review.appReply}</span><span className="text-xs text-[color:var(--j-626F86)]">{fmtStamp(t.review.appReplyAt)}</span></span> : <span key="n" className="text-[color:var(--j-AE2E24)]">{tr("not replied yet")}</span>]]} />
           {t.review.appReply && f.replyText.trim() && t.review.appReply.trim() !== f.replyText.trim() && <SectionMessage tone="warning">{tr("The reply written here is not the one in the merchant app: check that the reply was sent as written.")}</SectionMessage>}
         </Group>}
         <Group title={tr("Handling")} note={tr("These details make the reports of the team and of the outlets comparable")}>
           <Row label={tr("Status")}><div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={tr("Status")}>{(["open", "progress", "done"] as Status[]).map((x) => (
             <button key={x} type="button" role="radio" aria-checked={f.status === x} onClick={() => set("status")(x)}
-              className={cx("h-11 rounded-[3px] border text-sm font-medium sm:h-8", f.status === x ? "border-[#0C66E4] bg-[#E9F2FF] text-[#0C66E4]" : "border-[#DCDFE4] text-[#44546F] hover:bg-[#F7F8F9]")}>{STATUS_LABEL[x]()}</button>))}</div></Row>
+              className={cx("h-11 rounded-[3px] border text-sm font-medium sm:h-8", f.status === x ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]")}>{STATUS_LABEL[x]()}</button>))}</div></Row>
           <div className="grid gap-3 sm:grid-cols-2">
             <Row label={tr("Action taken")} required={f.status === "done"}><JSelect label={tr("Action taken")} placeholder={tr("Choose")} value={f.action} onChange={set("action")} options={opts(ACTION)} /></Row>
             <Row label={tr("Root cause")} required={f.status === "done"}><JSelect label={tr("Root cause")} placeholder={tr("Choose")} value={f.rootCause} onChange={set("rootCause")} options={opts(CAUSE)} /></Row>
@@ -137,15 +137,15 @@ export default function TicketDrawer({ id, topics, onClose, onSaved }: { id: num
             <Button variant="secondary" disabled={busy || files.length >= 10} onClick={() => file.current?.click()}><Upload size={14} />{tr("Attach the file")}</Button>
             <input ref={file} type="file" accept="image/*,application/pdf" multiple className="sr-only" onChange={(e) => void upload(e.target.files)} />
           </div>
-          {files.length === 0 ? <p className="flex items-center gap-1.5 text-sm text-[#626F86]"><Paperclip size={14} />{tr("No evidence yet")}</p> : (
+          {files.length === 0 ? <p className="flex items-center gap-1.5 text-sm text-[color:var(--j-626F86)]"><Paperclip size={14} />{tr("No evidence yet")}</p> : (
             <ul className="grid gap-2 sm:grid-cols-2">{files.map((x) => (
-              <li key={x.id} className="flex gap-3 rounded-[3px] border border-[#DCDFE4] p-2">
-                <a href={`/api/aggregator/evidence/${x.id}`} target="_blank" rel="noreferrer" className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-[3px] bg-[#F7F8F9]">
+              <li key={x.id} className="flex gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-2">
+                <a href={`/api/aggregator/evidence/${x.id}`} target="_blank" rel="noreferrer" className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-[3px] bg-[color:var(--j-F7F8F9)]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  {x.mime.startsWith("image/") ? <img src={`/api/aggregator/evidence/${x.id}`} alt={EVIDENCE[x.kind]?.() ?? x.kind} loading="lazy" className="h-full w-full object-cover" /> : <FileText size={22} className="text-[#626F86]" />}
+                  {x.mime.startsWith("image/") ? <img src={`/api/aggregator/evidence/${x.id}`} alt={EVIDENCE[x.kind]?.() ?? x.kind} loading="lazy" className="h-full w-full object-cover" /> : <FileText size={22} className="text-[color:var(--j-626F86)]" />}
                 </a>
-                <span className="min-w-0 flex-1 text-xs"><span className="block font-semibold text-[#172B4D]">{EVIDENCE[x.kind]?.() ?? x.kind}</span>
-                  {x.note && <span className="block text-[#44546F]">{x.note}</span>}<span className="block text-[#626F86]">{x.by} · {fmtStamp(x.at)}</span></span>
+                <span className="min-w-0 flex-1 text-xs"><span className="block font-semibold text-[color:var(--j-172B4D)]">{EVIDENCE[x.kind]?.() ?? x.kind}</span>
+                  {x.note && <span className="block text-[color:var(--j-44546F)]">{x.note}</span>}<span className="block text-[color:var(--j-626F86)]">{x.by} · {fmtStamp(x.at)}</span></span>
                 <IconButton label={tr("Remove")} onClick={() => void remove(x.id)} disabled={busy}><Trash2 size={14} /></IconButton>
               </li>))}</ul>)}
         </Group>
@@ -153,15 +153,15 @@ export default function TicketDrawer({ id, topics, onClose, onSaved }: { id: num
         <Group title={tr("History")} note={tr("All times in WIB")}>
           <ol className="space-y-3">
             {(t.events ?? []).map((e, i) => (
-              <li key={i} className="flex gap-3"><span className={cx("mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full", e.to === "done" ? "bg-[#22A06B]" : "bg-[#0C66E4]")} aria-hidden />
-                <span className="min-w-0 flex-1 text-sm"><span className="block font-medium text-[#172B4D]">{
+              <li key={i} className="flex gap-3"><span className={cx("mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full", e.to === "done" ? "bg-[#22A06B]" : "bg-[color:var(--j-0C66E4)]")} aria-hidden />
+                <span className="min-w-0 flex-1 text-sm"><span className="block font-medium text-[color:var(--j-172B4D)]">{
                   e.kind === "CREATE" ? tr("Ticket made") : e.kind === "STATUS" ? tr("{0} → {1}", STATUS_LABEL[(e.from ?? "open") as Status](), STATUS_LABEL[(e.to ?? "open") as Status]()) :
                   e.kind === "EVIDENCE" ? tr("Evidence attached") : e.kind === "EVIDENCE_REMOVED" ? tr("Evidence removed") : tr("Handling updated")}</span>
-                  <span className="block text-xs text-[#626F86]">{e.by} · {fmtStamp(e.at)}{e.note ? ` · ${e.note}` : ""}</span></span></li>))}
-            {!(t.events ?? []).length && <li className="text-sm text-[#626F86]">{tr("Ticket made")} · {t.createdBy} · {fmtStamp(t.createdAt)}</li>}
+                  <span className="block text-xs text-[color:var(--j-626F86)]">{e.by} · {fmtStamp(e.at)}{e.note ? ` · ${e.note}` : ""}</span></span></li>))}
+            {!(t.events ?? []).length && <li className="text-sm text-[color:var(--j-626F86)]">{tr("Ticket made")} · {t.createdBy} · {fmtStamp(t.createdAt)}</li>}
           </ol>
           <Facts rows={[[tr("First response"), t.responseMin != null ? tr("after {0}", fmtSpan(t.responseMin)) : tr("not yet")], [tr("Resolved in"), t.resolveMin != null ? fmtSpan(t.resolveMin) : "—"]]} />
-          {t.status === "done" && <p className="flex items-center gap-1.5 text-xs text-[#216E4E]"><CheckCircle2 size={13} />{tr("Done {0}", fmtStamp(t.resolvedAt))}</p>}
+          {t.status === "done" && <p className="flex items-center gap-1.5 text-xs text-[color:var(--j-216E4E)]"><CheckCircle2 size={13} />{tr("Done {0}", fmtStamp(t.resolvedAt))}</p>}
         </Group>
       </>}
     </Drawer>

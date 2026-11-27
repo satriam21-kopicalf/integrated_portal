@@ -52,10 +52,10 @@ export default function HandleSchedule() {
   const memberOpts = members.map((m) => ({ value: m.id, label: m.name, hint: m.jobTitle ?? undefined }));
   const cols: Col<OutletRow>[] = [
     { key: "o", card: "title", label: tr("Outlet"), sort: (o) => o.branchName, render: (o) => <OutletCell name={o.branchName} code={o.branchCode} ctx={ctx} /> },
-    { key: "g", label: tr("Branch group"), sort: (o) => ctx?.outlets.find((x) => x.code === o.branchCode)?.group ?? "", className: "text-[#44546F]", render: (o) => ctx?.outlets.find((x) => x.code === o.branchCode)?.group ?? "—" },
-    { key: "m", label: tr("Handled by"), sort: (o) => o.slots[slot]?.name ?? "", render: (o) => { const x = o.slots[slot]; return x?.userId ? <span className="inline-flex flex-wrap items-center gap-2 font-medium text-[#172B4D]">{x.name}{x.source === "exception" && <Lozenge tone="violet" title={x.note ?? undefined}>{tr("This date only")}</Lozenge>}</span> : x?.source === "exception" ? <Lozenge tone="amber" title={x.note ?? undefined}>{tr("Nobody this date")}</Lozenge> : <span className="text-[#626F86]">{tr("Not handled")}</span>; } },
-    { key: "d", label: tr("Days"), className: "text-xs text-[#626F86]", render: (o) => { const x = o.slots[slot]; return x?.source === "template" ? (x.weekdays?.length ? x.weekdays.map((w) => WEEKDAYS()[w - 1]).join(", ") : tr("Every day")) : "—"; } },
-    { key: "x", label: "", right: true, render: (o) => <button type="button" className="whitespace-nowrap text-xs font-semibold text-[#0C66E4] hover:underline" onClick={(e) => { e.stopPropagation(); setExc(o); }}>{tr("Change this date")}</button> },
+    { key: "g", label: tr("Branch group"), sort: (o) => ctx?.outlets.find((x) => x.code === o.branchCode)?.group ?? "", className: "text-[color:var(--j-44546F)]", render: (o) => ctx?.outlets.find((x) => x.code === o.branchCode)?.group ?? "—" },
+    { key: "m", label: tr("Handled by"), sort: (o) => o.slots[slot]?.name ?? "", render: (o) => { const x = o.slots[slot]; return x?.userId ? <span className="inline-flex flex-wrap items-center gap-2 font-medium text-[color:var(--j-172B4D)]">{x.name}{x.source === "exception" && <Lozenge tone="violet" title={x.note ?? undefined}>{tr("This date only")}</Lozenge>}</span> : x?.source === "exception" ? <Lozenge tone="amber" title={x.note ?? undefined}>{tr("Nobody this date")}</Lozenge> : <span className="text-[color:var(--j-626F86)]">{tr("Not handled")}</span>; } },
+    { key: "d", label: tr("Days"), className: "text-xs text-[color:var(--j-626F86)]", render: (o) => { const x = o.slots[slot]; return x?.source === "template" ? (x.weekdays?.length ? x.weekdays.map((w) => WEEKDAYS()[w - 1]).join(", ") : tr("Every day")) : "—"; } },
+    { key: "x", label: "", right: true, render: (o) => <button type="button" className="whitespace-nowrap text-xs font-semibold text-[color:var(--j-0C66E4)] hover:underline" onClick={(e) => { e.stopPropagation(); setExc(o); }}>{tr("Change this date")}</button> },
   ];
   const filter = (
     <FilterBar a={a} ctx={ctx} period={false} platform={false} note={`${tr("The schedule of {0}", fmtDay(day))}${day === daysAgo(0) ? ` · ${tr("Today")}` : ""}`}
@@ -63,7 +63,7 @@ export default function HandleSchedule() {
         lead={<div className="flex items-center gap-2"><Button variant="secondary" className="!h-11 flex-shrink-0 px-3 sm:!h-10" aria-label={tr("The day before")} onClick={() => setDay(step(day, -1))}><ChevronLeft size={16} /></Button>
           <div className="min-w-0 flex-1"><DateField label={tr("Date of the schedule")} value={day} onChange={setDay} /></div><Button variant="secondary" className="!h-11 flex-shrink-0 px-3 sm:!h-10" aria-label={tr("The day after")} onClick={() => setDay(step(day, 1))}><ChevronRight size={16} /></Button></div>} q={q} onQ={setQ} placeholder={tr("Search outlet or member")}><QuickChips<typeof only> value={only} onChange={setOnly} label={tr("Filter")} items={[{ key: "all", label: tr("All"), count: n("all") }, { key: "none", label: tr("Not handled"), dot: "bg-amber-400", count: n("none") }, { key: "handled", label: tr("Handled"), dot: "bg-emerald-500", count: n("handled") }, { key: "exc", label: tr("This date only"), count: n("exc") }]} /></FilterBar>
   );
-  const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
+  const card = <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">{filter}</section>;
   return (
     <Page title={tr("Handle Schedule")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Which member of the Aggregator team works on which outlet")} media={<CalendarDays size={19} />}
       actions={<Button size="sm" disabled={sel.size === 0} onClick={() => setAssignOpen(true)}><UserRoundCheck size={14} /> {tr("Assign {0} outlets", sel.size)}</Button>}>
@@ -110,10 +110,10 @@ function AssignDrawer({ codes, slot, day, members, onClose, onDone }: {
         <Row label={tr("Working days")} hint={tr("None chosen = every day")}>
           <div className="grid grid-cols-7 gap-1.5">{WEEKDAYS().map((w, i) => (
             <button key={w} type="button" aria-pressed={days.includes(i + 1)} onClick={() => setDays((d) => d.includes(i + 1) ? d.filter((x) => x !== i + 1) : [...d, i + 1])}
-              className={cx("h-11 rounded-[3px] border text-[13px] font-medium sm:h-10", days.includes(i + 1) ? "border-[#0C66E4] bg-[#0C66E4] text-white" : "border-[#DCDFE4] text-[#44546F] hover:bg-[#F7F8F9]")}>{w}</button>))}</div></Row>
+              className={cx("h-11 rounded-[3px] border text-[13px] font-medium sm:h-10", days.includes(i + 1) ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]")}>{w}</button>))}</div></Row>
         <Row label={tr("Starts on")} required><DateField label={tr("Starts on")} value={from} onChange={setFrom} /></Row>
         {err && <p className="text-sm text-red-600">{err}</p>}
-        <div className="rounded-[3px] border border-[#DCDFE4] p-3"><p className="text-sm font-medium text-[#172B4D]">{tr("Nobody handles them any more?")}</p><p className="mb-2.5 mt-0.5 text-xs text-[#626F86]">{tr("Takes the member off these outlets from the date above.")}</p><Button variant="secondary" className="w-full text-red-700 sm:w-auto" disabled={busy} onClick={() => save(true)}>{tr("Remove from these outlets")}</Button></div>
+        <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3"><p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Nobody handles them any more?")}</p><p className="mb-2.5 mt-0.5 text-xs text-[color:var(--j-626F86)]">{tr("Takes the member off these outlets from the date above.")}</p><Button variant="secondary" className="w-full text-red-700 sm:w-auto" disabled={busy} onClick={() => save(true)}>{tr("Remove from these outlets")}</Button></div>
       </div>
     </Drawer>
   );

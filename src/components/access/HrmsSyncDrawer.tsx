@@ -8,7 +8,7 @@ import { Link2, Loader2, RefreshCw, Search } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pill, type PillTone } from '@/jira/kc';
 import { buttonPrimary, buttonSecondary, inputClass } from '@/jira/kc';
-import Drawer from '@/jira';
+import Drawer, { QuickChips, SectionMessage } from '@/jira';
 import { serverMsg, tr } from '@/lib/i18n';
 
 type Emp = { id: string; employeeNo: string | null; name: string; email: string | null; status: string | null; jobTitle: string | null; department: string | null };
@@ -36,11 +36,11 @@ async function call<T>(url: string, init?: RequestInit): Promise<T> {
 const same = (a: string | null, b: string | null) => (a ?? '') === (b ?? '');
 
 function Values({ title, dept, other }: { title: string | null; dept: string | null; other?: Row }) {
-  const cls = (changed: boolean) => (changed ? 'font-medium text-[#0C66E4]' : 'text-[#44546F]');
+  const cls = (changed: boolean) => (changed ? 'font-medium text-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-44546F)]');
   return (
     <div className="text-xs leading-5">
       <p className={cls(!!other && !same(title, other.jobTitle))}>{title || '—'}</p>
-      <p className={`${cls(!!other && !same(dept, other.department))} text-[#626F86]`}>{dept || '—'}</p>
+      <p className={`${cls(!!other && !same(dept, other.department))} text-[color:var(--j-626F86)]`}>{dept || '—'}</p>
     </div>
   );
 }
@@ -64,24 +64,24 @@ function LinkPicker({ row, onLinked }: { row: Row; onLinked: (msg: string) => vo
     } catch (e) { setError((e as Error).message); setBusy(false); }
   };
   return (
-    <div className="mt-2 space-y-2 rounded-[3px] border border-[#DCDFE4] bg-[#F7F8F9] p-2">
+    <div className="mt-2 space-y-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] p-2">
       <div className="flex gap-2">
-        <input className={`${inputClass} h-8 text-xs`} value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void find(); }}
+        <input className={inputClass} value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void find(); }}
           placeholder={tr('Name, email or employee no.')} aria-label={tr('Search HRMS employee')} />
         <button type="button" className={buttonSecondary} onClick={find} disabled={busy} aria-label={tr('Search')}><Search size={14} /></button>
       </div>
       {error && <p className="text-xs text-red-600">{error}</p>}
-      <ul className="max-h-48 divide-y divide-[#DCDFE4] overflow-y-auto">
+      <ul className="max-h-48 divide-y divide-[color:var(--j-DCDFE4)] overflow-y-auto">
         {hits.map(e => (
-          <li key={e.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
+          <li key={e.id} className="flex items-center justify-between gap-3 py-2 text-xs">
             <span className="min-w-0">
-              <span className="font-medium text-[#172B4D]">{e.name}</span> <span className="text-[#626F86]">{e.employeeNo ?? ''} · {e.status ?? ''}</span>
-              <span className="block truncate text-[#626F86]">{e.jobTitle || '—'} · {e.department || '—'}</span>
+              <span className="font-medium text-[color:var(--j-172B4D)]">{e.name}</span> <span className="text-[color:var(--j-626F86)]">{e.employeeNo ?? ''} · {e.status ?? ''}</span>
+              <span className="block truncate text-[color:var(--j-626F86)]">{e.jobTitle || '—'} · {e.department || '—'}</span>
             </span>
             <button type="button" className={buttonSecondary} disabled={busy} onClick={() => link(e)}>{tr('Link')}</button>
           </li>
         ))}
-        {!hits.length && <li className="py-1.5 text-xs text-[#626F86]">{tr('Search an employee to link')}</li>}
+        {!hits.length && <li className="py-1.5 text-xs text-[color:var(--j-626F86)]">{tr('Search an employee to link')}</li>}
       </ul>
     </div>
   );
@@ -91,26 +91,27 @@ function SyncRow({ row, onApply, onLinked, busy }: { row: Row; onApply: () => vo
   const [picking, setPicking] = useState(false);
   const [label, tone] = MATCH[row.match];
   return (
-    <li className="py-3">
-      <div className="flex items-start justify-between gap-2">
+    <li className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
+      {/* 2026-11-27 phones: the name over the whole width, the labels on their own line */}
+      <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-[#172B4D]">{row.name || row.username}</p>
-          <p className="truncate text-xs text-[#626F86]">{row.username}{row.employee && ` → ${row.employee.name} (${row.employee.employeeNo ?? '-'})`}</p>
+          <p className="break-words text-sm font-semibold text-[color:var(--j-172B4D)]">{row.name || row.username}</p>
+          <p className="break-words text-xs text-[color:var(--j-626F86)]">@{row.username}{row.employee && <> → <span className="text-[color:var(--j-44546F)]">{row.employee.name}</span> ({row.employee.employeeNo ?? '-'})</>}</p>
         </div>
-        <div className="flex flex-shrink-0 flex-wrap justify-end gap-1">
+        <div className="flex flex-wrap gap-1 sm:flex-shrink-0 sm:justify-end">
           {row.businessLine && <Pill tone="gray">{LINE[row.businessLine] ?? row.businessLine}</Pill>}
           <Pill tone={tone}>{tr(label)}</Pill>
           {row.employeeLeft && <Pill tone="red">{tr('Left in HRMS')}</Pill>}
         </div>
       </div>
       {row.employee && (
-        <div className="mt-2 grid grid-cols-2 gap-3 rounded-[3px] bg-[#F7F8F9] p-2">
-          <div><p className="text-xs capitalize text-[#626F86]">{tr('Portal now')}</p><Values title={row.jobTitle} dept={row.department} /></div>
-          <div><p className="text-xs capitalize text-[#626F86]">{tr('HRMS')}</p><Values title={row.employee.jobTitle} dept={row.employee.department} other={row} /></div>
+        <div className="mt-2.5 grid grid-cols-2 gap-3 rounded-[3px] bg-[color:var(--j-F7F8F9)] p-2.5">
+          <div><p className="text-xs font-semibold text-[color:var(--j-626F86)]">{tr('Portal now')}</p><Values title={row.jobTitle} dept={row.department} /></div>
+          <div><p className="text-xs font-semibold text-[color:var(--j-626F86)]">{tr('HRMS')}</p><Values title={row.employee.jobTitle} dept={row.employee.department} other={row} /></div>
         </div>
       )}
-      <div className="mt-2 flex flex-wrap gap-2">
-        {row.employee && row.changes && <button type="button" className={buttonSecondary} disabled={busy} onClick={onApply}>{tr('Apply HRMS values')}</button>}
+      <div className="mt-2.5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+        {row.employee && row.changes && <button type="button" className={buttonPrimary} disabled={busy} onClick={onApply}>{tr('Apply HRMS values')}</button>}
         <button type="button" className={buttonSecondary} onClick={() => setPicking(p => !p)}><Link2 size={14} /> {row.employee ? tr('Change link') : tr('Link employee')}</button>
       </div>
       {picking && <LinkPicker row={row} onLinked={m => { setPicking(false); onLinked(m); }} />}
@@ -159,21 +160,14 @@ export default function HrmsSyncDrawer({ onClose, onChanged }: { onClose: () => 
           {busy && <Loader2 size={14} className="animate-spin" />} {tr('Apply all ({0})', counts.changes)}
         </button>
       </>}>
-      <div role="tablist" aria-label={tr('Filter')} className="mb-3 flex flex-wrap gap-1.5">
-        {tabs.map(([k, l]) => (
-          <button key={k} type="button" role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}
-            className={`rounded-full border px-3 py-1 text-xs ${filter === k ? 'border-[#0C66E4] bg-[#E9F2FF] text-[#0C66E4]' : 'border-[#DCDFE4] text-[#44546F]'}`}>
-            {tr(l)} · {counts[k]}
-          </button>
-        ))}
-      </div>
-      {note && <p className="mb-2 rounded-[3px] bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{note}</p>}
-      {error && <p className="mb-2 rounded-[3px] bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
-      {!rows && !error && <p className="flex items-center gap-2 text-sm text-[#626F86]"><Loader2 size={14} className="animate-spin" /> {tr('Loading')}</p>}
-      <ul className="divide-y divide-[#F1F2F4]">
+      <div className="mb-3"><QuickChips<Filter> value={filter} onChange={setFilter} label={tr('Filter')} items={tabs.map(([k, l]) => ({ key: k, label: tr(l), count: rows ? counts[k] : null }))} /></div>
+      {note && <div className="mb-3"><SectionMessage tone="success">{note}</SectionMessage></div>}
+      {error && <div className="mb-3"><SectionMessage tone="error">{error}</SectionMessage></div>}
+      {!rows && !error && <p className="flex items-center gap-2 text-sm text-[color:var(--j-626F86)]"><Loader2 size={14} className="animate-spin" /> {tr('Loading')}</p>}
+      <ul className="space-y-2">
         {shown.map(r => <SyncRow key={r.id} row={r} busy={busy} onApply={() => void apply([r.id])} onLinked={m => { setNote(m); onChanged(); void load(); }} />)}
       </ul>
-      {rows && !shown.length && <p className="py-6 text-center text-sm text-[#626F86]">{tr('Nothing here')}</p>}
+      {rows && !shown.length && <p className="py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('Nothing here')}</p>}
     </Drawer>
   );
 }

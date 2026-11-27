@@ -67,31 +67,31 @@ export function EmployeePicker({ value, onPick, inputClass }: { value: CotrEmplo
   }, [q, open]);
   if (value && !open) {
     return (
-      <div className="flex items-center gap-3 rounded-[3px] border border-[#DCDFE4] bg-[#F7F8F9] px-3 py-2.5">
-        <UserRound size={18} className="text-[#626F86]" />
+      <div className="flex items-center gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2.5">
+        <UserRound size={18} className="text-[color:var(--j-626F86)]" />
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-[#172B4D]">{value.name}{value.nickname ? ` (${value.nickname})` : ''}</span>
-          <span className="block text-xs text-[#626F86]">{[value.code, value.poolName, value.department, value.position].filter(Boolean).join(' · ')}</span>
+          <span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{value.name}{value.nickname ? ` (${value.nickname})` : ''}</span>
+          <span className="block text-xs text-[color:var(--j-626F86)]">{[value.code, value.poolName, value.department, value.position].filter(Boolean).join(' · ')}</span>
         </span>
-        <button type="button" className="text-xs font-medium text-[#0C66E4] hover:underline" onClick={() => setOpen(true)}>{tr('Change')}</button>
+        <button type="button" className="text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline" onClick={() => setOpen(true)}>{tr('Change')}</button>
       </div>
     );
   }
   return (
     <div className="space-y-2">
       <label className="relative block">
-        <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#626F86]" />
+        <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
         <input className={`${inputClass} pl-8`} value={q} autoFocus onChange={e => setQ(e.target.value)} placeholder={tr('Search name, nickname or employee code')} />
       </label>
-      <ul className="max-h-64 divide-y divide-[#F1F2F4] overflow-auto rounded-[3px] border border-[#DCDFE4]">
-        {rows === null ? <li className="px-3 py-3 text-sm text-[#626F86]">{tr('Loading…')}</li> : rows.length === 0 ? (
-          <li className="px-3 py-3 text-sm text-[#626F86]">{tr('No employee found: add them in Master Driver first')}</li>
+      <ul className="max-h-64 divide-y divide-[color:var(--j-F1F2F4)] overflow-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+        {rows === null ? <li className="px-3 py-3 text-sm text-[color:var(--j-626F86)]">{tr('Loading…')}</li> : rows.length === 0 ? (
+          <li className="px-3 py-3 text-sm text-[color:var(--j-626F86)]">{tr('No employee found: add them in Master Driver first')}</li>
         ) : rows.map(e => (
           <li key={e.code}>
-            <button type="button" onClick={() => { onPick(e); setOpen(false); }} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[#F7F8F9]">
+            <button type="button" onClick={() => { onPick(e); setOpen(false); }} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-[color:var(--j-F7F8F9)]">
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium text-[#172B4D]">{e.name}{e.nickname ? ` (${e.nickname})` : ''}</span>
-                <span className="block text-xs text-[#626F86]">{[e.code, e.poolName, e.department].filter(Boolean).join(' · ')}</span>
+                <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{e.name}{e.nickname ? ` (${e.nickname})` : ''}</span>
+                <span className="block text-xs text-[color:var(--j-626F86)]">{[e.code, e.poolName, e.department].filter(Boolean).join(' · ')}</span>
               </span>
               {e.username && <span className="flex-shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-700">{tr('has {0}', e.username)}</span>}
             </button>

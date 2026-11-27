@@ -53,13 +53,13 @@ export default function HrmsEmployeePicker({ linked, picked, onPick, onUnlink, i
   return (
     <div className="space-y-2">
       {(picked || linked) && (
-        <div className="flex items-start justify-between gap-2 rounded-[3px] border border-[#85B8FF] bg-[#E9F2FF] px-3 py-2 text-xs">
+        <div className="flex items-start justify-between gap-2 rounded-[3px] border border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs">
           <span className="min-w-0">
-            <span className="font-medium text-[#172B4D]">{picked ? `${picked.name} (${picked.employeeNo ?? '-'})` : tr('Linked to HRMS')}</span>
-            {picked && <span className="block text-[#44546F]">{picked.jobTitle || '—'} · {picked.department || '—'}{picked.site ? ` · ${picked.site}` : ''}</span>}
-            {picked?.joinDate && <span className="block text-[#626F86]">{tr('Joined {0}', picked.joinDate)} · {picked.status ?? ''}</span>}
+            <span className="font-medium text-[color:var(--j-172B4D)]">{picked ? `${picked.name} (${picked.employeeNo ?? '-'})` : tr('Linked to HRMS')}</span>
+            {picked && <span className="block text-[color:var(--j-44546F)]">{picked.jobTitle || '—'} · {picked.department || '—'}{picked.site ? ` · ${picked.site}` : ''}</span>}
+            {picked?.joinDate && <span className="block text-[color:var(--j-626F86)]">{tr('Joined {0}', picked.joinDate)} · {picked.status ?? ''}</span>}
           </span>
-          <button type="button" className="text-[#626F86] hover:text-red-600" onClick={onUnlink} aria-label={tr('Unlink HRMS employee')}><Link2Off size={14} /></button>
+          <button type="button" className="text-[color:var(--j-626F86)] hover:text-red-600" onClick={onUnlink} aria-label={tr('Unlink HRMS employee')}><Link2Off size={14} /></button>
         </div>
       )}
       <div className="flex gap-2">
@@ -71,16 +71,16 @@ export default function HrmsEmployeePicker({ linked, picked, onPick, onUnlink, i
       </div>
       {(problem || error) && <p className="text-xs text-red-600">{problem || error}</p>}
       {hits && (
-        <ul className="max-h-52 divide-y divide-[#F1F2F4] overflow-y-auto rounded-[3px] border border-[#DCDFE4]">
+        <ul className="max-h-52 divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           {hits.map(e => (
             <li key={e.id}>
-              <button type="button" className="w-full px-3 py-2 text-left text-xs hover:bg-[#F7F8F9]" onClick={() => { onPick(e); setHits(null); }}>
-                <span className="font-medium text-[#172B4D]">{e.name}</span> <span className="text-[#626F86]">{e.employeeNo ?? ''} · {e.status ?? ''}</span>
-                <span className="block truncate text-[#626F86]">{e.jobTitle || '—'} · {e.department || '—'}</span>
+              <button type="button" className="w-full px-3 py-2 text-left text-xs hover:bg-[color:var(--j-F7F8F9)]" onClick={() => { onPick(e); setHits(null); }}>
+                <span className="font-medium text-[color:var(--j-172B4D)]">{e.name}</span> <span className="text-[color:var(--j-626F86)]">{e.employeeNo ?? ''} · {e.status ?? ''}</span>
+                <span className="block truncate text-[color:var(--j-626F86)]">{e.jobTitle || '—'} · {e.department || '—'}</span>
               </button>
             </li>
           ))}
-          {!hits.length && <li className="px-3 py-2 text-xs text-[#626F86]">{tr('No employee found')}</li>}
+          {!hits.length && <li className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{tr('No employee found')}</li>}
         </ul>
       )}
     </div>

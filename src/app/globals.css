@@ -207,3 +207,81 @@ html.dark input[type='date']::-webkit-calendar-picker-indicator {
 /* The Calf mark of the number cards (components/kc Stat / StatCard) is the Kopi Calf brand: not on the pages of
    Calf On The Road (html.brand-cotr, src/cotr/theme.ts). */
 html.brand-cotr .kc-mark { display: none; }
+
+/* The Jira look (src/jira, 2026-11-27): its Atlassian colours as variables, the dark ones from the ADS dark theme, so the
+   pages in the Jira look follow html.dark as the rest of the app (classes use them as text-[color:var(--j-172B4D)] …). */
+:root {
+  --j-172B4D: #172B4D;
+  --j-44546F: #44546F;
+  --j-626F86: #626F86;
+  --j-8590A2: #8590A2;
+  --j-DCDFE4: #DCDFE4;
+  --j-F1F2F4: #F1F2F4;
+  --j-F7F8F9: #F7F8F9;
+  --j-0C66E4: #0C66E4;
+  --j-0055CC: #0055CC;
+  --j-388BFF: #388BFF;
+  --j-E9F2FF: #E9F2FF;
+  --j-CCE0FF: #CCE0FF;
+  --j-85B8FF: #85B8FF;
+  --j-091E420F: #091E420F;
+  --j-091E4224: #091E4224;
+  --j-091E424F: #091E424F;
+  --j-091E427D: #091E427D;
+  --j-091E4208: #091E4208;
+  --j-AE2E24: #AE2E24;
+  --j-C9372C: #C9372C;
+  --j-FFECEB: #FFECEB;
+  --j-FFD5D2: #FFD5D2;
+  --j-FD9891: #FD9891;
+  --j-7F5F01: #7F5F01;
+  --j-F8E6A0: #F8E6A0;
+  --j-F5CD47: #F5CD47;
+  --j-FFF7D6: #FFF7D6;
+  --j-216E4E: #216E4E;
+  --j-BAF3DB: #BAF3DB;
+  --j-DCFFF1: #DCFFF1;
+  --j-5E4DB2: #5E4DB2;
+  --j-DFD8FD: #DFD8FD;
+  --j-206A83: #206A83;
+  --j-C6EDFB: #C6EDFB;
+}
+html.dark {
+  --j-172B4D: #B6C2CF;
+  --j-44546F: #9FADBC;
+  --j-626F86: #8C9BAB;
+  --j-8590A2: #738496;
+  --j-DCDFE4: #38414A;
+  --j-F1F2F4: #2C333A;
+  --j-F7F8F9: #22272B;
+  --j-0C66E4: #579DFF;
+  --j-0055CC: #85B8FF;
+  --j-388BFF: #85B8FF;
+  --j-E9F2FF: #1C2B41;
+  --j-CCE0FF: #09326C;
+  --j-85B8FF: #0055CC;
+  --j-091E420F: #A1BDD914;
+  --j-091E4224: #A6C5E229;
+  --j-091E424F: #BFDBF847;
+  --j-091E427D: #10121499;
+  --j-091E4208: #BCD6F00A;
+  --j-AE2E24: #FD9891;
+  --j-C9372C: #F87168;
+  --j-FFECEB: #42221F;
+  --j-FFD5D2: #5D1F1A;
+  --j-FD9891: #AE2E24;
+  --j-7F5F01: #F5CD47;
+  --j-F8E6A0: #533F04;
+  --j-F5CD47: #7F5F01;
+  --j-FFF7D6: #332E1B;
+  --j-216E4E: #7EE2B8;
+  --j-BAF3DB: #164B35;
+  --j-DCFFF1: #1C3329;
+  --j-5E4DB2: #B8ACF6;
+  --j-DFD8FD: #352C63;
+  --j-206A83: #9DD9EE;
+  --j-C6EDFB: #164555;
+}
+/* dark: the brand-blue buttons and badges carry dark text (ADS: text.inverse on the bold blue) */
+html.dark .bg-\[color\:var\(--j-0C66E4\)\].text-white,
+html.dark .bg-\[color\:var\(--j-C9372C\)\].text-white { color: #1D2125; }

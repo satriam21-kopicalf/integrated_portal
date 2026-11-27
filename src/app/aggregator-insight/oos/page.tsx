@@ -56,16 +56,16 @@ export default function OutOfStock() {
   const O = (r: { outlet: string; branchCode: string | null }) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} />;
   const nowCols: Col<Now>[] = [
     { key: "outlet", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: O }, { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "item", card: "title", label: tr("Item"), sort: (r) => r.item, className: "text-[#172B4D]", render: (r) => r.item }, { key: "category", label: tr("Category"), sort: (r) => r.category, className: "text-xs text-[#626F86]", render: (r) => r.category },
-    { key: "since", label: tr("Out since (WIB)"), sort: (r) => r.since, className: "whitespace-nowrap", render: (r) => <>{fmtStamp(r.since).replace(" WIB", "")}<span className="block text-[11px] text-[#626F86]">{ago(r.since)}</span></> },
+    { key: "item", card: "title", label: tr("Item"), sort: (r) => r.item, className: "text-[color:var(--j-172B4D)]", render: (r) => r.item }, { key: "category", label: tr("Category"), sort: (r) => r.category, className: "text-xs text-[color:var(--j-626F86)]", render: (r) => r.category },
+    { key: "since", label: tr("Out since (WIB)"), sort: (r) => r.since, className: "whitespace-nowrap", render: (r) => <>{fmtStamp(r.since).replace(" WIB", "")}<span className="block text-[11px] text-[color:var(--j-626F86)]">{ago(r.since)}</span></> },
   ];
   const perCols: Col<Per>[] = [
     { key: "outlet", card: "wide", label: tr("Outlet"), sort: (r) => r.outlet, render: O }, { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "item", card: "title", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="text-[#172B4D]">{r.item}</span><span className="block text-[11px] text-[#626F86]">{r.category}</span></> },
+    { key: "item", card: "title", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="text-[color:var(--j-172B4D)]">{r.item}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{r.category}</span></> },
     { key: "times", label: tr("Times out"), sort: (r) => r.times, first: "desc", right: true, render: (r) => `${nf(r.times)}×` },
-    { key: "minutes", card: "side", label: tr("Time out"), sort: (r) => r.minutes, first: "desc", right: true, render: (r) => <span className="whitespace-nowrap">{fmtSpan(r.minutes)}<span className="block text-[11px] text-[#626F86]">{r.hoursKnown ? tr("opening hours") : tr("day and night")}</span></span> },
+    { key: "minutes", card: "side", label: tr("Time out"), sort: (r) => r.minutes, first: "desc", right: true, render: (r) => <span className="whitespace-nowrap">{fmtSpan(r.minutes)}<span className="block text-[11px] text-[color:var(--j-626F86)]">{r.hoursKnown ? tr("opening hours") : tr("day and night")}</span></span> },
     { key: "last", label: tr("Last out (WIB)"), sort: (r) => r.last, first: "desc", className: "whitespace-nowrap", render: (r) => <>{r.last ? fmtStamp(r.last).replace(" WIB", "") : "—"}{r.stillOut && <span className="ml-1.5"><Lozenge tone="red">{tr("Still out")}</Lozenge></span>}</> },
-    { key: "remarks", label: tr("Remarks"), className: "text-xs text-[#626F86]", hide: !per.some((r) => r.remarks), render: (r) => r.remarks },
+    { key: "remarks", label: tr("Remarks"), className: "text-xs text-[color:var(--j-626F86)]", hide: !per.some((r) => r.remarks), render: (r) => r.remarks },
   ];
   const exportXlsx = async () => {
     if (!data) return;
@@ -80,10 +80,10 @@ export default function OutOfStock() {
     } catch (e) { toast((e as Error).message, "error"); }
   };
   const filter = (
-    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, item or category")} excel={() => void exportXlsx()} excelOff={!data} more={<label className="flex min-h-11 items-center gap-2.5 text-sm text-[#44546F]"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label>}>{tab !== "period" && <QuickChips<"period" | "all"> value={only} onChange={setOnly} label={tr("Out since")} items={[{ key: "period", label: tr("Went out in the period"), dot: "bg-red-500", count: nowAll.filter(inPeriod).length }, { key: "all", label: tr("All still out"), count: nowAll.length }]} />}
+    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, item or category")} excel={() => void exportXlsx()} excelOff={!data} more={<label className="flex min-h-11 items-center gap-2.5 text-sm text-[color:var(--j-44546F)]"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label>}>{tab !== "period" && <QuickChips<"period" | "all"> value={only} onChange={setOnly} label={tr("Out since")} items={[{ key: "period", label: tr("Went out in the period"), dot: "bg-red-500", count: nowAll.filter(inPeriod).length }, { key: "all", label: tr("All still out"), count: nowAll.length }]} />}
 </FilterBar>
   );
-  const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
+  const card = <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">{filter}</section>;
   return (
     <Page title={tr("Out of Stock")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Items out of stock on the delivery apps, per outlet, platform and category")} media={<Package size={19} />}>
       <FreshLine ctx={ctx} sources={["menu", "status"]} />
@@ -100,7 +100,7 @@ export default function OutOfStock() {
             {tab === "category" ? <Bars rows={group((r) => r.category)} onPick={(k) => { setCat(k); setTab("now"); }} empty={tr("Nothing out of stock")} />
               : tab === "outlet" ? <Bars rows={group((r) => r.outlet)} onPick={(k) => { setQ(k); setTab("now"); }} empty={tr("Nothing out of stock")} />
               : tab === "item" ? <DataTable key={tab} rows={items} loading={!data} rowKey={(r) => r.item} resetKey={key} initial={{ key: "n", dir: "desc" }} minWidth={620} empty={tr("Nothing out of stock")} onRow={(r) => { setQ(r.item); setTab("now"); }} note={tr("The situation now.")}
-                cols={[{ key: "i", card: "title", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="font-medium text-[#172B4D]">{r.item}</span><span className="block text-[11px] text-[#626F86]">{r.category}</span></> }, { key: "n", label: tr("Outlets"), sort: (r) => r.outlets, first: "desc", right: true, render: (r) => nf(r.outlets) }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{r.platforms.map((p) => <Platform key={p} p={p} />)}</span> }]} />
+                cols={[{ key: "i", card: "title", label: tr("Item"), sort: (r) => r.item, render: (r) => <><span className="font-medium text-[color:var(--j-172B4D)]">{r.item}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{r.category}</span></> }, { key: "n", label: tr("Outlets"), sort: (r) => r.outlets, first: "desc", right: true, render: (r) => nf(r.outlets) }, { key: "p", label: tr("Platform"), render: (r) => <span className="flex flex-wrap gap-3">{r.platforms.map((p) => <Platform key={p} p={p} />)}</span> }]} />
               : tab === "now" ? <DataTable key={tab} cols={nowCols} rows={now} loading={!data} rowKey={(r) => `${r.outlet}${r.platform}${r.item}${r.category}`} resetKey={key} initial={{ key: "since", dir: "desc" }} empty={tr("Nothing out of stock")}
                 note={s ? tr("{0} items inactive for over {1} days are left out: switched off, not out of stock.", nf(s.inactiveLong), s.staleDays) : undefined} />
               : <DataTable key={tab} cols={perCols} rows={per} loading={!data} rowKey={(r) => `${r.outlet}${r.platform}${r.item}`} resetKey={key} initial={{ key: "minutes", dir: "desc" }} minWidth={940}

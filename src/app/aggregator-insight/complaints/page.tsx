@@ -53,14 +53,14 @@ export default function Complaints() {
   const comp = scoped.reduce((x, r) => x + (r.compensation ?? 0), 0);
   const ok = !!data;
   const cols: Col<Row>[] = [
-    { key: "id", label: "#", sort: (r) => r.id, first: "desc", className: "font-semibold text-[#0C66E4]", render: (r) => r.id },
-    { key: "day", label: tr("Date"), sort: (r) => r.day, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-[#626F86]" title={fmtStamp(r.createdAt)}>{tr("ticket {0}", ago(r.createdAt))}</span></> },
+    { key: "id", label: "#", sort: (r) => r.id, first: "desc", className: "font-semibold text-[color:var(--j-0C66E4)]", render: (r) => r.id },
+    { key: "day", label: tr("Date"), sort: (r) => r.day, first: "desc", className: "whitespace-nowrap", render: (r) => <>{fmtDay(r.day)}<span className="block text-[11px] text-[color:var(--j-626F86)]" title={fmtStamp(r.createdAt)}>{tr("ticket {0}", ago(r.createdAt))}</span></> },
     { key: "outlet", card: "title", label: tr("Outlet"), sort: (r) => r.outlet, render: (r) => <OutletCell name={r.outlet} code={r.branchCode} ctx={ctx} /> },
     { key: "platform", label: tr("Platform"), sort: (r) => r.platform, render: (r) => <Platform p={r.platform} /> },
-    { key: "detail", card: "wide", label: tr("Complaint"), className: "max-w-[26rem]", render: (r) => <><span className="line-clamp-3 text-[#172B4D]">{r.detail}</span><span className="block text-[11px] text-[#626F86]">{r.category} · {SOURCE[r.source]?.() ?? r.source}{r.orderNo ? ` · ${r.orderNo}` : ""}</span>{r.resolution && <span className="block text-[11px] text-emerald-700">{r.resolution}</span>}</> },
+    { key: "detail", card: "wide", label: tr("Complaint"), className: "max-w-[26rem]", render: (r) => <><span className="line-clamp-3 text-[color:var(--j-172B4D)]">{r.detail}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{r.category} · {SOURCE[r.source]?.() ?? r.source}{r.orderNo ? ` · ${r.orderNo}` : ""}</span>{r.resolution && <span className="block text-[11px] text-emerald-700">{r.resolution}</span>}</> },
     { key: "status", card: "side", label: tr("Status"), sort: (r) => ["open", "progress", "done"].indexOf(r.status), render: (r) => <Lozenge tone={TONE[r.status]}>{LABEL[r.status]()}</Lozenge> },
     { key: "resp", label: tr("First response"), sort: (r) => r.responseMin, right: true, className: "whitespace-nowrap", render: (r) => r.responseMin != null ? fmtSpan(r.responseMin) : <span className="text-red-700">{tr("not yet")}</span> },
-    { key: "ev", label: tr("Evidence"), sort: (r) => r.evidence ?? 0, right: true, render: (r) => r.evidence ? <span className="inline-flex items-center gap-1 text-[#44546F]">{nf(r.evidence)}</span> : <span className="text-[#626F86]">—</span> },
+    { key: "ev", label: tr("Evidence"), sort: (r) => r.evidence ?? 0, right: true, render: (r) => r.evidence ? <span className="inline-flex items-center gap-1 text-[color:var(--j-44546F)]">{nf(r.evidence)}</span> : <span className="text-[color:var(--j-626F86)]">—</span> },
     { key: "reso", label: tr("Resolved in"), sort: (r) => r.resolveMin, right: true, className: "whitespace-nowrap", render: (r) => fmtSpan(r.resolveMin) },
     { key: "comp", label: tr("Compensation"), sort: (r) => r.compensation, first: "desc", right: true, hide: !scoped.some((r) => r.compensation), className: "whitespace-nowrap", render: (r) => rp(r.compensation) },
     { key: "member", label: tr("On duty"), sort: (r) => r.member, hide: noMembers(scoped), render: (r) => r.member ?? "—" },
@@ -80,7 +80,7 @@ export default function Complaints() {
     <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: (data?.topics ?? []).map((c) => ({ value: c, label: c })) },
         { key: "source", label: tr("Source"), value: source, onChange: setSource, options: Object.entries(SOURCE).map(([value, l]) => ({ value, label: l() })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, order or complaint")} excel={() => void exportXlsx()} excelOff={!data}><QuickChips<Status | "all"> value={only} onChange={setOnly} label={tr("Status")} items={[{ key: "open", label: LABEL.open(), dot: "bg-red-500", count: n("open") }, { key: "progress", label: LABEL.progress(), dot: "bg-amber-400", count: n("progress") }, { key: "done", label: LABEL.done(), dot: "bg-emerald-500", count: n("done") }, { key: "all", label: tr("All"), count: scoped.length }]} /></FilterBar>
   );
-  const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
+  const card = <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">{filter}</section>;
   return (
     <Page title={tr("Complaints")} eyebrow={tr("Aggregator Insight")} subtitle={tr("Tickets from low reviews, chat and the delivery apps, with response and resolution times")} media={<MessageSquareText size={19} />}
       actions={<><Button size="sm" onClick={() => setAdding(true)} disabled={!data}><Plus size={14} /> {tr("New complaint")}</Button></>}>

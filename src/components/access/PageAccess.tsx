@@ -74,15 +74,15 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
   if (role === 'superadmin') {
     return (
       <div className="space-y-3">
-        <p className="rounded-[3px] bg-[#F7F8F9] px-3 py-2.5 text-sm text-[#44546F]">{tr('A Superadmin opens every page, User Accounts and Activity Logs included.')}</p>
+        <p className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-sm text-[color:var(--j-44546F)]">{tr('A Superadmin opens every page, User Accounts and Activity Logs included.')}</p>
         {/* the WW-WR team (2026-11-04): a super admin shows in the team list only when marked here */}
-        <div className="rounded-[3px] border border-[#DCDFE4] px-3 py-2.5">
-          <p className="text-sm font-medium text-[#172B4D]">{tr('WW-WR Team')}</p>
-          <p className="mt-0.5 text-xs text-[#626F86]">{tr('Tick to list this Superadmin in the WW-WR team (lead and members of an audit).')}</p>
+        <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2.5">
+          <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr('WW-WR Team')}</p>
+          <p className="mt-0.5 text-xs text-[color:var(--j-626F86)]">{tr('Tick to list this Superadmin in the WW-WR team (lead and members of an audit).')}</p>
           <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
             {([['form.wwwr', tr('Form WW-WR')], ['mon.wwwr', tr('WW-WR')]] as const).map(([k, label]) => (
-              <label key={k} className="inline-flex cursor-pointer items-center gap-2 text-sm text-[#172B4D]">
-                <input type="checkbox" className="h-4 w-4 rounded border-[#8590A2] accent-[#0C66E4]" checked={!!overrides[k]}
+              <label key={k} className="inline-flex cursor-pointer items-center gap-2 text-sm text-[color:var(--j-172B4D)]">
+                <input type="checkbox" className="h-4 w-4 rounded border-[color:var(--j-8590A2)] accent-[color:var(--j-0C66E4)]" checked={!!overrides[k]}
                   onChange={() => { const next = { ...overrides }; if (next[k]) delete next[k]; else next[k] = true; onChange(next); }} />
                 {label}
               </label>
@@ -108,17 +108,17 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
   return (
     <div className="space-y-3">
       <OperationsNote only={onlyOps} some={pages.some(k => OPERATIONS_PAGES.includes(k))} />
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#626F86]">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--j-626F86)]">
         <span>{tr('Ticked = the user opens the page. Grey label = from the role {0}.', ROLE_LABELS[role])}</span>
         {changed > 0 && (
-          <button type="button" onClick={() => onChange({})} className="inline-flex items-center gap-1 font-medium text-[#0C66E4] hover:underline">
+          <button type="button" onClick={() => onChange({})} className="inline-flex items-center gap-1 font-medium text-[color:var(--j-0C66E4)] hover:underline">
             <RotateCcw size={12} /> {tr('Back to the role ({0} exceptions)', changed)}
           </button>
         )}
       </div>
       {groups().map(g => (
         <div key={g.group}>
-          <p className="mb-1 text-xs font-semibold capitalize text-[#626F86]">{g.group}</p>
+          <p className="mb-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{g.group}</p>
           <ul className="grid gap-1 sm:grid-cols-2">
             {g.pages.map(p => {
               const on = effective(p.key);
@@ -127,14 +127,14 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
                 <li key={p.key} className="min-w-0">
                   {/* 2026-11-16: the page name in full (it wraps, never cut), the app badges and state on a second line */}
                   <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-[3px] border px-3 py-2.5 text-sm transition-colors ${
-                    exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-[#DCDFE4] hover:bg-[#F7F8F9]'}`}>
+                    exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]'}`}>
                     <input type="checkbox" checked={on} onChange={() => toggle(p.key)} disabled={!!limit && !on && !limit.includes(p.key)}
-                      title={limit && !on && !limit.includes(p.key) ? tr('Only pages you open yourself can be given') : undefined} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-[#8590A2] text-[#0C66E4] disabled:opacity-40" />
+                      title={limit && !on && !limit.includes(p.key) ? tr('Only pages you open yourself can be given') : undefined} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-[color:var(--j-8590A2)] text-[color:var(--j-0C66E4)] disabled:opacity-40" />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-start justify-between gap-2">
-                        <span className="min-w-0 break-words font-medium leading-snug text-[#172B4D]">{p.label}</span>
+                        <span className="min-w-0 break-words font-medium leading-snug text-[color:var(--j-172B4D)]">{p.label}</span>
                         {(exception || base.has(p.key)) && (
-                          <span className={`mt-0.5 flex-shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${exception ? (on ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800') : 'bg-[#091E420F] text-[#626F86]'}`}>
+                          <span className={`mt-0.5 flex-shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${exception ? (on ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800') : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]'}`}>
                             {exception ? (on ? tr('Extra') : tr('Removed')) : tr('Role')}
                           </span>
                         )}
@@ -190,7 +190,7 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
         dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft(saved)} />
       {!draft ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-[3px] border border-[#DCDFE4]">
+          <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             <table className="w-full min-w-[600px] text-sm">
               <thead className={kcTable.thead}>
                 <tr>
@@ -203,30 +203,30 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
                 {groups().map(g => (
                   <GroupRows key={g.group} group={g.group}>
                     {g.pages.map(p => (
-                      <tr key={p.key} className="border-t border-[#F1F2F4]">
-                        <td className="px-3 py-2 text-[#172B4D]">{p.label} <StateTag page={p} /> <OpsTag page={p.key} /></td>
-                        <td className="px-3 py-2 text-center"><Check size={15} className="inline text-[#626F86]" aria-label={tr('Always')} /></td>
+                      <tr key={p.key} className="border-t border-[color:var(--j-F1F2F4)]">
+                        <td className="px-3 py-2 text-[color:var(--j-172B4D)]">{p.label} <StateTag page={p} /> <OpsTag page={p.key} /></td>
+                        <td className="px-3 py-2 text-center"><Check size={15} className="inline text-[color:var(--j-626F86)]" aria-label={tr('Always')} /></td>
                         {EDITABLE.map(r => (
                           <td key={r} className="px-3 py-2 text-center">
                             <input type="checkbox" aria-label={`${ROLE_LABELS[r]} · ${p.label}`} checked={draft[r].includes(p.key)}
-                              onChange={() => toggle(r, p.key)} className="h-4 w-4 rounded border-[#8590A2] text-[#0C66E4]" />
+                              onChange={() => toggle(r, p.key)} className="h-4 w-4 rounded border-[color:var(--j-8590A2)] text-[color:var(--j-0C66E4)]" />
                           </td>
                         ))}
                       </tr>
                     ))}
                   </GroupRows>
                 ))}
-                <tr className="border-t border-[#DCDFE4] bg-[#F7F8F9] text-[#626F86]">
+                <tr className="border-t border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-626F86)]">
                   <td className="px-3 py-2">{tr('User Accounts, Activity Logs')}</td>
-                  <td className="px-3 py-2 text-center"><Check size={15} className="inline text-[#626F86]" /></td>
+                  <td className="px-3 py-2 text-center"><Check size={15} className="inline text-[color:var(--j-626F86)]" /></td>
                   <td colSpan={EDITABLE.length} className="px-3 py-2 text-center text-xs">{tr('Superadmin only')}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <OperationsNote only={false} some />
-          <p className="text-xs text-[#626F86]">{tr('Roles User and Outlet/HUB see only their assigned branches; Inventory Surveyor sees every branch. A new form is added to role User.')}</p>
-          <p className="text-xs text-[#626F86]">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
+          <p className="text-xs text-[color:var(--j-626F86)]">{tr('Roles User and Outlet/HUB see only their assigned branches; Inventory Surveyor sees every branch. A new form is added to role User.')}</p>
+          <p className="text-xs text-[color:var(--j-626F86)]">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
           {message && <p role="status" className={`rounded-[3px] px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
         </div>
       )}
@@ -238,7 +238,7 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
 function SaveBar({ text, dirty, busy, onSave, onReset }: { text: string; dirty: boolean; busy: boolean; onSave?: () => void; onReset?: () => void }) {
   return (
     <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center gap-2 bg-white/95 px-1 py-2 backdrop-blur">
-      <p className="min-w-0 flex-1 text-xs text-[#626F86]">{text}</p>
+      <p className="min-w-0 flex-1 text-xs text-[color:var(--j-626F86)]">{text}</p>
       {onSave && <>
         {dirty && <button type="button" className={buttonSecondary} disabled={busy} onClick={onReset}><RotateCcw size={15} /> {tr('Undo')}</button>}
         <button type="button" className={buttonPrimary} disabled={!dirty || busy} onClick={onSave}>
@@ -275,10 +275,10 @@ export function AccessSettingsDrawer({ onClose, initial = 'roles' }: { onClose: 
     <Drawer open onClose={close} size="xl" icon={<ShieldCheck size={18} />} title={tr('Access Settings')}
       description={tr('Roles, pages and the menus of the portal, Operations and Calf On The Road in one place. A saved change applies right away.')}
       footer={<button type="button" className={buttonSecondary} onClick={close}>{tr('Close')}</button>}>
-      <div className="mb-3 flex gap-1 overflow-x-auto border-b border-[#DCDFE4]" role="tablist">
+      <div className="mb-3 flex gap-1 overflow-x-auto border-b border-[color:var(--j-DCDFE4)]" role="tablist">
         {TABS.map(t => (
           <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-            className={`-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium ${tab === t.key ? 'border-[#0C66E4] text-[#0C66E4]' : 'border-transparent text-[#626F86] hover:text-[#172B4D]'}`}>
+            className={`-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium ${tab === t.key ? 'border-[color:var(--j-0C66E4)] text-[color:var(--j-0C66E4)]' : 'border-transparent text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'}`}>
             {t.icon} {t.label}
             {t.key !== 'masters' && dirty[t.key] && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-label={tr('Not saved')} />}
           </button>
@@ -298,22 +298,22 @@ export function MenuDisplay({ hidden, onChange }: { hidden: string[]; onChange: 
   const toggle = (k: string) => onChange(hidden.includes(k) ? hidden.filter(x => x !== k) : [...hidden, k]);
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#626F86]">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--j-626F86)]">
         <span>{tr('Menu display: ticked pages are shown in the menu. Unticked pages keep working (by their address, links and approvals) — only the menu gets shorter.')}</span>
         {hidden.length > 0 && (
-          <button type="button" onClick={() => onChange([])} className="inline-flex items-center gap-1 font-medium text-[#0C66E4] hover:underline">
+          <button type="button" onClick={() => onChange([])} className="inline-flex items-center gap-1 font-medium text-[color:var(--j-0C66E4)] hover:underline">
             <RotateCcw size={12} /> {tr('Show every page ({0} hidden)', hidden.length)}
           </button>
         )}
       </div>
       {groups().map(g => ({ ...g, pages: g.pages.filter(p => p.state !== 'hidden') })).filter(g => g.pages.length > 0).map(g => (
         <div key={g.group}>
-          <p className="mb-1 text-xs font-semibold capitalize text-[#626F86]">{g.group}</p>
+          <p className="mb-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{g.group}</p>
           <ul className="grid gap-1 sm:grid-cols-2">
             {g.pages.map(p => (
               <li key={p.key}>
-                <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-[3px] border px-3 py-2.5 text-sm ${hidden.includes(p.key) ? 'border-[#DCDFE4] bg-[#F7F8F9] text-[#626F86]' : 'border-[#DCDFE4] hover:bg-[#F7F8F9]'}`}>
-                  <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-[#8590A2] text-[#0C66E4]" />
+                <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-[3px] border px-3 py-2.5 text-sm ${hidden.includes(p.key) ? 'border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-626F86)]' : 'border-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]'}`}>
+                  <input type="checkbox" checked={!hidden.includes(p.key)} onChange={() => toggle(p.key)} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-[color:var(--j-8590A2)] text-[color:var(--j-0C66E4)]" />
                   <span className="min-w-0 flex-1 break-words font-medium leading-snug">{p.label}</span>
                 </label>
               </li>
@@ -382,7 +382,7 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
         dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft({})} />
       {message && <p className={`mb-3 rounded-[3px] px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
       {!pages ? <SkeletonList rows={5} /> : (
-        <div className="overflow-x-auto rounded-[3px] border border-[#DCDFE4]">
+        <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           <table className="w-full min-w-[560px] text-sm">
             <thead className={kcTable.thead}>
               <tr><th className="min-w-[11rem] px-3 py-2.5">{tr('Page')}</th>{ALL_PLATFORMS.map(k => <th key={k} className="w-28 px-3 py-2.5 text-center">{PLATFORM_LABEL[k]}</th>)}<th className="w-10" /></tr>
@@ -390,20 +390,20 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
             <tbody>
               {byGroup.map(g => (
                 <Fragment key={g.group}>
-                  <tr className="border-t border-[#DCDFE4] bg-[#F7F8F9]"><td colSpan={5} className="px-3 py-1.5 text-xs font-semibold capitalize text-[#626F86]">{g.group}</td></tr>
+                  <tr className="border-t border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]"><td colSpan={5} className="px-3 py-1.5 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{g.group}</td></tr>
                   {g.pages.map(p => (
-                    <tr key={p.key} className="border-t border-[#F1F2F4]">
-                      <td className="px-3 py-2 text-[#172B4D]">{p.label}{custom(p) && <span className="ml-1 rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold uppercase text-amber-700">{tr('Set')}</span>}</td>
+                    <tr key={p.key} className="border-t border-[color:var(--j-F1F2F4)]">
+                      <td className="px-3 py-2 text-[color:var(--j-172B4D)]">{p.label}{custom(p) && <span className="ml-1 rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold uppercase text-amber-700">{tr('Set')}</span>}</td>
                       {ALL_PLATFORMS.map(k => (
                         <td key={k} className="px-3 py-2 text-center">
                           {p.available.includes(k)
-                            ? <input type="checkbox" aria-label={`${PLATFORM_LABEL[k]} · ${p.label}`} checked={current(p).includes(k)} onChange={() => toggle(p, k)} className="h-4 w-4 rounded border-[#8590A2] text-[#0C66E4]" />
-                            : <span className="text-[#8590A2]">—</span>}
+                            ? <input type="checkbox" aria-label={`${PLATFORM_LABEL[k]} · ${p.label}`} checked={current(p).includes(k)} onChange={() => toggle(p, k)} className="h-4 w-4 rounded border-[color:var(--j-8590A2)] text-[color:var(--j-0C66E4)]" />
+                            : <span className="text-[color:var(--j-8590A2)]">—</span>}
                         </td>
                       ))}
                       <td className="px-1 text-center">
                         {custom(p) && (
-                          <button type="button" title={tr('Back to the Default')} aria-label={tr('Back to the Default')} onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="rounded p-1 text-[#626F86] hover:text-[#0C66E4]"><RotateCcw size={13} /></button>
+                          <button type="button" title={tr('Back to the Default')} aria-label={tr('Back to the Default')} onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="rounded p-1 text-[color:var(--j-626F86)] hover:text-[color:var(--j-0C66E4)]"><RotateCcw size={13} /></button>
                         )}
                       </td>
                     </tr>
@@ -446,8 +446,8 @@ function usePlatforms(): PlatformMap | null | undefined {
 }
 
 const PLATFORM_TAG: Record<PlatformKey, { label: string; cls: string }> = {
-  portal: { label: 'Portal', cls: 'bg-[#091E420F] text-[#44546F]' },
-  operations: { label: 'Operations', cls: 'bg-[#E9F2FF] text-[#0C66E4]' },
+  portal: { label: 'Portal', cls: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]' },
+  operations: { label: 'Operations', cls: 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' },
   cotr: { label: 'COTR', cls: 'bg-violet-50 text-violet-700' },
 };
 
@@ -472,7 +472,7 @@ function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
   if (!only && !some) return null;
   const host = OPERATIONS_URL.replace('https://', '');
   return (
-    <p className={`flex items-start gap-2 rounded-[3px] px-3 py-2 text-xs ${only ? 'bg-[#E9F2FF] text-[#0055CC] ring-1 ring-brand-200' : 'bg-[#F7F8F9] text-[#44546F]'}`}>
+    <p className={`flex items-start gap-2 rounded-[3px] px-3 py-2 text-xs ${only ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] ring-1 ring-brand-200' : 'bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]'}`}>
       <Smartphone size={14} className="mt-px flex-shrink-0" />
       <span>{only
         ? tr('This account opens forms and pages Operations has only: it signs in at {0} and the portal refuses it. Add a page without the Operations tag to keep the portal.', host)
@@ -484,15 +484,15 @@ function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
 /** "Not in the menu", "Being built" … beside a page whose menu entry is special. */
 function StateTag({ page }: { page: PageInfo }) {
   if (!page.state) return null;
-  const tone = page.state === 'hidden' ? 'bg-amber-50 text-amber-700' : 'bg-[#091E420F] text-[#626F86]';
+  const tone = page.state === 'hidden' ? 'bg-amber-50 text-amber-700' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]';
   return <span className={`ml-1 inline-block whitespace-nowrap rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase ${tone}`}>{STATE_LABEL[page.state]()}</span>;
 }
 
 function GroupRows({ group, children }: { group: string; children: React.ReactNode }) {
   return (
     <>
-      <tr className="border-t border-[#DCDFE4] bg-[#F7F8F9]">
-        <td colSpan={EDITABLE.length + 2} className="px-3 py-1.5 text-xs font-semibold capitalize text-[#626F86]">{group}</td>
+      <tr className="border-t border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]">
+        <td colSpan={EDITABLE.length + 2} className="px-3 py-1.5 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{group}</td>
       </tr>
       {children}
     </>
@@ -509,7 +509,7 @@ function MastersPanel() {
       <div className="flex gap-1" role="tablist">
         {(['jobTitle', 'department'] as MasterKind[]).map(k => (
           <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${kind === k ? 'bg-[#E9F2FF] text-[#0C66E4] ring-1 ring-brand-200' : 'text-[#626F86] hover:bg-[#091E420F]'}`}>
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${kind === k ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] ring-1 ring-brand-200' : 'text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]'}`}>
             {k === 'jobTitle' ? <Briefcase size={13} /> : <Building2 size={13} />} {k === 'jobTitle' ? tr('Job titles') : tr('Departments')}
           </button>
         ))}
@@ -528,13 +528,13 @@ function MasterList({ kind }: { kind: MasterKind }) {
     <div className="space-y-2">
       <input className={inputClass} value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Search')} aria-label={tr('Search')} />
       {!rows ? <SkeletonList rows={4} /> : shown.length === 0 ? (
-        <p className="py-6 text-center text-sm text-[#626F86]">{tr('No names yet')}</p>
+        <p className="py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('No names yet')}</p>
       ) : (
         <ul className="grid gap-1 sm:grid-cols-2">
           {shown.map(r => (
-            <li key={r.id} className="flex items-center gap-2 rounded-[3px] border border-[#DCDFE4] px-3 py-2">
-              <span className="min-w-0 flex-1 truncate text-sm text-[#172B4D]">{r.name}</span>
-              <span className="flex-shrink-0 text-[11px] tabular-nums text-[#626F86]">{tr('{0} users', r.users)}</span>
+            <li key={r.id} className="flex items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2">
+              <span className="min-w-0 flex-1 truncate text-sm text-[color:var(--j-172B4D)]">{r.name}</span>
+              <span className="flex-shrink-0 text-[11px] tabular-nums text-[color:var(--j-626F86)]">{tr('{0} users', r.users)}</span>
             </li>
           ))}
         </ul>
