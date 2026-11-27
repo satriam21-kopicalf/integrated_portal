@@ -23,7 +23,7 @@ import ActionMenu, { ActionItem } from '@/components/ui/ActionMenu';
 import Dialog, { Field } from '@/components/ui/Dialog';
 import { buttonDanger, buttonPrimary, buttonSecondary, inputClass } from '@/jira/kc';
 import Drawer, { DrawerSection } from '@/jira';
-import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
+import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/jira/filters';
 import UserAvatar, { AvatarEditor } from '@/components/UserAvatar';
 import FundUnits from '@/components/access/FundUnits';
 import { LOGOS } from '@/lib/company';

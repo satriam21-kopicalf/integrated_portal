@@ -12,7 +12,7 @@ import DateRangePicker from '@/components/DateRangePicker';
 import { Card, EmptyState, IconButton, PageHeader, PageShell, Pill, SearchInput, StatCard, StatGrid, Tabs, Toolbar, ValueSkeleton, btn } from '@/jira/kc';
 import { buttonPrimary, buttonSecondary } from '@/jira/kc';
 import Drawer, { DrawerSection } from '@/jira';
-import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/components/ui/FilterControls';
+import { ActiveFilter, ActiveFilters, ChoiceGroup, FilterButton, SearchChoice } from '@/jira/filters';
 import UserAvatar from '@/components/UserAvatar';
 import { AuthUser, ROLE_LABELS, Role } from '@/lib/auth';
 import { formatBytes, formatDate, formatDateTime, formatNumber, toIsoDate } from '@/lib/format';
