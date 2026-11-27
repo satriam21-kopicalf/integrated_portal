@@ -7,7 +7,7 @@ import { tr } from './i18n';
 export type PageKey =
   | 'overview' | 'sales' | 'stock-opname' | 'waste' | 'guide'
   | 'form.pic-check-in' | 'form.surveyor-check-in' | 'form.outlet' | 'form.travel' | 'form.product' | 'form.damaged-equipment' | 'form.pengajuan' | 'form.wwwr' | 'form.stock-transfer'
-  | 'mon.overview' | 'mon.pic-check-in' | 'mon.surveyor-check-in' | 'mon.outlet' | 'mon.travel' | 'mon.product' | 'mon.damaged-equipment' | 'mon.branch-groups'
+  | 'mon.overview' | 'mon.pic-check-in' | 'mon.surveyor-check-in' | 'mon.outlet' | 'mon.travel' | 'mon.product' | 'mon.damaged-equipment' | 'mon.building' | 'mon.branch-groups'
   | 'mon.pengajuan' | 'mon.wwwr'
   | 'rating.google-maps' | 'rating.shopeefood' | 'rating.gofood' | 'rating.grabfood' | 'social.analytics' | 'agg.overview' | 'agg.schedule' | 'agg.opening' | 'agg.oos' | 'agg.reviews' | 'agg.menu' | 'agg.complaints' | 'agg.void' | 'agg.reports'
   | 'cc.monitor' | 'cc.reviews' | 'cc.entry' | 'cc.reports' | 'cc.esb-export' | 'cc.esb-compare' | 'cc.lists' | 'cc.groups' | 'cc.types'
@@ -68,6 +68,7 @@ export const PAGES: PageInfo[] = [
   { key: 'mon.travel', href: '/monitoring/travel', label: 'Travel Path', get group() { return tr('Operations'); } },
   { key: 'mon.wwwr', href: '/monitoring/wwwr', label: 'WW-WR', get group() { return tr('Operations'); } },
   { key: 'mon.damaged-equipment', href: '/monitoring/damaged-equipment', get label() { return tr('Maintenance & Procurement'); }, get group() { return tr('Operations'); } },
+  { key: 'mon.building', href: '/monitoring/building', get label() { return tr('Building & Renovation'); }, get group() { return tr('Operations'); } },
   { key: 'mon.branch-groups', href: '/monitoring/branch-groups', get label() { return tr('Branch Groups'); }, get group() { return tr('Operations'); } },
   { key: 'mon.pengajuan', href: '/monitoring/pengajuan', get label() { return tr('Fund Request'); }, get group() { return tr('Operations'); } },
   // the two approval steps of Pengajuan: rights inside /monitoring/pengajuan, not menu entries of their own

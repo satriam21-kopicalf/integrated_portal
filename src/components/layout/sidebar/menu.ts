@@ -7,6 +7,7 @@ import { Footprints,
   FlaskConical, Gauge, MapPin, MapPinCheck, MessageSquareText, Package, Star, Store, Wrench, ClipboardCheck, ClipboardList, ListChecks,
   Settings2, History, LayoutDashboard, Receipt, ShieldCheck, SlidersHorizontal, Trash2, UserCog, Users, Wallet, UserRoundCheck,
   PackageCheck, ArrowLeftRight, ShoppingCart, CalendarDays,
+  Building2,
 } from 'lucide-react';
 import { tr } from '@/lib/i18n';
 
@@ -100,6 +101,7 @@ export const monitoring: { title: string; hint: string; icon: typeof Users; item
   ] },
   { get title() { return tr('Maintenance'); }, get hint() { return tr('Requests of every outlet'); }, icon: Wrench, items: [
     { get name() { return tr('Maintenance & Procurement'); }, href: '/monitoring/damaged-equipment', icon: Wrench, get description() { return tr('Status, technicians & time per request'); } },
+    { get name() { return tr('Building & Renovation'); }, href: '/monitoring/building', icon: Building2, get description() { return tr('Material catalog, stores & suppliers'); } },
   ] },
   { get title() { return tr('Finance'); }, get hint() { return tr('Requests of the outlets: verify, approve, pay'); }, icon: Wallet, items: [
     { get name() { return tr('Fund Request'); }, href: '/monitoring/pengajuan', icon: Wallet, get description() { return tr('Petty cash, receipts & approvals'); } },
