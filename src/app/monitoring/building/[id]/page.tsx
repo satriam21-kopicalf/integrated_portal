@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Camera, CheckCircle2, ClipboardList, HardHat, ListChecks, Package, Pencil, Plus, Send, Trash2, TrendingUp, Undo2, X } from "lucide-react";
+import { ArrowLeft, Camera, CheckCircle2, ClipboardList, HardHat, ListChecks, Package, Pencil, Plus, Send, Trash2, TrendingUp, Undo2, Wallet, X } from "lucide-react";
 import { Badge, Button, ErrorState, cx, useToast } from "@/so/ui";
 import { Page, Stat, StatSkeleton, StatStrip } from "@/components/kc/compat";
 import { WorkCard, JSelect } from "@/so/ui/Jira";
@@ -22,7 +22,9 @@ import { type Full, type Line, type LineKind, type Stage, type Status, LINE_KIND
 
 type Tab = "summary" | "rab" | "progress";
 type Pick = { id: number; label: string; category: string; spec: string | null; detail: string | null; unit: string | null; price: number | null; priceOn: string | null; stale: boolean; vendor: string | null; vendorId: number | null; group: string };
-type Vendor = { id: number; name: string; location: string | null; kindLabel: string };
+type Vendor = { id: number; name: string; location: string | null; kindLabel: string; bank?: string | null; accountNo?: string | null; accountName?: string | null };
+const FREE = ["REJECTED", "CANCELLED"];
+const taken = (l: Line) => !!l.fundId && !FREE.includes(l.fundStatus ?? "");
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
@@ -147,6 +149,8 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
   const [actual, setActual] = useState<Line | null>(null);
   const [section, setSection] = useState<{ id?: number; name: string } | null>(null);
   const [decide, setDecide] = useState<boolean | null>(null);
+  const [fund, setFund] = useState(false);
+  const free = p.lines.filter((l) => !taken(l) && l.amount > 0);
   const locked = p.status === "DONE" || p.status === "CANCELLED";
   const exportXlsx = () => void downloadSheets(`RAB ${p.number} ${p.name}`, [
     { sheet: "RAB", title: `RAB ${p.number} · ${p.name} · ${placeOf(p)} · ${RAB_LABEL[p.rabStatus]()}${p.rabVersion ? ` v${p.rabVersion}` : ""} · ${dmy(today())}`,
@@ -166,6 +170,7 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
         {!locked && <Button variant="secondary" onClick={() => setSection({ name: "" })}><Plus size={14} />{tr("Section")}</Button>}
         {p.rabStatus === "DRAFT" && !locked && <Button disabled={busy || !p.lines.length} onClick={() => void act("/rab/submit", {}, tr("RAB sent for approval"))}><Send size={14} />{tr("Send for approval")}</Button>}
         {p.rabStatus === "SUBMITTED" && p.canApprove && <><Button variant="secondary" disabled={busy} onClick={() => setDecide(false)}><Undo2 size={14} />{tr("Return")}</Button><Button disabled={busy} onClick={() => setDecide(true)}><CheckCircle2 size={14} />{tr("Approve")}</Button></>}
+        {p.rabStatus === "APPROVED" && !locked && <Button disabled={busy || !free.length} onClick={() => setFund(true)} title={free.length ? undefined : tr("Every line is already asked")}><Wallet size={14} />{tr("Ask for funds")}</Button>}
         {p.rabStatus === "SUBMITTED" && !p.canApprove && <span className="text-xs text-neutral-500">{tr("Waiting for the approver")}{p.approvers?.length ? `: ${p.approvers.join(", ")}` : ""}</span>}
       </div>
       {p.sections.map((s) => {
@@ -191,7 +196,8 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
                       <tr key={l.id} className="align-top">
                         <td className="px-4 py-2 sm:pl-5"><span className="block font-medium text-neutral-900">{l.description}</span>
                           <span className="text-[11px] text-neutral-500">{LINE_KIND_LABEL[l.kind]()}{l.spec ? ` · ${l.spec}` : ""}{l.materialId ? ` · ${tr("catalog")}` : ""}{l.note ? ` · ${l.note}` : ""}</span>
-                          {moved && <span className="block text-[11px] text-amber-700">{tr("Catalog now {0}", rp(l.catalogPrice))}</span>}</td>
+                          {moved && <span className="block text-[11px] text-amber-700">{tr("Catalog now {0}", rp(l.catalogPrice))}</span>}
+                          {l.fundNumber && <span className={cx("mt-0.5 inline-block rounded px-1.5 text-[10px] font-medium", taken(l) ? "bg-blue-50 text-blue-800" : "bg-neutral-100 text-neutral-500 line-through")}>{l.fundNumber}</span>}</td>
                         <td className="px-2 py-2 text-right tabular-nums">{num(l.qty, 3)} {l.unit ?? ""}</td>
                         <td className="px-2 py-2 text-right tabular-nums">{rp(l.unitPrice)}{l.priceOn && <span className="block text-[10px] text-neutral-400">{dmy(l.priceOn)}</span>}</td>
                         <td className="px-2 py-2 text-right font-semibold tabular-nums text-neutral-900">{rp(l.amount)}</td>
@@ -213,6 +219,16 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
         <span className="text-xs text-neutral-600">{(Object.keys(p.kinds) as LineKind[]).filter((k) => p.kinds[k]).map((k) => `${LINE_KIND_LABEL[k]()} ${rp(p.kinds[k])}`).join(" · ")}</span>
         <span className="font-semibold text-neutral-900">{tr("Actual")} <span className="tabular-nums">{rp(p.actualTotal)}</span></span>
       </div>
+      {p.funds.length > 0 && (
+        <div className="border-t border-neutral-200 p-4 sm:px-5">
+          <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("Fund Requests of the project")}</h3>
+          <ul className="divide-y divide-neutral-100 rounded-lg border border-neutral-200 text-xs">{p.funds.map((f) => (
+            <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+              <span><a href={`/monitoring/pengajuan?open=${f.id}`} className="font-semibold text-brand-700 hover:underline">{f.number}</a> · {tr("{0} lines", f.lines)} · {f.payee ?? "—"}{f.bank ? ` (${f.bank})` : ""}</span>
+              <span className="flex items-center gap-2"><Badge tone={FREE.includes(f.status) ? "red" : f.status === "DONE" ? "green" : f.status === "SUBMITTED" ? "amber" : "blue"}>{f.statusLabel}</Badge>
+                <b className="tabular-nums text-neutral-900">{rp(f.paid ?? f.approved ?? f.requested)}</b></span>
+            </li>))}</ul>
+        </div>)}
       {p.versions.length > 0 && (
         <div className="border-t border-neutral-200 p-4 sm:px-5">
           <h3 className="mb-2 text-sm font-semibold text-neutral-900">{tr("Approved versions")}</h3>
@@ -225,8 +241,62 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
           <Button disabled={busy || !section.name.trim()} onClick={async () => { if (await act(section.id ? `/sections/${section.id}` : "/sections", { name: section.name }, tr("Saved"), section.id ? "PUT" : "POST")) setSection(null); }}>{tr("Save")}</Button></div>}>
         <Row label={tr("Section name")} required><input autoFocus value={section.name} onChange={(e) => setSection({ ...section, name: e.target.value })} maxLength={120} className={ctl} /></Row>
       </Drawer>}
+      {fund && <FundDrawer p={p} busy={busy} onClose={() => setFund(false)} onSave={async (body) => { if (await act("/fund", body, tr("Fund Request sent"))) setFund(false); }} />}
       {decide !== null && <DecideDrawer approve={decide} busy={busy} total={p.rabTotal} onClose={() => setDecide(null)} onSave={async (note) => { if (await act("/rab/decide", { approve: decide, note }, decide ? tr("RAB approved") : tr("RAB returned"))) setDecide(null); }} />}
     </div>
+  );
+}
+
+/** Ask Finance for the money of RAB lines (migration 166): a Fund Request of kind Building & Renovation. */
+function FundDrawer({ p, busy, onClose, onSave }: { p: Full; busy: boolean; onClose: () => void; onSave: (body: unknown) => void }) {
+  const free = p.lines.filter((l) => !taken(l) && l.amount > 0);
+  const [ids, setIds] = useState<Set<number>>(new Set());
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [payee, setPayee] = useState({ type: "BANK", bank: "", account: "", name: "" });
+  const [from, setFrom] = useState("");
+  const [note, setNote] = useState("");
+  useEffect(() => { void call<{ vendors: Vendor[] }>("/api/building/catalog").then((r) => setVendors(r.vendors)).catch(() => setVendors([])); }, []);
+  const stores = [...new Set(free.map((l) => l.vendor).filter(Boolean) as string[])].sort();
+  const total = free.filter((l) => ids.has(l.id)).reduce((a, l) => a + l.amount, 0);
+  const pickVendor = (id: string) => {
+    setFrom(id);
+    const v = vendors.find((x) => String(x.id) === id);
+    if (v) setPayee({ type: "BANK", bank: v.bank ?? "", account: v.accountNo ?? "", name: v.accountName ?? v.name });
+  };
+  const toggle = (list: Line[], on: boolean) => { const n = new Set(ids); list.forEach((l) => (on ? n.add(l.id) : n.delete(l.id))); setIds(n); };
+  const ok = ids.size > 0 && payee.bank.trim() && payee.account.trim() && (payee.type === "VA" || payee.name.trim());
+  return (
+    <Drawer open onClose={onClose} size="lg" icon={<Wallet size={18} />} title={tr("Ask for funds")} description={tr("A Fund Request of kind Building & Renovation: approval by its flow, then Finance pays; the proof after the transfer")}
+      footer={<div className="flex items-center justify-between gap-2"><span className="text-sm"><b className="tabular-nums text-neutral-900">{rp(total)}</b> <span className="text-neutral-500">· {tr("{0} lines", ids.size)}</span></span>
+        <span className="flex gap-2"><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
+          <Button disabled={busy || !ok} onClick={() => onSave({ lineIds: [...ids], payee, note })}><Send size={14} />{tr("Send to Finance")}</Button></span></div>}>
+      <Group title={tr("RAB lines")} note={tr("Lines already asked are not shown; a rejected or cancelled fund frees its lines.")}>
+        <div className="flex flex-wrap gap-1.5">
+          <Button size="sm" variant="secondary" onClick={() => toggle(free, ids.size < free.length)}>{ids.size < free.length ? tr("All") : tr("None")}</Button>
+          {p.sections.filter((s) => free.some((l) => l.sectionId === s.id)).map((s) => <Button key={s.id} size="sm" variant="secondary" onClick={() => toggle(free.filter((l) => l.sectionId === s.id), true)}>{s.name}</Button>)}
+        </div>
+        {stores.length > 1 && <Row label={tr("Lines of one store")}><JSelect value="" onChange={(v) => { if (v) { setIds(new Set(free.filter((l) => l.vendor === v).map((l) => l.id))); const d = vendors.find((x) => x.name === v); if (d) pickVendor(String(d.id)); } }} label={tr("Lines of one store")} placeholder={tr("Choose a store")} options={stores.map((x) => ({ value: x, label: x }))} /></Row>}
+        <ul className="max-h-72 divide-y divide-neutral-100 overflow-y-auto rounded-lg border border-neutral-200">
+          {free.map((l) => (
+            <li key={l.id}><label className="flex cursor-pointer items-start gap-3 px-3 py-2 text-xs hover:bg-neutral-50">
+              <input type="checkbox" className="mt-0.5 h-4 w-4" checked={ids.has(l.id)} onChange={(e) => toggle([l], e.target.checked)} />
+              <span className="min-w-0 flex-1"><span className="block font-medium text-neutral-900">{l.description}</span>
+                <span className="text-neutral-500">{p.sections.find((s) => s.id === l.sectionId)?.name} · {num(l.qty, 3)} {l.unit ?? ""} × {rp(l.unitPrice)}{l.vendor ? ` · ${l.vendor}` : ""}</span></span>
+              <b className="shrink-0 tabular-nums text-neutral-900">{rp(l.amount)}</b></label></li>))}
+        </ul>
+      </Group>
+      <Group title={tr("Payee")}>
+        <Row label={tr("From the directory")} hint={tr("A store with its bank account fills the transfer")}><JSelect value={from} onChange={pickVendor} label={tr("From the directory")} placeholder={tr("Not chosen")}
+          options={vendors.map((v) => ({ value: String(v.id), label: v.name, hint: v.bank ? `${v.bank} ${v.accountNo ?? ""}` : tr("no bank account") }))} /></Row>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Row label={tr("Kind")}><JSelect value={payee.type} onChange={(v) => setPayee({ ...payee, type: v })} label={tr("Kind")} placeholder="" options={[{ value: "BANK", label: tr("Bank account") }, { value: "VA", label: "Virtual Account" }]} /></Row>
+          <Row label={payee.type === "VA" ? tr("VA provider") : tr("Bank")} required><input value={payee.bank} onChange={(e) => setPayee({ ...payee, bank: e.target.value })} maxLength={120} className={ctl} placeholder={payee.type === "VA" ? "Shopee, Tokopedia …" : "BCA, Mandiri …"} /></Row>
+          <Row label={payee.type === "VA" ? tr("VA number") : tr("Account no.")} required><input value={payee.account} onChange={(e) => setPayee({ ...payee, account: e.target.value })} maxLength={120} inputMode="numeric" className={ctl} /></Row>
+          <Row label={tr("Account name")} required={payee.type !== "VA"}><input value={payee.name} onChange={(e) => setPayee({ ...payee, name: e.target.value })} maxLength={120} className={ctl} /></Row>
+        </div>
+        <Row label={tr("Note for Finance")}><textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} maxLength={2000} className={cx(ctl, "h-auto py-2")} /></Row>
+      </Group>
+    </Drawer>
   );
 }
 

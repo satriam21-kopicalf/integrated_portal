@@ -8,7 +8,7 @@ import type { Tone } from "@/so/ui";
 export type Status = "DRAFT" | "SUBMITTED" | "REVISION" | "APPROVED" | "PAID" | "VERIFYING" | "DONE" | "REJECTED" | "CANCELLED";
 /** the rules of a kind, set by Finance (backend app/fund_lifecycle.py) */
 export type Rule = { proofAfter: boolean; proofDays: number; proofDocs: string[]; vendor: boolean };
-export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL" | "MAINTENANCE" | "PROCUREMENT" | "VENDOR" | "INTERCOMPANY";
+export type Kind = "PETTY_CASH" | "EMERGENCY" | "MARKETING" | "EVENT" | "BILL" | "PERSONAL" | "MAINTENANCE" | "PROCUREMENT" | "VENDOR" | "INTERCOMPANY" | "BUILDING";
 /** the unit that asks and the PT that pays it (2026-11-24, backend app/fund_units.py) */
 export type Unit = { code: string; name: string; payer: string; vendor: boolean };
 /** the lists of the personal form, set by management (migration 124) */
@@ -90,6 +90,7 @@ export const KINDS: Kind[] = ["PETTY_CASH", "EMERGENCY", "MARKETING", "EVENT", "
 /** asked from a Maintenance & Procurement request by the team, never from the outlet form */
 export const DE_KINDS: Kind[] = ["MAINTENANCE", "PROCUREMENT"];
 export const KIND_LABEL: Record<Kind, () => string> = {
+  BUILDING: () => tr("Building & Renovation"),
   PETTY_CASH: () => tr("Weekly Petty Cash"), EMERGENCY: () => tr("Emergency Purchase"), MARKETING: () => tr("Marketing & Promo"),
   EVENT: () => tr("Event & Bazaar"), BILL: () => tr("Outlet Bills"), PERSONAL: () => tr("Personal Request"), VENDOR: () => tr("Vendor Payment"), INTERCOMPANY: () => tr("Between PTs"),
   MAINTENANCE: () => tr("Maintenance"), PROCUREMENT: () => tr("Procurement"),
@@ -98,6 +99,7 @@ export const KIND_LABEL: Record<Kind, () => string> = {
 let kindNames: Partial<Record<Kind, string>> = {};
 export const setKindLabels = (m: Partial<Record<Kind, string>> | undefined) => { if (m) kindNames = m; };
 export const KIND_HINT: Record<Kind, () => string> = {
+  BUILDING: () => tr("Money of a Building & Renovation project, asked from its approved RAB"),
   PETTY_CASH: () => tr("Report of the week's petty cash and the top-up up to the plafon. No request, no transfer."),
   EMERGENCY: () => tr("Something urgent already bought with personal money (stock ran out, late supplier …)"),
   MARKETING: () => tr("Banners, flyers, vouchers, sampling for the outlet"),

@@ -213,7 +213,7 @@ export default function PengajuanMonitor() {
       {/* Jira-like (2026-11-18): one card, the kinds as tabs, the status as quick filters, the requests as an issue table */}
       <WorkCard label={tr("Kind")} active={f.kind || "ALL"} onTab={(k) => setF({ ...f, kind: k === "ALL" ? "" : (k as Kind) })}
         tabs={[{ key: "ALL", label: tr("All kinds"), icon: <Wallet size={15} />, count: all.length },
-          ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, "INTERCOMPANY" as Kind, ...DE_KINDS].filter((k) => (k !== "VENDOR" && k !== "INTERCOMPANY") || !!res?.units?.find((u) => u.code === unit)?.vendor || all.some((p) => p.kind === k)).map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
+          ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, "INTERCOMPANY" as Kind, ...DE_KINDS, "BUILDING" as Kind].filter((k) => (k !== "VENDOR" && k !== "INTERCOMPANY") || !!res?.units?.find((u) => u.code === unit)?.vendor || all.some((p) => p.kind === k)).map((k) => ({ key: k, label: kindLabel(k), count: all.filter((p) => p.kind === k).length }))]}>
         <Toolbar>
           <QuickChips label={tr("Status")} value={status} onChange={setStatus}
             items={TABS.map((t) => ({ key: t, label: t === "OPEN" ? tr("Open") : t === "MINE" ? tr("My Turn") : t ? STATUS_LABEL[t as Status]() : tr("All"),
@@ -332,7 +332,7 @@ function MonitorFilters({ value, bgroups, branches, accounts, categories, flagLa
       </FilterSection>
       <FilterSection title={tr("Kind")}>
         <ChoiceGroup label="" value={v.kind} onChange={(kind) => setV({ ...v, kind: kind as F["kind"] })}
-          choices={[{ value: "", label: tr("All") }, ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, "INTERCOMPANY" as Kind, ...DE_KINDS].map((k) => ({ value: k, label: kindLabel(k) }))]} />
+          choices={[{ value: "", label: tr("All") }, ...[...KINDS, "PERSONAL" as Kind, "VENDOR" as Kind, "INTERCOMPANY" as Kind, ...DE_KINDS, "BUILDING" as Kind].map((k) => ({ value: k, label: kindLabel(k) }))]} />
       </FilterSection>
       <FilterSection title={tr("Outlet")}><SearchChoice label="" anyLabel={tr("Every Outlet")} options={branches} value={v.branch} onChange={(branch) => setV({ ...v, branch })} placeholder={tr("Search outlet")} /></FilterSection>
       <FilterSection title={tr("Account")}><SearchChoice label="" anyLabel={tr("Every account")} options={accounts} value={v.account} onChange={(account) => setV({ ...v, account })} placeholder={tr("Search account")} /></FilterSection>
@@ -524,7 +524,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
   const nav: { title: string; hint: string; icon: React.ReactNode; items: { view: View; label: string; count?: number; muted?: boolean }[] }[] = [
     { title: tr("Approval Flow · Outlet"), hint: tr("Who approves each outlet request"), icon: <Store size={13} />, items: KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
     { title: tr("Approval Flow · Maintenance & Procurement"), hint: tr("Who approves the funds of the team's requests"), icon: <Wrench size={13} />,
-      items: DE_KINDS.map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
+      items: [...DE_KINDS, "BUILDING" as Kind].map((k) => ({ view: { type: "flow", key: k }, label: kindLabel(k) })) },
     { title: tr("Approval Flow · Personal"), hint: tr("One flow per purpose of funds"), icon: <UserRound size={13} />, items: [{ view: { type: "flow", key: "PERSONAL" }, label: tr("Default Flow") },
       ...purposes.filter((o) => o.isActive).map((o) => ({ view: { type: "flow", key: `PERSONAL:${o.id}` } as View, label: o.name, muted: !data?.flows[`PERSONAL:${o.id}`]?.length }))] },
     { title: tr("Approval Flow · Vendor"), hint: tr("Vendor payments of Roastery, Warehouse and Central Kitchen"), icon: <Wallet size={13} />, items: [{ view: { type: "flow", key: "VENDOR" }, label: kindLabel("VENDOR") }, { view: { type: "flow", key: "INTERCOMPANY" }, label: kindLabel("INTERCOMPANY") }] },

@@ -16,12 +16,15 @@ export type Project = {
 export type Section = { id: number; name: string; sort: number; total: number; actual: number; lines: number };
 export type Line = { id: number; sectionId: number; sort: number; kind: LineKind; kindLabel: string; materialId: number | null; description: string; spec: string | null;
   unit: string | null; qty: number; unitPrice: number; amount: number; priceOn: string | null; catalogPrice: number | null; catalogOn: string | null;
-  vendorId: number | null; vendor: string | null; note: string | null; actualQty: number | null; actualAmount: number | null; updatedBy: string | null };
+  vendorId: number | null; vendor: string | null; note: string | null; actualQty: number | null; actualAmount: number | null; updatedBy: string | null;
+  /** the Fund Request that asked its money (migration 166) */ fundId: string | null; fundNumber: string | null; fundStatus: string | null };
+export type Fund = { id: string; number: string; status: string; statusLabel: string; requested: number | null; approved: number | null; paid: number | null;
+  payee: string | null; bank: string | null; by: string | null; at: string | null; lines: number };
 export type Stage = { id: number; name: string; sort: number; weight: number; planStart: string | null; planEnd: string | null; progress: number; doneOn: string | null; late: boolean };
 export type Report = { id: number; stageId: number | null; stage: string | null; progress: number | null; note: string | null; reportedOn: string; by: string | null; at: string; photos: string[] };
 export type Full = Project & { sections: Section[]; lines: Line[]; kinds: Record<LineKind, number>; bought: number; stages: Stage[]; reports: Report[];
   versions: { version: number; total: number; by: string | null; at: string; note: string | null }[]; plannedToday: number;
-  curve: { day: string; plan: number; actual: number | null }[]; canApprove: boolean; approvers?: string[] };
+  curve: { day: string; plan: number; actual: number | null }[]; canApprove: boolean; approvers?: string[]; funds: Fund[] };
 
 export const KIND_LABEL: Record<Kind, () => string> = { NEW_OUTLET: () => tr("New outlet"), RENOVATION: () => tr("Renovation"), MAINTENANCE: () => tr("Major maintenance") };
 export const STATUS_LABEL: Record<Status, () => string> = { PLANNING: () => tr("Planning"), IN_PROGRESS: () => tr("In progress"), HANDOVER: () => tr("Handover"),
