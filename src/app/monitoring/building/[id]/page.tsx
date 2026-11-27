@@ -166,7 +166,7 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
         {!locked && <Button variant="secondary" onClick={() => setSection({ name: "" })}><Plus size={14} />{tr("Section")}</Button>}
         {p.rabStatus === "DRAFT" && !locked && <Button disabled={busy || !p.lines.length} onClick={() => void act("/rab/submit", {}, tr("RAB sent for approval"))}><Send size={14} />{tr("Send for approval")}</Button>}
         {p.rabStatus === "SUBMITTED" && p.canApprove && <><Button variant="secondary" disabled={busy} onClick={() => setDecide(false)}><Undo2 size={14} />{tr("Return")}</Button><Button disabled={busy} onClick={() => setDecide(true)}><CheckCircle2 size={14} />{tr("Approve")}</Button></>}
-        {p.rabStatus === "SUBMITTED" && !p.canApprove && <span className="text-xs text-neutral-500">{tr("Waiting for the approver")}</span>}
+        {p.rabStatus === "SUBMITTED" && !p.canApprove && <span className="text-xs text-neutral-500">{tr("Waiting for the approver")}{p.approvers?.length ? `: ${p.approvers.join(", ")}` : ""}</span>}
       </div>
       {p.sections.map((s) => {
         const rows = p.lines.filter((l) => l.sectionId === s.id);

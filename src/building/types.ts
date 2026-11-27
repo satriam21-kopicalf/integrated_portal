@@ -21,7 +21,7 @@ export type Stage = { id: number; name: string; sort: number; weight: number; pl
 export type Report = { id: number; stageId: number | null; stage: string | null; progress: number | null; note: string | null; reportedOn: string; by: string | null; at: string; photos: string[] };
 export type Full = Project & { sections: Section[]; lines: Line[]; kinds: Record<LineKind, number>; bought: number; stages: Stage[]; reports: Report[];
   versions: { version: number; total: number; by: string | null; at: string; note: string | null }[]; plannedToday: number;
-  curve: { day: string; plan: number; actual: number | null }[]; canApprove: boolean };
+  curve: { day: string; plan: number; actual: number | null }[]; canApprove: boolean; approvers?: string[] };
 
 export const KIND_LABEL: Record<Kind, () => string> = { NEW_OUTLET: () => tr("New outlet"), RENOVATION: () => tr("Renovation"), MAINTENANCE: () => tr("Major maintenance") };
 export const STATUS_LABEL: Record<Status, () => string> = { PLANNING: () => tr("Planning"), IN_PROGRESS: () => tr("In progress"), HANDOVER: () => tr("Handover"),

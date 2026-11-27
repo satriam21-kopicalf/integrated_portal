@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, HardHat, MapPin, Plus, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { CalendarDays, HardHat, MapPin, Plus, RotateCcw, ShieldCheck, SlidersHorizontal, X } from "lucide-react";
 import { Badge, Button, Empty, SearchBox, cx, useToast } from "@/so/ui";
 import { JSelect } from "@/so/ui/Jira";
 import Drawer from "@/so/ui/Drawer";
@@ -17,6 +17,38 @@ import { dmy } from "@/so/ui/Filters";
 import { type Full, type Kind, type Project, type Status, KIND_LABEL, RAB_LABEL, RAB_TONE, STATUS_LABEL, STATUS_TONE, placeOf, rp, today } from "./types";
 
 type BranchOpt = { branch_code: string; branch_name: string };
+type Approver = { id: string; name: string; jobTitle: string | null; department?: string | null };
+
+/** Who approves the RAB (management, backend migration 165): set by a superadmin; nobody listed = the superadmins. */
+function ApproversDrawer({ list, can, onClose, onSaved }: { list: Approver[]; can: boolean; onClose: () => void; onSaved: (list: Approver[]) => void }) {
+  const toast = useToast();
+  const [ids, setIds] = useState<string[]>(list.map((a) => a.id));
+  const [cands, setCands] = useState<Approver[]>([]);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (can) void call<{ candidates: Approver[] }>("/api/building/approvers").then((r) => setCands(r.candidates)).catch(() => setCands([])); }, [can]);
+  const save = async () => {
+    setBusy(true);
+    try { const r = await call<{ approvers: Approver[] }>("/api/building/approvers", { method: "PUT", json: { ids } }); toast(tr("Saved"), "ok"); onSaved(r.approvers); }
+    catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
+  };
+  const byId = new Map([...list, ...cands].map((a) => [a.id, a]));
+  return (
+    <Drawer open onClose={onClose} size="sm" icon={<ShieldCheck size={18} />} title={tr("RAB approvers")} description={tr("Management approves the RAB of every project")}
+      footer={can ? <div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button disabled={busy} onClick={() => void save()}>{tr("Save")}</Button></div> : undefined}>
+      <ul className="space-y-2">
+        {ids.map((id) => { const a = byId.get(id); return (
+          <li key={id} className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm">
+            <span><span className="block font-medium text-neutral-900">{a?.name ?? id}</span>{a?.jobTitle && <span className="text-xs text-neutral-500">{a.jobTitle}</span>}</span>
+            {can && <button type="button" onClick={() => setIds(ids.filter((x) => x !== id))} className="rounded p-1 text-neutral-400 hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", a?.name ?? id)}><X size={14} /></button>}
+          </li>); })}
+        {!ids.length && <li className="text-sm text-neutral-500">{tr("Nobody listed: the superadmins approve")}</li>}
+      </ul>
+      {can && <div className="mt-4"><Row label={tr("Add an approver")}><JSelect value="" onChange={(v) => v && !ids.includes(v) && setIds([...ids, v])} label={tr("Add an approver")} placeholder={tr("Choose an account")}
+        options={cands.filter((c) => !ids.includes(c.id)).map((c) => ({ value: c.id, label: c.name, hint: c.jobTitle ?? c.department ?? undefined }))} /></Row></div>}
+      {!can && <p className="mt-4 text-xs text-neutral-500">{tr("Only a superadmin changes this list.")}</p>}
+    </Drawer>
+  );
+}
 
 export function ProgressBar({ value, plan, className }: { value: number | null; plan?: number | null; className?: string }) {
   const v = Math.max(0, Math.min(100, value ?? 0));
@@ -34,7 +66,9 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
   const [q, setQ] = useState(""), [kind, setKind] = useState(""), [status, setStatus] = useState("");
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
-  useEffect(() => { call<{ data: Project[] }>("/api/building/projects").then((r) => setRows(r.data)).catch((e: Error) => setErr(e.message)); }, []);
+  const [appr, setAppr] = useState<{ list: Approver[]; can: boolean } | null>(null);
+  const [apprOpen, setApprOpen] = useState(false);
+  useEffect(() => { call<{ data: Project[]; approvers: Approver[]; canSetApprovers: boolean }>("/api/building/projects").then((r) => { setRows(r.data); setAppr({ list: r.approvers, can: r.canSetApprovers }); }).catch((e: Error) => setErr(e.message)); }, []);
   const t = q.trim().toLowerCase();
   const shown = (rows ?? []).filter((p) => (!kind || p.kind === kind) && (!status || (status === "OPEN" ? !["DONE", "CANCELLED"].includes(p.status) : p.status === status))
     && (!t || [p.number, p.name, p.branchName, p.branchCode, p.locationName, p.city, p.picName, p.contractor].some((x) => (x ?? "").toLowerCase().includes(t))));
@@ -48,10 +82,12 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
             <button ref={btn} type="button" onClick={() => setOpen(true)} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", chosen.length ? "border-brand-200 bg-brand-50 text-brand-800" : "border-neutral-200 bg-white text-neutral-800")}>
               <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
             {chosen.length > 0 && <button type="button" onClick={() => { setKind(""); setStatus(""); }} aria-label={tr("Clear the filters")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-700 sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
+            <Button variant="secondary" className="!h-11 sm:!h-10" onClick={() => setApprOpen(true)} title={tr("RAB approvers")}><ShieldCheck size={15} /><span className="hidden sm:inline">{tr("RAB approvers")}</span></Button>
             <Button className="!h-11 sm:!h-10" onClick={onAdd}><Plus size={15} />{tr("New project")}</Button>
           </div>
         </div>
         {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((c) => <li key={c.k}><button type="button" onClick={c.clear} className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-brand-50 px-2.5 text-xs text-brand-900"><span className="text-brand-700/70">{c.label}:</span><span className="font-semibold">{c.v}</span><X size={13} /></button></li>)}</ul>}
+        {apprOpen && appr && <ApproversDrawer list={appr.list} can={appr.can} onClose={() => setApprOpen(false)} onSaved={(list) => { setAppr({ ...appr, list }); setApprOpen(false); }} />}
         <Floating open={open} onClose={() => setOpen(false)} title={tr("Filter")} anchor={btn}
           footer={<><Button variant="secondary" className="flex-1" disabled={!chosen.length} onClick={() => { setKind(""); setStatus(""); }}>{tr("Clear")}</Button><Button className="flex-1" onClick={() => setOpen(false)}>{tr("Show")}</Button></>}>
           <div className="space-y-4 px-4 py-4">

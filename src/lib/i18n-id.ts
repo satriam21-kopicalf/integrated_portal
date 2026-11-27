@@ -8478,4 +8478,9 @@ export const ID: Record<string, string> = {
   "weight {0}%": "bobot {0}%",
   "{0} of {1} lines bought": "{0} dari {1} baris dibeli",
   "RAB row": "Baris",
+  "RAB approvers": "Approver RAB",
+  "Management approves the RAB of every project": "Management menyetujui RAB setiap proyek",
+  "Nobody listed: the superadmins approve": "Belum ada: superadmin yang menyetujui",
+  "Choose an account": "Pilih akun",
+  "Only a superadmin changes this list.": "Hanya superadmin yang dapat mengubah daftar ini.",
 };
