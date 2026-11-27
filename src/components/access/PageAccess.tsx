@@ -3,10 +3,11 @@
 // Page access in User Accounts: the pages a role opens (Roles & pages, editable by super admins) and the exceptions of
 // one user on top of the role (user form). Backend: /api/access (integrated_portal_be app/access.py).
 
-import { Briefcase, Building2, Check, LayoutGrid, Loader2, RotateCcw, Save, ShieldCheck, Smartphone } from 'lucide-react';
+import { Briefcase, Check, LayoutGrid, Loader2, RotateCcw, Save, ShieldCheck, Smartphone } from 'lucide-react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { buttonPrimary, buttonSecondary, inputClass } from '@/jira/kc';
-import Drawer from '@/jira';
+import Drawer, { QuickChips } from '@/jira';
+import { Tabs } from '@/jira/kc';
 import { loadMaster, MasterKind, MasterName } from '@/components/MasterCombobox';
 import { OPERATIONS_PAGES, OPERATIONS_URL, operationsOnly, Role, ROLE_LABELS } from '@/lib/auth';
 import { serverMsg, tr } from '@/lib/i18n';
@@ -158,6 +159,7 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
   const [draft, setDraft] = useState<RolePages | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [phoneRole, setPhoneRole] = useState<EditableRole>('user');
   useEffect(() => { void loadRolePages(true).then(r => { setSaved(r); setDraft(r); }); }, []);
   const dirty = useMemo(() => !!saved && !!draft && EDITABLE.some(r => [...saved[r]].sort().join() !== [...draft[r]].sort().join()), [saved, draft]);
   const toggle = (role: EditableRole, page: PageKey) => setDraft(d => d && ({
@@ -190,7 +192,28 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
         dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft(saved)} />
       {!draft ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
-          <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+          {/* 2026-11-28 phones: one role at a time, its pages as ticks (the matrix from tablets on) */}
+          <div className="space-y-3 md:hidden">
+            <QuickChips<EditableRole> value={phoneRole} onChange={setPhoneRole} label={tr('Role')} items={EDITABLE.map(r => ({ key: r, label: ROLE_LABELS[r], count: draft[r].length }))} />
+            {groups().map(g => (
+              <div key={g.group}>
+                <p className="mb-1 text-xs font-semibold text-[color:var(--j-626F86)]">{g.group}</p>
+                <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+                  {g.pages.map(p => (
+                    <li key={p.key}>
+                      <label className="flex min-h-11 cursor-pointer items-start gap-3 px-3 py-2.5 text-sm">
+                        <input type="checkbox" checked={draft[phoneRole].includes(p.key)} onChange={() => toggle(phoneRole, p.key)} className="mt-0.5 h-5 w-5 flex-shrink-0 rounded border-[color:var(--j-8590A2)] accent-[color:var(--j-0C66E4)]" />
+                        <span className="min-w-0 flex-1"><span className="block break-words text-[color:var(--j-172B4D)]">{p.label}</span>
+                          <span className="mt-1 flex flex-wrap gap-1 empty:hidden"><StateTag page={p} /><OpsTag page={p.key} /></span></span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <p className="text-xs text-[color:var(--j-626F86)]">{tr('Superadmin always opens every page, User Accounts and Activity Logs included.')}</p>
+          </div>
+          <div className="hidden overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)] md:block">
             <table className="w-full min-w-[600px] text-sm">
               <thead className={kcTable.thead}>
                 <tr>
@@ -275,15 +298,8 @@ export function AccessSettingsDrawer({ onClose, initial = 'roles' }: { onClose: 
     <Drawer open onClose={close} size="xl" icon={<ShieldCheck size={18} />} title={tr('Access Settings')}
       description={tr('Roles, pages and the menus of the portal, Operations and Calf On The Road in one place. A saved change applies right away.')}
       footer={<button type="button" className={buttonSecondary} onClick={close}>{tr('Close')}</button>}>
-      <div className="mb-3 flex gap-1 overflow-x-auto border-b border-[color:var(--j-DCDFE4)]" role="tablist">
-        {TABS.map(t => (
-          <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}
-            className={`-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium ${tab === t.key ? 'border-[color:var(--j-0C66E4)] text-[color:var(--j-0C66E4)]' : 'border-transparent text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'}`}>
-            {t.icon} {t.label}
-            {t.key !== 'masters' && dirty[t.key] && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-label={tr('Not saved')} />}
-          </button>
-        ))}
-      </div>
+      <Tabs className="mb-3" label={tr('Access Settings')} value={tab} onChange={k => setTab(k as AccessTab)} tabs={TABS.map(t => ({ key: t.key,
+        label: <span className="inline-flex items-center gap-1.5">{t.icon}{t.label}{t.key !== 'masters' && dirty[t.key] && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-label={tr('Not saved')} />}</span> }))} />
       {/* every tab stays mounted: a change not saved yet survives switching tabs */}
       <div hidden={tab !== 'roles'}><RolePagesPanel onDirty={mark.roles} /></div>
       <div hidden={tab !== 'platforms'}><PlatformsPanel onDirty={mark.platforms} /></div>
@@ -381,8 +397,34 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
       <SaveBar text={tr('Where every page is shown in the menu: the portal, Operations or the Calf On The Road app. Only the menu changes; the access and the flows stay as they are.')}
         dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft({})} />
       {message && <p className={`mb-3 rounded-[3px] px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
-      {!pages ? <SkeletonList rows={5} /> : (
-        <div className="overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+      {!pages ? <SkeletonList rows={5} /> : (<>
+        {/* 2026-11-28 phones: every page a card with its apps as toggles */}
+        <div className="space-y-3 md:hidden">
+          {byGroup.map(g => (
+            <div key={g.group}>
+              <p className="mb-1 text-xs font-semibold text-[color:var(--j-626F86)]">{g.group}</p>
+              <ul className="space-y-2">
+                {g.pages.map(p => (
+                  <li key={p.key} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
+                    <p className="flex items-start justify-between gap-2 text-sm text-[color:var(--j-172B4D)]"><span className="min-w-0 break-words">{p.label}</span>
+                      {custom(p) && <button type="button" onClick={() => setDraft(d => ({ ...d, [p.key]: null }))} className="inline-flex flex-shrink-0 items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)]"><RotateCcw size={12} />{tr('Default')}</button>}</p>
+                    <div className="mt-2 grid grid-cols-3 gap-1.5">
+                      {ALL_PLATFORMS.map(k => {
+                        const has = p.available.includes(k), on = has && current(p).includes(k);
+                        return (
+                          <button key={k} type="button" disabled={!has} aria-pressed={on} onClick={() => toggle(p, k)}
+                            className={`h-10 rounded-[3px] px-1 text-xs font-medium ${!has ? 'bg-[color:var(--j-F7F8F9)] text-[color:var(--j-8590A2)] line-through' : on ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] ring-1 ring-inset ring-[color:var(--j-0C66E4)]' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]'}`}>
+                            {k === 'cotr' ? 'COTR' : PLATFORM_LABEL[k]}
+                          </button>);
+                      })}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="hidden overflow-x-auto rounded-[3px] border border-[color:var(--j-DCDFE4)] md:block">
           <table className="w-full min-w-[560px] text-sm">
             <thead className={kcTable.thead}>
               <tr><th className="min-w-[11rem] px-3 py-2.5">{tr('Page')}</th>{ALL_PLATFORMS.map(k => <th key={k} className="w-28 px-3 py-2.5 text-center">{PLATFORM_LABEL[k]}</th>)}<th className="w-10" /></tr>
@@ -413,7 +455,7 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
             </tbody>
           </table>
         </div>
-      )}
+      </>)}
     </div>
   );
 }
@@ -506,14 +548,7 @@ function MastersPanel() {
   return (
     <div className="space-y-3">
       <SaveBar text={tr('Job titles and departments follow HRMS: a linked account gets them from its employee every hour. The list is read-only; accounts not linked to HRMS pick a name in their form.')} dirty={false} busy={false} />
-      <div className="flex gap-1" role="tablist">
-        {(['jobTitle', 'department'] as MasterKind[]).map(k => (
-          <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${kind === k ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] ring-1 ring-brand-200' : 'text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]'}`}>
-            {k === 'jobTitle' ? <Briefcase size={13} /> : <Building2 size={13} />} {k === 'jobTitle' ? tr('Job titles') : tr('Departments')}
-          </button>
-        ))}
-      </div>
+      <QuickChips<MasterKind> value={kind} onChange={setKind} label={tr('List')} items={[{ key: 'jobTitle' as MasterKind, label: tr('Job titles') }, { key: 'department' as MasterKind, label: tr('Departments') }]} />
       <MasterList key={kind} kind={kind} />
     </div>
   );

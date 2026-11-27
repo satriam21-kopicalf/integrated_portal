@@ -19,8 +19,8 @@ export interface ActivityInsightsData {
 
 /** The colours of the charts: ADS light / dark. */
 const PAL = {
-  light: { ok: '#1D7AFC', okSoft: '#85B8FF', issue: '#E2483D', surface: '#FFFFFF', ink: '#172B4D', subtle: '#44546F', muted: '#626F86', grid: '#F1F2F4', axis: '#DCDFE4', tip: '#FFFFFF', tipLine: '#DCDFE4' },
-  dark: { ok: '#579DFF', okSoft: '#0055CC', issue: '#F87168', surface: '#22272B', ink: '#B6C2CF', subtle: '#9FADBC', muted: '#8C9BAB', grid: '#2C333A', axis: '#38414A', tip: '#282E33', tipLine: '#38414A' },
+  light: { ok: '#0B1385', okSoft: '#A5ABF0', issue: '#E2483D', surface: '#FFFFFF', ink: '#172B4D', subtle: '#44546F', muted: '#626F86', grid: '#F1F2F4', axis: '#DCDFE4', tip: '#FFFFFF', tipLine: '#DCDFE4' },
+  dark: { ok: '#8E95E6', okSoft: '#3A44C4', issue: '#F87168', surface: '#22272B', ink: '#B6C2CF', subtle: '#9FADBC', muted: '#8C9BAB', grid: '#2C333A', axis: '#38414A', tip: '#282E33', tipLine: '#38414A' },
 };
 function useDark() {
   const [dark, setDark] = useState(false);
@@ -186,26 +186,40 @@ function HourChart({ data }: { data: ActivityInsightsData }) {
 }
 
 function TopPages({ data }: { data: ActivityInsightsData }) {
-  const max = Math.max(1, ...data.topPages.map((p) => p.count));
-  const total = data.topPages.reduce((a, p) => a + p.count, 0) || 1;
-  if (!data.topPages.length) return <p className="py-16 text-center text-sm text-[color:var(--j-626F86)]">{tr('No page activity')}</p>;
+  const c = useDark();
+  const pages = useMemo(() => data.topPages.slice(0, 8), [data.topPages]);
+  const total = useMemo(() => data.topPages.reduce((a, p) => a + p.count, 0) || 1, [data.topPages]);
+  const rows = useMemo(() => [...pages].reverse(), [pages]); // ECharts draws the first category at the bottom: the busiest on top
+  const option = useMemo<ChartOption>(() => ({
+    textStyle: { fontFamily: FONT, color: c.subtle }, animationDuration: 500,
+    grid: { left: 4, right: 48, top: 4, bottom: 4, containLabel: true },
+    tooltip: tip(c, {
+      trigger: 'item',
+      formatter: (x: { dataIndex: number }) => {
+        const p = rows[x.dataIndex];
+        return `<div style="color:${c.subtle};margin-bottom:4px;font-weight:600">${esc(pageName(p.page))}</div>`
+          + row(c, c.ok, formatNumber(p.count), tr('activities'))
+          + `<div style="color:${c.subtle}">${formatNumber(p.users)} ${esc(tr('users'))} · ${Math.round((p.count / total) * 100)}%</div>`;
+      },
+    }),
+    xAxis: { type: 'value', show: false },
+    yAxis: { type: 'category', data: rows.map((p) => pageName(p.page)), axisLine: { show: false }, axisTick: { show: false },
+      axisLabel: { color: c.ink, fontSize: 12, width: 130, overflow: 'truncate' } },
+    series: [{
+      type: 'bar', data: rows.map((p) => p.count), barMaxWidth: 16, showBackground: true, backgroundStyle: { color: c.grid, borderRadius: 4 },
+      itemStyle: { color: c.ok, borderRadius: [0, 4, 4, 0] },
+      label: { show: true, position: 'right', color: c.ink, fontSize: 11, fontWeight: 600, formatter: (x: { value: number }) => formatNumber(x.value) },
+    }],
+  }), [rows, c, total]);
+  if (!pages.length) return <p className="py-16 text-center text-sm text-[color:var(--j-626F86)]">{tr('No page activity')}</p>;
+  const top = pages[0];
   return (
-    <ol className="divide-y divide-[color:var(--j-F1F2F4)]">
-      {data.topPages.map((p, i) => (
-        <li key={p.page} className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-x-2 py-2">
-          <span className="pt-0.5 text-xs font-semibold tabular-nums text-[color:var(--j-626F86)]">{i + 1}</span>
-          <span className="min-w-0">
-            <span className="flex items-baseline justify-between gap-2 text-sm">
-              <span className="truncate font-medium text-[color:var(--j-172B4D)]">{pageName(p.page)}</span>
-              <span className="flex-shrink-0 font-semibold tabular-nums text-[color:var(--j-172B4D)]">{formatNumber(p.count)}</span>
-            </span>
-            <span className="mt-1 block h-1.5 overflow-hidden rounded-[2px] bg-[color:var(--j-091E420F)]">
-              <span className="block h-full rounded-[2px] bg-[color:var(--j-0C66E4)]" style={{ width: `${Math.max(3, (p.count / max) * 100)}%` }} />
-            </span>
-            <span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{tr('{0} users · {1}% of the activity', formatNumber(p.users), Math.round((p.count / total) * 100))}</span>
-          </span>
-        </li>
-      ))}
-    </ol>
+    <>
+      <div className="mb-2 grid grid-cols-2 gap-3 border-b border-[color:var(--j-F1F2F4)] pb-3">
+        <Figure label={tr('Most visited')} value={pageName(top.page)} sub={tr('{0} users · {1}% of the activity', formatNumber(top.users), Math.round((top.count / total) * 100))} />
+        <Figure label={tr('Pages')} value={formatNumber(data.topPages.length)} />
+      </div>
+      <EChart option={option} height={Math.max(160, pages.length * 34 + 16)} ariaLabel={tr('Most Visited Pages')} />
+    </>
   );
 }

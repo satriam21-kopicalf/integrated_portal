@@ -305,7 +305,7 @@ export default function Drawer({ open, title, description, onClose, children, fo
   }, [open, locked]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[60] flex justify-end">
+    <div className="fixed inset-0 z-[80] !m-0 flex justify-end">
       <div className="absolute inset-0 bg-[color:var(--j-091E427D)]" onClick={() => !locked && onClose()} aria-hidden />
       <div ref={panel} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
         className={cx("relative flex h-full w-full flex-col bg-white text-sm text-[color:var(--j-172B4D)] shadow-[0_8px_12px_#091E4226,0_0_1px_#091E424F] outline-none", WIDTH[size])}>

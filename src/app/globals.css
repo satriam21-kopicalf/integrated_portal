@@ -211,6 +211,7 @@ html.brand-cotr .kc-mark { display: none; }
 /* The Jira look (src/jira, 2026-11-27): its Atlassian colours as variables, the dark ones from the ADS dark theme, so the
    pages in the Jira look follow html.dark as the rest of the app (classes use them as text-[color:var(--j-172B4D)] …). */
 :root {
+  /* the brand: Kopi Calf navy (2026-11-28) in place of the Jira blue */
   --j-172B4D: #172B4D;
   --j-44546F: #44546F;
   --j-626F86: #626F86;
@@ -218,12 +219,12 @@ html.brand-cotr .kc-mark { display: none; }
   --j-DCDFE4: #DCDFE4;
   --j-F1F2F4: #F1F2F4;
   --j-F7F8F9: #F7F8F9;
-  --j-0C66E4: #0C66E4;
-  --j-0055CC: #0055CC;
-  --j-388BFF: #388BFF;
-  --j-E9F2FF: #E9F2FF;
-  --j-CCE0FF: #CCE0FF;
-  --j-85B8FF: #85B8FF;
+  --j-0C66E4: #0B1385;
+  --j-0055CC: #080E63;
+  --j-388BFF: #3A44C4;
+  --j-E9F2FF: #EEF0FB;
+  --j-CCE0FF: #DFE2F7;
+  --j-85B8FF: #A5ABF0;
   --j-091E420F: #091E420F;
   --j-091E4224: #091E4224;
   --j-091E424F: #091E424F;
@@ -254,12 +255,12 @@ html.dark {
   --j-DCDFE4: #38414A;
   --j-F1F2F4: #2C333A;
   --j-F7F8F9: #22272B;
-  --j-0C66E4: #579DFF;
-  --j-0055CC: #85B8FF;
-  --j-388BFF: #85B8FF;
-  --j-E9F2FF: #1C2B41;
-  --j-CCE0FF: #09326C;
-  --j-85B8FF: #0055CC;
+  --j-0C66E4: #8E95E6;
+  --j-0055CC: #B4B9F2;
+  --j-388BFF: #8E95E6;
+  --j-E9F2FF: #1C2558;
+  --j-CCE0FF: #222B6F;
+  --j-85B8FF: #3A44C4;
   --j-091E420F: #A1BDD914;
   --j-091E4224: #A6C5E229;
   --j-091E424F: #BFDBF847;

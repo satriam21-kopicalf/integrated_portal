@@ -8586,4 +8586,6 @@ export const ID: Record<string, string> = {
   "Average per hour": "Rata-rata per jam",
   "Other hours": "Jam lain",
   "{0} users · {1}% of the activity": "{0} pengguna · {1}% dari aktivitas",
+  "Superadmin always opens every page, User Accounts and Activity Logs included.": "Superadmin selalu membuka semua halaman, termasuk Akun Pengguna dan Log Aktivitas.",
+  "Most visited": "Paling sering",
 };

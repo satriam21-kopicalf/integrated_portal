@@ -542,9 +542,13 @@ function ActivityFiltersDrawer({ value, users, onApply, onClose }: {
       description={tr('Narrow the log by user, result and role. The type tabs and search stay on the page.')}
       footer={
         <>
-          <button type="button" className={`${buttonSecondary} mr-auto`} onClick={() => setDraft(NO_FILTERS)}>{tr('Reset')}</button>
-          <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
-          <button type="button" className={buttonPrimary} onClick={() => onApply(draft)}>{tr('Apply Filters')}</button>
+          {/* 2026-11-28 phones: Reset as a quiet link, Cancel and Apply share the width */}
+          <div className="flex w-full items-center gap-2">
+            <button type="button" className="inline-flex h-10 items-center gap-1 px-1 text-sm font-medium text-[color:var(--j-0C66E4)] hover:underline sm:h-8" onClick={() => setDraft(NO_FILTERS)}>{tr('Reset')}</button>
+            <span className="flex-1" />
+            <button type="button" className={`${buttonSecondary} max-sm:flex-1`} onClick={onClose}>{tr('Cancel')}</button>
+            <button type="button" className={`${buttonPrimary} max-sm:flex-1`} onClick={() => onApply(draft)}>{tr('Apply Filters')}</button>
+          </div>
         </>
       }>
       <div className="space-y-6">
