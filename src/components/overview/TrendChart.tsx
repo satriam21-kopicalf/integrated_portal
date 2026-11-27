@@ -200,7 +200,7 @@ export default function TrendChart({
       <Legend items={legend} />
       <EChart option={option} height={height} ariaLabel={tr('{0} per {1}, {2} chart', label, tr(g), tr(chart))}
         onClick={onSelect ? (p: ChartClick) => { if (s[p.dataIndex]) onSelect(s[p.dataIndex]); } : undefined} />
-      {!hasPrev && <p className="text-xs text-neutral-400">{tr('No comparison: the comparison period starts before complete history (Aug 2025).')}</p>}
+      {!hasPrev && <p className="text-xs text-[color:var(--j-626F86)]">{tr('No comparison: the comparison period starts before complete history (Aug 2025).')}</p>}
     </div>
   );
 }
@@ -212,7 +212,7 @@ export function ChartTypeSelect({ value, onChange }: { value: TrendChartType; on
       <span className="sr-only">{tr('Chart type')}</span>
       <NativeSelect value={value} onChange={e => onChange(e.target.value as TrendChartType)}
         title={TREND_CHARTS.find(c => c.value === value)?.hint}
-        className="h-7 rounded-lg border border-neutral-200 bg-white pl-2 pr-7 text-xs font-medium text-neutral-700 hover:border-neutral-300 focus:border-neutral-400 focus:outline-none">
+        className="h-7 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white pl-2 pr-7 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)] focus:border-neutral-400 focus:outline-none">
         {TREND_CHARTS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
       </NativeSelect>
     </label>

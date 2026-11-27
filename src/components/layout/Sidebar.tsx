@@ -36,7 +36,7 @@ function writeFlag(key: string, value: boolean) {
   }
 }
 
-const headerButton = 'rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700';
+const headerButton = 'rounded-[3px] p-1.5 text-[color:var(--j-626F86)] transition-colors hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-44546F)]';
 
 export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boolean; onMobileClose: () => void }) {
   const pathname = usePathname();
@@ -49,7 +49,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boo
   return (
     <>
       {/* desktop */}
-      <aside className={cx('hidden h-full flex-shrink-0 border-r border-neutral-200 bg-white transition-[width] duration-200 lg:flex', collapsed ? 'w-[64px]' : 'w-60')}>
+      <aside className={cx('hidden h-full flex-shrink-0 border-r border-[color:var(--j-DCDFE4)] bg-white transition-[width] duration-200 lg:flex', collapsed ? 'w-[64px]' : 'w-60')}>
         <SidebarContent collapsed={collapsed} pathname={pathname}>
           <button type="button" onClick={toggleCollapsed} className={headerButton}
             aria-label={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')} title={collapsed ? tr('Expand sidebar') : tr('Collapse sidebar')}>

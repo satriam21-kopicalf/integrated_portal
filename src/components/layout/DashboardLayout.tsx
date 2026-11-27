@@ -59,12 +59,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [mobileOpen]);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-neutral-50">
+    <div className="flex h-dvh overflow-hidden bg-[color:var(--j-F7F8F9)]">
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main ref={main} className={`relative min-w-0 flex-1 overflow-auto ${focus ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0'}`}>
+        <main ref={main} className={`relative min-w-0 flex-1 overflow-auto ${focus ? '' : 'pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0'}`}>
           <AppBar pathname={pathname} scrolled={scrolled} onMenu={() => setMobileOpen(true)} />
           <FocusContext.Provider value={setFocus}><ToastProvider>{children}</ToastProvider></FocusContext.Provider>
         </main>
@@ -85,7 +85,7 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
   const page = PAGES.filter((p) => pathname === p.href || pathname.startsWith(`${p.href}/`)).sort((a, b) => b.href.length - a.href.length)[0];
   return (
     <header className={`sticky top-0 z-30 transition-colors duration-200 lg:hidden ${
-      scrolled ? 'border-b border-neutral-200/70 bg-white/85 backdrop-blur-xl' : 'border-b border-transparent bg-neutral-50'}`}
+      scrolled ? 'border-b border-[color:var(--j-DCDFE4)] bg-white/85 backdrop-blur-xl' : 'border-b border-transparent bg-[color:var(--j-F7F8F9)]'}`}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3 sm:px-5">
         <div className="relative h-10 min-w-0 flex-1">
@@ -94,20 +94,20 @@ function AppBar({ pathname, scrolled, onMenu }: { pathname: string; scrolled: bo
               <span className="flex min-w-0 flex-col justify-center gap-1 leading-tight">
                 {/* eslint-disable-next-line @next/next/no-img-element -- brand wordmark from public/assets */}
                 <img src={brand.logo} alt={brand.name} className="h-6 w-auto max-w-[9rem] object-contain object-left" />
-                <span className="block text-[10px] font-extrabold tracking-[0.14em] text-brand-700">PORTAL</span>
+                <span className="block text-[10px] font-extrabold tracking-[0.14em] text-[color:var(--j-0C66E4)]">PORTAL</span>
               </span>
             ) : <>
-              <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-neutral-200/80">
+              <span className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-[3px] bg-white shadow-sm ring-1 ring-neutral-200/80">
                 <Image src={brand.logo} alt={brand.name} fill sizes="36px" className="object-contain p-1" />
               </span>
               <span className="min-w-0 leading-tight">
-                <span className="block text-[13px] font-extrabold tracking-[0.14em] text-brand-700">PORTAL</span>
-                <span className="block truncate text-[11px] font-medium text-neutral-500">{brand.line}</span>
+                <span className="block text-[13px] font-extrabold tracking-[0.14em] text-[color:var(--j-0C66E4)]">PORTAL</span>
+                <span className="block truncate text-[11px] font-medium text-[color:var(--j-626F86)]">{brand.line}</span>
               </span>
             </>}
           </div>
           {page && (
-            <p className={`absolute inset-0 flex items-center truncate text-base font-semibold text-neutral-900 transition-all duration-200 ${scrolled ? 'opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}>
+            <p className={`absolute inset-0 flex items-center truncate text-base font-semibold text-[color:var(--j-172B4D)] transition-all duration-200 ${scrolled ? 'opacity-100' : 'pointer-events-none translate-y-2 opacity-0'}`}>
               {page.label}
             </p>
           )}

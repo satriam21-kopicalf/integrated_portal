@@ -43,22 +43,22 @@ function Rows({ rows, label, limit }: { rows: TaxResponse['channels']; label: (k
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
-        <thead className="text-left text-xs capitalize text-neutral-400">
+        <thead className="text-left text-xs capitalize text-[color:var(--j-626F86)]">
           <tr><th className="py-2 pr-3 font-medium" /><th className="px-2 py-2 text-right font-medium">{tr('Tax / PB1')}</th>
             <th className="px-2 py-2 text-right font-medium">{tr('Rate')}</th><th className="px-2 py-2 text-right font-medium">{tr('Bills Taxed')}</th>
             <th className="py-2 pl-2 text-right font-medium">{tr('Share')}</th></tr>
         </thead>
-        <tbody className="divide-y divide-neutral-100">
+        <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
           {shown.map(r => (
             <tr key={r.key}>
-              <td className="max-w-[12rem] truncate py-2 pr-3 text-neutral-800">{label(r.key)}</td>
-              <td className={`whitespace-nowrap px-2 py-2 text-right tabular-nums ${r.tax ? 'font-medium text-neutral-900' : 'text-neutral-400'}`}>{formatCurrency(r.tax ?? 0)}</td>
-              <td className="px-2 py-2 text-right tabular-nums text-neutral-600">{r.rate != null ? `${fixed(r.rate, 1)}%` : '—'}</td>
-              <td className="px-2 py-2 text-right tabular-nums text-neutral-600">{r.taxedPct != null ? `${fixed(r.taxedPct, 0)}%` : '—'}</td>
+              <td className="max-w-[12rem] truncate py-2 pr-3 text-[color:var(--j-172B4D)]">{label(r.key)}</td>
+              <td className={`whitespace-nowrap px-2 py-2 text-right tabular-nums ${r.tax ? 'font-medium text-[color:var(--j-172B4D)]' : 'text-[color:var(--j-626F86)]'}`}>{formatCurrency(r.tax ?? 0)}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{r.rate != null ? `${fixed(r.rate, 1)}%` : '—'}</td>
+              <td className="px-2 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{r.taxedPct != null ? `${fixed(r.taxedPct, 0)}%` : '—'}</td>
               <td className="py-2 pl-2">
                 <span className="flex items-center justify-end gap-2">
-                  <span className="h-1.5 w-14 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${Math.min(100, r.share ?? 0)}%` }} /></span>
-                  <span className="w-10 text-right text-xs tabular-nums text-neutral-500">{fixed(r.share ?? 0, 1)}%</span>
+                  <span className="h-1.5 w-14 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-brand-500" style={{ width: `${Math.min(100, r.share ?? 0)}%` }} /></span>
+                  <span className="w-10 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{fixed(r.share ?? 0, 1)}%</span>
                 </span>
               </td>
             </tr>
@@ -92,7 +92,7 @@ export default function TaxCard({ resource }: { resource: Resource<TaxResponse> 
               <>
                 <Rows rows={data.branches.filter(b => b.tax)} label={k => data.branches.find(b => b.key === k)?.name ?? k} limit={15} />
                 {untaxed.length > 0 && (
-                  <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">
                     {tr('No tax in this period: {0}', untaxed.slice(0, 12).map(b => b.name).join(', '))}{untaxed.length > 12 ? ` ${tr('+{0} more', untaxed.length - 12)}` : ''}
                   </p>
                 )}
@@ -107,10 +107,10 @@ export default function TaxCard({ resource }: { resource: Resource<TaxResponse> 
 
 function Figure({ label, value, sub }: { label: string; value: string; sub?: React.ReactNode }) {
   return (
-    <div className="rounded-lg bg-neutral-50 px-3 py-2">
-      <p className="text-xs font-medium capitalize text-neutral-400">{label}</p>
-      <p className="mt-0.5 text-base font-semibold tabular-nums text-neutral-900">{value}</p>
-      {sub && <div className="mt-0.5 text-[11px] text-neutral-500">{sub}</div>}
+    <div className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2">
+      <p className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{label}</p>
+      <p className="mt-0.5 text-base font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value}</p>
+      {sub && <div className="mt-0.5 text-[11px] text-[color:var(--j-626F86)]">{sub}</div>}
     </div>
   );
 }

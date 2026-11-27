@@ -99,7 +99,7 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
     <div className="space-y-3">
       <EChart option={option} height={300} ariaLabel={tr('Gross sales per day, coloured by weekday')}
         onClick={onSelect ? p => { const d = days[p.dataIndex]; if (d) onSelect(d.date); } : undefined} />
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-neutral-500">
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[color:var(--j-626F86)]">
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKDAY_BLUE }} aria-hidden />{tr('Mon – Fri')}</span>
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKEND_BLUE }} aria-hidden />{tr('Sat – Sun')}</span>
         <span className="flex items-center gap-1.5"><span className="h-0 w-3 border-t border-dashed border-neutral-500" aria-hidden />{tr('average per day')}</span>
@@ -112,19 +112,19 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
           return (
             <button key={name} type="button" onClick={() => toggle(dow)} aria-pressed={on}
               title={w ? tr('{0} {1}s · avg {2}', w.n, name, formatCurrency(Math.round(w.sum / w.n))) : tr('No {0} in the period', name)}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors ${
-                on ? 'border-brand-700 bg-brand-700 text-white'
-                  : focus.length ? 'border-neutral-200 bg-white text-neutral-400 hover:text-neutral-700' : 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300'}`}>
+              className={`inline-flex items-center gap-1.5 rounded-[3px] border px-2.5 py-1 text-xs font-medium transition-colors ${
+                on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white'
+                  : focus.length ? 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] hover:text-[color:var(--j-44546F)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]'}`}>
               {name}
-              {w && <span className={on ? 'text-white/70' : 'text-neutral-400'}>{compactRupiah(w.sum / w.n)}</span>}
+              {w && <span className={on ? 'text-white/70' : 'text-[color:var(--j-626F86)]'}>{compactRupiah(w.sum / w.n)}</span>}
             </button>
           );
         })}
         {focus.length > 0 && (
-          <button type="button" onClick={() => setFocus([])} className="ml-1 text-xs font-medium text-neutral-500 hover:text-neutral-900 hover:underline">{tr('Show All')}</button>
+          <button type="button" onClick={() => setFocus([])} className="ml-1 text-xs font-medium text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)] hover:underline">{tr('Show All')}</button>
         )}
       </div>
-      <p className="text-center text-[11px] text-neutral-500">{tr('Click a weekday to highlight it · amount = its average gross sales per day')}</p>
+      <p className="text-center text-[11px] text-[color:var(--j-626F86)]">{tr('Click a weekday to highlight it · amount = its average gross sales per day')}</p>
     </div>
   );
 }
@@ -160,8 +160,8 @@ export function AverageSalesBody({ data, weekday, onWeekday }: {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-neutral-500">
-          <span className="font-medium text-neutral-900">{range(f.from, f.to)}</span>
+        <p className="text-xs text-[color:var(--j-626F86)]">
+          <span className="font-medium text-[color:var(--j-172B4D)]">{range(f.from, f.to)}</span>
           {' '}({formatNumber(data.days)} {data.weekdayName ? `${data.weekdayName}${data.days === 1 ? '' : 's'}` : data.days === 1 ? tr('day') : tr('days')})
           {f.previous.complete
             ? <> {tr('vs')} {range(f.previous.from, f.previous.to)} ({formatNumber(data.compareDays)})</>
@@ -172,8 +172,8 @@ export function AverageSalesBody({ data, weekday, onWeekday }: {
             const on = weekday === w;
             return (
               <button key={w ?? 0} type="button" role="radio" aria-checked={on} onClick={() => onWeekday(w)}
-                className={`inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition-colors ${
-                  on ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:text-neutral-900'}`}>
+                className={`inline-flex h-7 items-center gap-1.5 rounded-[3px] border px-2 text-xs font-medium transition-colors ${
+                  on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)] hover:text-[color:var(--j-172B4D)]'}`}>
                 {w ? WEEKDAYS[w - 1].slice(0, 3) : tr('All Days')}
               </button>
             );
@@ -185,7 +185,7 @@ export function AverageSalesBody({ data, weekday, onWeekday }: {
         caption={tr('Average Sales')} csvName={`average-sales-${f.from}-${f.to}${data.weekday ? `-${dayName.toLowerCase()}` : ''}`}
         rows={data.rows} rowKey={r => r.key} search={r => `${r.label} ${r.key}`} initialSort={{ key: 'branch', desc: false }} maxHeight={460}
         columns={[
-          { key: 'branch', label: tr('Branch'), value: r => r.label, render: r => <span className="font-medium text-neutral-900">{r.label}</span> },
+          { key: 'branch', label: tr('Branch'), value: r => r.label, render: r => <span className="font-medium text-[color:var(--j-172B4D)]">{r.label}</span> },
           { key: 'dow', label: tr('Day of Week'), value: () => dayName },
           { key: 'avg', label: tr('Average Sales'), align: 'right', value: r => r.averageSales,
             title: tr('Gross sales per day in the period (days the branch sold)'), render: r => (r.averageSales === null ? '-' : rp(r.averageSales)) },
@@ -194,13 +194,13 @@ export function AverageSalesBody({ data, weekday, onWeekday }: {
           { key: 'pending', label: tr('Pending Sales'), align: 'right', value: r => r.pendingSales, title: tr('Open bills (not finished yet)'), render: r => rp(r.pendingSales) },
           { key: 'sales', label: tr('Gross sales'), align: 'right', value: r => r.sales, title: tr('Total gross sales in the period'), render: r => rp(r.sales) },
           { key: 'total', label: tr('Total Sales'), align: 'right', value: r => r.totalSales, title: tr('Gross sales + pending'),
-            render: r => <span className="font-semibold text-neutral-900">{rp(r.totalSales)}</span> },
+            render: r => <span className="font-semibold text-[color:var(--j-172B4D)]">{rp(r.totalSales)}</span> },
           { key: 'var', label: tr('Variance'), align: 'right', value: r => r.variancePct,
             title: tr('(Average sales − comparison avg) ÷ comparison avg × 100'), render: r => <Delta value={r.variancePct} /> },
         ]}
         footer={
-          <tfoot className="sticky bottom-0 bg-neutral-50 text-xs font-semibold text-neutral-900">
-            <tr className="border-t border-neutral-200">
+          <tfoot className="sticky bottom-0 bg-[color:var(--j-F7F8F9)] text-xs font-semibold text-[color:var(--j-172B4D)]">
+            <tr className="border-t border-[color:var(--j-DCDFE4)]">
               <td className="px-3 py-2" colSpan={2}>{tr('Total ·')} {formatNumber(data.rows.length)} {tr('branches')}</td>
               <td className="px-3 py-2 text-right tabular-nums">{t.averageSales === null ? '-' : rp(t.averageSales)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{t.compareAverage === null ? '-' : rp(t.compareAverage)}</td>

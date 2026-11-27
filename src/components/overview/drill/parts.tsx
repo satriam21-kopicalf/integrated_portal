@@ -14,11 +14,11 @@ import { downloadXlsx } from '@/lib/xlsx';
 /** One titled block of a drill-down drawer. */
 export function Block({ title, subtitle, actions, children }: { title: string; subtitle?: ReactNode; actions?: ReactNode; children: ReactNode }) {
   return (
-    <section className="space-y-3 border-b border-neutral-200 pb-6 last:border-b-0 last:pb-0 [&:not(:first-child)]:pt-6">
+    <section className="space-y-3 border-b border-[color:var(--j-DCDFE4)] pb-6 last:border-b-0 last:pb-0 [&:not(:first-child)]:pt-6">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-xs text-neutral-500">{subtitle}</p>}
+          <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{title}</h3>
+          {subtitle && <p className="mt-0.5 text-xs text-[color:var(--j-626F86)]">{subtitle}</p>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
@@ -31,7 +31,7 @@ export function Block({ title, subtitle, actions, children }: { title: string; s
 export function Loaded<T>({ resource, height = 160, children }: { resource: Resource<T>; height?: number; children: (data: T) => ReactNode }) {
   if (resource.error && !resource.loading) {
     return (
-      <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+      <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-sm text-amber-800">
         {tr('Could not load:')} {resource.error}{' '}
         <button type="button" onClick={resource.retry} className="font-medium underline">{tr('Try Again')}</button>
       </p>
@@ -57,12 +57,12 @@ export function Tiles({ tiles, columns = 4 }: { tiles: Tile[]; columns?: 2 | 3 |
   return (
     <dl className={`grid grid-cols-2 gap-3 ${cols}`}>
       {tiles.map(t => (
-        <div key={t.label} className="min-w-0 rounded-md border border-neutral-200 bg-white px-4 py-3.5" title={t.title ?? t.value}>
-          <dt className="truncate text-xs font-medium text-neutral-500">{t.label}</dt>
+        <div key={t.label} className="min-w-0 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3.5" title={t.title ?? t.value}>
+          <dt className="truncate text-xs font-medium text-[color:var(--j-626F86)]">{t.label}</dt>
           {/* full figures stay on one line: long ones (Rp 45.795.696.100) get a smaller size */}
-          <dd className={`mt-0.5 truncate font-semibold tabular-nums tracking-tight text-neutral-900 ${t.value.length > 14 ? 'text-[15px]' : 'text-lg'}`}>{t.value}</dd>
+          <dd className={`mt-0.5 truncate font-semibold tabular-nums tracking-tight text-[color:var(--j-172B4D)] ${t.value.length > 14 ? 'text-[15px]' : 'text-lg'}`}>{t.value}</dd>
           {(t.delta !== undefined || t.sub) && (
-            <dd className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 text-[11px] text-neutral-500">
+            <dd className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 text-[11px] text-[color:var(--j-626F86)]">
               {t.delta !== undefined && <Delta value={t.delta} unit={t.deltaUnit} upIsGood={t.upIsGood} />}
               {t.sub && <span className="truncate">{t.sub}</span>}
             </dd>
@@ -139,20 +139,20 @@ export function DetailTable<R>({
         {search && (
           <label className="relative min-w-[10rem] flex-1">
             <span className="sr-only">{tr('Search')} {caption}</span>
-            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Search')}
-              className="h-8 w-full rounded-lg border border-neutral-200 pl-8 pr-2 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none" />
+              className="h-8 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] pl-8 pr-2 text-xs text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] focus:border-neutral-400 focus:outline-none" />
           </label>
         )}
-        <span className="text-[11px] text-neutral-400">{formatNumber(shown.length)}{shown.length !== rows.length ? tr(' of {0}', formatNumber(rows.length)) : ''} {tr('rows')}{onRowClick ? ` · ${rowHint ?? tr('click a row for details')}` : ''}</span>
+        <span className="text-[11px] text-[color:var(--j-626F86)]">{formatNumber(shown.length)}{shown.length !== rows.length ? tr(' of {0}', formatNumber(rows.length)) : ''} {tr('rows')}{onRowClick ? ` · ${rowHint ?? tr('click a row for details')}` : ''}</span>
         {csvName !== undefined && (
           <span className="ml-auto"><ExcelIconButton label={tr('Export to Excel')} onClick={download} /></span>
         )}
       </div>
-      <div className="custom-scrollbar overflow-auto rounded-lg border border-neutral-200" style={{ maxHeight }}>
+      <div className="custom-scrollbar overflow-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]" style={{ maxHeight }}>
         <table className="w-full whitespace-nowrap text-xs">
           <caption className="sr-only">{caption}</caption>
-          <thead className="sticky top-0 z-10 border-b-2 border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+          <thead className="sticky top-0 z-10 border-b-2 border-[color:var(--j-DCDFE4)] bg-white text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">
             <tr>
               {columns.map(c => {
                 const active = sort?.key === c.key;
@@ -160,7 +160,7 @@ export function DetailTable<R>({
                   <th key={c.key} scope="col" aria-sort={active ? (sort!.desc ? 'descending' : 'ascending') : 'none'}
                     className={`px-3 py-2 font-medium ${c.align === 'right' ? 'text-right' : 'text-left'}`}>
                     <button type="button" title={c.title} onClick={() => setSort({ key: c.key, desc: active ? !sort!.desc : c.align === 'right' })}
-                      className={`inline-flex items-center gap-0.5 hover:text-neutral-900 ${active ? 'text-neutral-900' : ''}`}>
+                      className={`inline-flex items-center gap-0.5 hover:text-[color:var(--j-172B4D)] ${active ? 'text-[color:var(--j-172B4D)]' : ''}`}>
                       {c.label}
                       {active && (sort!.desc ? <ArrowDown size={11} /> : <ArrowUp size={11} />)}
                     </button>
@@ -170,20 +170,20 @@ export function DetailTable<R>({
               {onRowClick && <th scope="col" className="w-6" aria-hidden />}
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {shown.map(r => (
               <tr key={rowKey(r)} onClick={onRowClick ? () => onRowClick(r) : undefined}
-                className={onRowClick ? 'group cursor-pointer hover:bg-brand-50/50' : 'hover:bg-neutral-50/60'}>
+                className={onRowClick ? 'group cursor-pointer hover:bg-[color:var(--j-E9F2FF)]' : 'hover:bg-[color:var(--j-F7F8F9)]'}>
                 {columns.map(c => (
-                  <td key={c.key} className={`px-3 py-1.5 text-neutral-700 ${c.align === 'right' ? 'text-right tabular-nums' : 'text-left'}`}>
+                  <td key={c.key} className={`px-3 py-1.5 text-[color:var(--j-44546F)] ${c.align === 'right' ? 'text-right tabular-nums' : 'text-left'}`}>
                     {c.render ? c.render(r) : fmtCell(c.value(r))}
                   </td>
                 ))}
-                {onRowClick && <td className="pr-2 text-neutral-300 group-hover:text-brand-600"><ChevronRight size={14} /></td>}
+                {onRowClick && <td className="pr-2 text-[color:var(--j-8590A2)] group-hover:text-[color:var(--j-0C66E4)]"><ChevronRight size={14} /></td>}
               </tr>
             ))}
             {!shown.length && (
-              <tr><td colSpan={columns.length + (onRowClick ? 1 : 0)} className="px-3 py-6 text-center text-neutral-400">{tr('No rows')}</td></tr>
+              <tr><td colSpan={columns.length + (onRowClick ? 1 : 0)} className="px-3 py-6 text-center text-[color:var(--j-626F86)]">{tr('No rows')}</td></tr>
             )}
           </tbody>
           {footer}
@@ -211,7 +211,7 @@ export function ShareBar({ value, color = '#2a78d6' }: { value: number | null; c
   const v = Math.max(0, Math.min(100, value ?? 0));
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-neutral-100"><span className="block h-full rounded-full" style={{ width: `${v}%`, background: color }} /></span>
+      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full" style={{ width: `${v}%`, background: color }} /></span>
       <span className="w-12 text-right tabular-nums">{pctText(value)}</span>
     </span>
   );

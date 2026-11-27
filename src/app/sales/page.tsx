@@ -1,6 +1,6 @@
 'use client';
 
-import { Lozenge } from '@/so/ui/Jira';
+import { Lozenge } from '@/jira';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
@@ -12,11 +12,11 @@ import BranchFilter, { Branch, branchesLabel, splitBranches } from '@/components
 import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Tag, Wallet, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate, fixed } from '@/lib/format';
-import { Stat, StatSkeleton, StatStrip } from '@/components/StatStrip';
+import { Stat, StatSkeleton, StatStrip } from '@/jira';
 import { useRealtime } from '@/lib/realtime';
 import { nameCase } from '@/lib/title-case';
 import { tr, serverMsg } from '@/lib/i18n';
-import { SearchInput, btn } from '@/components/kc';
+import { SearchInput, btn } from '@/jira/kc';
 
 interface PaginationInfo {
   cursor: string | null;
@@ -283,12 +283,12 @@ export default function SalesPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-neutral-50">
+      <div className="min-h-full bg-white">
         <header className="px-4 pt-4 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{tr('Sales Transactions')}</h1>
-              <p className="truncate text-xs text-neutral-500 sm:text-sm">
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--j-172B4D)]">{tr('Sales Transactions')}</h1>
+              <p className="truncate text-xs text-[color:var(--j-626F86)] sm:text-sm">
                 {periodLabel} · {branchLabel}
               </p>
             </div>
@@ -300,9 +300,9 @@ export default function SalesPage() {
           <SummaryStrip summary={summary} loading={summaryLoading} />
 
           {/* Transactions card */}
-          <section className="overflow-hidden rounded-2xl border border-neutral-200/70 bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white ">
             {/* Transaction type tabs */}
-            <div className="flex gap-x-5 overflow-x-auto border-b border-neutral-200 px-4 pt-3 sm:px-5" role="tablist">
+            <div className="flex gap-x-5 overflow-x-auto border-b border-[color:var(--j-DCDFE4)] px-4 pt-3 sm:px-5" role="tablist">
               {TX_TYPES.map(t => {
                 const active = t.value === txType;
                 return (
@@ -313,13 +313,13 @@ export default function SalesPage() {
                     aria-selected={active}
                     onClick={() => setTxType(t.value)}
                     className={`-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 pb-2.5 pt-1.5 text-sm font-medium transition-colors ${
-                      active ? 'border-brand-700 text-brand-700' : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                      active ? 'border-[color:var(--j-0C66E4)] text-[color:var(--j-0C66E4)]' : 'border-transparent text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'
                     }`}
                   >
                     <span className="sm:hidden">{t.short}</span>
                     <span className="hidden sm:inline">{t.label}</span>
                     {typeCounts[t.value] !== undefined && (
-                      <span className="rounded-full bg-neutral-100 px-1.5 text-[11px] font-semibold tabular-nums text-neutral-500">
+                      <span className="rounded-full bg-[color:var(--j-091E420F)] px-1.5 text-[11px] font-semibold tabular-nums text-[color:var(--j-626F86)]">
                         {formatNumber(typeCounts[t.value])}
                       </span>
                     )}
@@ -329,7 +329,7 @@ export default function SalesPage() {
             </div>
 
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 border-b border-neutral-200 p-3 sm:px-5 sm:py-3.5">
+            <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--j-DCDFE4)] p-3 sm:px-5 sm:py-3.5">
               <SearchInput value={search} onChange={(v) => (v ? handleSearchChange(v) : clearSearch())} placeholder={tr('Search sales no., bill no. or branch')} />
               <div className="flex min-w-0 items-center gap-2 sm:ml-auto">
                 <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel={tr('today')} />
@@ -347,7 +347,7 @@ export default function SalesPage() {
 
             {/* Active filters */}
             {hasChips && (
-              <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 px-3 py-2 sm:px-4">
+              <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--j-F1F2F4)] px-3 py-2 sm:px-4">
                 {!defaultDates && <Chip label={tr('Date: {0} – {1}', formatDate(dateFrom), formatDate(dateTo || dateFrom))} onRemove={() => handleDateChange('', '')} />}
                 {splitBranches(branch).map(code => (
                   <Chip key={code} label={tr('Branch: {0}', branchName(code))}
@@ -355,14 +355,14 @@ export default function SalesPage() {
                 ))}
                 {txType !== 'sales' && <Chip label={tr('Type: {0}', typeInfo.label)} onRemove={() => setTxType('sales')} />}
                 {debouncedSearch && <Chip label={tr('Search: “{0}”', debouncedSearch)} onRemove={clearSearch} />}
-                <button type="button" onClick={clearFilters} className="text-xs font-medium text-neutral-500 hover:text-neutral-900">
+                <button type="button" onClick={clearFilters} className="text-xs font-medium text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]">
                   {tr('Clear All')}
                 </button>
               </div>
             )}
 
             {txType !== 'sales' && (
-              <div className="flex items-start gap-2 border-b border-neutral-100 bg-neutral-50 px-3 py-2 text-xs text-neutral-500 sm:px-4">
+              <div className="flex items-start gap-2 border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-626F86)] sm:px-4">
                 <Info size={14} className="mt-0.5 flex-shrink-0" />
                 <span>
                   {txType === 'all'
@@ -375,9 +375,9 @@ export default function SalesPage() {
             )}
 
             {newData && (
-              <div className="flex items-center justify-between gap-3 border-b border-brand-100 bg-brand-50 px-3 py-2 text-xs text-brand-800 sm:px-4">
+              <div className="flex items-center justify-between gap-3 border-b border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)] sm:px-4">
                 <span className="flex items-center gap-1.5"><ArrowUpCircle size={14} /> {tr('New transactions were synced.')}</span>
-                <button type="button" onClick={() => fetchData(null)} className="rounded-md bg-brand-600 px-2.5 py-1 font-medium text-white hover:bg-brand-700">
+                <button type="button" onClick={() => fetchData(null)} className="rounded-[3px] bg-[color:var(--j-0C66E4)] px-2.5 py-1 font-medium text-white hover:bg-[color:var(--j-0C66E4)]">
                   {tr('Show latest')}
                 </button>
               </div>
@@ -387,9 +387,9 @@ export default function SalesPage() {
             <div className="relative">
               {loadError && !loading && (
                 <div className="flex flex-col items-center gap-2 px-4 py-16 text-center">
-                  <p className="text-sm font-medium text-neutral-800">{tr('Couldn’t load transactions')}</p>
-                  <p className="text-xs text-neutral-500">{loadError}</p>
-                  <button type="button" onClick={() => fetchData(null)} className="mt-2 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+                  <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr('Couldn’t load transactions')}</p>
+                  <p className="text-xs text-[color:var(--j-626F86)]">{loadError}</p>
+                  <button type="button" onClick={() => fetchData(null)} className="mt-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-1.5 text-sm font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
                     {tr('Try Again')}
                   </button>
                 </div>
@@ -397,11 +397,11 @@ export default function SalesPage() {
 
               {!loadError && !loading && data.length === 0 && (
                 <div className="flex flex-col items-center px-4 py-16 text-center">
-                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
-                    <Receipt size={22} className="text-neutral-400" />
+                  <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--j-091E420F)]">
+                    <Receipt size={22} className="text-[color:var(--j-626F86)]" />
                   </div>
-                  <p className="text-sm font-medium text-neutral-800">{tr('No transactions found')}</p>
-                  <p className="mt-1 text-xs text-neutral-500">{tr('Try another date range, branch or transaction type.')}</p>
+                  <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr('No transactions found')}</p>
+                  <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{tr('Try another date range, branch or transaction type.')}</p>
                 </div>
               )}
 
@@ -414,8 +414,8 @@ export default function SalesPage() {
 
               {refreshing && (
                 <div className="absolute inset-0 z-10 flex items-start justify-center bg-white/60 pt-24 backdrop-blur-[1px]">
-                  <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm">
-                    <Loader2 size={16} className="animate-spin text-neutral-500" />
+                  <div className="flex items-center gap-2 rounded-full border border-[color:var(--j-DCDFE4)] bg-white px-4 py-2 text-sm font-medium text-[color:var(--j-44546F)] shadow-sm">
+                    <Loader2 size={16} className="animate-spin text-[color:var(--j-626F86)]" />
                     {tr('Updating results…')}
                   </div>
                 </div>
@@ -424,12 +424,12 @@ export default function SalesPage() {
 
             {/* Footer */}
             {data.length > 0 && (
-              <div className="flex flex-col items-center justify-between gap-3 border-t border-neutral-200 bg-neutral-50/60 px-3 py-3 sm:flex-row sm:px-4">
-                <p className="text-xs text-neutral-500 sm:text-sm">
-                  {tr('Showing')} <span className="font-semibold text-neutral-800">{formatNumber(groups.length)}</span> {tr('transactions')}
+              <div className="flex flex-col items-center justify-between gap-3 border-t border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-3 sm:flex-row sm:px-4">
+                <p className="text-xs text-[color:var(--j-626F86)] sm:text-sm">
+                  {tr('Showing')} <span className="font-semibold text-[color:var(--j-172B4D)]">{formatNumber(groups.length)}</span> {tr('transactions')}
                   {' · '}
-                  <span className="font-semibold text-neutral-800">{formatNumber(data.length)}</span> {tr('item rows')}
-                  {pagination.hasMore && <span className="text-neutral-400"> {tr('· more available')}</span>}
+                  <span className="font-semibold text-[color:var(--j-172B4D)]">{formatNumber(data.length)}</span> {tr('item rows')}
+                  {pagination.hasMore && <span className="text-[color:var(--j-626F86)]"> {tr('· more available')}</span>}
                 </p>
                 {pagination.hasMore && (
                   <button
@@ -484,7 +484,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
         value={pending ? <StatSkeleton /> : money(t?.sales.nettSales)} title={formatCurrency(t?.sales.nettSales)}>
         {t && (
           <p>
-            {tr('After discounts ·')} <span className="tabular-nums text-neutral-600">{formatCurrency(discount)}</span>
+            {tr('After discounts ·')} <span className="tabular-nums text-[color:var(--j-44546F)]">{formatCurrency(discount)}</span>
             {t.sales.subtotal ? ` (${fixed(((discount / t.sales.subtotal) * 100), 1)}%)` : ''}
           </p>
         )}
@@ -495,7 +495,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
           <>
             <p>{formatNumber(t.gross.transactions)} {tr('transactions, all statuses (before deductions)')}</p>
             {parts.length > 0 && (
-              <div className="flex h-1.5 overflow-hidden rounded-full bg-neutral-200" role="img"
+              <div className="flex h-1.5 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]" role="img"
                 aria-label={parts.map(p => `${p.label} ${fixed(((p.value / t.gross.subtotal) * 100), 1)}%`).join(', ')}>
                 {parts.map(p => (
                   <span key={p.key} title={`${p.label}: ${formatCurrency(p.value)} (${fixed(((p.value / t.gross.subtotal) * 100), 1)}%)`}
@@ -529,9 +529,9 @@ function DeductionRow({ label, color, value, count, hint }: { label: string; col
       <dt className="flex items-center gap-1.5 whitespace-nowrap">
         <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: color }} aria-hidden />
         {label}
-        <span className="text-neutral-400">· {formatNumber(count)}</span>
+        <span className="text-[color:var(--j-626F86)]">· {formatNumber(count)}</span>
       </dt>
-      <dd className="whitespace-nowrap tabular-nums text-neutral-700">−{formatCurrency(value)}</dd>
+      <dd className="whitespace-nowrap tabular-nums text-[color:var(--j-44546F)]">−{formatCurrency(value)}</dd>
     </div>
   );
 }
@@ -539,13 +539,13 @@ function DeductionRow({ label, color, value, count, hint }: { label: string; col
 /* -------------------------------------------------------------------- table */
 
 function StatusBadge({ status }: { status?: string | null }) {
-  if (!status) return <span className="text-neutral-400">-</span>;
+  if (!status) return <span className="text-[color:var(--j-626F86)]">-</span>;
   const s = status.toLowerCase();
   return <Lozenge tone={s === 'finished' || s === 'completed' ? 'green' : s === 'void' || s === 'cancelled' ? 'red' : 'amber'}>{status}</Lozenge>;
 }
 
 // the Jira issue table (2026-11-18): small caps grey heads, dense rows
-const TH = 'px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-neutral-500 whitespace-nowrap first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5';
+const TH = 'px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)] whitespace-nowrap first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5';
 const TD = 'px-2 py-2 text-[13px] align-top first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5';
 
 function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skeleton: boolean; onSelect: (t: TransactionCombined) => void }) {
@@ -553,7 +553,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
     <div className="hidden max-h-[calc(100dvh-17rem)] min-h-[16rem] overflow-auto md:block">
       <table className="w-full min-w-[900px] border-separate border-spacing-0 2xl:min-w-[1040px]">
         <thead className="sticky top-0 z-[5] bg-white/95 backdrop-blur">
-          <tr className="[&>th]:border-b-2 [&>th]:border-neutral-200">
+          <tr className="[&>th]:border-b-2 [&>th]:border-[color:var(--j-DCDFE4)]">
             <th className={TH}>Key</th>
             <th className={TH}>{tr('Date')}</th>
             <th className={TH}>{tr('Branch / Payment')}</th>
@@ -569,7 +569,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
             Array.from({ length: 8 }).map((_, i) => (
               <tr key={i}>
                 {Array.from({ length: 8 }).map((__, j) => (
-                  <td key={j} className="border-b border-neutral-100 px-3 py-3">
+                  <td key={j} className="border-b border-[color:var(--j-F1F2F4)] px-3 py-3">
                     <div className="h-4 skeleton rounded" style={{ width: `${50 + ((i + j) % 4) * 12}%` }} />
                   </td>
                 ))}
@@ -580,50 +580,50 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
               group.rows.map((tx, i) => {
                 const first = i === 0;
                 const last = i === group.rows.length - 1;
-                const border = last ? 'border-b border-neutral-100' : 'border-b border-transparent';
+                const border = last ? 'border-b border-[color:var(--j-F1F2F4)]' : 'border-b border-transparent';
                 return (
                   <tr
                     key={`${group.key}-${tx.line_number ?? i}`}
                     onClick={() => onSelect(tx)}
-                    className="group cursor-pointer [&>td]:transition-colors hover:[&>td]:bg-neutral-50"
+                    className="group cursor-pointer [&>td]:transition-colors hover:[&>td]:bg-[color:var(--j-F7F8F9)]"
                   >
                     <td className={`${TD} ${border}`}>
                       {first && (
                         <>
-                          <p className="font-medium text-brand-700 group-hover:underline">{tx.sales_num}</p>
-                          <p className="text-xs text-neutral-400">{tx.bill_num || tr('No bill number')}</p>
+                          <p className="font-medium text-[color:var(--j-0C66E4)] group-hover:underline">{tx.sales_num}</p>
+                          <p className="text-xs text-[color:var(--j-626F86)]">{tx.bill_num || tr('No bill number')}</p>
                         </>
                       )}
                     </td>
                     <td className={`${TD} ${border} whitespace-nowrap`}>
                       {first && (
                         <>
-                          <p className="text-neutral-700">{formatDate(tx.sales_date)}</p>
-                          <p className="text-xs text-neutral-400">{formatTime(tx.sales_date_in)}</p>
+                          <p className="text-[color:var(--j-44546F)]">{formatDate(tx.sales_date)}</p>
+                          <p className="text-xs text-[color:var(--j-626F86)]">{formatTime(tx.sales_date_in)}</p>
                         </>
                       )}
                     </td>
                     <td className={`${TD} ${border} max-w-[190px]`}>
                       {first && (
                         <>
-                          <p className="truncate text-neutral-700" title={tx.branch_name}>{tx.branch_name || '-'}</p>
-                          <p className="truncate text-xs text-neutral-400" title={tx.payment_method}>{tx.payment_method || '-'}</p>
+                          <p className="truncate text-[color:var(--j-44546F)]" title={tx.branch_name}>{tx.branch_name || '-'}</p>
+                          <p className="truncate text-xs text-[color:var(--j-626F86)]" title={tx.payment_method}>{tx.payment_method || '-'}</p>
                         </>
                       )}
                     </td>
                     <td className={`${TD} ${border}`}>
-                      <p className={tx.menu_name?.endsWith(')') ? 'pl-3 text-neutral-500' : 'font-medium text-neutral-800'}>{tx.menu_name || '-'}</p>
+                      <p className={tx.menu_name?.endsWith(')') ? 'pl-3 text-[color:var(--j-626F86)]' : 'font-medium text-[color:var(--j-172B4D)]'}>{tx.menu_name || '-'}</p>
                       {tx.menu_category && !tx.menu_name?.endsWith(')') && (
-                        <p className="text-xs text-neutral-400">{nameCase(tx.menu_category)}{tx.menu_category_detail ? ` · ${nameCase(tx.menu_category_detail)}` : ''}</p>
+                        <p className="text-xs text-[color:var(--j-626F86)]">{nameCase(tx.menu_category)}{tx.menu_category_detail ? ` · ${nameCase(tx.menu_category_detail)}` : ''}</p>
                       )}
                     </td>
-                    <td className={`${TD} ${border} text-right tabular-nums text-neutral-700`}>{formatNumber(tx.quantity)}</td>
-                    <td className={`${TD} ${border} hidden text-right tabular-nums text-neutral-600 2xl:table-cell`}>{formatCurrency(tx.unit_price)}</td>
-                    <td className={`${TD} ${border} text-right tabular-nums text-neutral-800`}>{formatCurrency(tx.total_item)}</td>
+                    <td className={`${TD} ${border} text-right tabular-nums text-[color:var(--j-44546F)]`}>{formatNumber(tx.quantity)}</td>
+                    <td className={`${TD} ${border} hidden text-right tabular-nums text-[color:var(--j-44546F)] 2xl:table-cell`}>{formatCurrency(tx.unit_price)}</td>
+                    <td className={`${TD} ${border} text-right tabular-nums text-[color:var(--j-172B4D)]`}>{formatCurrency(tx.total_item)}</td>
                     <td className={`${TD} ${border} text-right`}>
                       {first && (
                         <>
-                          <p className="font-semibold tabular-nums text-neutral-900">{formatCurrency(tx.total_amount)}</p>
+                          <p className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{formatCurrency(tx.total_amount)}</p>
                           <div className="mt-1"><StatusBadge status={tx.status} /></div>
                         </>
                       )}
@@ -641,7 +641,7 @@ function DesktopTable({ groups, skeleton, onSelect }: { groups: SaleGroup[]; ske
 function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skeleton: boolean; onSelect: (t: TransactionCombined) => void }) {
   if (skeleton) {
     return (
-      <ul className="divide-y divide-neutral-100 md:hidden">
+      <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
         {Array.from({ length: 5 }).map((_, i) => (
           <li key={i} className="space-y-2 p-4">
             <div className="h-4 w-2/3 skeleton rounded" />
@@ -653,39 +653,39 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
     );
   }
   return (
-    <ul className="divide-y divide-neutral-100 md:hidden">
+    <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">
       {groups.map(group => {
         const tx = group.rows[0];
         const menus = group.rows.filter(r => r.menu_name && !r.menu_name.endsWith(')'));
         return (
           <li key={group.key}>
-            <button type="button" onClick={() => onSelect(tx)} className="block w-full min-w-0 px-4 py-3.5 text-left active:bg-neutral-50">
+            <button type="button" onClick={() => onSelect(tx)} className="block w-full min-w-0 px-4 py-3.5 text-left active:bg-[color:var(--j-F7F8F9)]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-neutral-900">{tx.branch_name || tx.sales_num}</p>
-                  <p className="mt-0.5 truncate text-xs text-neutral-500">
+                  <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{tx.branch_name || tx.sales_num}</p>
+                  <p className="mt-0.5 truncate text-xs text-[color:var(--j-626F86)]">
                     <span className="font-mono">{tx.sales_num}</span> · {formatDate(tx.sales_date)} {formatTime(tx.sales_date_in)}
                   </p>
                 </div>
                 <div className="flex-shrink-0 text-right">
-                  <p className="text-sm font-semibold tabular-nums text-neutral-900">{formatCurrency(tx.total_amount)}</p>
+                  <p className="text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{formatCurrency(tx.total_amount)}</p>
                   <div className="mt-1"><StatusBadge status={tx.status} /></div>
                 </div>
               </div>
               {menus.length > 0 && (
-                <ul className="mt-2.5 space-y-1 rounded-lg bg-neutral-50 px-2.5 py-2 text-xs text-neutral-600">
+                <ul className="mt-2.5 space-y-1 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-2.5 py-2 text-xs text-[color:var(--j-44546F)]">
                   {menus.slice(0, 3).map((m, i) => (
                     <li key={i} className="flex justify-between gap-3">
                       <span className="truncate">{formatNumber(m.quantity)} × {m.menu_name}</span>
-                      <span className="whitespace-nowrap tabular-nums text-neutral-500">{formatCurrency(m.total_item)}</span>
+                      <span className="whitespace-nowrap tabular-nums text-[color:var(--j-626F86)]">{formatCurrency(m.total_item)}</span>
                     </li>
                   ))}
-                  {menus.length > 3 && <li className="text-neutral-400">+{menus.length - 3} {tr('more items')}</li>}
+                  {menus.length > 3 && <li className="text-[color:var(--j-626F86)]">+{menus.length - 3} {tr('more items')}</li>}
                 </ul>
               )}
-              <p className="mt-2 flex items-center justify-between gap-2 text-[11px] text-neutral-500">
+              <p className="mt-2 flex items-center justify-between gap-2 text-[11px] text-[color:var(--j-626F86)]">
                 <span className="truncate">{tx.payment_method || '-'} · {tx.bill_num || tr('No bill number')}</span>
-                <ChevronRight size={14} className="flex-shrink-0 text-neutral-300" />
+                <ChevronRight size={14} className="flex-shrink-0 text-[color:var(--j-8590A2)]" />
               </p>
             </button>
           </li>
@@ -697,9 +697,9 @@ function MobileList({ groups, skeleton, onSelect }: { groups: SaleGroup[]; skele
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex max-w-full items-center gap-1 rounded-md border border-neutral-200 bg-white py-0.5 pl-2 pr-1 text-xs font-medium text-neutral-700">
+    <span className="inline-flex max-w-full items-center gap-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white py-0.5 pl-2 pr-1 text-xs font-medium text-[color:var(--j-44546F)]">
       <span className="truncate">{label}</span>
-      <button type="button" onClick={onRemove} className="rounded p-0.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Remove {0}', label)}>
+      <button type="button" onClick={onRemove} className="rounded p-0.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-44546F)]" aria-label={tr('Remove {0}', label)}>
         <X size={12} />
       </button>
     </span>

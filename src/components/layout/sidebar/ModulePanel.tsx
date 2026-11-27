@@ -73,30 +73,30 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
   const wide = sections.reduce((n, s) => n + s.items.length, 0) > 10;
   const menu = (
     <div ref={panel} role="menu" aria-label={config.title}
-      className={cx('fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-md border border-neutral-200 bg-white shadow-2xl',
+      className={cx('fixed z-[80] flex max-h-[calc(100vh-1.5rem)] flex-col overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-2xl',
         wide ? 'w-[min(56rem,calc(100vw-2rem))]' : 'w-[min(38rem,calc(100vw-2rem))]',
         !pos && 'left-1/2 top-1/2 max-h-[85vh] -translate-x-1/2 -translate-y-1/2')}
       style={pos ? { left: pos.left, top: pos.top } : undefined}>
       <div className="flex flex-shrink-0 items-start gap-3 px-5 pb-3 pt-4">
-        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-brand-700 text-white"><Icon size={16} /></span>
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-0C66E4)] text-white"><Icon size={16} /></span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-neutral-900">{config.title}</p>
-          <p className="truncate text-xs text-neutral-500">{config.subtitle}</p>
+          <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{config.title}</p>
+          <p className="truncate text-xs text-[color:var(--j-626F86)]">{config.subtitle}</p>
         </div>
         {waiting !== null && waiting > 0 && (
-          <Link href="/cost-control/reviews" onClick={go} className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-100 sm:inline-flex">
+          <Link href="/cost-control/reviews" onClick={go} className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-3 py-1 text-xs font-semibold text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-CCE0FF)] sm:inline-flex">
             {tr('{0} waiting for review', waiting)}
           </Link>
         )}
-        <button type="button" onClick={() => setOpen(false)} className="rounded-md p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label={tr('Close Menu')}><X size={16} /></button>
+        <button type="button" onClick={() => setOpen(false)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-44546F)]" aria-label={tr('Close Menu')}><X size={16} /></button>
       </div>
       {/* sections one under the other (as kopicalf-hrms), their pages as a grid of cards: no uneven columns */}
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain border-t border-neutral-100 px-5 py-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain border-t border-[color:var(--j-F1F2F4)] px-5 py-4">
         {sections.map((section) => (
           <section key={section.title}>
             <p className="mb-2 flex items-baseline gap-2 px-0.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{section.title}</span>
-              <span className="truncate text-[11px] text-neutral-400">{section.hint}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--j-626F86)]">{section.title}</span>
+              <span className="truncate text-[11px] text-[color:var(--j-626F86)]">{section.hint}</span>
             </p>
             <ul className={cx('grid grid-cols-1 gap-0.5 sm:grid-cols-2', wide && 'lg:grid-cols-3')}>
               {section.items.map((item) => {
@@ -106,26 +106,26 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
                   <li key={item.href} className="min-w-0">
                     <Link href={item.href} onClick={go} role="menuitem" aria-current={on ? 'page' : undefined}
                       className={cx('group relative flex items-center gap-3 rounded-[4px] px-3 py-2 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-200',
-                        on ? 'bg-brand-50 before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-brand-700' : 'hover:bg-neutral-100')}>
+                        on ? 'bg-[color:var(--j-E9F2FF)] before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-[color:var(--j-0C66E4)]' : 'hover:bg-[color:var(--j-091E420F)]')}>
                       {item.logo ? (
-                        <span className="flex h-8 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-white px-2 ring-1 ring-neutral-200">
+                        <span className="flex h-8 w-20 flex-shrink-0 items-center justify-center rounded-[3px] bg-white px-2 ring-1 ring-neutral-200">
                           {/* eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets */}
                           <img src={item.logo} alt="" className="max-h-4 max-w-full object-contain" />
                         </span>
                       ) : (
-                        <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px]', on ? 'bg-brand-700 text-white' : 'bg-neutral-100 text-neutral-600')}>
+                        <span className={cx('flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px]', on ? 'bg-[color:var(--j-0C66E4)] text-white' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]')}>
                           <ItemIcon size={15} strokeWidth={1.9} />
                         </span>
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className={cx('flex items-center gap-1.5 text-[13px] leading-tight', on ? 'font-semibold text-brand-800' : 'font-medium text-neutral-900')}>
+                        <span className={cx('flex items-center gap-1.5 text-[13px] leading-tight', on ? 'font-semibold text-[color:var(--j-0055CC)]' : 'font-medium text-[color:var(--j-172B4D)]')}>
                           <span className="truncate">{item.name}</span>
-                          {item.soon && <span className="rounded bg-neutral-100 px-1.5 py-px text-[10px] font-semibold uppercase text-neutral-500">{tr('Soon')}</span>}
+                          {item.soon && <span className="rounded bg-[color:var(--j-091E420F)] px-1.5 py-px text-[10px] font-semibold uppercase text-[color:var(--j-626F86)]">{tr('Soon')}</span>}
                         </span>
-                        <span className="mt-0.5 block truncate text-xs text-neutral-500">{item.description}</span>
+                        <span className="mt-0.5 block truncate text-xs text-[color:var(--j-626F86)]">{item.description}</span>
                       </span>
                       {item.badge === 'review' && waiting !== null && waiting > 0 && (
-                        <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{waiting}</span>
+                        <span className="flex h-5 min-w-5 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold tabular-nums text-white">{waiting}</span>
                       )}
                     </Link>
                   </li>
@@ -135,9 +135,9 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
           </section>
         ))}
       </div>
-      <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-5 py-2.5 text-xs text-neutral-500">
+      <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-5 py-2.5 text-xs text-[color:var(--j-626F86)]">
         <span className="truncate">{config.footer}</span>
-        {guide && <Link href="/guide" onClick={go} className="inline-flex flex-shrink-0 items-center gap-1 font-medium text-brand-700 hover:underline"><BookOpen size={13} /> {tr('Guide')}</Link>}
+        {guide && <Link href="/guide" onClick={go} className="inline-flex flex-shrink-0 items-center gap-1 font-medium text-[color:var(--j-0C66E4)] hover:underline"><BookOpen size={13} /> {tr('Guide')}</Link>}
       </div>
     </div>
   );
@@ -153,15 +153,15 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
           <Icon size={17} strokeWidth={1.9} className={entryIcon(!!current)} />
           <span className="min-w-0 flex-1">
             <span className="block truncate">{config.label}</span>
-            {current && !expanded && <span className="block truncate text-[11px] font-normal text-neutral-400">{current.name}</span>}
+            {current && !expanded && <span className="block truncate text-[11px] font-normal text-[color:var(--j-626F86)]">{current.name}</span>}
           </span>
-          <ChevronDown size={15} className={cx('flex-shrink-0 text-neutral-400 transition-transform duration-200', expanded && 'rotate-180')} />
+          <ChevronDown size={15} className={cx('flex-shrink-0 text-[color:var(--j-626F86)] transition-transform duration-200', expanded && 'rotate-180')} />
         </button>
         {expanded && (
-          <div className="mb-1.5 ml-[18px] mt-0.5 space-y-2 border-l border-neutral-200 pl-2">
+          <div className="mb-1.5 ml-[18px] mt-0.5 space-y-2 border-l border-[color:var(--j-DCDFE4)] pl-2">
             {sections.map((section) => (
               <div key={section.title}>
-                {sections.length > 1 && <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400">{section.title}</p>}
+                {sections.length > 1 && <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wider text-[color:var(--j-626F86)]">{section.title}</p>}
                 <ul className="space-y-0.5">
                   {section.items.map((item) => {
                     const ItemIcon = item.icon;
@@ -170,17 +170,17 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
                       <li key={item.href}>
                         <Link href={item.href} onClick={go} aria-current={on ? 'page' : undefined}
                           className={cx('relative flex min-h-[36px] items-center gap-2 rounded-[4px] px-2 py-1.5 text-[13px] transition-colors lg:min-h-[32px]',
-                            on ? 'bg-brand-50 font-semibold text-brand-800 before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-brand-700' : 'text-neutral-700 hover:bg-neutral-100 active:bg-neutral-100')}>
+                            on ? 'bg-[color:var(--j-E9F2FF)] font-semibold text-[color:var(--j-0055CC)] before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-r before:bg-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)] active:bg-[color:var(--j-091E420F)]')}>
                           {item.logo ? (
                             // eslint-disable-next-line @next/next/no-img-element -- small brand logo from public/assets
                             <img src={item.logo} alt="" className="h-4 w-8 flex-shrink-0 object-contain" />
                           ) : (
-                            <span className={cx('flex h-5 w-5 flex-shrink-0 items-center justify-center', on ? 'text-brand-700' : 'text-neutral-500')}>
+                            <span className={cx('flex h-5 w-5 flex-shrink-0 items-center justify-center', on ? 'text-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-626F86)]')}>
                               <ItemIcon size={15} strokeWidth={1.9} />
                             </span>
                           )}
                           <span className="min-w-0 flex-1 truncate">{item.name}</span>
-                          {item.soon && <span className="rounded bg-neutral-100 px-1.5 py-px text-[10px] font-semibold uppercase text-neutral-500">{tr('Soon')}</span>}
+                          {item.soon && <span className="rounded bg-[color:var(--j-091E420F)] px-1.5 py-px text-[10px] font-semibold uppercase text-[color:var(--j-626F86)]">{tr('Soon')}</span>}
                         </Link>
                       </li>
                     );
@@ -203,9 +203,9 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
           <>
             <span className="min-w-0 flex-1">
               <span className="block truncate">{current ? current.name : config.label}</span>
-              {current && <span className="block truncate text-[11px] font-normal text-neutral-400">{config.label}</span>}
+              {current && <span className="block truncate text-[11px] font-normal text-[color:var(--j-626F86)]">{config.label}</span>}
             </span>
-            <ChevronRight size={14} className="flex-shrink-0 text-neutral-400" />
+            <ChevronRight size={14} className="flex-shrink-0 text-[color:var(--j-626F86)]" />
           </>
         )}
       </button>

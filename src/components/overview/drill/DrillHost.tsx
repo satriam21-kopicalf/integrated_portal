@@ -5,8 +5,8 @@ import {
   Activity, BarChart3, Clock, CreditCard, Gauge, LineChart, MinusCircle, Receipt, ShoppingBasket, Store, TrendingUp, UtensilsCrossed, X,
 } from 'lucide-react';
 import { branchesLabel } from '@/components/BranchFilter';
-import { buttonSecondary } from '@/components/ui/Dialog';
-import Drawer from '@/components/ui/Drawer';
+import { buttonSecondary } from '@/jira/kc';
+import Drawer from '@/jira';
 import InfoTip from '@/components/ui/InfoTip';
 import type { InfoKey } from '@/lib/metricInfo';
 import { channelLabel } from '@/lib/overview';
@@ -96,9 +96,9 @@ export default function DrillHost() {
     <Drawer open onClose={close} size="xl" icon={icon} title={title} onBack={stack.length > 1 ? back : undefined} titleExtra={<InfoTip info={infoOf(t)} />}
       description={(
         <>
-          {trail && <span className="block text-[11px] text-neutral-400">{trail} ›</span>}
+          {trail && <span className="block text-[11px] text-[color:var(--j-626F86)]">{trail} ›</span>}
           {t.kind === 'profile' && t.subtitle ? `${t.subtitle} · ` : ''}{context}
-          {filters.from !== (from ?? filters.from) || filters.branch !== branch ? <span className="ml-1 text-[11px] text-brand-700">{tr('(drilled down)')}</span> : null}
+          {filters.from !== (from ?? filters.from) || filters.branch !== branch ? <span className="ml-1 text-[11px] text-[color:var(--j-0C66E4)]">{tr('(drilled down)')}</span> : null}
         </>
       )}
       footer={<button type="button" className={buttonSecondary} onClick={close}><X size={16} /> {tr('Close')}</button>}>

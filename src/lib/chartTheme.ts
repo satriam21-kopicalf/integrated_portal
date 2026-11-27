@@ -4,14 +4,19 @@
 import { compactNumber, compactRupiah } from './overview';
 import { fixed } from './format';
 
+/** html.dark (2026-11-28): the charts read their ink when their option is built, so a page opened in dark mode draws
+ *  them light on dark; the light values are unchanged. */
+const isDark = () => typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+const LIGHT = { primary: '#0f172a', secondary: '#475569', muted: '#94a3b8', grid: '#eef2f6', axis: '#cbd5e1', previous: '#a8a29e', accent: '#2a78d6', tip: '#ffffff', tipLine: '#e2e8f0' };
+const DARK = { primary: '#B6C2CF', secondary: '#9FADBC', muted: '#8C9BAB', grid: '#2C333A', axis: '#38414A', previous: '#738496', accent: '#8E95E6', tip: '#282E33', tipLine: '#38414A' };
 export const INK = {
-  primary: '#0f172a',
-  secondary: '#475569',
-  muted: '#94a3b8',
-  grid: '#eef2f6',
-  axis: '#cbd5e1',
-  previous: '#a8a29e',
-  accent: '#2a78d6',
+  get primary() { return (isDark() ? DARK : LIGHT).primary; },
+  get secondary() { return (isDark() ? DARK : LIGHT).secondary; },
+  get muted() { return (isDark() ? DARK : LIGHT).muted; },
+  get grid() { return (isDark() ? DARK : LIGHT).grid; },
+  get axis() { return (isDark() ? DARK : LIGHT).axis; },
+  get previous() { return (isDark() ? DARK : LIGHT).previous; },
+  get accent() { return (isDark() ? DARK : LIGHT).accent; },
 };
 
 export const FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -21,15 +26,15 @@ export function esc(value: unknown): string {
 }
 
 export const base = {
-  textStyle: { fontFamily: FONT, color: INK.secondary },
+  get textStyle() { return { fontFamily: FONT, color: INK.secondary }; },
   animationDuration: 700,
   animationEasing: 'cubicOut' as const,
 };
 
 export function tooltip(extra: Record<string, unknown> = {}) {
   return {
-    backgroundColor: '#ffffff',
-    borderColor: '#e2e8f0',
+    backgroundColor: (isDark() ? DARK : LIGHT).tip,
+    borderColor: (isDark() ? DARK : LIGHT).tipLine,
     borderWidth: 1,
     padding: [8, 12],
     textStyle: { color: INK.primary, fontSize: 12, fontFamily: FONT },
@@ -52,7 +57,7 @@ export function tipTitle(title: string): string {
 }
 
 export function tipFooter(html: string): string {
-  return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #f1f5f9;color:${INK.secondary}">${html}</div>`;
+  return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid ${(isDark() ? DARK : LIGHT).tipLine};color:${INK.secondary}">${html}</div>`;
 }
 
 export function valueAxis(format: (v: number) => string = compactNumber, extra: Record<string, unknown> = {}) {

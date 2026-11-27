@@ -47,18 +47,18 @@ export default function MenusCard({ query }: { query: string }) {
             <div className="space-y-3">
               <div className="flex flex-wrap gap-2">
                 {data.categories.map(c => (
-                  <div key={c.category} className="min-w-[7rem] flex-1 rounded-lg bg-neutral-50 px-3 py-2">
-                    <p className="flex items-center gap-1.5 text-xs font-medium capitalize text-neutral-500">
+                  <div key={c.category} className="min-w-[7rem] flex-1 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2">
+                    <p className="flex items-center gap-1.5 text-xs font-medium capitalize text-[color:var(--j-626F86)]">
                       <span className="h-2 w-2 rounded-sm" style={{ background: CATEGORY_COLORS[c.category] ?? '#a8a29e' }} />
                       {nameCase(c.category)}
                     </p>
-                    <p className="text-base font-semibold text-neutral-900">{c.share === null ? '-' : `${fixed(c.share, 1)}%`}</p>
-                    <p className="text-[11px] text-neutral-500">{compactRupiah(c.subtotal)}
+                    <p className="text-base font-semibold text-[color:var(--j-172B4D)]">{c.share === null ? '-' : `${fixed(c.share, 1)}%`}</p>
+                    <p className="text-[11px] text-[color:var(--j-626F86)]">{compactRupiah(c.subtotal)}
                       {c.deltaPct !== undefined && c.deltaPct !== null && <span className={c.deltaPct >= 0 ? ' text-emerald-700' : ' text-red-700'}> {deltaText(c.deltaPct)}</span>}</p>
                   </div>
                 ))}
               </div>
-              <p className="text-xs font-medium text-neutral-500">{tr('Top sub-categories')}</p>
+              <p className="text-xs font-medium text-[color:var(--j-626F86)]">{tr('Top sub-categories')}</p>
               <HBarChart
                 ariaLabel={tr('Gross sales per menu sub-category')}
                 items={details.map(d => ({
@@ -75,14 +75,14 @@ export default function MenusCard({ query }: { query: string }) {
           );
         }
         if (tab === 'addons') {
-          if (!data.addons.length) return <p className="py-6 text-center text-sm text-neutral-400">{tr('No add-ons in this period')}</p>;
+          if (!data.addons.length) return <p className="py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('No add-ons in this period')}</p>;
           return (
             <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
               {data.addons.slice(0, 4).map(g => (
                 <div key={g.group} className="min-w-0">
                   <div className="mb-1 flex items-baseline justify-between text-xs">
-                    <span className="font-semibold capitalize text-neutral-500">{g.group}</span>
-                    <span className="tabular-nums text-neutral-400">{formatNumber(g.qty)} {tr('pcs')}</span>
+                    <span className="font-semibold capitalize text-[color:var(--j-626F86)]">{g.group}</span>
+                    <span className="tabular-nums text-[color:var(--j-626F86)]">{formatNumber(g.qty)} {tr('pcs')}</span>
                   </div>
                   <HBarChart
                     ariaLabel={tr('{0} choices', g.group)}
@@ -105,7 +105,7 @@ export default function MenusCard({ query }: { query: string }) {
         return (
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-neutral-500">
+              <p className="text-xs text-[color:var(--j-626F86)]">
                 {compactRupiah(data.totals.subtotal)} · {formatNumber(data.totals.qty)} {tr('pcs ordered')}
                 {data.totals.previousSubtotal !== undefined && (
                   <> {tr('· vs')} {compactRupiah(data.totals.previousSubtotal)}{' '}

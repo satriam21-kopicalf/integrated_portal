@@ -40,7 +40,7 @@ export default function BasketCard({ resource }: { resource: Resource<BasketResp
             </dl>
             <table className="w-full text-xs">
               <caption className="sr-only">{tr('Basket per channel')}</caption>
-              <thead className="text-neutral-500">
+              <thead className="text-[color:var(--j-626F86)]">
                 <tr>
                   <th scope="col" className="py-1.5 text-left font-medium">{tr('Channel')}</th>
                   <th scope="col" className="py-1.5 text-right font-medium">{tr('Items / Bill')}</th>
@@ -48,15 +48,15 @@ export default function BasketCard({ resource }: { resource: Resource<BasketResp
                   <th scope="col" className="py-1.5 text-right font-medium">{tr('Attach')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100">
+              <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {channels.map(c => (
-                  <tr key={c.channel} onClick={() => drill.open(to.channel(c.channel))} className="cursor-pointer hover:bg-brand-50/50">
+                  <tr key={c.channel} onClick={() => drill.open(to.channel(c.channel))} className="cursor-pointer hover:bg-[color:var(--j-E9F2FF)]">
                     <td className="py-1.5">
                       <span className="flex items-center gap-2"><SeriesKey color={channelColor(c.channel)} /><ChannelLogo channel={c.channel} height={14} /></span>
                     </td>
-                    <td className="py-1.5 text-right tabular-nums text-neutral-700">{fixed(c.qtyPerBill, 2) ?? '-'}</td>
-                    <td className="py-1.5 text-right tabular-nums text-neutral-700">{c.foodSharePct === null ? '-' : `${fixed(c.foodSharePct, 1)}%`}</td>
-                    <td className="py-1.5 text-right tabular-nums text-neutral-700">{c.foodAttachPct === null ? '-' : `${fixed(c.foodAttachPct, 1)}%`}</td>
+                    <td className="py-1.5 text-right tabular-nums text-[color:var(--j-44546F)]">{fixed(c.qtyPerBill, 2) ?? '-'}</td>
+                    <td className="py-1.5 text-right tabular-nums text-[color:var(--j-44546F)]">{c.foodSharePct === null ? '-' : `${fixed(c.foodSharePct, 1)}%`}</td>
+                    <td className="py-1.5 text-right tabular-nums text-[color:var(--j-44546F)]">{c.foodAttachPct === null ? '-' : `${fixed(c.foodAttachPct, 1)}%`}</td>
                   </tr>
                 ))}
               </tbody>
@@ -70,9 +70,9 @@ export default function BasketCard({ resource }: { resource: Resource<BasketResp
 
 function Stat({ label, value, delta, unit = '%', hint }: { label: string; value: string; delta: number | null; unit?: string; hint?: string }) {
   return (
-    <div className="min-w-0 rounded-lg bg-neutral-50 p-2.5" title={hint}>
-      <dt className="truncate text-[11px] text-neutral-500">{label}</dt>
-      <dd className="mt-0.5 text-base font-semibold text-neutral-900">{value}</dd>
+    <div className="min-w-0 rounded-[3px] bg-[color:var(--j-F7F8F9)] p-2.5" title={hint}>
+      <dt className="truncate text-[11px] text-[color:var(--j-626F86)]">{label}</dt>
+      <dd className="mt-0.5 text-base font-semibold text-[color:var(--j-172B4D)]">{value}</dd>
       <dd><Delta value={delta} unit={unit} /></dd>
     </div>
   );

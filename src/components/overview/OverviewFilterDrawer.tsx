@@ -3,8 +3,8 @@
 import { NativeSelect } from "@/so/ui/Jira";
 import { ReactNode, useMemo, useState } from 'react';
 import { AlertTriangle, CalendarDays, CalendarRange, Check, GitCompareArrows, RotateCcw, Search, SlidersHorizontal, X } from 'lucide-react';
-import Drawer from '@/components/ui/Drawer';
-import { buttonPrimary, buttonSecondary, inputClass } from '@/components/ui/Dialog';
+import Drawer from '@/jira';
+import { buttonPrimary, buttonSecondary, inputClass } from '@/jira/kc';
 import { Branch } from '@/components/BranchFilter';
 import { compareRange, CompareMode } from '@/components/overview/CompareFilter';
 import { channelLabel } from '@/lib/overview';
@@ -74,8 +74,8 @@ const COMPARE: { mode: CompareMode; label: string }[] = [
 const DAY_PICKS: [string, number][] = [['Last week', -7], ['4 weeks ago', -28], ['Day before', -1], ['Last year', -364]];
 
 const choice = (on: boolean) =>
-  `inline-flex items-center justify-center gap-1.5 rounded-lg border text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600/30 ${
-    on ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 hover:text-neutral-900'}`;
+  `inline-flex items-center justify-center gap-1.5 rounded-[3px] border text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)] ${
+    on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)] hover:text-[color:var(--j-172B4D)]'}`;
 
 /** All Overview filters in one drawer: date range (or two days), comparison, branches, channels. */
 export default function OverviewFilterDrawer({ value, branches, channels, defaultPeriod, onApply, onClose, periodOnly = false }: {
@@ -133,7 +133,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
       footer={
         <>
           <button type="button" onClick={reset}
-            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900">
+            className="mr-auto inline-flex h-10 items-center gap-1.5 rounded-[3px] px-2 text-sm font-medium text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]">
             <RotateCcw size={14} /> {tr('Reset')}
           </button>
           <button type="button" className={buttonSecondary} onClick={onClose}>{tr('Cancel')}</button>
@@ -146,8 +146,8 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
           <div role="radiogroup" aria-label={tr('Date View')} className="grid grid-cols-2 gap-1 gap-1">
             {([['period', tr('Date range'), CalendarRange], ['day', tr('Compare two days'), GitCompareArrows]] as const).map(([v, l, Icon]) => (
               <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)}
-                className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md text-sm font-medium transition-colors ${
-                  view === v ? 'bg-white text-brand-700 shadow-sm ring-1 ring-neutral-200' : 'text-neutral-500 hover:text-neutral-800'}`}>
+                className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-[3px] text-sm font-medium transition-colors ${
+                  view === v ? 'bg-white text-[color:var(--j-0C66E4)] shadow-sm ring-1 ring-neutral-200' : 'text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]'}`}>
                 <Icon size={15} />{l}
               </button>
             ))}
@@ -169,7 +169,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
                 <div className="flex items-center gap-2">
                   <input type="date" aria-label={tr('From')} value={period?.from ?? ''} max={period?.to || today}
                     onChange={e => e.target.value && set({ from: e.target.value, to: period && period.to >= e.target.value ? period.to : e.target.value })} className={inputClass} />
-                  <span className="text-neutral-400">–</span>
+                  <span className="text-[color:var(--j-626F86)]">–</span>
                   <input type="date" aria-label={tr('To')} value={period?.to ?? ''} min={period?.from || undefined} max={today}
                     onChange={e => e.target.value && set({ to: e.target.value, from: period && period.from <= e.target.value ? period.from : e.target.value })} className={inputClass} />
                 </div>
@@ -185,7 +185,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
                   <div className="mt-2 flex items-center gap-2">
                     <input type="date" aria-label={tr('Compare from')} value={pd.cmpFrom} max={today}
                       onChange={e => set({ cmpFrom: e.target.value, cmpTo: pd.cmpTo && pd.cmpTo >= e.target.value ? pd.cmpTo : e.target.value })} className={inputClass} />
-                    <span className="text-neutral-400">–</span>
+                    <span className="text-[color:var(--j-626F86)]">–</span>
                     <input type="date" aria-label={tr('Compare to')} value={pd.cmpTo || pd.cmpFrom} min={pd.cmpFrom || undefined} max={today}
                       onChange={e => set({ cmpTo: e.target.value })} className={inputClass} />
                   </div>
@@ -193,14 +193,14 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
               </div>
 
               {/* what will be shown, in plain dates */}
-              <dl className="grid gap-x-4 gap-y-0.5 rounded-lg bg-neutral-50 px-3.5 py-3 text-sm sm:grid-cols-[auto_1fr] sm:gap-y-1.5">
-                <dt className="text-neutral-500">{tr('Showing')}</dt>
-                <dd className="mb-1.5 font-medium text-neutral-900 sm:mb-0 sm:text-right">
-                  {period ? <>{formatDate(period.from)} – {formatDate(period.to)} <span className="font-normal text-neutral-500">· {formatNumber(dayCount(period.from, period.to))} {tr('days')}</span></> : tr('Today')}
+              <dl className="grid gap-x-4 gap-y-0.5 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3.5 py-3 text-sm sm:grid-cols-[auto_1fr] sm:gap-y-1.5">
+                <dt className="text-[color:var(--j-626F86)]">{tr('Showing')}</dt>
+                <dd className="mb-1.5 font-medium text-[color:var(--j-172B4D)] sm:mb-0 sm:text-right">
+                  {period ? <>{formatDate(period.from)} – {formatDate(period.to)} <span className="font-normal text-[color:var(--j-626F86)]">· {formatNumber(dayCount(period.from, period.to))} {tr('days')}</span></> : tr('Today')}
                 </dd>
-                <dt className="text-neutral-500">{tr('Compared with')}</dt>
-                <dd className="font-medium text-neutral-900 sm:text-right">
-                  {cmp ? <>{formatDate(cmp.from)} – {formatDate(cmp.to)} <span className="font-normal text-neutral-500">· {formatNumber(dayCount(cmp.from, cmp.to))} {tr('days')}</span></> : tr('Pick the dates')}
+                <dt className="text-[color:var(--j-626F86)]">{tr('Compared with')}</dt>
+                <dd className="font-medium text-[color:var(--j-172B4D)] sm:text-right">
+                  {cmp ? <>{formatDate(cmp.from)} – {formatDate(cmp.to)} <span className="font-normal text-[color:var(--j-626F86)]">· {formatNumber(dayCount(cmp.from, cmp.to))} {tr('days')}</span></> : tr('Pick the dates')}
                 </dd>
               </dl>
             </div>
@@ -208,7 +208,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
             <div className="space-y-4">
               <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-2">
                 <DayField id="dayA" label={tr('Day')} value={dayA} max={today} onChange={setDayA} />
-                <span className="mt-8 text-xs font-semibold text-neutral-400">{tr('vs')}</span>
+                <span className="mt-8 text-xs font-semibold text-[color:var(--j-626F86)]">{tr('vs')}</span>
                 <DayField id="dayB" label={tr('Compared with')} value={dayB} max={today} onChange={setDayB} />
               </div>
               <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
@@ -236,39 +236,39 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
           {codes.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {codes.map(c => (
-                <span key={c} className="inline-flex max-w-full items-center gap-1 rounded-md bg-brand-50 py-1 pl-2 pr-1 text-xs font-medium text-brand-800">
+                <span key={c} className="inline-flex max-w-full items-center gap-1 rounded-[3px] bg-[color:var(--j-E9F2FF)] py-1 pl-2 pr-1 text-xs font-medium text-[color:var(--j-0055CC)]">
                   <span className="truncate">{nameOf(c)}</span>
-                  <button type="button" onClick={() => toggleBranch(c)} aria-label={tr('Remove {0}', nameOf(c))} className="rounded p-0.5 hover:bg-brand-100"><X size={12} /></button>
+                  <button type="button" onClick={() => toggleBranch(c)} aria-label={tr('Remove {0}', nameOf(c))} className="rounded p-0.5 hover:bg-[color:var(--j-CCE0FF)]"><X size={12} /></button>
                 </span>
               ))}
             </div>
           )}
           <div className="relative">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input value={branchQuery} onChange={e => setBranchQuery(e.target.value)} placeholder={tr('Search branch name or code')}
               className={`${inputClass} pl-9`} aria-label={tr('Search Branch')} />
           </div>
-          <div className="overflow-hidden rounded-lg border border-neutral-200">
+          <div className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {branchQuery.trim() && shown.length > 0 && (
               <button type="button" onClick={selectShown}
-                className="flex w-full items-center justify-between border-b border-neutral-100 bg-neutral-50 px-3 py-2 text-xs font-medium text-brand-700 hover:bg-brand-50">
+                className="flex w-full items-center justify-between border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]">
                 {tr('Select all')} {formatNumber(shown.length)} {tr('results')} <Check size={13} />
               </button>
             )}
-            <ul className="custom-scrollbar max-h-64 divide-y divide-neutral-100 overflow-auto">
+            <ul className="custom-scrollbar max-h-64 divide-y divide-[color:var(--j-F1F2F4)] overflow-auto">
               {shown.map(b => {
                 const on = codes.includes(b.branch_code);
                 return (
                   <li key={b.branch_code}>
-                    <label className={`flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm ${on ? 'bg-brand-50/60' : 'hover:bg-neutral-50'}`}>
-                      <input type="checkbox" checked={on} onChange={() => toggleBranch(b.branch_code)} className="h-4 w-4 accent-brand-700" />
-                      <span className={`min-w-0 flex-1 truncate ${on ? 'font-medium text-neutral-900' : 'text-neutral-700'}`}>{b.branch_name}</span>
-                      <span className="font-mono text-[11px] text-neutral-400">{b.branch_code}</span>
+                    <label className={`flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm ${on ? 'bg-[color:var(--j-E9F2FF)]' : 'hover:bg-[color:var(--j-F7F8F9)]'}`}>
+                      <input type="checkbox" checked={on} onChange={() => toggleBranch(b.branch_code)} className="h-4 w-4 accent-[color:var(--j-0C66E4)]" />
+                      <span className={`min-w-0 flex-1 truncate ${on ? 'font-medium text-[color:var(--j-172B4D)]' : 'text-[color:var(--j-44546F)]'}`}>{b.branch_name}</span>
+                      <span className="font-mono text-[11px] text-[color:var(--j-626F86)]">{b.branch_code}</span>
                     </label>
                   </li>
                 );
               })}
-              {!shown.length && <li className="px-3 py-6 text-center text-sm text-neutral-400">{tr('No branch matches “')}{branchQuery}”</li>}
+              {!shown.length && <li className="px-3 py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('No branch matches “')}{branchQuery}”</li>}
             </ul>
           </div>
         </Group>}
@@ -281,7 +281,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
               const on = draft.channels.includes(ch);
               return (
                 <button key={ch} type="button" onClick={() => toggleChannel(ch)} aria-pressed={on} className={`${choice(on)} h-9 justify-start px-3`}>
-                  <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${on ? 'border-brand-600 bg-brand-600 text-white' : 'border-neutral-300'}`}>
+                  <span className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${on ? 'border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white' : 'border-[color:var(--j-8590A2)]'}`}>
                     {on && <Check size={11} strokeWidth={3} />}
                   </span>
                   <span className="truncate">{channelLabel(ch)}</span>
@@ -289,7 +289,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
               );
             })}
           </div>
-          {!draft.channels.length && <p className="text-xs text-neutral-500">{tr('No channel ticked = all channels.')}</p>}
+          {!draft.channels.length && <p className="text-xs text-[color:var(--j-626F86)]">{tr('No channel ticked = all channels.')}</p>}
         </Group>}
       </div>
     </Drawer>
@@ -300,8 +300,8 @@ function Group({ title, status, action, children }: { title: string; status?: st
   return (
     <section className="space-y-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-semibold text-neutral-900">
-          {title}{status && <span className="ml-2 font-normal text-neutral-500">{status}</span>}
+        <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">
+          {title}{status && <span className="ml-2 font-normal text-[color:var(--j-626F86)]">{status}</span>}
         </h3>
         {action}
       </div>
@@ -311,11 +311,11 @@ function Group({ title, status, action, children }: { title: string; status?: st
 }
 
 function Label({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) {
-  return <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-neutral-600">{children}</label>;
+  return <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-[color:var(--j-44546F)]">{children}</label>;
 }
 
 function TextButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="text-xs font-medium text-brand-700 hover:text-brand-800 hover:underline">{children}</button>;
+  return <button type="button" onClick={onClick} className="text-xs font-medium text-[color:var(--j-0C66E4)] hover:text-[color:var(--j-0055CC)] hover:underline">{children}</button>;
 }
 
 function DayField({ id, label, value, max, onChange }: { id: string; label: string; value: string; max: string; onChange: (v: string) => void }) {
@@ -323,7 +323,7 @@ function DayField({ id, label, value, max, onChange }: { id: string; label: stri
     <div className="min-w-0">
       <Label htmlFor={id}>{label}</Label>
       <input id={id} type="date" value={value} max={max} onChange={e => onChange(e.target.value)} className={inputClass} />
-      <p className="mt-1.5 flex items-center gap-1 truncate text-xs text-neutral-600"><CalendarDays size={12} className="flex-shrink-0 text-neutral-400" />{weekdayDate(value)}</p>
+      <p className="mt-1.5 flex items-center gap-1 truncate text-xs text-[color:var(--j-44546F)]"><CalendarDays size={12} className="flex-shrink-0 text-[color:var(--j-626F86)]" />{weekdayDate(value)}</p>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { setDashboardCotr } from '@/lib/brand-look';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Clock, CreditCard, Landmark, ShoppingBasket, SlidersHorizontal, Store, TrendingUp } from 'lucide-react';
-import { CardBody, WorkCard } from '@/so/ui/Jira';
+import { CardBody, WorkCard } from '@/jira';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
 import { Branch, branchesLabel } from '@/components/BranchFilter';
@@ -142,21 +142,21 @@ export default function OverviewPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-full bg-neutral-50">
+      <div className="min-h-full bg-white">
         <header className="px-4 pt-4 sm:px-6 lg:pt-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight text-neutral-900">{tr('Dashboard')}</h1>
-              <p className="mt-0.5 text-sm text-neutral-500">{tr('Sales Analytics')}</p>
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--j-172B4D)]">{tr('Dashboard')}</h1>
+              <p className="mt-0.5 text-sm text-[color:var(--j-626F86)]">{tr('Sales Analytics')}</p>
             </div>
             <CompanySwitch className="order-last w-full sm:order-none sm:w-auto" extra={EXTRA_TABS}
               value={cotr ? COTR : company} onChange={pickTab} />
             <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
-                className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3 text-[13px] font-medium transition-colors sm:h-9 ${
-                  activeCount ? 'border-brand-200 bg-brand-50 text-brand-800 hover:bg-brand-100' : 'border-neutral-200 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50'}`}>
+                className={`inline-flex h-10 items-center gap-2 rounded-[3px] border px-3 text-[13px] font-medium transition-colors sm:h-9 ${
+                  activeCount ? 'border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] hover:bg-[color:var(--j-CCE0FF)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] shadow-sm hover:bg-[color:var(--j-F7F8F9)]'}`}>
                 <SlidersHorizontal size={16} /> {tr('Filters')}
-                {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-700 px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
+                {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
               </button>
               {!cotr && <RealtimeIndicator className="h-10 sm:h-9" />}
             </div>
@@ -234,14 +234,14 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
       {/* Company health (components/overview/HealthCard.tsx) is hidden for now */}
 
       <div className="space-y-0">
-        <p className="pb-2 text-xs text-neutral-500 sm:text-sm">
+        <p className="pb-2 text-xs text-[color:var(--j-626F86)] sm:text-sm">
           {f ? (
             <>
-              <span className="font-medium text-neutral-900">{periodText(f.from, f.to)}</span> · {branchName} · {channelText}
+              <span className="font-medium text-[color:var(--j-172B4D)]">{periodText(f.from, f.to)}</span> · {branchName} · {channelText}
               {f.previous.complete ? (
                 <>
                   {tr(' · vs ')}
-                  <span className={f.previous.custom ? 'rounded bg-neutral-900 px-1.5 py-0.5 font-medium text-white' : ''}>
+                  <span className={f.previous.custom ? 'rounded bg-[color:var(--j-172B4D)] px-1.5 py-0.5 font-medium text-white' : ''}>
                     {periodText(f.previous.from, f.previous.to)}{f.previous.until ? ` ${tr('until {0} WIB', f.previous.until)}` : ''}
                   </span>
                   {f.previous.days !== undefined && f.previous.days !== f.days && (

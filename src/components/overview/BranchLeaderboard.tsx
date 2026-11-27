@@ -58,12 +58,12 @@ export default function BranchLeaderboard({ resource, query: baseQuery }: { reso
         <Segmented label={tr('View')} value={view} options={[{ value: 'table', label: tr('Table') }, { value: 'chart', label: tr('Top 10') }]} onChange={setView} />
         <label className="relative">
           <span className="sr-only">{tr('Search Branch')}</span>
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={tr('Search Branch')}
-            className="h-8 w-40 rounded-lg border border-neutral-200 pl-8 pr-2 text-xs text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-400 focus:outline-none sm:w-48"
+            className="h-8 w-40 rounded-[3px] border border-[color:var(--j-DCDFE4)] pl-8 pr-2 text-xs text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] focus:border-neutral-400 focus:outline-none sm:w-48"
           />
         </label>
         </>
@@ -106,7 +106,7 @@ function Board({
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-[color:var(--j-626F86)]">
         {formatNumber(data.branches.filter(b => b.subtotal > 0).length)} {tr('branches with sales ·')} {compactRupiah(total)} {tr('total')}
       </p>
 
@@ -114,13 +114,13 @@ function Board({
       <div className="custom-scrollbar hidden overflow-x-auto md:block">
         <table className="w-full whitespace-nowrap text-xs">
           <caption className="sr-only">{tr('Branch leaderboard')}</caption>
-          <thead className="border-b border-neutral-200 text-neutral-500">
+          <thead className="border-b border-[color:var(--j-DCDFE4)] text-[color:var(--j-626F86)]">
             <tr>
               <th scope="col" className="w-8 py-2 pr-2 text-left font-medium">#</th>
               <th scope="col" className="py-2 pr-2 text-left font-medium">{tr('Branch')}</th>
               {COLUMNS.map(c => (
                 <th key={c.key} scope="col" className="py-2 pl-2 text-right font-medium" aria-sort={sort.key === c.key ? (sort.desc ? 'descending' : 'ascending') : 'none'}>
-                  <button type="button" onClick={() => toggle(c.key)} title={c.title} className={`inline-flex items-center gap-0.5 hover:text-neutral-900 ${sort.key === c.key ? 'text-neutral-900' : ''}`}>
+                  <button type="button" onClick={() => toggle(c.key)} title={c.title} className={`inline-flex items-center gap-0.5 hover:text-[color:var(--j-172B4D)] ${sort.key === c.key ? 'text-[color:var(--j-172B4D)]' : ''}`}>
                     {c.label}
                     {sort.key === c.key && (sort.desc ? <ArrowDown size={12} /> : <ArrowUp size={12} />)}
                   </button>
@@ -129,23 +129,23 @@ function Board({
               <th scope="col" className="w-28 py-2 pl-3 text-left font-medium">{tr('Trend')}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100">
+          <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {visible.map(b => (
-              <tr key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="cursor-pointer hover:bg-brand-50/50">
-                <td className="py-2 pr-2 tabular-nums text-neutral-400">{b.rank}</td>
+              <tr key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="cursor-pointer hover:bg-[color:var(--j-E9F2FF)]">
+                <td className="py-2 pr-2 tabular-nums text-[color:var(--j-626F86)]">{b.rank}</td>
                 <td className="max-w-[16rem] py-2 pr-2">
-                  <p className="truncate font-medium text-neutral-800" title={b.branchName}>{b.branchName}</p>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className="truncate font-medium text-[color:var(--j-172B4D)]" title={b.branchName}>{b.branchName}</p>
+                  <p className="text-[11px] text-[color:var(--j-626F86)]">
                     {b.branchCode}
-                    {b.isNew && <span className="ml-1.5 rounded bg-brand-50 px-1 py-px font-medium text-brand-700">{tr('New')}</span>}
+                    {b.isNew && <span className="ml-1.5 rounded bg-[color:var(--j-E9F2FF)] px-1 py-px font-medium text-[color:var(--j-0C66E4)]">{tr('New')}</span>}
                   </p>
                 </td>
-                <td className="py-2 pl-2 text-right tabular-nums font-medium text-neutral-900" title={formatCurrency(b.subtotal)}>{compactRupiah(b.subtotal)}</td>
+                <td className="py-2 pl-2 text-right tabular-nums font-medium text-[color:var(--j-172B4D)]" title={formatCurrency(b.subtotal)}>{compactRupiah(b.subtotal)}</td>
                 <td className="py-2 pl-2 text-right"><Delta value={b.deltaPct} /></td>
-                <td className="py-2 pl-2 text-right tabular-nums text-neutral-700">{formatNumber(b.bills)}</td>
-                <td className="py-2 pl-2 text-right tabular-nums text-neutral-700">{formatNumber(Math.round(b.avgTicket))}</td>
-                <td className="py-2 pl-2 text-right tabular-nums text-neutral-700">{compactRupiah(b.subtotalPerDay)}</td>
-                <td className="py-2 pl-2 text-right tabular-nums text-neutral-700">{b.voidRate === null ? '-' : `${fixed(b.voidRate, 2)}%`}</td>
+                <td className="py-2 pl-2 text-right tabular-nums text-[color:var(--j-44546F)]">{formatNumber(b.bills)}</td>
+                <td className="py-2 pl-2 text-right tabular-nums text-[color:var(--j-44546F)]">{formatNumber(Math.round(b.avgTicket))}</td>
+                <td className="py-2 pl-2 text-right tabular-nums text-[color:var(--j-44546F)]">{compactRupiah(b.subtotalPerDay)}</td>
+                <td className="py-2 pl-2 text-right tabular-nums text-[color:var(--j-44546F)]">{b.voidRate === null ? '-' : `${fixed(b.voidRate, 2)}%`}</td>
                 <td className="py-2 pl-3"><Sparkline values={b.spark} height={22} label={tr('{0} gross sales trend', b.branchName)} /></td>
               </tr>
             ))}
@@ -156,15 +156,15 @@ function Board({
       {/* Mobile cards */}
       <ol className="space-y-2 md:hidden">
         {visible.map(b => (
-          <li key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="cursor-pointer rounded-lg border border-neutral-100 p-3 hover:bg-brand-50/50">
+          <li key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="cursor-pointer rounded-[3px] border border-[color:var(--j-F1F2F4)] p-3 hover:bg-[color:var(--j-E9F2FF)]">
             <div className="flex items-start gap-2">
-              <span className="w-6 flex-shrink-0 text-xs tabular-nums text-neutral-400">{b.rank}</span>
+              <span className="w-6 flex-shrink-0 text-xs tabular-nums text-[color:var(--j-626F86)]">{b.rank}</span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-neutral-800">{b.branchName}</p>
-                <p className="text-[11px] text-neutral-400">{b.branchCode} · {formatNumber(b.bills)} {tr('bills · void')} {b.voidRate === null ? '-' : `${fixed(b.voidRate, 2)}%`}</p>
+                <p className="truncate text-sm font-medium text-[color:var(--j-172B4D)]">{b.branchName}</p>
+                <p className="text-[11px] text-[color:var(--j-626F86)]">{b.branchCode} · {formatNumber(b.bills)} {tr('bills · void')} {b.voidRate === null ? '-' : `${fixed(b.voidRate, 2)}%`}</p>
               </div>
               <div className="flex-shrink-0 text-right">
-                <p className="text-sm font-semibold tabular-nums text-neutral-900">{compactRupiah(b.subtotal)}</p>
+                <p className="text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{compactRupiah(b.subtotal)}</p>
                 <Delta value={b.deltaPct} />
               </div>
             </div>
@@ -174,11 +174,11 @@ function Board({
       </ol>
 
       {!query && ranked.length > PAGE && (
-        <button type="button" onClick={() => setShowAll(!showAll)} className="w-full rounded-lg py-2 text-xs font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900">
+        <button type="button" onClick={() => setShowAll(!showAll)} className="w-full rounded-[3px] py-2 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)] hover:text-[color:var(--j-172B4D)]">
           {showAll ? tr('Show top 10') : tr('Show all {0} branches', ranked.length)}
         </button>
       )}
-      {!visible.length && <p className="py-6 text-center text-sm text-neutral-400">{tr('No branch matches “')}{query}”</p>}
+      {!visible.length && <p className="py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr('No branch matches “')}{query}”</p>}
     </div>
   );
 }

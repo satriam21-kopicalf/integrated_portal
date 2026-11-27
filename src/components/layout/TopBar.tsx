@@ -17,7 +17,7 @@ import UserMenu from './sidebar/UserMenu';
 import { CompanySwitch } from '@/lib/company';
 import { brandInTopBar } from '@/components/CostControlBrand';
 
-const iconButton = 'relative flex h-8 w-8 items-center justify-center rounded-full text-neutral-600 transition-colors hover:bg-neutral-100 hover:text-neutral-900';
+const iconButton = 'relative flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--j-44546F)] transition-colors hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]';
 
 export default function TopBar() {
   const pathname = usePathname();
@@ -57,14 +57,14 @@ export default function TopBar() {
 
   if (!user) return null;
   return (
-    <header className="sticky top-0 z-30 hidden h-12 flex-shrink-0 items-center gap-3 border-b border-neutral-200 bg-white px-5 lg:flex">
+    <header className="sticky top-0 z-30 hidden h-12 flex-shrink-0 items-center gap-3 border-b border-[color:var(--j-DCDFE4)] bg-white px-5 lg:flex">
       <nav aria-label={tr('Breadcrumb')} className="flex min-w-0 items-center gap-1.5 text-[13px]">
-        {page && <><span className="truncate text-neutral-500">{page.group}</span><ChevronRight size={14} className="flex-shrink-0 text-neutral-300" />
-          <span className="truncate font-medium text-neutral-900">{page.label}</span></>}
+        {page && <><span className="truncate text-[color:var(--j-626F86)]">{page.group}</span><ChevronRight size={14} className="flex-shrink-0 text-[color:var(--j-8590A2)]" />
+          <span className="truncate font-medium text-[color:var(--j-172B4D)]">{page.label}</span></>}
       </nav>
       {brandInTopBar(pathname) && <CompanySwitch compact className="ml-2 flex-shrink-0" />}
       <div ref={box} className="relative ml-auto w-full max-w-sm">
-        <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+        <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
         <input ref={input} value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') { e.preventDefault(); setHi((h) => Math.min(h + 1, shown.length - 1)); }
@@ -73,15 +73,15 @@ export default function TopBar() {
             if (e.key === 'Escape') { setOpen(false); input.current?.blur(); }
           }}
           placeholder={tr('Search pages')} aria-label={tr('Search pages')}
-          className="h-8 w-full rounded-[4px] border border-neutral-300 bg-white pl-8 pr-8 text-[13px] outline-none transition-colors placeholder:text-neutral-500 hover:bg-neutral-50 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
-        <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-neutral-200 px-1 text-[10px] text-neutral-400">/</kbd>
+          className="h-8 w-full rounded-[4px] border border-[color:var(--j-8590A2)] bg-white pl-8 pr-8 text-[13px] outline-none transition-colors placeholder:text-[color:var(--j-626F86)] hover:bg-[color:var(--j-F7F8F9)] focus:border-[color:var(--j-0C66E4)] focus:ring-2 focus:ring-[color:var(--j-388BFF)]" />
+        <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-[color:var(--j-DCDFE4)] px-1 text-[10px] text-[color:var(--j-626F86)]">/</kbd>
         {open && (
-          <div className="absolute right-0 top-full z-40 mt-1 w-full min-w-[22rem] overflow-hidden rounded-md border border-neutral-200 bg-white py-1 shadow-xl" role="listbox">
-            <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-neutral-500">{q ? tr('Pages') : tr('Go to')}</p>
-            {shown.length === 0 ? <p className="px-3 py-4 text-center text-xs text-neutral-400">{tr('No match')}</p> : shown.map((p, i) => (
+          <div className="absolute right-0 top-full z-40 mt-1 w-full min-w-[22rem] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white py-1 shadow-xl" role="listbox">
+            <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-[color:var(--j-626F86)]">{q ? tr('Pages') : tr('Go to')}</p>
+            {shown.length === 0 ? <p className="px-3 py-4 text-center text-xs text-[color:var(--j-626F86)]">{tr('No match')}</p> : shown.map((p, i) => (
               <button key={p.href} type="button" role="option" aria-selected={i === hi} onMouseEnter={() => setHi(i)} onClick={() => go(p.href)}
-                className={cx('relative flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px]', i === hi ? 'bg-brand-50 text-brand-800 before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:bg-brand-700' : 'text-neutral-800')}>
-                <span className="min-w-0 flex-1 truncate">{p.label}</span><span className="flex-shrink-0 text-[11px] text-neutral-400">{p.group}</span>
+                className={cx('relative flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px]', i === hi ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] before:absolute before:inset-y-1 before:left-0 before:w-[3px] before:bg-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-172B4D)]')}>
+                <span className="min-w-0 flex-1 truncate">{p.label}</span><span className="flex-shrink-0 text-[11px] text-[color:var(--j-626F86)]">{p.group}</span>
               </button>
             ))}
           </div>
