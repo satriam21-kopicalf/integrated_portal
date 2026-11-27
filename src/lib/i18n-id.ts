@@ -8570,4 +8570,8 @@ export const ID: Record<string, string> = {
   "a source": "satu sumber",
   "all sources up to date, {0}": "semua sumber terbaru, {0}",
   "Attach the file": "Lampirkan",
+  "The whole period in one Excel, or a PDF report with charts, analysis and recommendations": "Seluruh periode dalam satu Excel, atau laporan PDF dengan chart, analisis dan rekomendasi",
+  "PDF report": "Laporan PDF",
+  "PDF report of the period chosen below": "Laporan PDF untuk periode yang dipilih di bawah",
+  "Made from the data of the moment: summary, charts, the analysis with its recommendations, and the outlets that need attention. Choose the period and the platform in Filter.": "Dibuat dari data saat ini: ringkasan, chart, analisis beserta rekomendasi, dan outlet yang perlu perhatian. Pilih periode dan platform di Filter.",
 };

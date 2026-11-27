@@ -4,14 +4,14 @@
 // per outlet, the low reviews and their topics, the complaints and the voids with their reasons. Each sheet can be looked at here.
 
 import { useEffect, useState } from "react";
-import { FileBarChart } from "lucide-react";
+import { FileBarChart, FileText } from "lucide-react";
 import { useToast } from "@/so/ui";
 import { call } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
 import { type Sheet, downloadSheets } from "@/aggregator/ui";
 import { DataTable, FilterBar, FreshLine, useCtx, useFilters, type Col } from "@/aggregator/kit";
 import { fmtDay, fmtPeriod, nf } from "@/aggregator/time";
-import { Page, WorkCard, ErrorState, cx } from "@/jira";
+import { Page, WorkCard, ErrorState, cx, Button, SectionMessage } from "@/jira";
 
 type Res = { from: string; to: string; summary: [string, number | null][]; sheets: Sheet[] };
 type R = { id: string; v: (string | number | null)[] };
@@ -51,7 +51,10 @@ export default function Reports() {
   );
   const card = <section className="overflow-hidden rounded-[3px] border border-[#DCDFE4] bg-white">{filter}</section>;
   return (
-    <Page title={tr("Reports")} eyebrow={tr("Aggregator Insight")} subtitle={tr("The whole period in one Excel, a summary sheet first")} media={<FileBarChart size={19} />}>
+    <Page title={tr("Reports")} eyebrow={tr("Aggregator Insight")} subtitle={tr("The whole period in one Excel, or a PDF report with charts, analysis and recommendations")} media={<FileBarChart size={19} />}
+      actions={<Button onClick={() => window.open(`/api/aggregator/report.pdf?${new URLSearchParams({ dateFrom: a.f.from, dateTo: a.f.to, ...(a.f.platform ? { platform: a.f.platform } : {}) })}`, "_blank", "noopener")}>
+        <FileText size={15} />{tr("PDF report")}</Button>}>
+      <SectionMessage tone="info" title={tr("PDF report of the period chosen below")}>{tr("Made from the data of the moment: summary, charts, the analysis with its recommendations, and the outlets that need attention. Choose the period and the platform in Filter.")}</SectionMessage>
       <FreshLine ctx={ctx} sources={["status", "reviews", "daily"]} />
       {err ? <>{card}<ErrorState message={err} onRetry={() => setVersion((v) => v + 1)} /></> : (
         <WorkCard<string> active={sheet?.sheet ?? "Summary"} onTab={(k) => { setTab(k); setQ(""); }} label={tr("Sheets in the Excel")} tabs={(data?.sheets ?? [{ sheet: "Summary", rows: [] }]).map((s) => ({ key: s.sheet, label: s.sheet, count: data ? s.rows.length : null }))}>
