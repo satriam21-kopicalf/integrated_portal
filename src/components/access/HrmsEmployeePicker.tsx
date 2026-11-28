@@ -59,7 +59,7 @@ export default function HrmsEmployeePicker({ linked, picked, onPick, onUnlink, i
             {picked && <span className="block text-[color:var(--j-44546F)]">{picked.jobTitle || '—'} · {picked.department || '—'}{picked.site ? ` · ${picked.site}` : ''}</span>}
             {picked?.joinDate && <span className="block text-[color:var(--j-626F86)]">{tr('Joined {0}', picked.joinDate)} · {picked.status ?? ''}</span>}
           </span>
-          <button type="button" className="text-[color:var(--j-626F86)] hover:text-red-600" onClick={onUnlink} aria-label={tr('Unlink HRMS employee')}><Link2Off size={14} /></button>
+          <button type="button" className="text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]" onClick={onUnlink} aria-label={tr('Unlink HRMS employee')}><Link2Off size={14} /></button>
         </div>
       )}
       <div className="flex gap-2">
@@ -69,7 +69,7 @@ export default function HrmsEmployeePicker({ linked, picked, onPick, onUnlink, i
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
         </button>
       </div>
-      {(problem || error) && <p className="text-xs text-red-600">{problem || error}</p>}
+      {(problem || error) && <p className="text-xs text-[color:var(--j-C9372C)]">{problem || error}</p>}
       {hits && (
         <ul className="max-h-52 divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           {hits.map(e => (

@@ -118,8 +118,8 @@ export default function SocialMediaPage() {
       ]}>
         <Toolbar>
           <QuickChips label={tr("Sentiment")} value={feel} onChange={setFeel} items={[
-            { key: "" as Feel, label: tr("All") }, { key: "positive" as Feel, label: tr("Positive"), dot: "bg-emerald-500" },
-            { key: "negative" as Feel, label: tr("Negative"), dot: "bg-red-500" }, { key: "neutral" as Feel, label: tr("Neutral"), dot: "bg-neutral-400" }]} />
+            { key: "" as Feel, label: tr("All") }, { key: "positive" as Feel, label: tr("Positive"), dot: "bg-[color:var(--j-22A06B)]" },
+            { key: "negative" as Feel, label: tr("Negative"), dot: "bg-[color:var(--j-C9372C)]" }, { key: "neutral" as Feel, label: tr("Neutral"), dot: "bg-[color:var(--j-8590A2)]" }]} />
           <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search text or account")} filters={filters}
             onOpen={() => { setDraft(period); setKwDraft(keyword); setSheet(true); }} onClear={() => { setPeriod({ from: wibDay(-29), to: wibDay(0) }); setKeyword(""); }} />
         </Toolbar>
@@ -204,7 +204,7 @@ function Schedule({ sum }: { sum: Summary | null }) {
                     {x.enabled ? <Lozenge tone="green">{tr("Every {0} h", x.everyHours)}</Lozenge> : <Lozenge tone="grey">{tr("Off")}</Lozenge>}
                   </div>
                   <p className="mt-1 text-xs text-[color:var(--j-626F86)]">
-                    {tr("Last")}: {at(x.lastRunAt)}{last && (last.error ? <> · <span className="text-red-700">{tr("Failed")}</span></>
+                    {tr("Last")}: {at(x.lastRunAt)}{last && (last.error ? <> · <span className="text-[color:var(--j-AE2E24)]">{tr("Failed")}</span></>
                       : !last.finishedAt ? <> · {tr("Running")}</> : <> · {tr("{0} found, {1} new", last.found ?? 0, last.added ?? 0)}</>)}
                     {x.enabled && <> · {tr("Next")}: {at(x.nextRunAt)}</>}
                   </p>

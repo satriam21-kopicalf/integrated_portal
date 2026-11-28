@@ -18,7 +18,7 @@ export function Switch({ checked, onChange, label, hint, disabled }: {
       </span>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
         className={cx("relative mt-0.5 inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-85B8FF)] focus-visible:ring-offset-2",
-          checked ? "bg-[color:var(--j-0C66E4)]" : "bg-neutral-300")}>
+          checked ? "bg-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-8590A2)]")}>
         <span className={cx("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform", checked ? "translate-x-[22px]" : "translate-x-0.5")} />
       </button>
     </label>
@@ -43,10 +43,10 @@ export function FormCard({ n, title, hint, children, aside }: { n?: number; titl
 }
 
 const NOTE_TONE = {
-  info: "border-sky-100 bg-sky-50/70 text-sky-900 [&_.note-icon]:text-sky-600",
+  info: "border-[color:var(--j-CCE0FF)] bg-[color:var(--j-E9F2FF)]/70 text-[color:var(--j-0055CC)] [&_.note-icon]:text-[color:var(--j-0C66E4)]",
   muted: "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] [&_.note-icon]:text-[color:var(--j-626F86)]",
-  warn: "border-amber-200/70 bg-amber-50 text-amber-900 [&_.note-icon]:text-amber-600",
-  ok: "border-emerald-200/70 bg-emerald-50 text-emerald-900 [&_.note-icon]:text-emerald-600",
+  warn: "border-[color:var(--j-F8E6A0)]/70 bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] [&_.note-icon]:text-[color:var(--j-B38600)]",
+  ok: "border-[color:var(--j-BAF3DB)]/70 bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] [&_.note-icon]:text-[color:var(--j-22A06B)]",
 } as const;
 
 /** A note or a piece of information on a form: an icon, an optional title and the text, in one of four tones. */

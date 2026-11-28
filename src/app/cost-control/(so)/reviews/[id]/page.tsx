@@ -188,11 +188,11 @@ export default function ReviewDetailPage() {
 
         {/* items of the list / template the count does not have: inactive when it was counted, active now (2026-11-09) */}
         {!!count.missing_items?.length && (
-          <section className="rounded-[3px] border border-amber-200 bg-amber-50/70 p-4">
+          <section className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/70 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-900"><AlertTriangle size={15} />{tr("{0} items of the template are not in this count", count.missing_items.length)}</p>
-                <p className="mt-0.5 text-xs text-amber-800">{tr("They were inactive when the branch counted. Ask the branch to count them: the lines already counted stay locked.")}</p>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-7F5F01)]"><AlertTriangle size={15} />{tr("{0} items of the template are not in this count", count.missing_items.length)}</p>
+                <p className="mt-0.5 text-xs text-[color:var(--j-7F5F01)]">{tr("They were inactive when the branch counted. Ask the branch to count them: the lines already counted stay locked.")}</p>
               </div>
               {reviewable && (
                 <Button size="sm" onClick={() => { clearPicks(); setMissingAsk(true); setAction("RECOUNT"); }}>{tr("Ask to count them")}</Button>
@@ -200,7 +200,7 @@ export default function ReviewDetailPage() {
             </div>
             <ul className="mt-3 flex flex-wrap gap-1.5">
               {count.missing_items.map((m) => (
-                <li key={m.code} className="rounded-[3px] bg-white px-2.5 py-1 text-xs text-[color:var(--j-172B4D)] ring-1 ring-amber-200">
+                <li key={m.code} className="rounded-[3px] bg-white px-2.5 py-1 text-xs text-[color:var(--j-172B4D)] ring-1 ring-[color:var(--j-F8E6A0)]">
                   <span className="font-medium">{m.name}</span> <span className="font-mono text-[10px] text-[color:var(--j-626F86)]">{m.code}</span>
                 </li>
               ))}
@@ -219,7 +219,7 @@ export default function ReviewDetailPage() {
         </StatGrid>
 
         {count.review_note && (
-          <p className="rounded-[3px] border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] text-amber-900"><span className="font-semibold">{tr("Review Note")}:</span> {count.review_note}</p>
+          <p className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-4 py-3 text-[13px] text-[color:var(--j-7F5F01)]"><span className="font-semibold">{tr("Review Note")}:</span> {count.review_note}</p>
         )}
 
         <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
@@ -267,14 +267,14 @@ export default function ReviewDetailPage() {
         )}
 
         {(count.wip?.lines.length ?? 0) > 0 && (
-          <Card flush title={<span className="inline-flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-[3px] bg-violet-50 text-violet-600"><FlaskConical size={15} /></span>{tr("WIP / Premix")}<Badge tone="violet">{count.wip!.lines.length}</Badge></span>}
+          <Card flush title={<span className="inline-flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-[3px] bg-[color:var(--j-F3F0FF)] text-[color:var(--j-6E5DC6)]"><FlaskConical size={15} /></span>{tr("WIP / Premix")}<Badge tone="violet">{count.wip!.lines.length}</Badge></span>}
             subtitle={correctable ? tr("Grams entered by the branch · correcting a premix changes only its grams on the materials") : tr("Grams entered by the branch; for Cost Control only, not in the ESB export")}>
             <div className="hidden border-b border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)] sm:flex sm:px-5">
               {reviewable && <span className="w-11" />}<span className="flex-1">{tr("Premix")}</span><span>{tr("Counted")}</span>
             </div>
             <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
               {count.wip!.lines.map((w) => (
-                <li key={w.id} className={cx("flex items-start gap-3 px-4 py-3 sm:px-5", w.flags?.includes("RECOUNT") && "bg-amber-50/50", pickedWip.has(w.id) && "bg-[color:var(--j-E9F2FF)]")}>
+                <li key={w.id} className={cx("flex items-start gap-3 px-4 py-3 sm:px-5", w.flags?.includes("RECOUNT") && "bg-[color:var(--j-FFF7D6)]/50", pickedWip.has(w.id) && "bg-[color:var(--j-E9F2FF)]")}>
                   {reviewable && <PickBox checked={pickedWip.has(w.id)} onChange={() => toggleWip(w.id)} label={tr("Recount {0}", w.name)} />}
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{w.name} <span className="font-mono text-[11px] font-normal text-[color:var(--j-626F86)]">{w.code}</span></p>
@@ -374,7 +374,7 @@ export default function ReviewDetailPage() {
                             return (<>
                               <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]" title={est?.from ? tr("From the SO of {0} and what moved since", fmtDay(est.from)) : undefined}>
                                 {e == null ? <span className="text-[color:var(--j-8590A2)]">—</span> : <>{fmtQty(e)} <span className="text-xs text-[color:var(--j-626F86)]">{l.base_uom}</span></>}</td>
-                              <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", v == null ? "text-[color:var(--j-8590A2)]" : big ? (v < 0 ? "text-red-700" : "text-amber-700") : "text-[color:var(--j-44546F)]")}
+                              <td className={cx("whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums", v == null ? "text-[color:var(--j-8590A2)]" : big ? (v < 0 ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-7F5F01)]") : "text-[color:var(--j-44546F)]")}
                                 title={big ? tr("More than 10% from the estimate") : undefined}>
                                 {v == null ? "—" : `${v > 0 ? "+" : v < 0 ? "−" : ""}${fmtQty(Math.abs(v))}`}
                                 {v != null && e ? <span className="block text-[10px] font-normal text-[color:var(--j-626F86)]">{`${v > 0 ? "+" : ""}${((v / Math.abs(e)) * 100).toFixed(1)}%`}</span> : null}</td>
@@ -441,7 +441,7 @@ export default function ReviewDetailPage() {
       {/* phones and tablets: the review actions in a bar above the bottom menu */}
       {(reviewable || cancellable) && (
         <div className="fixed inset-x-0 z-30 px-3 lg:hidden" style={{ bottom: "calc(5.25rem + env(safe-area-inset-bottom))" }}>
-          <div className="mx-auto max-w-md rounded-[3px] bg-white/95 p-2 shadow-[0_10px_32px_-8px_rgba(15,23,42,0.28)] ring-1 ring-[color:var(--j-DCDFE4)] backdrop-blur">
+          <div className="mx-auto max-w-md rounded-[3px] bg-white/95 p-2 ring-1 ring-[color:var(--j-DCDFE4)] backdrop-blur">
             <ReviewActions {...actions} bar />
           </div>
         </div>
@@ -470,11 +470,11 @@ export default function ReviewDetailPage() {
                   <span className="min-w-[3rem] text-sm font-semibold text-[color:var(--j-626F86)]">{"item_name" in fixing ? unit(fixing) : gramsUnit(fixing)}</span>
                 </div>
               </Field>
-              {fix.qty && parseQty(fix.qty) === undefined && <p className="text-xs text-red-600">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
+              {fix.qty && parseQty(fix.qty) === undefined && <p className="text-xs text-[color:var(--j-C9372C)]">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
               {"item_name" in fixing && Number(fixing.qty_wip ?? 0) > 0 && (
-                <p className="rounded-[3px] bg-violet-50 px-3 py-2 text-xs text-violet-800">{tr("Counted by hand; the {0} {1} from the WIP stay", fmtQty(fixing.qty_wip ?? "0"), fixing.base_uom)}</p>
+                <p className="rounded-[3px] bg-[color:var(--j-F3F0FF)] px-3 py-2 text-xs text-[color:var(--j-5E4DB2)]">{tr("Counted by hand; the {0} {1} from the WIP stay", fmtQty(fixing.qty_wip ?? "0"), fixing.base_uom)}</p>
               )}
-              {!("item_name" in fixing) && <p className="rounded-[3px] bg-violet-50 px-3 py-2 text-xs text-violet-800">{tr("Only the grams of this premix change on its materials; the items counted by hand stay.")}</p>}
+              {!("item_name" in fixing) && <p className="rounded-[3px] bg-[color:var(--j-F3F0FF)] px-3 py-2 text-xs text-[color:var(--j-5E4DB2)]">{tr("Only the grams of this premix change on its materials; the items counted by hand stay.")}</p>}
               {fix.field && (
                 <Field label={DATE_FIELD_LABEL[fix.field]()}>
                   <input type="date" value={fix.date ?? ""} onChange={(e) => setFix({ ...fix, date: e.target.value })} aria-label={DATE_FIELD_LABEL[fix.field]()} className={cx(inputClass, "h-11")} />
@@ -514,14 +514,14 @@ function FlowBanner({ count, reviewable }: { count: Count; reviewable: boolean }
   const text: Record<string, { tone: string; title: string; body: string }> = {
     IN_PROGRESS: { tone: "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]", title: tr("The branch is still counting"),
       body: tr("{0} of {1} lines counted so far. The review opens once the branch sends the count.", count.progress.counted, count.progress.lines) },
-    SUBMITTED: { tone: "border-violet-200 bg-violet-50 text-violet-900", title: reviewable ? tr("Waiting for your review") : tr("Waiting for the review of Cost Control"),
+    SUBMITTED: { tone: "border-[color:var(--j-DFD8FD)] bg-[color:var(--j-F3F0FF)] text-[color:var(--j-5E4DB2)]", title: reviewable ? tr("Waiting for your review") : tr("Waiting for the review of Cost Control"),
       body: tr("Check the lines, correct a figure if needed, then approve it or ask the branch to recount chosen lines.") },
-    RECOUNT_REQUESTED: { tone: "border-amber-200 bg-amber-50 text-amber-900", title: tr("Waiting for the recount of the branch"),
+    RECOUNT_REQUESTED: { tone: "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]", title: tr("Waiting for the recount of the branch"),
       body: [recountItems ? tr("{0} materials to count again by hand", recountItems) : "", recountWip ? tr("{0} premixes to count again", recountWip) : ""].filter(Boolean).join(" · ")
         + (recountItems || recountWip ? ". " : "") + tr("The branch sees them marked Recount in Operations; once it sends again the count comes back here for review.") },
-    APPROVED: { tone: "border-emerald-200 bg-emerald-50 text-emerald-900", title: tr("Approved"),
+    APPROVED: { tone: "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]", title: tr("Approved"),
       body: tr("These are the final quantities for the ESB import and the comparison. Cost Control can still correct a figure until the ESB export.") },
-    EXPORTED: { tone: "border-emerald-200 bg-emerald-50 text-emerald-900", title: tr("Exported to ESB"), body: tr("The count is closed: it can no longer be corrected.") },
+    EXPORTED: { tone: "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]", title: tr("Exported to ESB"), body: tr("The count is closed: it can no longer be corrected.") },
     CANCELLED: { tone: "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]", title: tr("Cancelled"), body: tr("The branch can start this count again.") },
   };
   const t = text[count.status] ?? text.IN_PROGRESS;
@@ -561,7 +561,7 @@ function ReviewActions({ reviewable, cancellable, selected, onAction, onClear, b
   return (
     <div className={cx("flex items-center gap-2", bar && "w-full")}>
       {cancellable && (
-        <button type="button" onClick={() => onAction("CANCEL")} className={cx(btn("ghost"), size, "text-red-600 hover:bg-red-50 hover:text-red-700", bar && "w-11 px-0")} aria-label={tr("Cancel Count")} title={tr("Cancel Count")}>
+        <button type="button" onClick={() => onAction("CANCEL")} className={cx(btn("ghost"), size, "text-[color:var(--j-C9372C)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-AE2E24)]", bar && "w-11 px-0")} aria-label={tr("Cancel Count")} title={tr("Cancel Count")}>
           <XCircle size={bar ? 18 : 16} />{!bar && tr("Cancel")}
         </button>
       )}
@@ -623,7 +623,7 @@ function Qty({ l, count, right }: { l: CountLine; count: Count; right?: boolean 
           {factor(l) !== 1 && <span className="block text-[11px] text-[color:var(--j-626F86)]">= {fmtQty(l.qty_base)} {l.base_uom}</span>}
         </>
       )}
-      {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
+      {Number(l.qty_wip ?? 0) > 0 && <span className="block text-[11px] text-[color:var(--j-5E4DB2)]">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</span>}
       {l.pack_uom && l.qty_pack !== null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{fmtQty(l.qty_pack)} × {l.pack_uom} + {fmtQty(l.qty_loose)}</span>}
       {/* phones: the date of the item under its quantity (a column on wider screens) */}
       {df && l[df] && <span className="block text-[11px] text-[color:var(--j-626F86)] md:hidden">{DATE_FIELD_LABEL[df]()}: {fmtDay(l[df]!)}</span>}

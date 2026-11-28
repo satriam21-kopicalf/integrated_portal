@@ -28,9 +28,9 @@ export const photoUrl = (id: string) => `/api/travel-photos/${id}`;
 export const sessionName = (s: { label: string; labelEn?: string }) => (lang() === "id" ? s.label : s.labelEn || s.label);
 export const ratingText = (r: Rating) => ({ OK: tr("Meets the standard"), NOK: tr("Does not meet"), NA: "N/A" })[r];
 export const bandText = (b: Band) => ({ standard: tr("Standard"), repair: tr("Needs repair"), failed: tr("Not passed") })[b];
-export const bandClass = (b: Band | null) => (b === "standard" ? "bg-emerald-50 text-emerald-700" : b === "repair" ? "bg-amber-50 text-amber-800" : b === "failed" ? "bg-red-50 text-red-700" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]");
+export const bandClass = (b: Band | null) => (b === "standard" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : b === "repair" ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" : b === "failed" ? "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]");
 export const categoryText = (c: string | null) => (lang() === "id" || !c ? c : ({ Kritikal: "Critical", Mayor: "Major", Minor: "Minor" } as Record<string, string>)[c] ?? c);
-export const categoryClass = (c: string | null | undefined) => (c === "Kritikal" ? "bg-red-600 text-white" : c === "Mayor" ? "bg-amber-100 text-amber-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]");
+export const categoryClass = (c: string | null | undefined) => (c === "Kritikal" ? "bg-[color:var(--j-C9372C)] text-white" : c === "Mayor" ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]");
 
 /** What an area still needs (same rules as the server). */
 export function gapsOf(i: Item, a: Answer | undefined, photos: TravelPhoto[]): string[] {

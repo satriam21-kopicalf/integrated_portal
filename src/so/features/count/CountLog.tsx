@@ -25,7 +25,7 @@ const LABEL: Record<string, () => string> = {
   COUNT_CORRECT: () => tr("Corrected by Cost Control"), COUNT_WIP: () => tr("Premix Saved"), FILE: () => tr("File Attached"),
   FILE_DELETE: () => tr("File Removed"),
 };
-const DOT: Record<string, string> = { START: "bg-[color:var(--j-388BFF)]", SUBMIT: "bg-emerald-500", RECOUNT: "bg-amber-500", APPROVE: "bg-emerald-600", CANCEL: "bg-red-500" };
+const DOT: Record<string, string> = { START: "bg-[color:var(--j-388BFF)]", SUBMIT: "bg-[color:var(--j-22A06B)]", RECOUNT: "bg-[color:var(--j-E2B203)]", APPROVE: "bg-[color:var(--j-22A06B)]", CANCEL: "bg-[color:var(--j-C9372C)]" };
 
 export default function CountLog({ countId, reload, bare = false }: { countId: string; reload?: unknown; /** without its card (inside another one) */ bare?: boolean }) {
   const [log, setLog] = useState<Log | null>(null);
@@ -36,7 +36,7 @@ export default function CountLog({ countId, reload, bare = false }: { countId: s
 
   const body = (
     <>
-      {error ? <p className="text-sm text-red-600">{error}</p> : !log ? <SkeletonList rows={4} /> : (
+      {error ? <p className="text-sm text-[color:var(--j-C9372C)]">{error}</p> : !log ? <SkeletonList rows={4} /> : (
         <ol className="relative space-y-4 border-l border-slate-200 pl-5">
           {log.events.map((e, i) => (
             <li key={i} className="relative">
@@ -45,7 +45,7 @@ export default function CountLog({ countId, reload, bare = false }: { countId: s
                 <span className="font-semibold text-slate-900">{LABEL[e.action]?.() ?? e.action}</span>
                 <span className="text-slate-500">{fmtDate(e.at)}</span>
                 {e.by && <span className="text-slate-600">· {e.by}</span>}
-                {e.late && <span className="rounded bg-amber-100 px-1.5 text-[11px] font-medium text-amber-800">{tr("Late")}</span>}
+                {e.late && <span className="rounded bg-[color:var(--j-F8E6A0)] px-1.5 text-[11px] font-medium text-[color:var(--j-7F5F01)]">{tr("Late")}</span>}
               </div>
               {e.note && <p className="mt-0.5 text-[13px] text-slate-700">{tr("Reason")}: {e.note}</p>}
               {e.lines ? <p className="text-[12px] text-slate-500">{tr("{0} lines", e.lines)}</p> : null}
@@ -57,8 +57,8 @@ export default function CountLog({ countId, reload, bare = false }: { countId: s
                     </a>
                     {e.distance_m != null && <span>{tr("{0} m from the outlet", e.distance_m)}</span>}
                     {e.accuracy_m != null && <span>{tr("accuracy ±{0} m", Math.round(e.accuracy_m))}</span>}
-                    {e.outside_radius && <span className="inline-flex items-center gap-1 font-medium text-red-600"><AlertTriangle size={12} />{tr("Outside the radius")}</span>}
-                    {e.low_accuracy && <span className="font-medium text-amber-700">{tr("Low accuracy")}</span>}
+                    {e.outside_radius && <span className="inline-flex items-center gap-1 font-medium text-[color:var(--j-C9372C)]"><AlertTriangle size={12} />{tr("Outside the radius")}</span>}
+                    {e.low_accuracy && <span className="font-medium text-[color:var(--j-7F5F01)]">{tr("Low accuracy")}</span>}
                   </div>
                 ) : <p className="mt-1 text-[12px] text-slate-400">{tr("No location")}</p>
               )}

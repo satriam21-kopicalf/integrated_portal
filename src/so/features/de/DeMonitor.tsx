@@ -40,8 +40,8 @@ type F = { period: Period; kind: string; urgency: string; group: string; tech: s
 const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "", urgency: "", group: "", tech: "", overdue: false, by: "none",
   bgroup: "", branch: "", pic: "" });
 type GroupOpt = { id: string; code: string; name: string };
-const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", ORDERED: "bg-violet-500", ON_HOLD: "bg-amber-500",
-  ACCEPTED: "bg-[color:var(--j-388BFF)]", IN_PROGRESS: "bg-[color:var(--j-0C66E4)]", HANDOVER: "bg-cyan-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
+const DOT: Partial<Record<Status, string>> = { PENDING: "bg-[color:var(--j-8590A2)]", ORDERED: "bg-[color:var(--j-6E5DC6)]", ON_HOLD: "bg-[color:var(--j-E2B203)]",
+  ACCEPTED: "bg-[color:var(--j-388BFF)]", IN_PROGRESS: "bg-[color:var(--j-0C66E4)]", HANDOVER: "bg-[color:var(--j-2898BD)]", DONE: "bg-[color:var(--j-22A06B)]", REJECTED: "bg-[color:var(--j-C9372C)]" };
 const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-red-500", HIGH: "border-l-amber-400", NORMAL: "border-l-brand-400", LOW: "border-l-neutral-300", PLANNED: "border-l-violet-400" };
 const TABS: (Status | "" | "OPEN")[] = ["OPEN", "", "PENDING", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "ORDERED", "HANDOVER", "DONE", "REJECTED"];
 const OPEN_SET = new Set<Status>(OPEN);
@@ -156,7 +156,7 @@ export default function DeMonitor() {
           <Stat label={tr("Open")} emphasis icon={<Wrench size={13} />} value={res ? fmtNumber(openRows.length) : <StatSkeleton />}>
             {res && <p>{tr("{0} pending · {1} in progress", fmtNumber(openRows.filter((r) => r.status === "PENDING").length), fmtNumber(openRows.filter((r) => r.status === "IN_PROGRESS").length))}</p>}
           </Stat>
-          <Stat label={tr("Critical")} icon={<AlertTriangle size={13} />} value={res ? <span className={openRows.some((r) => r.urgency === "CRITICAL") ? "text-red-600" : undefined}>{fmtNumber(openRows.filter((r) => r.urgency === "CRITICAL").length)}</span> : <StatSkeleton />}>
+          <Stat label={tr("Critical")} icon={<AlertTriangle size={13} />} value={res ? <span className={openRows.some((r) => r.urgency === "CRITICAL") ? "text-[color:var(--j-C9372C)]" : undefined}>{fmtNumber(openRows.filter((r) => r.urgency === "CRITICAL").length)}</span> : <StatSkeleton />}>
             {res && <p>{tr("open, operations affected")}</p>}
           </Stat>
           <Stat label={tr("Past Target")} icon={<Clock size={13} />} onClick={res ? () => setF({ ...f, overdue: !f.overdue }) : undefined} active={f.overdue}
@@ -170,7 +170,7 @@ export default function DeMonitor() {
       }>
       {/* one card like a Jira project (2026-11-18): the form (Maintenance | Procurement) and its sections on top, then
           the content of the section; the requests as a dense issue table */}
-      <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
         <div className="flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-[color:var(--j-DCDFE4)] px-4 pt-3 sm:px-5">
           <div className="flex gap-1 pb-2" role="tablist" aria-label={tr("Form")}>
             {(["REPAIR", "PROCUREMENT"] as Kind[]).map((k) => {
@@ -179,7 +179,7 @@ export default function DeMonitor() {
                 <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => { setKind(k); if (k === "PROCUREMENT" && tab === "tech") setTab("requests"); }}
                   className={cx("inline-flex items-center gap-2 rounded-[3px] px-3 py-1.5 text-sm font-semibold transition-colors",
                     kind === k ? "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-85B8FF)]" : "text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>
-                  <span className={cx("flex h-6 w-6 items-center justify-center rounded-[3px] text-white", k === "REPAIR" ? "bg-orange-500" : "bg-violet-600")}>
+                  <span className={cx("flex h-6 w-6 items-center justify-center rounded-[3px] text-white", k === "REPAIR" ? "bg-[color:var(--j-E2B203)]" : "bg-[color:var(--j-6E5DC6)]")}>
                     {k === "REPAIR" ? <Hammer size={13} /> : <ShoppingCart size={13} />}</span>
                   {KIND_LABEL[k]()}
                   {res && <span className={cx("rounded-full px-1.5 text-[11px] font-bold tabular-nums", kind === k ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>{fmtNumber(n)}</span>}
@@ -265,7 +265,7 @@ function Board({ rows, kind, onOpen }: { rows: Request[]; kind: Kind; onOpen: (i
           return (
             <section key={st} className="flex w-72 flex-shrink-0 flex-col rounded-[3px] bg-[color:var(--j-091E420F)]/80">
               <h3 className="flex items-center gap-2 px-3 pb-2 pt-3 text-xs font-bold uppercase tracking-wide text-[color:var(--j-44546F)]">
-                <span className={cx("h-2 w-2 rounded-full", DOT[st] ?? "bg-cyan-500")} aria-hidden />{statusLabel(kind, st)}
+                <span className={cx("h-2 w-2 rounded-full", DOT[st] ?? "bg-[color:var(--j-2898BD)]")} aria-hidden />{statusLabel(kind, st)}
                 <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-[11px] tabular-nums text-[color:var(--j-626F86)]">{fmtNumber(list.length)}</span>
               </h3>
               <ul className="max-h-[38rem] space-y-2 overflow-y-auto px-2 pb-2">
@@ -278,7 +278,7 @@ function Board({ rows, kind, onOpen }: { rows: Request[]; kind: Kind; onOpen: (i
                       <span className="mt-1 block truncate text-[11px] text-[color:var(--j-626F86)]">{r.branchName}</span>
                       <span className="mt-2 flex items-center gap-1.5">
                         <UrgencyBadge u={r.urgency} tier={r.tier} />
-                        {r.tracker?.overdue && <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-600"><Clock size={11} />{tr("Past target")}</span>}
+                        {r.tracker?.overdue && <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-[color:var(--j-C9372C)]"><Clock size={11} />{tr("Past target")}</span>}
                         <span className="ml-auto font-mono text-[10px] font-semibold text-[color:var(--j-626F86)]">{r.number}</span>
                       </span>
                       {r.kind === "PROCUREMENT" ? r.vendor && <span className="mt-1.5 flex items-center gap-1 truncate text-[11px] text-[color:var(--j-626F86)]"><ShoppingCart size={11} />{r.vendor}</span>
@@ -333,8 +333,8 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
               <span className="mt-1 block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{items(r)}</span>
               <span className="block truncate text-xs text-[color:var(--j-626F86)]">{r.branchName} · {r.picName}</span>
               <span className="mt-2 flex items-center gap-2">
-                <span className="h-1 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", r.status === "REJECTED" ? "bg-red-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${r.status === "REJECTED" ? 100 : r.tracker?.progress ?? 0}%` }} /></span>
-                <span className={cx("text-[11px] tabular-nums", r.tracker?.overdue ? "font-semibold text-red-600" : "text-[color:var(--j-626F86)]")}>{fmtHours(r.tracker?.workHours)}</span>
+                <span className="h-1 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", r.status === "REJECTED" ? "bg-[color:var(--j-C9372C)]" : r.status === "DONE" ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${r.status === "REJECTED" ? 100 : r.tracker?.progress ?? 0}%` }} /></span>
+                <span className={cx("text-[11px] tabular-nums", r.tracker?.overdue ? "font-semibold text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>{fmtHours(r.tracker?.workHours)}</span>
               </span>
             </button>
           </li>
@@ -359,7 +359,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
               return (
                 <tr key={r.id} onClick={() => onOpen(r.id)} className="group cursor-pointer border-b border-[color:var(--j-F1F2F4)] hover:bg-[color:var(--j-F7F8F9)]">
                   <td className="py-2 pl-4 pr-1">
-                    <span className={cx("flex h-5 w-5 items-center justify-center rounded text-white", r.kind === "REPAIR" ? "bg-orange-500" : "bg-violet-600")} title={r.kindLabel}>
+                    <span className={cx("flex h-5 w-5 items-center justify-center rounded text-white", r.kind === "REPAIR" ? "bg-[color:var(--j-E2B203)]" : "bg-[color:var(--j-6E5DC6)]")} title={r.kindLabel}>
                       {r.kind === "REPAIR" ? <Hammer size={11} /> : <ShoppingCart size={11} />}</span>
                   </td>
                   <td className="whitespace-nowrap px-2 py-2"><span className="font-medium text-[color:var(--j-0C66E4)] group-hover:underline">{r.number}</span></td>
@@ -374,7 +374,7 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
                   <td className="max-w-[11rem] px-2 py-2">{who ? <Person name={who} /> : <span className="text-[color:var(--j-626F86)]">{r.kind === "PROCUREMENT" ? tr("Not set") : tr("Unassigned")}</span>}</td>
                   <td className="whitespace-nowrap px-2 py-2 text-[color:var(--j-44546F)]">{wibDateTime(r.submittedAt)}</td>
                   <td className="whitespace-nowrap py-2 pl-2 pr-4 text-right">
-                    <span className={cx("tabular-nums", r.tracker?.overdue ? "font-semibold text-red-600" : "text-[color:var(--j-44546F)]")}>{fmtHours(r.tracker?.workHours)}</span>
+                    <span className={cx("tabular-nums", r.tracker?.overdue ? "font-semibold text-[color:var(--j-C9372C)]" : "text-[color:var(--j-44546F)]")}>{fmtHours(r.tracker?.workHours)}</span>
                     {r.tracker?.slaHours ? <span className="text-[color:var(--j-626F86)]"> / {fmtHours(r.tracker.slaHours)}</span> : null}
                   </td>
                 </tr>
@@ -388,22 +388,22 @@ function RequestTable({ rows, onOpen }: { rows: Request[]; onOpen: (id: string) 
 }
 
 const LOZENGE: Record<Status, string> = {
-  DRAFT: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]", PENDING: "bg-[color:var(--j-DCDFE4)] text-[color:var(--j-172B4D)]", ON_HOLD: "bg-amber-100 text-amber-900",
-  ACCEPTED: "bg-blue-100 text-blue-800", IN_PROGRESS: "bg-blue-100 text-blue-800", ORDERED: "bg-blue-100 text-blue-800",
-  HANDOVER: "bg-cyan-100 text-cyan-900", DONE: "bg-emerald-100 text-emerald-800", REJECTED: "bg-red-100 text-red-800",
+  DRAFT: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]", PENDING: "bg-[color:var(--j-DCDFE4)] text-[color:var(--j-172B4D)]", ON_HOLD: "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]",
+  ACCEPTED: "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0055CC)]", IN_PROGRESS: "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0055CC)]", ORDERED: "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0055CC)]",
+  HANDOVER: "bg-[color:var(--j-C6EDFB)] text-[color:var(--j-206A83)]", DONE: "bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]", REJECTED: "bg-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)]",
 };
 /** a Jira status lozenge: small caps on a soft colour */
 function Lozenge({ r }: { r: Request }) {
   return <span className={cx("inline-block max-w-[11rem] truncate rounded-[3px] px-1.5 py-0.5 text-[11px] font-bold uppercase leading-4 tracking-wide", LOZENGE[r.status])}>{statusLabel(r.kind, r.status)}</span>;
 }
-const PRIO: Record<Urgency, [string, string]> = { CRITICAL: ["text-red-600", "▲▲"], HIGH: ["text-orange-500", "▲"], NORMAL: ["text-amber-500", "="], LOW: ["text-blue-500", "▼"], PLANNED: ["text-[color:var(--j-626F86)]", "○"] };
+const PRIO: Record<Urgency, [string, string]> = { CRITICAL: ["text-[color:var(--j-C9372C)]", "▲▲"], HIGH: ["text-[color:var(--j-B38600)]", "▲"], NORMAL: ["text-[color:var(--j-B38600)]", "="], LOW: ["text-[color:var(--j-0C66E4)]", "▼"], PLANNED: ["text-[color:var(--j-626F86)]", "○"] };
 /** priority like Jira: a coloured mark and the label, the sales tier after it */
 function Priority({ r }: { r: Request }) {
   const [tone, mark] = PRIO[r.urgency] ?? PRIO.NORMAL;
   return <span className="inline-flex items-center gap-1.5 text-[color:var(--j-172B4D)]"><span className={cx("text-[11px] font-black leading-none", tone)} aria-hidden>{mark}</span>{URGENCY_LABEL[r.urgency]()}
     {r.tier && <span className="text-[11px] text-[color:var(--j-626F86)]">· {r.tier}</span>}</span>;
 }
-const AVATAR = ["bg-sky-600", "bg-emerald-600", "bg-violet-600", "bg-rose-600", "bg-amber-600", "bg-teal-600", "bg-indigo-600"];
+const AVATAR = ["bg-[color:var(--j-0C66E4)]", "bg-[color:var(--j-22A06B)]", "bg-[color:var(--j-6E5DC6)]", "bg-[color:var(--j-C9372C)]", "bg-[color:var(--j-E2B203)]", "bg-[color:var(--j-2898BD)]", "bg-[color:var(--j-0C66E4)]"];
 function Person({ name }: { name: string }) {
   const ini = name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "?";
   const tone = AVATAR[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR.length];
@@ -621,7 +621,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                     {tr("Approval {0} of {1}: {2}", approval.position, approval.total, approval.label)} · {approval.users.join(", ") || "Superadmin"}</p>
                 )}
                 {[...new Set((r.allowed ?? []).map(blocker).filter(Boolean))].map((b) => (
-                  <p key={b} className="flex items-center gap-1.5 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800"><AlertTriangle size={13} /> {b}</p>
+                  <p key={b} className="flex items-center gap-1.5 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]"><AlertTriangle size={13} /> {b}</p>
                 ))}
                 <div className="flex flex-wrap gap-2">
                   {(r.allowed ?? []).map((to) => (
@@ -641,7 +641,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
 
               <FormCard n={next()} title={tr("Estimated Finish")} hint={tr("From the urgency; adjust it with a reason — the PIC sees the new time")}
                 aside={r.tracker?.targetAdjusted ? <Badge tone="violet">{tr("Adjusted {0}×", r.target?.changes ?? 1)}</Badge> : <Badge>{tr("From the urgency")}</Badge>}>
-                <p className={cx("flex items-center gap-2 text-sm font-semibold", r.tracker?.overdue ? "text-red-600" : "text-[color:var(--j-172B4D)]")}>
+                <p className={cx("flex items-center gap-2 text-sm font-semibold", r.tracker?.overdue ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-172B4D)]")}>
                   <CalendarClock size={15} /> {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : tr("No target (planned)")}{r.tracker?.overdue && <Badge tone="red">{tr("Past Target")}</Badge>}</p>
                 {r.target?.note && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Reason")}: {r.target.note} · {r.target.by}</p>}
                 <div className="grid gap-2 rounded-[3px] bg-[color:var(--j-F7F8F9)] p-3 sm:grid-cols-[13rem_1fr_auto]">
@@ -698,7 +698,7 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                   </div>
                 ) : <p className="text-xs text-[color:var(--j-626F86)]">{tr("Technicians are assigned once the request is in review.")}</p>}
                 {active.length > 0 && <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("One request is handled by internal technicians or by a vendor; release them to switch.")}</p>}
-                {technicians.length === 0 && <p className="text-xs text-amber-700">{tr("No technician yet: add them in the Technicians tab.")}</p>}
+                {technicians.length === 0 && <p className="text-xs text-[color:var(--j-7F5F01)]">{tr("No technician yet: add them in the Technicians tab.")}</p>}
               </FormCard>
 
               {r.mode === "VENDOR" ? (
@@ -740,13 +740,13 @@ function TeamDrawer({ id, technicians, all, onOpen, onClose, onChanged }: {
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border border-amber-100 bg-amber-50/60 p-3">
-                      <Handshake size={16} className="text-amber-700" />
-                      <span className="min-w-0 flex-1 text-xs text-amber-900">{proc ? tr("Send the link to {0}: it opens the request in the form (sign-in) to confirm the goods were received.", r.picName)
+                    <div className="flex flex-wrap items-center gap-2 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/60 p-3">
+                      <Handshake size={16} className="text-[color:var(--j-7F5F01)]" />
+                      <span className="min-w-0 flex-1 text-xs text-[color:var(--j-7F5F01)]">{proc ? tr("Send the link to {0}: it opens the request in the form (sign-in) to confirm the goods were received.", r.picName)
                         : tr("Send the link to {0}: it opens the request in Form → Maintenance Request (sign-in) for the handover.", r.picName)}</span>
                       <Button size="sm" variant="secondary" onClick={async () => { try { await navigator.clipboard.writeText(picLink); toast(tr("Link copied")); } catch { toast(picLink); } }}><Copy size={13} /> {tr("Copy")}</Button>
                       <a href={`https://wa.me/?text=${encodeURIComponent(picMsg)}`} target="_blank" rel="noreferrer"
-                        className="inline-flex h-8 items-center gap-1.5 rounded-[3px] bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700"><MessageCircle size={13} /> WhatsApp</a>
+                        className="inline-flex h-8 items-center gap-1.5 rounded-[3px] bg-[color:var(--j-22A06B)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-216E4E)]"><MessageCircle size={13} /> WhatsApp</a>
                     </div>
                   )}
                 </FormCard>
@@ -886,7 +886,7 @@ function WorkLinks({ r, busy, tech, setTech, onCreate, onCloseLink }: {
                 <>
                   <Button size="sm" variant="secondary" onClick={() => void copy(l)}><Copy size={13} /> {tr("Copy")}</Button>
                   <a href={`https://wa.me/${phoneOf(l)}?text=${encodeURIComponent(msg(l))}`} target="_blank" rel="noreferrer"
-                    className="inline-flex h-8 items-center gap-1.5 rounded-[3px] bg-emerald-600 px-3 text-xs font-medium text-white hover:bg-emerald-700"><MessageCircle size={13} /> WhatsApp</a>
+                    className="inline-flex h-8 items-center gap-1.5 rounded-[3px] bg-[color:var(--j-22A06B)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-216E4E)]"><MessageCircle size={13} /> WhatsApp</a>
                   <Button size="sm" variant="ghost" onClick={() => onCloseLink(l.id)}>{tr("Close")}</Button>
                 </>
               )}
@@ -1164,7 +1164,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
                   <span className="inline-flex gap-0.5">
                     <button type="button" onClick={() => edit(i)} aria-label={tr("Edit {0}", i.description)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"><PenLine size={14} /></button>
                     <button type="button" disabled={busy} onClick={() => void act(`${base}/cost-items/${i.id}`, undefined, tr("Cost line removed"), "DELETE")} aria-label={tr("Remove {0}", i.description)}
-                      className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button>
+                      className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={14} /></button>
                   </span>
                 </td>
               </tr>
@@ -1191,14 +1191,14 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
               <tr><td className="px-3 py-2 font-semibold text-[color:var(--j-172B4D)]" colSpan={2}>{tr("Total")}{laborTotal ? <span className="block text-[11px] font-normal text-[color:var(--j-626F86)]">{tr("incl. labour {0}", fmtRp(laborTotal))}</span> : null}</td>
                 <td className="px-2 py-2 text-right font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(r.estCost)}</td>
                 <td className="px-2 py-2 text-right font-bold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(r.actualCost)}
-                  {diff !== null && <span className={cx("block text-[10px] font-semibold", diff > 0 ? "text-red-600" : "text-emerald-600")}>{diff > 0 ? "+" : ""}{fmtRp(diff)}</span>}</td><td /></tr>
+                  {diff !== null && <span className={cx("block text-[10px] font-semibold", diff > 0 ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-22A06B)]")}>{diff > 0 ? "+" : ""}{fmtRp(diff)}</span>}</td><td /></tr>
             </tfoot>
           )}
         </table>
       </div>
       {labor && (
-        <div className="space-y-2 rounded-[3px] border border-violet-200 bg-violet-50/40 p-3">
-          <p className="text-xs font-semibold text-violet-900">{tr("Adjust the labour")} · {work.find((x) => x.assignmentId === labor.id)?.technician}</p>
+        <div className="space-y-2 rounded-[3px] border border-[color:var(--j-DFD8FD)] bg-[color:var(--j-F3F0FF)]/40 p-3">
+          <p className="text-xs font-semibold text-[color:var(--j-5E4DB2)]">{tr("Adjust the labour")} · {work.find((x) => x.assignmentId === labor.id)?.technician}</p>
           <div className="grid gap-2 sm:grid-cols-[10rem_minmax(0,1fr)_auto]">
             <input value={labor.amount} onChange={(e) => setLabor({ ...labor, amount: digits(e.target.value) })} inputMode="numeric" className={cx(inputClass, "h-9 bg-white text-right text-sm tabular-nums")} aria-label={tr("Labour (Rp)")} />
             <input value={labor.note} onChange={(e) => setLabor({ ...labor, note: e.target.value })} maxLength={300} placeholder={tr("Reason (required), e.g. 2 days only")} className={cx(inputClass, "h-9 bg-white text-sm")} aria-label={tr("Reason of the labour adjustment")} />
@@ -1208,7 +1208,7 @@ function CostLines({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
             </span>
           </div>
           {work.find((x) => x.assignmentId === labor.id)?.adjust !== null && (
-            <button type="button" className="text-xs font-medium text-violet-700 hover:underline" onClick={async () => { if (await act(`${base}/labor/${labor.id}`, { adjust: null, note: null }, tr("Labour counted automatically again"), "PUT")) setLabor(null); }}>
+            <button type="button" className="text-xs font-medium text-[color:var(--j-5E4DB2)] hover:underline" onClick={async () => { if (await act(`${base}/labor/${labor.id}`, { adjust: null, note: null }, tr("Labour counted automatically again"), "PUT")) setLabor(null); }}>
               {tr("Back to the automatic labour")}</button>
           )}
         </div>
@@ -1249,7 +1249,7 @@ function CatalogPick({ picked, onPick }: { picked: number | null; onPick: (m: Pi
           {list.length === 0 ? <li className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{tr("Not in the catalog: type the description below")}</li> : list.map((m) => (
             <li key={m.id}><button type="button" onClick={() => { setChosen(m); setQ(""); setList(null); onPick(m); }} className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-[color:var(--j-F7F8F9)]">
               <span className="min-w-0"><span className="block font-medium text-[color:var(--j-172B4D)]">{m.label}</span><span className="text-[color:var(--j-626F86)]">{m.group}{m.vendor ? ` · ${m.vendor}` : ""}</span></span>
-              <span className="shrink-0 text-right tabular-nums"><span className="block font-semibold text-[color:var(--j-172B4D)]">{m.price != null ? fmtRp(m.price) : "—"}</span>{m.priceOn && <span className={cx("text-[10px]", m.stale ? "text-amber-700" : "text-[color:var(--j-626F86)]")}>{dmy(m.priceOn)}</span>}</span>
+              <span className="shrink-0 text-right tabular-nums"><span className="block font-semibold text-[color:var(--j-172B4D)]">{m.price != null ? fmtRp(m.price) : "—"}</span>{m.priceOn && <span className={cx("text-[10px]", m.stale ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")}>{dmy(m.priceOn)}</span>}</span>
             </button></li>))}
         </ul>
       )}
@@ -1292,7 +1292,7 @@ function DeApprovals({ onClose }: { onClose: () => void }) {
             {Object.entries(data.kinds).map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
                 className={cx("-mb-px inline-flex items-center gap-2 border-b-2 pb-2.5 text-sm font-medium", kind === k ? "border-[color:var(--j-0C66E4)] text-[color:var(--j-0C66E4)]" : "border-transparent text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]")}>
-                <span className={cx("flex h-5 w-5 items-center justify-center rounded text-white", k === "REPAIR" ? "bg-orange-500" : "bg-violet-600")}>
+                <span className={cx("flex h-5 w-5 items-center justify-center rounded text-white", k === "REPAIR" ? "bg-[color:var(--j-E2B203)]" : "bg-[color:var(--j-6E5DC6)]")}>
                   {k === "REPAIR" ? <Hammer size={11} /> : <ShoppingCart size={11} />}</span>
                 {(KIND_LABEL as Record<string, () => string>)[k]?.() ?? label}</button>
             ))}
@@ -1306,7 +1306,7 @@ function DeApprovals({ onClose }: { onClose: () => void }) {
                   <span className="rounded-[3px] border border-dashed border-[color:var(--j-85B8FF)] bg-white px-1.5 py-0.5 normal-case tracking-normal text-[color:var(--j-0055CC)]">{st.label || tr("Approval {0}", i + 1)}</span></li>
               ))}
               <li className="flex items-center gap-1.5"><ChevronRight size={13} className="text-[color:var(--j-626F86)]" />
-                <span className="rounded-[3px] bg-blue-100 px-1.5 py-0.5 text-blue-800">{statusLabel(kind as Kind, "ACCEPTED")}</span></li>
+                <span className="rounded-[3px] bg-[color:var(--j-CCE0FF)] px-1.5 py-0.5 text-[color:var(--j-0055CC)]">{statusLabel(kind as Kind, "ACCEPTED")}</span></li>
             </ol>
           </section>
           {!edit && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Only a superadmin changes the approvals.")}</p>}

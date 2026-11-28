@@ -55,7 +55,7 @@ const FILTER_STATUS: Record<Exclude<DriverFilter, "">, () => string> = {
 };
 const matchStatus = (r: Row, f: DriverFilter) => !f || (f === "road" ? !!r.shift : f === "none" ? !r.dispatch && !r.shift : !r.shift && r.dispatch?.status === f);
 
-const DOT: Record<Exclude<DriverFilter, "">, string> = { none: "bg-neutral-400", assigned: "bg-blue-500", disputed: "bg-red-500", accepted: "bg-emerald-500", road: "bg-teal-500" };
+const DOT: Record<Exclude<DriverFilter, "">, string> = { none: "bg-[color:var(--j-8590A2)]", assigned: "bg-[color:var(--j-0C66E4)]", disputed: "bg-[color:var(--j-C9372C)]", accepted: "bg-[color:var(--j-22A06B)]", road: "bg-[color:var(--j-2898BD)]" };
 const STATUS: Record<Dispatch["status"], { label: () => string; tone: LozengeTone }> = {
   assigned: { label: () => tr("Waiting for the driver's check"), tone: "blue" },
   disputed: { label: () => tr("Difference Reported"), tone: "red" },
@@ -216,7 +216,7 @@ export default function CotrStoragePage() {
               </ul>
             )}
             <CardFooter><span>{tr("{0} of {1}", listed.length, rows.length)}</span>
-              {toSave.length > 0 && <span className="flex items-center gap-3"><span className="text-amber-700">{tr("{0} assignments not saved yet", toSave.length)}</span>
+              {toSave.length > 0 && <span className="flex items-center gap-3"><span className="text-[color:var(--j-7F5F01)]">{tr("{0} assignments not saved yet", toSave.length)}</span>
                 <Button size="sm" loading={busy === "save"} onClick={() => void save(toSave)}><Save size={14} /> {tr("Save {0}", toSave.length)}</Button></span>}
             </CardFooter>
           </>
@@ -271,7 +271,7 @@ export default function CotrStoragePage() {
     const lozenge = r.shift ? <Lozenge tone="green">{r.shift === "open" ? tr("On the road") : tr("Shift ended")}</Lozenge>
       : st ? <Lozenge tone={st.tone}>{st.label()}</Lozenge> : <Lozenge tone="grey">{tr("Not assigned")}</Lozenge>;
     return (
-      <li key={r.code} className={cx("min-w-0 overflow-hidden rounded-[3px] border bg-white", changed(r) && can ? "border-amber-300 ring-2 ring-amber-100" : "border-[color:var(--j-DCDFE4)]")}>
+      <li key={r.code} className={cx("min-w-0 overflow-hidden rounded-[3px] border bg-white", changed(r) && can ? "border-[color:var(--j-F5CD47)] ring-2 ring-[color:var(--j-F8E6A0)]" : "border-[color:var(--j-DCDFE4)]")}>
         <div role="button" tabIndex={0} aria-expanded={open} onClick={() => setOpened((o) => ({ ...o, [r.code]: !open }))}
           onKeyDown={(e) => { if (e.key === "Enter") setOpened((o) => ({ ...o, [r.code]: !open })); }}
           className={cx("flex cursor-pointer items-center gap-3 px-4 py-3 sm:cursor-default", open ? "border-b border-[color:var(--j-F1F2F4)]" : "border-b border-[color:var(--j-F1F2F4)] max-sm:border-b-0")}>
@@ -282,18 +282,18 @@ export default function CotrStoragePage() {
         </div>
         <div className={cx(!open && "max-sm:hidden")}>
           {r.request && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-sky-100 bg-sky-50/70 px-4 py-2 text-[11px] text-sky-900">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[color:var(--j-CCE0FF)] bg-[color:var(--j-E9F2FF)]/70 px-4 py-2 text-[11px] text-[color:var(--j-0055CC)]">
               <span className="inline-flex items-center gap-1 font-semibold"><PackagePlus size={12} />{tr("Driver request: {0} cups", cups(r.request.lines))}</span>
               <span className="min-w-0 truncate">{menus.filter((m) => r.request!.lines[m.code]).map((m) => `${r.request!.lines[m.code]}× ${m.name}`).join(", ")}{r.request.note ? ` · “${r.request.note}”` : ""}</span>
-              {can && <button type="button" onClick={() => setDraft((d) => ({ ...d, [r.code]: { sell: { ...r.request!.lines }, cupping: { ...(d[r.code]?.cupping ?? {}) } } }))} className="ml-auto rounded-[3px] bg-sky-700 px-2 py-1 text-[11px] font-semibold text-white hover:bg-sky-800">{tr("Use request")}</button>}
+              {can && <button type="button" onClick={() => setDraft((d) => ({ ...d, [r.code]: { sell: { ...r.request!.lines }, cupping: { ...(d[r.code]?.cupping ?? {}) } } }))} className="ml-auto rounded-[3px] bg-[color:var(--j-0055CC)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[color:var(--j-0055CC)]">{tr("Use request")}</button>}
             </div>
           )}
           {a && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-[color:var(--j-F7F8F9)] px-4 py-2 text-[11px] text-[color:var(--j-44546F)]">
-              <span className="inline-flex items-center gap-1 font-medium text-[color:var(--j-44546F)]"><Sparkles size={12} className="text-violet-600" />
+              <span className="inline-flex items-center gap-1 font-medium text-[color:var(--j-44546F)]"><Sparkles size={12} className="text-[color:var(--j-6E5DC6)]" />
                 {a.source === "pool" ? tr("Advice from the pool average") : tr("Advice from {0} days worked", a.days)}</span>
-              {a.wasteRate !== null && <span className={cx(a.wasteRate > 0.15 ? "font-semibold text-red-700" : "")}>{tr("waste {0}%", Math.round(a.wasteRate * 100))}</span>}
-              {can && <button type="button" onClick={() => applyAdvice(r)} className="ml-auto rounded-[3px] bg-violet-600 px-2 py-1 text-[11px] font-semibold text-white hover:bg-violet-700">{tr("Use advice")}</button>}
+              {a.wasteRate !== null && <span className={cx(a.wasteRate > 0.15 ? "font-semibold text-[color:var(--j-AE2E24)]" : "")}>{tr("waste {0}%", Math.round(a.wasteRate * 100))}</span>}
+              {can && <button type="button" onClick={() => applyAdvice(r)} className="ml-auto rounded-[3px] bg-[color:var(--j-6E5DC6)] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[color:var(--j-5E4DB2)]">{tr("Use advice")}</button>}
             </div>
           )}
           <table className={cx(jTable, "table-fixed")}>
@@ -304,14 +304,14 @@ export default function CotrStoragePage() {
                 const sell = shown.sell[m.code] ?? 0, taste = shown.cupping[m.code] ?? 0;
                 const hint = a ? `${tr("avg {0}/day", a.avgSold[m.code] ?? 0)} · ${tr("advice {0}", a.sell[m.code] ?? 0)}` : undefined;
                 return (
-                  <tr key={m.code} className="border-b border-neutral-50">
+                  <tr key={m.code} className="border-b border-[color:var(--j-F7F8F9)]">
                     <td className={jTd}><span className="block truncate text-[color:var(--j-172B4D)]">{m.name}</span>{hint && <span className="block text-[10px] text-[color:var(--j-626F86)]">{hint}</span>}</td>
                     {(["sell", "cupping"] as const).map((part) => (
                       <td key={part} className="px-1 py-1 text-center">
                         {can ? (
                           <input inputMode="numeric" value={(part === "sell" ? sell : taste) || ""} placeholder="0" aria-label={`${r.name} · ${m.name} · ${part === "sell" ? tr("Sell") : tr("Cupping")}`}
                             onChange={(e) => setQty(r.code, part, m.code, Number(e.target.value.replace(/\D/g, "")) || 0)}
-                            className={cx("h-10 w-full rounded-[3px] border text-center text-base tabular-nums focus:border-[color:var(--j-0C66E4)] focus:outline-none focus:ring-2 focus:ring-[color:var(--j-388BFF)] sm:h-9 sm:text-sm", part === "cupping" ? "border-amber-200 bg-amber-50/40" : "border-[color:var(--j-DCDFE4)]")} />
+                            className={cx("h-10 w-full rounded-[3px] border text-center text-base tabular-nums focus:border-[color:var(--j-0C66E4)] focus:outline-none focus:ring-2 focus:ring-[color:var(--j-388BFF)] sm:h-9 sm:text-sm", part === "cupping" ? "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/40" : "border-[color:var(--j-DCDFE4)]")} />
                         ) : <span className="tabular-nums text-[color:var(--j-44546F)]">{(part === "sell" ? sell : taste) || "—"}</span>}
                       </td>
                     ))}
@@ -324,7 +324,7 @@ export default function CotrStoragePage() {
               <tr className="border-t border-[color:var(--j-DCDFE4)] text-xs">
                 <td className={cx(jTd, "font-semibold text-[color:var(--j-44546F)]")}>{tr("Total")}</td>
                 <td className="px-1 py-2 text-center font-semibold tabular-nums">{cups(shown.sell)}</td>
-                <td className="px-1 py-2 text-center font-semibold tabular-nums text-amber-700">{cups(shown.cupping)}</td>
+                <td className="px-1 py-2 text-center font-semibold tabular-nums text-[color:var(--j-7F5F01)]">{cups(shown.cupping)}</td>
                 <td className={cx(jTd, "text-right font-bold tabular-nums")}>{total}</td>
               </tr>
             </tfoot>
@@ -351,14 +351,14 @@ function Settle({ title, menus, expected, found, note, url, onDone }: {
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (
-    <section className="rounded-[3px] border border-red-200 bg-white p-3">
+    <section className="rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-white p-3">
       <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{title}</p>
-      {note && <p className="mt-1 rounded-[3px] bg-red-50 px-2 py-1.5 text-xs text-red-700">{note}</p>}
+      {note && <p className="mt-1 rounded-[3px] bg-[color:var(--j-FFECEB)] px-2 py-1.5 text-xs text-[color:var(--j-AE2E24)]">{note}</p>}
       <table className="mt-2 w-full text-xs">
         <thead className="text-[color:var(--j-626F86)]"><tr><th className="py-1 text-left">{tr("Menu")}</th><th className="text-right">{tr("Sent")}</th><th className="text-right">{tr("Found")}</th><th className="text-right">{tr("Final")}</th></tr></thead>
         <tbody>
           {codes.map((c) => (
-            <tr key={c} className={cx((found[c] ?? 0) !== (expected[c] ?? 0) && "text-red-700")}>
+            <tr key={c} className={cx((found[c] ?? 0) !== (expected[c] ?? 0) && "text-[color:var(--j-AE2E24)]")}>
               <td className="py-1">{name(c)}</td><td className="text-right tabular-nums">{expected[c] ?? 0}</td><td className="text-right tabular-nums">{found[c] ?? 0}</td>
               <td className="py-1 text-right">
                 <input inputMode="numeric" value={final[c] ?? 0} onChange={(e) => setFinal({ ...final, [c]: Number(e.target.value.replace(/\D/g, "")) || 0 })}
@@ -393,7 +393,7 @@ function ReloadDecide({ r, title, menus, onDone }: { r: Reload; title: string; m
     } catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (
-    <section className="rounded-[3px] border border-amber-200 bg-white p-3">
+    <section className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-white p-3">
       <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{title}</p>
       {r.note && <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{r.note}</p>}
       <table className="mt-2 w-full text-xs">
@@ -413,7 +413,7 @@ function ReloadDecide({ r, title, menus, onDone }: { r: Reload; title: string; m
       <div className="mt-2 flex flex-wrap gap-2">
         <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (a rejection needs it)")} className="h-9 flex-1" />
         <Button size="sm" loading={busy} disabled={!cups(clean(sent))} onClick={() => void decide(true)}><Check size={14} /> {tr("Approve")}</Button>
-        <Button size="sm" variant="secondary" disabled={busy} className="text-red-600" onClick={() => void decide(false)}><X size={14} /> {tr("Reject")}</Button>
+        <Button size="sm" variant="secondary" disabled={busy} className="text-[color:var(--j-C9372C)]" onClick={() => void decide(false)}><X size={14} /> {tr("Reject")}</Button>
       </div>
     </section>
   );

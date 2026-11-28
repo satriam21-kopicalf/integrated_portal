@@ -143,12 +143,12 @@ export function RecipesTab() {
                 const hpp = card ? costOf(rows, itemList, card.code) : null;
                 const margin = hpp !== null ? m.price - hpp : null;
                 return (
-                  <tr key={m.code} className={card ? '' : 'bg-amber-50/40'}>
+                  <tr key={m.code} className={card ? '' : 'bg-[color:var(--j-FFF7D6)]/40'}>
                     <td className="px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{m.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{m.code}</span></td>
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(m.price)}</td>
                     <td className="px-3 py-2">{card ? <Badge tone="green" dot>{tr('{0} components', card.lines.length)}</Badge> : <Badge tone="amber">{tr('No card yet')}</Badge>}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{hpp === null ? '—' : rupiah(hpp)}</td>
-                    <td className={cx('px-4 py-2.5 text-right tabular-nums', margin === null ? 'text-[color:var(--j-626F86)]' : margin < 0 ? 'text-red-700' : 'text-emerald-700')}>
+                    <td className={cx('px-4 py-2.5 text-right tabular-nums', margin === null ? 'text-[color:var(--j-626F86)]' : margin < 0 ? 'text-[color:var(--j-AE2E24)]' : 'text-[color:var(--j-216E4E)]')}>
                       {margin === null ? '—' : `${rupiah(margin)} · ${Math.round((margin / (m.price || 1)) * 100)}%`}</td>
                     <td className="px-3 py-2 text-right">{card
                       ? <Button size="sm" variant="secondary" onClick={() => { setCode(card.code); setView('list'); }}>{tr('Edit card')}</Button>
@@ -183,7 +183,7 @@ export function RecipesTab() {
                         <input value={u.name} onChange={(e) => setDraft({ ...draft, units: draft.units.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })} className="w-28 text-xs outline-none" />
                         <input type="number" value={u.grams} onChange={(e) => setDraft({ ...draft, units: draft.units.map((x, j) => (j === i ? { ...x, grams: Number(e.target.value) } : x)) })} className="w-20 text-right text-xs tabular-nums outline-none" />
                         <span className="text-[11px] text-[color:var(--j-626F86)]">g</span>
-                        <button type="button" aria-label={tr('Delete')} onClick={() => setDraft({ ...draft, units: draft.units.filter((_, j) => j !== i) })} className="text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={12} /></button>
+                        <button type="button" aria-label={tr('Delete')} onClick={() => setDraft({ ...draft, units: draft.units.filter((_, j) => j !== i) })} className="text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={12} /></button>
                       </span>
                     ))}
                     <Button size="sm" variant="ghost" onClick={() => setDraft({ ...draft, units: [...draft.units, { name: 'Teko', grams: Math.round(draft.yield_qty / 3) }] })}><Plus size={13} /> {tr('Unit')}</Button>
@@ -208,7 +208,7 @@ export function RecipesTab() {
                         <td className="w-16 px-3 py-1.5 text-xs text-[color:var(--j-626F86)]">{it?.unit ?? l.unit}</td>
                         {draft.kind === 'premix' && <td className="px-3 py-1.5 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{draft.yield_qty ? num(l.qty / draft.yield_qty, 4) : '—'}</td>}
                         <td className="px-3 py-1.5 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{it?.cost != null ? rupiah(l.qty * it.cost) : '—'}</td>
-                        <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setLines(draft.lines.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={15} /></button></td>
+                        <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setLines(draft.lines.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={15} /></button></td>
                       </tr>
                     );
                   })}
@@ -217,7 +217,7 @@ export function RecipesTab() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <Button size="sm" variant="secondary" onClick={() => setLines([...draft.lines, { item: '', qty: 0, unit: 'g' }])}><Plus size={14} /> {tr('Add component')}</Button>
                 <p className="text-xs text-[color:var(--j-626F86)]">
-                  {draft.kind === 'premix' && <>{tr('Total {0} g of {1} g', num(total), num(draft.yield_qty))}{Math.round(total) !== Math.round(draft.yield_qty) && <span className="ml-1 text-amber-700">· {tr('the lines do not add up to the batch')}</span>} · </>}
+                  {draft.kind === 'premix' && <>{tr('Total {0} g of {1} g', num(total), num(draft.yield_qty))}{Math.round(total) !== Math.round(draft.yield_qty) && <span className="ml-1 text-[color:var(--j-7F5F01)]">· {tr('the lines do not add up to the batch')}</span>} · </>}
                   {tr('HPP per {0}', draft.yield_unit === 'g' ? 'g' : draft.yield_unit)}: <span className="font-semibold text-[color:var(--j-172B4D)]">{hpp === null ? tr('fill the cost of the items') : rupiah(hpp)}</span>
                 </p>
               </div>
@@ -288,7 +288,7 @@ export function CalculatorTab() {
                   <td className="px-4 py-1.5"><Select value={r.unit} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, unit: e.target.value } : x)))} className="h-9">{(b?.units.length ? b.units : [{ name: 'Gram', grams: 1 }]).map((u) => <option key={u.name} value={u.name}>{u.name}</option>)}</Select></td>
                   <td className="w-28 px-4 py-1.5"><Input type="number" value={r.qty} min={0} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, qty: Number(e.target.value) } : x)))} className="h-9 text-right" /></td>
                   <td className="px-4 py-1.5 text-right tabular-nums">{num(g)} g</td>
-                  <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setRows(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={15} /></button></td>
+                  <td className="px-1"><button type="button" aria-label={tr('Delete')} onClick={() => setRows(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={15} /></button></td>
                 </tr>
               );
             })}
@@ -379,7 +379,7 @@ export function UsageTab() {
         {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonTable cols={4} /> : (
           <>
             {data.noRecipe.length > 0 && (
-              <p className="mx-4 mt-4 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <p className="mx-4 mt-4 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
                 {tr('Menus without a recipe card are not exploded: {0}', data.menus.filter((m) => !m.bom).map((m) => m.name).join(', '))}
               </p>
             )}

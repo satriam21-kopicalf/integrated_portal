@@ -64,12 +64,12 @@ export function BulkBar({ rows, onClear, onDone }: { rows: Pengajuan[]; onClear:
                 : <Button disabled={!file || !on} onClick={() => setSure(true)}><Wallet size={14} /> {tr("Record payment of {0}", rows.length)}</Button>}
             </>
           )}
-          {status === "APPROVED" && payers.length > 1 && <span className="text-xs text-red-700">{tr("Choose requests of one paying PT")}</span>}
+          {status === "APPROVED" && payers.length > 1 && <span className="text-xs text-[color:var(--j-AE2E24)]">{tr("Choose requests of one paying PT")}</span>}
           {!status && <span className="text-xs text-[color:var(--j-44546F)]">{tr("Choose requests of one status")}</span>}
         </div>
       )}
       {failed.length > 0 && (
-        <div className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <div className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
           <button type="button" className="float-right" onClick={() => setFailed([])} aria-label={tr("Close")}><X size={13} /></button>
           <ul className="max-h-40 list-disc overflow-y-auto pl-4">{failed.map((f) => <li key={f}>{f}</li>)}</ul>
         </div>
@@ -90,7 +90,7 @@ export function ReceivePanel({ p, base, onChanged }: { p: Pengajuan; base: strin
     catch (e) { toast((e as Error).message, "error"); } finally { setBusy(false); }
   };
   return (
-    <section className="space-y-2 rounded-[3px] border border-violet-200 bg-violet-50/40 p-3">
+    <section className="space-y-2 rounded-[3px] border border-[color:var(--j-DFD8FD)] bg-[color:var(--j-F3F0FF)]/40 p-3">
       <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Money received by {0}", p.payeePt ?? "—")}</p>
       {p.can?.receive ? (
         <>

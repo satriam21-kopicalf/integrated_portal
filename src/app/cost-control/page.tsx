@@ -38,7 +38,7 @@ type Key = 'outlet' | 'nett' | 'system' | 'actual' | 'usage' | 'difference' | 'u
 const rp = (n: number | null | undefined) => (n == null ? '—' : `Rp ${Math.round(n).toLocaleString('id-ID')}`);
 const pct = (n: number | null | undefined, d = 1) => (n == null ? '—' : `${(n * 100).toFixed(d)}%`);
 /** usage ratio: within ±5 % of the cards good, within ±15 % to watch, else wrong (stock, cards or the counts) */
-const usageTone = (u: number | null) => (u == null ? 'text-[color:var(--j-626F86)]' : Math.abs(u - 1) <= 0.05 ? 'text-emerald-700' : Math.abs(u - 1) <= 0.15 ? 'text-amber-700' : 'text-red-700');
+const usageTone = (u: number | null) => (u == null ? 'text-[color:var(--j-626F86)]' : Math.abs(u - 1) <= 0.05 ? 'text-[color:var(--j-216E4E)]' : Math.abs(u - 1) <= 0.15 ? 'text-[color:var(--j-7F5F01)]' : 'text-[color:var(--j-AE2E24)]');
 const DEF = (): Period => ({ from: wibDay(-7), to: wibDay(-1) });
 const sortValue = (r: Row, k: Key) => ({ outlet: r.branchName, nett: r.nett, system: r.systemRatio, actual: r.actualRatio,
   usage: r.usageRatio == null ? null : Math.abs(r.usageRatio - 1), difference: r.difference, unexplained: r.unexplained, anomalies: r.anomalies }[k]);
@@ -83,13 +83,13 @@ function Cogs() {
             {res && t && <p>{rp(t.systemCogs)} · {rp(t.actualCogs)}</p>}</Stat>
           <Stat label={tr('Usage Ratio')} icon={<BarChart3 size={13} />} value={res ? <span className={usageTone(t?.usageRatio ?? null)}>{pct(t?.usageRatio)}</span> : <StatSkeleton />}>
             {res && t && <p>{tr('waste {0} · unexplained {1}', rp(t.waste), rp(t.unexplained))}</p>}</Stat>
-          <Stat label={tr('SO Anomalies')} icon={<AlertTriangle size={13} />} value={res ? <span className={t?.anomalies ? 'text-red-700' : undefined}>{fmtNumber(t?.anomalies ?? 0)}</span> : <StatSkeleton />}>
+          <Stat label={tr('SO Anomalies')} icon={<AlertTriangle size={13} />} value={res ? <span className={t?.anomalies ? 'text-[color:var(--j-AE2E24)]' : undefined}>{fmtNumber(t?.anomalies ?? 0)}</span> : <StatSkeleton />}>
             {res && t && <p>{tr('{0} of impact: correct them first', rp(t.anomalyValue))}</p>}</Stat>
         </StatStrip>
       }>
       <DataSources keys={['esbSales', 'esbIntegrity', 'so', 'gr', 'prices', 'recipes']} />
       {res && !t && (
-        <div className="rounded-[3px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-4 py-3 text-sm text-[color:var(--j-7F5F01)]">
           {tr('No outlet has an SO awal on {0} and an SO akhir the day after {1}: choose a period that starts on a stock opname day and ends the day before the next one.', dmy(period.from), dmy(period.to))}
           <span className="block text-xs">{tr('{0} outlets with an SO awal · {1} with an SO akhir', res.counts.start, res.counts.end)}</span>
         </div>
@@ -121,13 +121,13 @@ function Cogs() {
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.systemRatio)}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{rp(r.systemCogs)}</span></td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-medium">{pct(r.actualRatio)}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{rp(r.actualCogs)}</span></td>
                   <td className={cx('whitespace-nowrap px-4 py-2.5 text-right text-base font-semibold tabular-nums', usageTone(r.usageRatio))}>{pct(r.usageRatio, 0)}</td>
-                  <td className={cx('whitespace-nowrap px-4 py-2.5 text-right tabular-nums', r.difference > 0 ? 'text-red-700' : 'text-emerald-700')}>{rp(r.difference)}
+                  <td className={cx('whitespace-nowrap px-4 py-2.5 text-right tabular-nums', r.difference > 0 ? 'text-[color:var(--j-AE2E24)]' : 'text-[color:var(--j-216E4E)]')}>{rp(r.difference)}
                     {r.waste ? <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr('waste {0}', rp(r.waste))}</span> : null}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rp(r.unexplained)}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right text-xs">
-                    <span className={r.coverage.counted < r.coverage.materials ? 'text-amber-700' : 'text-[color:var(--j-626F86)]'}>{tr('SO {0}/{1}', r.coverage.counted, r.coverage.materials)}</span>
-                    {r.anomalies > 0 && <span className="block text-red-700">{tr('{0} anomalies', r.anomalies)}</span>}
-                    {r.unpriced.length > 0 && <span className="block text-amber-700" title={r.unpriced.join(', ')}>{tr('{0} no price', r.unpriced.length)}</span>}
+                    <span className={r.coverage.counted < r.coverage.materials ? 'text-[color:var(--j-7F5F01)]' : 'text-[color:var(--j-626F86)]'}>{tr('SO {0}/{1}', r.coverage.counted, r.coverage.materials)}</span>
+                    {r.anomalies > 0 && <span className="block text-[color:var(--j-AE2E24)]">{tr('{0} anomalies', r.anomalies)}</span>}
+                    {r.unpriced.length > 0 && <span className="block text-[color:var(--j-7F5F01)]" title={r.unpriced.join(', ')}>{tr('{0} no price', r.unpriced.length)}</span>}
                   </td>
                 </tr>))}</tbody>
             </table>

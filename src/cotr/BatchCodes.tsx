@@ -115,7 +115,7 @@ export function BatchCodes() {
               <th className="px-3 py-2.5">{tr("Expiry")}</th><th className="px-3 py-2.5">{tr("Counted")}</th><th className="px-3 py-2.5 text-right">{tr("Left (last count)")}</th><th className="px-3 py-2">{tr("Per pool")}</th></tr></thead>
             <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {paged.rows.map((r) => (
-                <tr key={`${r.menu}:${r.batchNo}:${r.producedOn}`} className={r.status === "expired" && r.left > 0 ? "bg-red-50/40" : undefined}>
+                <tr key={`${r.menu}:${r.batchNo}:${r.producedOn}`} className={r.status === "expired" && r.left > 0 ? "bg-[color:var(--j-FFECEB)]/40" : undefined}>
                   <td className="px-3 py-2"><span className="font-mono font-semibold text-[color:var(--j-172B4D)]">{r.batchNo}</span>
                     {r.sequence !== null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("Batch {0}", r.sequence)}</span>}</td>
                   <td className="px-3 py-2.5">{r.menuName}</td>

@@ -109,7 +109,7 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
             <Button key={t.code} variant="ghost" size="sm" onClick={() => setSlots((x) => [...x, blank(t)])}>+ {t.name}</Button>
           ))}
         </div>
-        {(areas.rows ?? []).length === 0 && areas.rows && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No area yet: add the areas in Master → Area first.")}</p>}
+        {(areas.rows ?? []).length === 0 && areas.rows && <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{tr("No area yet: add the areas in Master → Area first.")}</p>}
       </div>
     </Drawer>
   );
@@ -118,6 +118,6 @@ export function SlotsDrawer({ driver, driverName, day, dayLabel, slots: initial,
 function IconBtn({ label, onClick, disabled, danger, children }: { label: string; onClick: () => void; disabled?: boolean; danger?: boolean; children: React.ReactNode }) {
   return (
     <button type="button" aria-label={label} title={label} disabled={disabled} onClick={onClick}
-      className={cx("rounded-[3px] p-1.5 text-[color:var(--j-626F86)] disabled:opacity-30", danger ? "hover:bg-red-50 hover:text-red-600" : "hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>{children}</button>
+      className={cx("rounded-[3px] p-1.5 text-[color:var(--j-626F86)] disabled:opacity-30", danger ? "hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" : "hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>{children}</button>
   );
 }

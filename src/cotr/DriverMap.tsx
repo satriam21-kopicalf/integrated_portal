@@ -129,7 +129,7 @@ export default function DriverMap({ day, live, drivers }: { day: string; live: b
                           <span>{p.fleet ?? p.driver} · {time(p.at)}</span>
                           {p.accuracy !== null && <span>± {Math.round(p.accuracy)} m</span>}
                           {p.speed !== null && p.speed > 0.5 && <span className="inline-flex items-center gap-0.5"><Navigation size={10} />{Math.round(p.speed * 3.6)} km/h</span>}
-                          {p.battery !== null && <span className={cx('inline-flex items-center gap-0.5', p.battery <= 20 && 'text-red-600')}><Battery size={11} />{p.battery}%</span>}
+                          {p.battery !== null && <span className={cx('inline-flex items-center gap-0.5', p.battery <= 20 && 'text-[color:var(--j-C9372C)]')}><Battery size={11} />{p.battery}%</span>}
                         </span>
                       </button>
                     </li>

@@ -94,13 +94,13 @@ export default function DeForm({ kind }: { kind: Kind }) {
   return (
     <Page title={KIND_LABEL[kind]()} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
-      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && <SentCard r={sent} onClose={() => setSent(null)} onOpen={() => setView(sent.id)} />}
 
-          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
             <div className="flex items-center gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
@@ -130,13 +130,13 @@ export default function DeForm({ kind }: { kind: Kind }) {
           </section>
 
           {drafts.length > 0 && (
-            <section className="rounded-[3px] border border-amber-200 bg-white">
-              <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("Drafts saved ({0})", drafts.length)}</p>
+            <section className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-white">
+              <p className="border-b border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/60 px-4 py-2.5 text-sm font-semibold text-[color:var(--j-7F5F01)] sm:px-5">{tr("Drafts saved ({0})", drafts.length)}</p>
               <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {drafts.map((d) => (
                   <li key={d.id}>
                     <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)] sm:px-5">
-                      <ClipboardList size={18} className="flex-shrink-0 text-amber-600" />
+                      <ClipboardList size={18} className="flex-shrink-0 text-[color:var(--j-B38600)]" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{d.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {d.branchName}</span>
                         <span className="block text-xs text-[color:var(--j-626F86)]">{tr("saved {0}", wibDateTime(d.updatedAt))}</span>
@@ -149,7 +149,7 @@ export default function DeForm({ kind }: { kind: Kind }) {
             </section>
           )}
 
-          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
               <div>
                 <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("My requests")}</p>
@@ -190,7 +190,7 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
         <span className="mt-1 block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{r.kind === "REPAIR" ? "Maintenance" : tr("Procurement")} · {r.branchName}</span>
         <span className="mt-2 flex items-center gap-1" aria-label={tr("Progress")}>
           {STEPS.map((st, i) => (
-            <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-red-200" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-amber-500" : r.status === "DONE" ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]") : "bg-[color:var(--j-091E420F)]")} />
+            <span key={st} title={st} className={cx("h-1.5 flex-1 rounded-full", r.status === "REJECTED" ? "bg-[color:var(--j-FFD5D2)]" : i <= idx ? (r.status === "ON_HOLD" && i === idx ? "bg-[color:var(--j-E2B203)]" : r.status === "DONE" ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]") : "bg-[color:var(--j-091E420F)]")} />
           ))}
         </span>
         <span className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-[color:var(--j-626F86)]">
@@ -205,9 +205,9 @@ function MineRow({ r, onOpen }: { r: Request; onOpen: () => void }) {
 /** Sent: number, PDF, link to share with the teams. */
 function SentCard({ r, onClose, onOpen }: { r: Request; onClose: () => void; onOpen: () => void }) {
   return (
-    <div className="rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+    <div className="rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-4 py-3 text-sm text-[color:var(--j-216E4E)]">
       <div className="flex items-start gap-3">
-        <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+        <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
         <div className="min-w-0 flex-1">
           <p className="font-semibold">{tr("Request {0} sent", r.number ?? "")}</p>
           <p className="text-xs">{r.kindLabel} · {r.branchName} · {wibDateTime(r.submittedAt)} · {tr("status Pending: the team checks it first")}</p>
@@ -215,7 +215,7 @@ function SentCard({ r, onClose, onOpen }: { r: Request; onClose: () => void; onO
         <button type="button" onClick={onClose} className="rounded-[3px] p-1 opacity-70 hover:bg-white/60" aria-label={tr("Close")}><X size={16} /></button>
       </div>
       <div className="mt-3"><DocActions r={r} /></div>
-      <button type="button" onClick={onOpen} className="mt-2 text-xs font-semibold text-emerald-800 underline-offset-2 hover:underline">{tr("See the Progress")}</button>
+      <button type="button" onClick={onOpen} className="mt-2 text-xs font-semibold text-[color:var(--j-216E4E)] underline-offset-2 hover:underline">{tr("See the Progress")}</button>
     </div>
   );
 }
@@ -339,9 +339,9 @@ function HandoverCard({ r, onCamera, onRemove, onSent }: { r: Request; onCamera:
   };
   let n = 0;
   return (
-    <section className="space-y-3 rounded-[3px] border-2 border-cyan-200 bg-cyan-50/40 p-3 sm:p-4">
+    <section className="space-y-3 rounded-[3px] border-2 border-[color:var(--j-C6EDFB)] bg-[color:var(--j-E7F9FF)]/40 p-3 sm:p-4">
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-cyan-600 text-white"><Handshake size={18} /></span>
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-2898BD)] text-white"><Handshake size={18} /></span>
         <div>
           <p className="font-semibold text-[color:var(--j-172B4D)]">{tr("Handover at the Outlet")}</p>
           <p className="text-xs text-[color:var(--j-44546F)]">{vendor ? tr("The maintenance team asks you to check the vendor's work: photos of the result, the vendor's signature and yours.")
@@ -515,12 +515,12 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </FormCard>
 
         {(r.openInBranch ?? []).length > 0 && (
-          <section className="rounded-[3px] border border-amber-200 bg-amber-50/60 p-4">
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-amber-900"><AlertTriangle size={16} /> {tr("Still in progress at {0} ({1})", r.branchName, r.openInBranch!.length)}</p>
-            <p className="mt-0.5 text-xs text-amber-800">{tr("Check these first so nothing is asked twice; follow them under My requests.")}</p>
+          <section className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/60 p-4">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-7F5F01)]"><AlertTriangle size={16} /> {tr("Still in progress at {0} ({1})", r.branchName, r.openInBranch!.length)}</p>
+            <p className="mt-0.5 text-xs text-[color:var(--j-7F5F01)]">{tr("Check these first so nothing is asked twice; follow them under My requests.")}</p>
             <ul className="mt-2 space-y-1.5">
               {r.openInBranch!.map((o) => (
-                <li key={o.id} className="rounded-[3px] bg-white px-3 py-2 text-xs ring-1 ring-amber-100">
+                <li key={o.id} className="rounded-[3px] bg-white px-3 py-2 text-xs ring-1 ring-[color:var(--j-F8E6A0)]">
                   <span className="flex flex-wrap items-center gap-2"><span className="font-mono font-semibold text-[color:var(--j-44546F)]">{o.number}</span> <StatusBadge r={o} />
                     <span className="text-[color:var(--j-626F86)]">{o.picName} · {wibDateTime(o.submittedAt)}</span></span>
                   <span className="mt-1 block text-[color:var(--j-44546F)]">{(o.items ?? []).map((i) => `${i.name} (${i.category})`).join(", ")}</span>
@@ -545,10 +545,10 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             const dup = alreadyAsked(it, r.openInBranch);
             const upd = (patch: Partial<ItemDraft>, now = false) => setItemsAndSave(items.map((x) => (x.key === it.key ? { ...x, ...patch } : x)), now);
             return (
-              <div key={it.key} className={cx("space-y-2 rounded-[3px] border p-3", dup ? "border-amber-300 bg-amber-50/40" : "border-[color:var(--j-DCDFE4)]")}>
+              <div key={it.key} className={cx("space-y-2 rounded-[3px] border p-3", dup ? "border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)]/40" : "border-[color:var(--j-DCDFE4)]")}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-[color:var(--j-626F86)]">{tr("Item {0}", idx + 1)}</span>
-                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Item")}><Trash2 size={15} /></button>
+                  <button type="button" onClick={() => setItemsAndSave(items.filter((x) => x.key !== it.key), true)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove Item")}><Trash2 size={15} /></button>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <NativeSelect value={it.categoryId || ""} aria-label={tr("Category")} className={cx(inputClass, "h-10 text-sm")}
@@ -578,7 +578,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
                 </div>
                 <input value={it.note ?? ""} onChange={(e) => upd({ note: e.target.value })} maxLength={1000} placeholder={tr("Detail (optional), e.g. brand, size, what happens")}
                   className={cx(inputClass, "h-10 text-sm")} aria-label={tr("Detail")} />
-                {dup && <p className="flex items-center gap-1 text-xs font-medium text-amber-800"><AlertTriangle size={13} /> {tr("Already asked in {0}, still in progress", dup)}</p>}
+                {dup && <p className="flex items-center gap-1 text-xs font-medium text-[color:var(--j-7F5F01)]"><AlertTriangle size={13} /> {tr("Already asked in {0}, still in progress", dup)}</p>}
               </div>
             );
           })}
@@ -621,7 +621,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             {video ? (
               <div className="space-y-2">
                 <p className="flex items-center justify-between gap-2 text-xs text-[color:var(--j-44546F)]"><span className="inline-flex min-w-0 items-center gap-1 truncate"><Video size={14} /> {video.fileName ?? tr("Video")} · {fmtMb(video.bytes)}</span>
-                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Video")}><Trash2 size={14} /></button></p>
+                  <button type="button" onClick={() => void removeMedia(video.id)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove Video")}><Trash2 size={14} /></button></p>
                 <video src={PORTAL_URLS.media(video.id)} controls preload="metadata" className="max-h-64 w-full rounded-[3px] bg-black" />
               </div>
             ) : upload !== null ? (
@@ -637,7 +637,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </FormCard>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button variant="ghost" className="text-red-600" onClick={() => setDiscarding(true)}><Trash2 size={15} /> {tr("Delete draft")}</Button>
+          <Button variant="ghost" className="text-[color:var(--j-C9372C)]" onClick={() => setDiscarding(true)}><Trash2 size={15} /> {tr("Delete draft")}</Button>
           <span className="text-xs text-[color:var(--j-626F86)]">{tr("Saved automatically; you can continue later.")}</span>
         </div>
         </div>
@@ -645,7 +645,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
 
       <div className="action-bar sticky bottom-0 z-20 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
-          <p className="min-w-0 flex-1 text-xs text-[color:var(--j-44546F)]">{todo.length ? <span className="text-amber-700">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
+          <p className="min-w-0 flex-1 text-xs text-[color:var(--j-44546F)]">{todo.length ? <span className="text-[color:var(--j-7F5F01)]">{todo.join(" · ")}</span> : tr("Everything is ready.")}</p>
           <Button disabled={todo.length > 0 || saving > 0} onClick={() => { void flush(); setPreview(true); }}><Send size={15} /> {tr("Preview & send")}</Button>
         </div>
       </div>
@@ -744,7 +744,7 @@ function MerchPick({ value, merch, onChange }: { value: string; merch: NonNullab
         {merch.items.map((i) => <option key={i.name} value={i.name}>{i.name}</option>)}
       </NativeSelect>
       {item?.sized && (
-        <NativeSelect value={size} onChange={(e) => onChange(join(base, e.target.value))} aria-label={tr("Size")} className={cx(inputClass, "h-10 text-sm", !size && "border-red-300")}>
+        <NativeSelect value={size} onChange={(e) => onChange(join(base, e.target.value))} aria-label={tr("Size")} className={cx(inputClass, "h-10 text-sm", !size && "border-[color:var(--j-F87168)]")}>
           <option value="">{tr("Size")}</option>
           {merch.sizes.map((x) => <option key={x} value={x}>{x}</option>)}
         </NativeSelect>

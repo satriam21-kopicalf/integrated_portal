@@ -25,7 +25,7 @@ const CATEGORIES = ["Kritikal", "Mayor", "Minor"];
 const CATEGORY_LABEL: Record<string, () => string> = { Kritikal: () => tr("Critical"), Mayor: () => tr("Major"), Minor: () => tr("Minor") };
 export const categoryLabel = (c: string) => CATEGORY_LABEL[c]?.() ?? c;
 export const categoryTone = (c: string | null) =>
-  c === "Kritikal" ? "bg-red-600 text-white" : c === "Mayor" ? "bg-amber-100 text-amber-800" : c ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]" : "";
+  c === "Kritikal" ? "bg-[color:var(--j-C9372C)] text-white" : c === "Mayor" ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : c ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]" : "";
 const LEVELS: { value: Level; label: () => string }[] = [
   { value: "required", label: () => tr("Required") }, { value: "optional", label: () => tr("Optional") }, { value: "none", label: () => tr("Not asked") },
 ];
@@ -95,7 +95,7 @@ export function ItemDialog({ form, item, section, onClose, onSaved }: {
           <Field label={tr("Standard (ID)")}><textarea rows={2} className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm" value={d.standard} maxLength={1000} onChange={(e) => set({ standard: e.target.value })} /></Field>
           <Field label={tr("Standard (EN)")}><textarea rows={2} className="w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm" value={d.standardEn} maxLength={1000} onChange={(e) => set({ standardEn: e.target.value })} /></Field>
         </div>
-        {!d.active && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("An inactive item is not asked and not scored; the visits already sent keep their answers and score.")}</p>}
+        {!d.active && <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{tr("An inactive item is not asked and not scored; the visits already sent keep their answers and score.")}</p>}
         {item?.code && item.changed && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Standard: {0}", `${item.code.label}${item.code.category ? ` · ${categoryLabel(item.code.category)}` : ""}`)}</p>}
       </div>
     </Dialog>

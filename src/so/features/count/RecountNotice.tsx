@@ -19,26 +19,26 @@ export const recountsOf = (rows: TodayFacility[] | null | undefined): RecountRow
 export default function RecountNotice({ rows, basePath = "", multi }: { rows: RecountRow[]; basePath?: string; multi?: boolean }) {
   if (!rows.length) return null;
   return (
-    <section className="overflow-hidden rounded-[3px] border border-amber-200 bg-amber-50" role="status" aria-live="polite">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]" role="status" aria-live="polite">
       <div className="flex items-start gap-3 px-4 pb-2 pt-3.5">
-        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-amber-100 text-amber-700"><RotateCcw size={18} /></span>
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]"><RotateCcw size={18} /></span>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-amber-900">{rows.length === 1 ? tr("Cost Control asks for a recount") : tr("Cost Control asks for {0} recounts", rows.length)}</p>
-          <p className="text-xs text-amber-800">{tr("Count the marked items again, sign and send: the count goes back to Cost Control for review.")}</p>
+          <p className="text-sm font-semibold text-[color:var(--j-7F5F01)]">{rows.length === 1 ? tr("Cost Control asks for a recount") : tr("Cost Control asks for {0} recounts", rows.length)}</p>
+          <p className="text-xs text-[color:var(--j-7F5F01)]">{tr("Count the marked items again, sign and send: the count goes back to Cost Control for review.")}</p>
         </div>
       </div>
-      <ul className="divide-y divide-amber-200/70 border-t border-amber-200/70 bg-white/60">
+      <ul className="divide-y divide-[color:var(--j-F8E6A0)]/70 border-t border-[color:var(--j-F8E6A0)]/70 bg-white/60">
         {rows.map((r) => {
           const asked = [r.items ? plural(r.items, "{0} item", "{0} items") : "", r.premixes ? plural(r.premixes, "{0} premix", "{0} premixes") : ""].filter(Boolean).join(" · ");
           return (
             <li key={r.id}>
-              <Link href={`${basePath}/stock-opname/${r.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-amber-100/60 sm:hover:bg-amber-100/40">
+              <Link href={`${basePath}/stock-opname/${r.id}`} className="flex items-center gap-3 px-4 py-3 active:bg-[color:var(--j-F8E6A0)]/60 sm:hover:bg-[color:var(--j-F8E6A0)]/40">
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{countTypeLabel(r.count_type, r.name)} · {fmtDay(r.business_date)}{multi ? ` · ${r.facility}` : ""}</span>
                   <span className="block truncate text-xs text-[color:var(--j-44546F)]">{asked || tr("Every Item")}{r.reviewed_by_name ? ` · ${tr("asked by {0}", r.reviewed_by_name)}` : ""}</span>
-                  {r.review_note && <span className="mt-0.5 block text-xs text-amber-900">“{r.review_note}”</span>}
+                  {r.review_note && <span className="mt-0.5 block text-xs text-[color:var(--j-7F5F01)]">“{r.review_note}”</span>}
                 </span>
-                <span className="inline-flex h-9 flex-shrink-0 items-center gap-0.5 rounded-[3px] bg-amber-600 px-3 text-xs font-semibold text-white">{tr("Recount")}<ChevronRight size={14} /></span>
+                <span className="inline-flex h-9 flex-shrink-0 items-center gap-0.5 rounded-[3px] bg-[color:var(--j-E2B203)] px-3 text-xs font-semibold text-white">{tr("Recount")}<ChevronRight size={14} /></span>
               </Link>
             </li>
           );

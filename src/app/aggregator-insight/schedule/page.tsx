@@ -61,7 +61,7 @@ export default function HandleSchedule() {
     <FilterBar a={a} ctx={ctx} period={false} platform={false} note={`${tr("The schedule of {0}", fmtDay(day))}${day === daysAgo(0) ? ` · ${tr("Today")}` : ""}`}
         extra={[{ key: "who", label: tr("Member"), value: who, onChange: setWho, options: memberOpts }]}
         lead={<div className="flex items-center gap-2"><Button variant="secondary" className="!h-11 flex-shrink-0 px-3 sm:!h-10" aria-label={tr("The day before")} onClick={() => setDay(step(day, -1))}><ChevronLeft size={16} /></Button>
-          <div className="min-w-0 flex-1"><DateField label={tr("Date of the schedule")} value={day} onChange={setDay} /></div><Button variant="secondary" className="!h-11 flex-shrink-0 px-3 sm:!h-10" aria-label={tr("The day after")} onClick={() => setDay(step(day, 1))}><ChevronRight size={16} /></Button></div>} q={q} onQ={setQ} placeholder={tr("Search outlet or member")}><QuickChips<typeof only> value={only} onChange={setOnly} label={tr("Filter")} items={[{ key: "all", label: tr("All"), count: n("all") }, { key: "none", label: tr("Not handled"), dot: "bg-amber-400", count: n("none") }, { key: "handled", label: tr("Handled"), dot: "bg-emerald-500", count: n("handled") }, { key: "exc", label: tr("This date only"), count: n("exc") }]} /></FilterBar>
+          <div className="min-w-0 flex-1"><DateField label={tr("Date of the schedule")} value={day} onChange={setDay} /></div><Button variant="secondary" className="!h-11 flex-shrink-0 px-3 sm:!h-10" aria-label={tr("The day after")} onClick={() => setDay(step(day, 1))}><ChevronRight size={16} /></Button></div>} q={q} onQ={setQ} placeholder={tr("Search outlet or member")}><QuickChips<typeof only> value={only} onChange={setOnly} label={tr("Filter")} items={[{ key: "all", label: tr("All"), count: n("all") }, { key: "none", label: tr("Not handled"), dot: "bg-[color:var(--j-E2B203)]", count: n("none") }, { key: "handled", label: tr("Handled"), dot: "bg-[color:var(--j-22A06B)]", count: n("handled") }, { key: "exc", label: tr("This date only"), count: n("exc") }]} /></FilterBar>
   );
   const card = <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">{filter}</section>;
   return (
@@ -105,15 +105,15 @@ function AssignDrawer({ codes, slot, day, members, onClose, onDone }: {
     <Drawer open title={tr("Assign {0} outlets", codes.length)} description={tr("Applies every week from the date chosen; the days before keep who handled them.")} onClose={onClose} icon={<UserRoundCheck size={18} />}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button disabled={!member} loading={busy} onClick={() => save()}>{tr("Save")}</Button></>}>
       <div className="space-y-5">
-        {members.length === 0 && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-sm text-amber-900">{tr("No member yet: give accounts the page Aggregator Insight in User Accounts.")}</p>}
+        {members.length === 0 && <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-sm text-[color:var(--j-7F5F01)]">{tr("No member yet: give accounts the page Aggregator Insight in User Accounts.")}</p>}
         <Row label={tr("Member")} required><JSelect value={member} onChange={setMember} options={members} label={tr("Member")} placeholder={tr("Choose a member")} /></Row>
         <Row label={tr("Working days")} hint={tr("None chosen = every day")}>
           <div className="grid grid-cols-7 gap-1.5">{WEEKDAYS().map((w, i) => (
             <button key={w} type="button" aria-pressed={days.includes(i + 1)} onClick={() => setDays((d) => d.includes(i + 1) ? d.filter((x) => x !== i + 1) : [...d, i + 1])}
               className={cx("h-11 rounded-[3px] border text-[13px] font-medium sm:h-10", days.includes(i + 1) ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]")}>{w}</button>))}</div></Row>
         <Row label={tr("Starts on")} required><DateField label={tr("Starts on")} value={from} onChange={setFrom} /></Row>
-        {err && <p className="text-sm text-red-600">{err}</p>}
-        <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3"><p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Nobody handles them any more?")}</p><p className="mb-2.5 mt-0.5 text-xs text-[color:var(--j-626F86)]">{tr("Takes the member off these outlets from the date above.")}</p><Button variant="secondary" className="w-full text-red-700 sm:w-auto" disabled={busy} onClick={() => save(true)}>{tr("Remove from these outlets")}</Button></div>
+        {err && <p className="text-sm text-[color:var(--j-C9372C)]">{err}</p>}
+        <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3"><p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Nobody handles them any more?")}</p><p className="mb-2.5 mt-0.5 text-xs text-[color:var(--j-626F86)]">{tr("Takes the member off these outlets from the date above.")}</p><Button variant="secondary" className="w-full text-[color:var(--j-AE2E24)] sm:w-auto" disabled={busy} onClick={() => save(true)}>{tr("Remove from these outlets")}</Button></div>
       </div>
     </Drawer>
   );
@@ -140,7 +140,7 @@ function ExceptionDrawer({ outlet, slot, day, members, onClose, onDone }: {
         <Facts rows={[[tr("Outlet"), outlet.branchName], [tr("Date"), fmtDay(day)], [tr("Handled by now"), cur?.name ?? tr("Nobody")]]} />
         <Row label={tr("Handled by on this date")} required><JSelect value={member} onChange={setMember} options={[{ value: "none", label: tr("Nobody") }, ...members]} label={tr("Handled by on this date")} placeholder={tr("Choose a member")} /></Row>
         <Row label={tr("Note")}><input aria-label={tr("Note")} value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} placeholder={tr("e.g. leave, replaced by …")} className={ctl} /></Row>
-        {err && <p className="text-sm text-red-600">{err}</p>}
+        {err && <p className="text-sm text-[color:var(--j-C9372C)]">{err}</p>}
         {cur?.source === "exception" && <Button variant="secondary" className="w-full sm:w-auto" disabled={busy} onClick={() => send(true)}>{tr("Back to the weekly schedule")}</Button>}
       </div>
     </Drawer>

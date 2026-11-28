@@ -83,8 +83,8 @@ export default function ResetLogsDrawer({ storage, retentionDays, onClose, onDon
             ['all', tr('All entries'), tr('Empty the whole log.')],
             ['before', tr('Entries before a date'), tr('Keep recent activity, remove what is older.')],
           ] as const).map(([value, label, hint]) => (
-            <label key={value} className={`flex cursor-pointer items-start gap-3 rounded-[3px] border px-3 py-2.5 ${scope === value ? 'border-red-300 bg-red-50/50' : 'border-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]'}`}>
-              <input type="radio" name="scope" value={value} checked={scope === value} onChange={() => setScope(value)} className="mt-1 accent-red-600" />
+            <label key={value} className={`flex cursor-pointer items-start gap-3 rounded-[3px] border px-3 py-2.5 ${scope === value ? 'border-[color:var(--j-F87168)] bg-[color:var(--j-FFECEB)]/50' : 'border-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]'}`}>
+              <input type="radio" name="scope" value={value} checked={scope === value} onChange={() => setScope(value)} className="mt-1 accent-[color:var(--j-C9372C)]" />
               <span>
                 <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{label}</span>
                 <span className="block text-xs text-[color:var(--j-626F86)]">{hint}</span>
@@ -100,16 +100,16 @@ export default function ResetLogsDrawer({ storage, retentionDays, onClose, onDon
           )}
         </fieldset>
 
-        <div className="space-y-2 rounded-[3px] border border-red-200 bg-red-50/60 p-3">
-          <p className="flex items-center gap-2 text-sm font-semibold text-red-800"><AlertTriangle size={16} /> {tr('This cannot be undone')}</p>
-          <p className="text-xs leading-relaxed text-red-800">
+        <div className="space-y-2 rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]/60 p-3">
+          <p className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-AE2E24)]"><AlertTriangle size={16} /> {tr('This cannot be undone')}</p>
+          <p className="text-xs leading-relaxed text-[color:var(--j-AE2E24)]">
             {tr('Removed entries are gone for good. The reset itself is recorded as a new entry with your name, so it stays traceable.')}
           </p>
-          <label className="block text-xs font-medium text-red-900" htmlFor="reset-confirm">{tr('Type')} <b>{tr('RESET')}</b> {tr('to confirm')}</label>
+          <label className="block text-xs font-medium text-[color:var(--j-AE2E24)]" htmlFor="reset-confirm">{tr('Type')} <b>{tr('RESET')}</b> {tr('to confirm')}</label>
           <input id="reset-confirm" value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="off" placeholder={tr('RESET')}
-            className={`${inputClass} border-red-200 font-mono`} />
+            className={`${inputClass} border-[color:var(--j-FFD5D2)] font-mono`} />
         </div>
-        {error && <p className="rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]">{error}</p>}
       </div>
     </Drawer>
   );

@@ -44,10 +44,10 @@ export function CotrAttendance({ day, pool, q }: { day: string; pool: string; q:
       <div className="border-b border-[color:var(--j-DCDFE4)] px-4 py-3 sm:px-5">
         <QuickChips label={tr("Attendance")} value={show} onChange={setShow} items={[
           { key: "all" as Show, label: tr("All"), count: n("all") },
-          { key: "in" as Show, label: tr("Punched in"), dot: "bg-emerald-500", count: n("in") },
-          { key: "out" as Show, label: tr("Not punched in"), dot: "bg-neutral-400", count: n("out") },
-          { key: "noshift" as Show, label: tr("Punched, no shift"), dot: "bg-amber-500", count: n("noshift") },
-          { key: "away" as Show, label: tr("Outside the pool"), dot: "bg-red-500", count: n("away") }]} />
+          { key: "in" as Show, label: tr("Punched in"), dot: "bg-[color:var(--j-22A06B)]", count: n("in") },
+          { key: "out" as Show, label: tr("Not punched in"), dot: "bg-[color:var(--j-8590A2)]", count: n("out") },
+          { key: "noshift" as Show, label: tr("Punched, no shift"), dot: "bg-[color:var(--j-E2B203)]", count: n("noshift") },
+          { key: "away" as Show, label: tr("Outside the pool"), dot: "bg-[color:var(--j-C9372C)]", count: n("away") }]} />
         {data && <p className="mt-2 text-xs text-[color:var(--j-626F86)]">{tr("{0} of {1} employees linked to HRMS · {2} punched in", data.summary.linked, data.summary.people, data.summary.punched)}</p>}
       </div>
       {!data ? <div className="p-4"><div className="skeleton h-48 rounded-[3px]" /></div> : rows.length === 0 ? (
@@ -71,7 +71,7 @@ export function CotrAttendance({ day, pool, q }: { day: string; pool: string; q:
                   <td className={jTd} data-label={tr("Place")}>
                     {r.punchIn ? <span className="flex flex-wrap items-center gap-1.5">
                       {r.atPool === null ? <Lozenge tone="grey">{tr("Unknown")}</Lozenge> : r.atPool ? <Lozenge tone="green">{tr("At the site")}</Lozenge> : <Lozenge tone="red">{tr("Outside")}</Lozenge>}
-                      {r.meters !== null && <span className={cx("text-[11px]", r.nearPool === false ? "text-amber-700" : "text-[color:var(--j-626F86)]")}
+                      {r.meters !== null && <span className={cx("text-[11px]", r.nearPool === false ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")}
                         title={tr("Distance to the point of the pool in Master Pool")}>{tr("{0} m from the pool point", r.meters)}</span>}
                     </span> : "—"}
                   </td>

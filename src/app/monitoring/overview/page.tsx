@@ -77,7 +77,7 @@ export default function MonitoringOverviewPage() {
           <Stat label={tr("Agreement with SWAT")} icon={<Scale size={13} />} value={w ? <span className={scoreTone(w.conformity)}>{pct(w.conformity)}</span> : <StatSkeleton />}>
             {w && <p>{tr("{0} audits · {1} overrated", fmtNumber(w.audits), fmtNumber(w.overrated))}</p>}
           </Stat>
-          <Stat label={tr("Open Action Plans")} icon={<ClipboardCheck size={13} />} value={w ? <span className={w.openActions ? "text-amber-700" : undefined}>{fmtNumber(w.openActions)}</span> : <StatSkeleton />}>
+          <Stat label={tr("Open Action Plans")} icon={<ClipboardCheck size={13} />} value={w ? <span className={w.openActions ? "text-[color:var(--j-7F5F01)]" : undefined}>{fmtNumber(w.openActions)}</span> : <StatSkeleton />}>
             <p>{tr("from the SWAT audits, until the revisit")}</p>
           </Stat>
         </StatStrip>
@@ -115,13 +115,13 @@ export default function MonitoringOverviewPage() {
                         {p.punctualityLegacy != null && p.punctualityLegacy !== p.punctuality && <span className="block text-[10px] text-[color:var(--j-626F86)]">{tr("11:00 rule: {0}", pct(p.punctualityLegacy))}</span>}</td>
                       <td className={cx(jTd, "text-right")} data-label="Product"><Score v={p.productScore} n={p.productVisits} /></td>
                       <td className={cx(jTd, "text-right")} data-label="Outlet"><Score v={p.outletScore} n={p.outletVisits} /></td>
-                      <td className={cx(jTd, "text-right tabular-nums", p.under ? "text-red-600" : "text-[color:var(--j-626F86)]")} data-label="UNDER">{p.under}</td>
+                      <td className={cx(jTd, "text-right tabular-nums", p.under ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")} data-label="UNDER">{p.under}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Net Sales")}>
                         {p.salesScore == null ? <span className="text-xs text-[color:var(--j-626F86)]">{tr("No history")}</span> : <span className={cx("font-semibold", scoreTone(p.salesScore))}>{pct(p.salesScore)}</span>}
                         {p.salesScore != null && <span className="block text-[10px] text-[color:var(--j-626F86)]">{tr("{0} outlets vs the month before", p.salesOutlets)}</span>}</td>
                       <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("SWAT Audits")}>{p.swatAudits || <span className="text-[color:var(--j-8590A2)]">0</span>}</td>
-                      <td className={cx(jTd, "text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-[color:var(--j-626F86)]")} data-label={tr("Overrated")}>{p.overrated}</td>
-                      <td className={cx(jTd, "text-right tabular-nums", p.openActions ? "text-amber-700" : "text-[color:var(--j-626F86)]")} data-label={tr("Open Plans")}>{p.openActions}</td>
+                      <td className={cx(jTd, "text-right tabular-nums", p.overrated ? "font-semibold text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")} data-label={tr("Overrated")}>{p.overrated}</td>
+                      <td className={cx(jTd, "text-right tabular-nums", p.openActions ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")} data-label={tr("Open Plans")}>{p.openActions}</td>
                       <td className={cx(jTd, "text-right")} data-label={tr("Agreement with SWAT")}>{p.conformity === null ? <span className="text-xs text-[color:var(--j-626F86)]">{tr("Not audited yet")}</span> : <Meter v={p.conformity} />}</td>
                     </tr>
                   ))}
@@ -144,10 +144,10 @@ export default function MonitoringOverviewPage() {
                     <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("Check-ins")}>{o.checkins}</td>
                     <td className={cx(jTd, "text-right")} data-label="Product"><Score v={o.productScore} n={o.productVisits} /></td>
                     <td className={cx(jTd, "text-right")} data-label="Outlet"><Score v={o.outletScore} n={o.outletVisits} /></td>
-                    <td className={cx(jTd, "text-right tabular-nums", o.under ? "text-red-600" : "text-[color:var(--j-626F86)]")} data-label="UNDER">{o.under}</td>
+                    <td className={cx(jTd, "text-right tabular-nums", o.under ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")} data-label="UNDER">{o.under}</td>
                     <td className={cx(jTd, "text-right tabular-nums")} data-label={tr("SWAT Audits")}>{o.swatAudits}</td>
                     <td className={cx(jTd, "text-right")} data-label={tr("SWAT Score")}><span className={cx("font-semibold tabular-nums", scoreTone(o.swatScore))}>{pct(o.swatScore)}</span></td>
-                    <td className={cx(jTd, "text-right tabular-nums", o.openActions ? "text-amber-700" : "text-[color:var(--j-626F86)]")} data-label={tr("Open Plans")}>{o.openActions}</td>
+                    <td className={cx(jTd, "text-right tabular-nums", o.openActions ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")} data-label={tr("Open Plans")}>{o.openActions}</td>
                   </tr>
                 ))}
               </tbody>

@@ -59,7 +59,7 @@ export default function DocChecks({ from, to, onChanged }: { from: string; to: s
   return (
     <Panel className="mt-4" title={tr("Unusual ESB documents")}
       description={tr("Lines of the ESB documents of the outlets 20× the usual quantity or more (or that much less): usually a unit typed wrong. Correct them before reading the COGS; ESB itself is not changed.")}
-      actions={s ? <span className="text-xs text-[color:var(--j-626F86)]">{s.open ? <span className="font-semibold text-red-700">{tr("{0} to check · {1}", s.open, rp(s.impact))}</span> : tr("Nothing to check")}{s.fixed ? ` · ${tr("{0} corrected", s.fixed)}` : ""}</span> : undefined}>
+      actions={s ? <span className="text-xs text-[color:var(--j-626F86)]">{s.open ? <span className="font-semibold text-[color:var(--j-AE2E24)]">{tr("{0} to check · {1}", s.open, rp(s.impact))}</span> : tr("Nothing to check")}{s.fixed ? ` · ${tr("{0} corrected", s.fixed)}` : ""}</span> : undefined}>
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table>
         : !res.data.length ? <Empty icon={<FileWarning size={24} />} title={tr("No unusual document in this period")} /> : (
           <div className="overflow-x-auto">
@@ -70,7 +70,7 @@ export default function DocChecks({ from, to, onChanged }: { from: string; to: s
                 <th className="px-3 py-2.5 text-right">{tr("Impact")}</th><th className="px-3 py-2.5">{tr("Correction")}</th>
               </tr></thead>
               <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{res.data.map((l) => (
-                <tr key={`${l.module}|${l.docNum}|${l.lineType}|${l.code}|${l.uom}`} className={cx(l.fix && "bg-emerald-50/40")}>
+                <tr key={`${l.module}|${l.docNum}|${l.lineType}|${l.code}|${l.uom}`} className={cx(l.fix && "bg-[color:var(--j-DCFFF1)]/40")}>
                   <td className="max-w-[13rem] py-2.5 pl-5 pr-3">
                     <span className="block truncate font-medium text-[color:var(--j-172B4D)]">{l.branchName}</span>
                     <span className="block text-[11px] text-[color:var(--j-626F86)]">{l.docNum} · {dmy(l.docDate)}</span>
@@ -78,13 +78,13 @@ export default function DocChecks({ from, to, onChanged }: { from: string; to: s
                   </td>
                   <td className="max-w-[11rem] px-3 py-2.5"><span className="block truncate" title={l.name}>{l.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{l.code}</span></td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
-                    <span className={cx("font-semibold", l.unusual && !l.fix && "text-red-700")}>{num(l.qty)} {l.uom}</span>
+                    <span className={cx("font-semibold", l.unusual && !l.fix && "text-[color:var(--j-AE2E24)]")}>{num(l.qty)} {l.uom}</span>
                     {l.unit !== l.uom && <span className="block text-[11px] text-[color:var(--j-626F86)]">= {num(l.baseQty)} {l.unit}</span>}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">
                     <span className="text-[color:var(--j-44546F)]">{num(l.usual)} {l.unit}</span>
                     {l.factor != null && <span className="block">{l.severe ? <Badge tone="red">{tr("×{0} · wrong unit?", num(l.factor))}</Badge>
-                      : <span className="text-[11px] text-amber-700">×{num(l.factor)}</span>}</span>}
+                      : <span className="text-[11px] text-[color:var(--j-7F5F01)]">×{num(l.factor)}</span>}</span>}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{rp(l.impact)}</td>
                   <td className="px-3 py-2.5">
@@ -92,9 +92,9 @@ export default function DocChecks({ from, to, onChanged }: { from: string; to: s
                       <div className="text-xs">
                         {l.fix.docGone ? <Badge tone="slate">{tr("Cancelled in ESB · not counted")}</Badge>
                           : <Badge tone="green">{tr("Corrected to {0} {1}", num(l.fix.newQty), l.uom)}</Badge>}
-                        {l.fix.esbChanged && l.fix.esbNow != null && <span className="mt-0.5 block text-amber-700">{tr("ESB changed since: now {0}", num(l.fix.esbNow))}</span>}
+                        {l.fix.esbChanged && l.fix.esbNow != null && <span className="mt-0.5 block text-[color:var(--j-7F5F01)]">{tr("ESB changed since: now {0}", num(l.fix.esbNow))}</span>}
                         <span className="mt-0.5 block text-[color:var(--j-626F86)]" title={l.fix.reason}>{l.fix.by} · {wibDateTime(l.fix.at)}</span>
-                        <button type="button" onClick={() => setUndo(l)} className="mt-0.5 inline-flex items-center gap-1 text-[color:var(--j-626F86)] hover:text-red-700"><Undo2 size={12} />{tr("Cancel")}</button>
+                        <button type="button" onClick={() => setUndo(l)} className="mt-0.5 inline-flex items-center gap-1 text-[color:var(--j-626F86)] hover:text-[color:var(--j-AE2E24)]"><Undo2 size={12} />{tr("Cancel")}</button>
                       </div>
                     ) : l.ownPage ? (
                       <Link href={`/cost-control/goods-receipt?doc=${encodeURIComponent(l.docNum)}&date=${l.docDate}`} className="text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline">{tr("Correct in Good Receipt")}</Link>

@@ -77,7 +77,7 @@ function ProofDialog({ id, onClose }: { id: string; onClose: () => void }) {
   useEffect(() => { call<Pengajuan>(`/api/pengajuan/requests/${id}`).then(setP).catch((e) => setError((e as Error).message)); }, [id]);
   return (
     <Dialog open onClose={onClose} title={p?.number ?? tr("Proof")} description={tr("The receipts and the amount the technician really spent")}>
-      {error ? <p className="text-sm text-red-600">{error}</p> : !p ? <p className="text-sm text-[color:var(--j-626F86)]">…</p>
+      {error ? <p className="text-sm text-[color:var(--j-C9372C)]">{error}</p> : !p ? <p className="text-sm text-[color:var(--j-626F86)]">…</p>
         : p.status === "PAID" ? <ProofPanel key={p.files?.length} p={p} onChanged={setP} /> : <LifeSummary p={p} />}
     </Dialog>
   );

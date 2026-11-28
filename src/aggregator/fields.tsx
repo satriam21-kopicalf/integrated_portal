@@ -16,8 +16,8 @@ const trigger = "flex h-11 w-full items-center gap-2 rounded-[3px] border border
 
 /** A field with its label above, what it means below. Not a <label>: the control may be a list or a calendar. */
 export function Row({ label, hint, required, error, children, className }: { label: string; hint?: ReactNode; required?: boolean; error?: string | null; children: ReactNode; className?: string }) {
-  return <div className={cx("min-w-0", className)}><p className="mb-1.5 text-[13px] font-medium text-[color:var(--j-44546F)] sm:text-xs">{label}{required ? <span className="ml-0.5 text-red-500">*</span> : null}</p>{children}
-    {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : hint ? <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{hint}</p> : null}</div>;
+  return <div className={cx("min-w-0", className)}><p className="mb-1.5 text-[13px] font-medium text-[color:var(--j-44546F)] sm:text-xs">{label}{required ? <span className="ml-0.5 text-[color:var(--j-C9372C)]">*</span> : null}</p>{children}
+    {error ? <p className="mt-1 text-xs text-[color:var(--j-C9372C)]">{error}</p> : hint ? <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{hint}</p> : null}</div>;
 }
 /** A titled group of fields in a drawer. */
 export function Group({ title, note, children }: { title: string; note?: ReactNode; children: ReactNode }) {
@@ -100,7 +100,7 @@ export function PeriodField({ from, to, preset, presets, onChange, label, maxDay
       <button ref={ref} type="button" aria-label={`${label}: ${name}, ${fmtPeriod(from, to)}`} aria-haspopup="dialog" aria-expanded={open} onClick={start} className={trigger}>
         <CalendarDays size={16} className="flex-shrink-0 text-[color:var(--j-0C66E4)]" /><span className="min-w-0 flex-1 truncate"><span className="font-medium">{fmtPeriod(from, to)}</span><span className="ml-2 hidden text-xs text-[color:var(--j-626F86)] sm:inline">{name}</span></span><ChevronDown size={15} className="flex-shrink-0 text-[color:var(--j-626F86)]" /></button>
       <Floating open={open} onClose={() => setOpen(false)} title={label} subtitle={fmtPeriod(a, z)} anchor={ref} width={352}
-        footer={<><span className={cx("min-w-0 flex-1 text-xs", bad ? "font-medium text-red-600" : "text-[color:var(--j-626F86)]")}>{bad ? tr("{0} days: at most {1}", n, maxDays) : n === 1 ? tr("1 day") : tr("{0} days", n)}</span><Button disabled={bad} onClick={() => { onChange(a, z, "custom"); setOpen(false); }}>{tr("Apply")}</Button></>}>
+        footer={<><span className={cx("min-w-0 flex-1 text-xs", bad ? "font-medium text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>{bad ? tr("{0} days: at most {1}", n, maxDays) : n === 1 ? tr("1 day") : tr("{0} days", n)}</span><Button disabled={bad} onClick={() => { onChange(a, z, "custom"); setOpen(false); }}>{tr("Apply")}</Button></>}>
         <div className="grid grid-cols-3 gap-2 p-3">{presets.map((p) => <button key={p.value} type="button" aria-pressed={preset === p.value} onClick={() => { onChange(p.from, p.to, p.value); setOpen(false); }} className={cx("h-10 rounded-[3px] border px-1 text-[13px] font-medium sm:h-8 sm:text-xs", preset === p.value ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]")}>{p.label}</button>)}</div>
         <div className="border-t border-[color:var(--j-F1F2F4)] px-3 pt-3"><p className="mb-1.5 text-[11px] font-semibold text-[color:var(--j-626F86)]">{tr("Or choose the dates")}</p><div className="flex gap-2">{tile("from", tr("First day"), a)}{tile("to", tr("Last day"), z)}</div></div>
         <Calendar from={a} to={z} max={daysAgo(0)} month={month} onMonth={setMonth} onPick={pick} />
@@ -121,7 +121,7 @@ export function TimeField({ value, onChange, label, prefix }: { value: string; o
       <input inputMode="numeric" aria-label={label} aria-invalid={bad} placeholder="--:--" maxLength={5} value={text ?? value} onFocus={(e) => e.target.select()}
         onChange={(e) => { const t = clean(e.target.value); setText(t); const w = t.length === 5 ? whole(t) : t === "" ? "" : null; if (w != null) onChange(w); }}
         onBlur={() => { if (text != null) { const w = whole(text); if (w != null) onChange(w); setText(null); } }}
-        className={cx(ctl, "text-right tabular-nums", bad && "!border-red-500")} />
+        className={cx(ctl, "text-right tabular-nums", bad && "!border-[color:var(--j-C9372C)]")} />
     </span>
   );
 }

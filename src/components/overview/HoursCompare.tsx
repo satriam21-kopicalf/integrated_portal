@@ -90,7 +90,7 @@ export default function HoursCompare({ query, mode, period, size = 'card' }: {
     <div className="space-y-3">
       {controls}
       {res.error && !res.loading ? (
-        <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{res.error}</p>
+        <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{res.error}</p>
       ) : !data ? (
         <LoadingState height={256} label={tr('busy hours')} />
       ) : (
@@ -148,14 +148,14 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
         <Summary color={INK.accent} title={tr('This Period')} range={curLabel} p={current} />
         <Summary color={INK.previous} title={tr('Comparison')} range={cmpLabel} p={compare} vs={current} />
       </div>
-      {!compare.complete && <p className="text-[11px] text-amber-700">{tr('The comparison period starts before complete history (Aug 2025); its days are counted from Aug 2025.')}</p>}
+      {!compare.complete && <p className="text-[11px] text-[color:var(--j-7F5F01)]">{tr('The comparison period starts before complete history (Aug 2025); its days are counted from Aug 2025.')}</p>}
       <Legend items={[{ key: 'c', label: tr('This Period'), color: INK.accent }, { key: 'p', label: tr('Comparison'), color: INK.previous }]} />
       <EChart option={option} height={size === 'card' ? 200 : 280} ariaLabel={tr('Busy hours: {0} compared with {1}', curLabel, cmpLabel)} />
       {movers.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           <span className="text-[11px] text-[color:var(--j-626F86)]">{tr('Biggest changes:')}</span>
           {movers.map(m => (
-            <span key={m.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${m.d! >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+            <span key={m.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${m.d! >= 0 ? 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>
               {m.d! >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(m.hour)} {m.d! >= 0 ? '+' : '−'}{fixed(Math.abs(m.d!), 0)}%
             </span>
           ))}
@@ -198,7 +198,7 @@ function Summary({ color, title, range, p, vs }: { color: string; title: string;
 
 function ChangeText({ v }: { v: number | null }) {
   if (v === null) return <span className="text-[color:var(--j-626F86)]">-</span>;
-  return <span className={v >= 0 ? 'text-emerald-700' : 'text-rose-700'}>{v >= 0 ? '+' : '−'}{fixed(Math.abs(v), 1)}%</span>;
+  return <span className={v >= 0 ? 'text-[color:var(--j-216E4E)]' : 'text-[color:var(--j-AE2E24)]'}>{v >= 0 ? '+' : '−'}{fixed(Math.abs(v), 1)}%</span>;
 }
 
 function BranchCompare({ branches, measure, size, picked }: { branches: BranchHours[]; measure: Measure; size: 'card' | 'drawer'; picked: string }) {

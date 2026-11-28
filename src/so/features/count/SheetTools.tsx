@@ -109,7 +109,7 @@ function ImportDrawer({ count, onClose, onDownload, onImported }: { count: Count
           onChange={(e) => void pick(e.target.files?.[0])} />
         {!preview && (
           <button type="button" disabled={busy} onClick={() => input.current?.click()}
-            className="flex w-full flex-col items-center gap-1.5 rounded-[3px] border-2 border-dashed border-[color:var(--j-8590A2)] px-4 py-8 text-sm text-[color:var(--j-44546F)] hover:border-brand-400 hover:bg-[color:var(--j-E9F2FF)]">
+            className="flex w-full flex-col items-center gap-1.5 rounded-[3px] border-2 border-dashed border-[color:var(--j-8590A2)] px-4 py-8 text-sm text-[color:var(--j-44546F)] hover:border-[color:var(--j-388BFF)] hover:bg-[color:var(--j-E9F2FF)]">
             <Upload size={22} className="text-[color:var(--j-626F86)]" />
             <span className="font-semibold">{busy ? tr("Reading the file…") : tr("Choose the filled Excel file")}</span>
             <span className="text-xs text-[color:var(--j-626F86)]">.xlsx</span>
@@ -123,7 +123,7 @@ function ImportDrawer({ count, onClose, onDownload, onImported }: { count: Count
               {preview.problems.length > 0 && <Badge tone="red">{tr("{0} rows to correct", preview.problems.length)}</Badge>}
             </div>
             {preview.problems.length > 0 && (
-              <ul className="space-y-1 rounded-[3px] border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+              <ul className="space-y-1 rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] p-3 text-xs text-[color:var(--j-AE2E24)]">
                 {preview.problems.map((p) => <li key={p.row}>{tr("Row {0}", p.row)}{p.item ? ` · ${p.item}` : ""}: {p.error}</li>)}
                 <li className="pt-1 font-semibold">{tr("Correct these rows in the file and choose it again: nothing is saved while a row is wrong.")}</li>
               </ul>

@@ -48,9 +48,9 @@ const STATUSES = ["NOT_STARTED", "IN_PROGRESS", "SUBMITTED", "RECOUNT_REQUESTED"
 const statusMatch = (r: Row, st: string) => !st || r.status === st || (st === "APPROVED" && r.status === "EXPORTED");
 /** the status tabs above the table, in the order of the day */
 const TABS: { key: string; color: string }[] = [
-  { key: "APPROVED", color: "bg-emerald-500" }, { key: "SUBMITTED", color: "bg-violet-500" },
-  { key: "RECOUNT_REQUESTED", color: "bg-amber-500" }, { key: "IN_PROGRESS", color: "bg-[color:var(--j-388BFF)]" },
-  { key: "NOT_STARTED", color: "bg-neutral-300" }, { key: "MISSED", color: "bg-red-500" },
+  { key: "APPROVED", color: "bg-[color:var(--j-22A06B)]" }, { key: "SUBMITTED", color: "bg-[color:var(--j-6E5DC6)]" },
+  { key: "RECOUNT_REQUESTED", color: "bg-[color:var(--j-E2B203)]" }, { key: "IN_PROGRESS", color: "bg-[color:var(--j-388BFF)]" },
+  { key: "NOT_STARTED", color: "bg-[color:var(--j-8590A2)]" }, { key: "MISSED", color: "bg-[color:var(--j-C9372C)]" },
 ];
 /** what happens next, per status of the day (who acts) */
 const NEXT: Record<string, () => string> = {
@@ -60,8 +60,8 @@ const NEXT: Record<string, () => string> = {
 };
 /** the four steps of a count (2026-11-07): started, sent, reviewed, approved; a recount goes back to the second */
 const STEP: Record<string, { n: number; tone: string }> = {
-  NOT_STARTED: { n: 0, tone: "bg-neutral-300" }, IN_PROGRESS: { n: 1, tone: "bg-[color:var(--j-388BFF)]" }, SUBMITTED: { n: 2, tone: "bg-violet-500" },
-  RECOUNT_REQUESTED: { n: 1, tone: "bg-amber-500" }, APPROVED: { n: 4, tone: "bg-emerald-500" }, EXPORTED: { n: 4, tone: "bg-emerald-500" }, MISSED: { n: 0, tone: "bg-red-500" },
+  NOT_STARTED: { n: 0, tone: "bg-[color:var(--j-8590A2)]" }, IN_PROGRESS: { n: 1, tone: "bg-[color:var(--j-388BFF)]" }, SUBMITTED: { n: 2, tone: "bg-[color:var(--j-6E5DC6)]" },
+  RECOUNT_REQUESTED: { n: 1, tone: "bg-[color:var(--j-E2B203)]" }, APPROVED: { n: 4, tone: "bg-[color:var(--j-22A06B)]" }, EXPORTED: { n: 4, tone: "bg-[color:var(--j-22A06B)]" }, MISSED: { n: 0, tone: "bg-[color:var(--j-C9372C)]" },
 };
 function StatusSteps({ status }: { status: string }) {
   const st = STATUS[status] ?? STATUS.NOT_STARTED;
@@ -71,7 +71,7 @@ function StatusSteps({ status }: { status: string }) {
     <span className="inline-flex flex-col gap-1">
       <Badge tone={st.tone} dot>{st.label()}</Badge>
       <span className="flex gap-0.5" role="img" aria-label={labels.slice(0, step.n).join(" → ") || st.label()}>
-        {labels.map((l, i) => <span key={l} title={l} className={cx("h-1 w-5 rounded-full", status === "MISSED" ? "bg-red-200" : i < step.n ? step.tone : "bg-[color:var(--j-DCDFE4)]")} />)}
+        {labels.map((l, i) => <span key={l} title={l} className={cx("h-1 w-5 rounded-full", status === "MISSED" ? "bg-[color:var(--j-FFD5D2)]" : i < step.n ? step.tone : "bg-[color:var(--j-DCDFE4)]")} />)}
       </span>
     </span>
   );
@@ -148,7 +148,7 @@ export default function MonitorPage() {
           <Stat label={tr("Completed")} emphasis value={rows ? `${pct}%` : <StatSkeleton />}>
             {rows && (
               <>
-                <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]"><div className="h-full rounded-full bg-[color:var(--j-22A06B)]" style={{ width: `${pct}%` }} /></div>
                 <p>{tr("{0} of {1} submitted · {2} approved", fmtNumber(done), fmtNumber(all.length), fmtNumber(n("APPROVED") + n("EXPORTED")))}</p>
               </>
             )}
@@ -289,10 +289,10 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
                   on ? "border-[color:var(--j-0C66E4)] ring-1 ring-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-8590A2)]")}>
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-xs font-semibold text-[color:var(--j-172B4D)]">{countTypeLabel(t)}</span>
-                  <span className={cx("flex-shrink-0 text-sm font-semibold tabular-nums", p === 100 ? "text-emerald-700" : "text-[color:var(--j-172B4D)]")}>{p}%</span>
+                  <span className={cx("flex-shrink-0 text-sm font-semibold tabular-nums", p === 100 ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-172B4D)]")}>{p}%</span>
                 </span>
                 <span className="mt-0.5 block text-[11px] tabular-nums text-[color:var(--j-626F86)]">{tr("{0} of {1} sent", x.done, x.due)}</span>
-                <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", p === 100 ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${p}%` }} /></span>
+                <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", p === 100 ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${p}%` }} /></span>
               </button>
             );
           })}
@@ -303,7 +303,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
           {ALERTS.filter((a) => a.n > 0).map((a) => (
             <button key={a.key} type="button" onClick={() => onLoc(a.key)} aria-pressed={loc === a.key}
               className={cx("inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
-                loc === a.key ? "border-amber-600 bg-amber-600 text-white" : "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300")}>
+                loc === a.key ? "border-[color:var(--j-E2B203)] bg-[color:var(--j-E2B203)] text-white" : "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] hover:border-[color:var(--j-F5CD47)]")}>
               <a.icon size={12} /> {a.label(a.n)}
             </button>
           ))}

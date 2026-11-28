@@ -201,7 +201,7 @@ export function QuickPeriod({ value, onChange, maxDays }: { value: Period; onCha
           </label>
         </div>
       )}
-      <p className={cx('flex items-center gap-1.5 text-xs', tooLong ? 'text-red-600' : 'text-[color:var(--j-626F86)]')}>
+      <p className={cx('flex items-center gap-1.5 text-xs', tooLong ? 'text-[color:var(--j-C9372C)]' : 'text-[color:var(--j-626F86)]')}>
         <CalendarDays size={13} /> {dmy(value.from)} – {dmy(value.to)} · {tr('{0} days', days)}{tooLong ? ` · ${tr('at most {0} days', maxDays)}` : ''}
       </p>
     </div>

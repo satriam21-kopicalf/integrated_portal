@@ -67,14 +67,14 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
       : tr('Preparing {0} day{1}…', job.totalDays, job.totalDays > 1 ? 's' : '');
   }
 
-  const tone = failed ? 'text-rose-600' : done && !empty ? 'text-emerald-600' : empty ? 'text-amber-600' : 'text-[color:var(--j-0C66E4)]';
+  const tone = failed ? 'text-[color:var(--j-C9372C)]' : done && !empty ? 'text-[color:var(--j-22A06B)]' : empty ? 'text-[color:var(--j-B38600)]' : 'text-[color:var(--j-0C66E4)]';
   const Icon = failed ? XCircle : done && !empty ? CheckCircle2 : empty ? AlertTriangle : Loader2;
 
   return (
-    <div role="status" aria-live="polite" className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-2xl">
+    <div role="status" aria-live="polite" className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <div className="flex items-start gap-3 p-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-091E420F)]">
-          {gsheet ? <Sheet size={20} className="text-emerald-600" /> : <FileSpreadsheet size={20} className="text-[color:var(--j-44546F)]" />}
+          {gsheet ? <Sheet size={20} className="text-[color:var(--j-22A06B)]" /> : <FileSpreadsheet size={20} className="text-[color:var(--j-44546F)]" />}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{reportLabel}{gsheet && <span className="font-normal text-[color:var(--j-626F86)]"> {tr('· Google Sheets')}</span>}</p>
@@ -113,7 +113,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
         )}
 
         {failed && (
-          <p className="mt-2 rounded-[3px] bg-rose-50 px-3 py-2 text-xs text-rose-700">{serverMsg(error || job?.error) || tr('Something went wrong.')}</p>
+          <p className="mt-2 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-xs text-[color:var(--j-AE2E24)]">{serverMsg(error || job?.error) || tr('Something went wrong.')}</p>
         )}
 
         {!failed && job && !empty && (
@@ -145,7 +145,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
             {parts.map(p => (
               <li key={p.part}>
                 <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[color:var(--j-0C66E4)] hover:underline">
-                  <Sheet size={12} className="flex-shrink-0 text-emerald-600" />
+                  <Sheet size={12} className="flex-shrink-0 text-[color:var(--j-22A06B)]" />
                   <span className="truncate">{tr('Part')} {p.part} · {formatDate(p.dateFrom)}{p.dateTo !== p.dateFrom ? ` – ${formatDate(p.dateTo)}` : ''}</span>
                   <span className="ml-auto flex-shrink-0 tabular-nums text-[color:var(--j-626F86)]">{formatNumber(p.rows)} {tr('rows')}</span>
                 </a>
@@ -191,7 +191,7 @@ function ExportProgressPanel({ item, now, onRetry, onClose }: {
                 href={job.sheetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[3px] bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[3px] bg-[color:var(--j-22A06B)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--j-216E4E)]"
               >
                 <ExternalLink size={14} /> {parts.length > 1 ? tr('Open folder') : tr('Open sheet')}
               </a>

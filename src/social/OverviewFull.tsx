@@ -34,9 +34,9 @@ type Data = { from: string; to: string; days: number;
     views: number | null; likes: number | null; comments: number | null; sentiment: Feel | null; keywords: string[] | null; site: string | null; dateApprox?: boolean }[] };
 
 const FEEL: { key: Feel; label: () => string; color: string; soft: string; ink: string }[] = [
-  { key: "positive", label: () => tr("Positive"), color: "#1baf7a", soft: "bg-emerald-50", ink: "text-emerald-700" },
-  { key: "neutral", label: () => tr("Neutral"), color: "#2a78d6", soft: "bg-blue-50", ink: "text-blue-700" },
-  { key: "negative", label: () => tr("Negative"), color: "#e34948", soft: "bg-red-50", ink: "text-red-700" },
+  { key: "positive", label: () => tr("Positive"), color: "#1baf7a", soft: "bg-[color:var(--j-DCFFF1)]", ink: "text-[color:var(--j-216E4E)]" },
+  { key: "neutral", label: () => tr("Neutral"), color: "#2a78d6", soft: "bg-[color:var(--j-E9F2FF)]", ink: "text-[color:var(--j-0055CC)]" },
+  { key: "negative", label: () => tr("Negative"), color: "#e34948", soft: "bg-[color:var(--j-FFECEB)]", ink: "text-[color:var(--j-AE2E24)]" },
 ];
 const CHANNEL = [
   { key: "tiktok", label: "TikTok", file: "tiktok", note: () => tr("videos of the official account") },
@@ -154,7 +154,7 @@ export function SocialOverviewFull() {
               return (
                 <Stat key={f.key} label={tr("{0} mention", f.label())} icon={<Heart size={13} className={f.ink} />} emphasis={f.key === "negative" && !!s?.now}
                   value={s ? <span className="inline-flex items-baseline gap-2">{compactNumber(s.now)}
-                    {ch !== null && <span className={cx("inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-semibold", good ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700")}>
+                    {ch !== null && <span className={cx("inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-semibold", good ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]")}>
                       {ch > 0 ? <TrendingUp size={12} /> : ch < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}{Math.abs(ch * 100).toFixed(1)}%</span>}</span> : <StatSkeleton />}
                   onClick={s ? () => setDrill({ ...range, sentiment: f.key, title: tr("{0} mention", f.label()), icon: <Heart size={18} /> }) : undefined}>
                   {s && <p>{tr("{0} in the {1} days before", n(s.before), data!.days)}</p>}
@@ -293,7 +293,7 @@ function Highlight({ t, onOpen }: { t: Data["trending"][number]; onOpen: () => v
       className="flex cursor-pointer flex-col rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white transition-colors hover:border-[color:var(--j-85B8FF)] hover:shadow-sm">
       <header className="flex items-start gap-3 border-b border-[color:var(--j-F1F2F4)] p-3">
         <span className="w-14 flex-shrink-0 overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] text-center">
-          <span className={cx("block py-0.5 text-[11px] font-semibold text-white", t.dateApprox || !at ? "bg-neutral-400" : "bg-red-500")}>{at ? at.toLocaleDateString(locale(), { month: "short", timeZone: "Asia/Jakarta" }) : "—"}</span>
+          <span className={cx("block py-0.5 text-[11px] font-semibold text-white", t.dateApprox || !at ? "bg-[color:var(--j-8590A2)]" : "bg-[color:var(--j-C9372C)]")}>{at ? at.toLocaleDateString(locale(), { month: "short", timeZone: "Asia/Jakarta" }) : "—"}</span>
           <span className="block text-xl font-bold leading-7 text-[color:var(--j-172B4D)]" title={contentDate(t.createdAt, t.dateApprox)}>{at && !t.dateApprox ? at.toLocaleDateString(locale(), { day: "numeric", timeZone: "Asia/Jakarta" }) : at ? "≈" : "?"}</span>
           <span className="block pb-0.5 text-[10px] text-[color:var(--j-626F86)]">{t.dateApprox ? "≈" : ""}{at?.getFullYear() ?? ""}</span>
         </span>

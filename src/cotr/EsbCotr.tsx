@@ -100,7 +100,7 @@ export function EsbCotr() {
           <EmptyState icon={<FileText />} title={tr("No documents in this period")} />
         ) : (
           <>
-            {more && <p className="px-4 pt-3 text-xs text-amber-700">{tr("Only the first 2,000 are shown: narrow the period or the branch")}</p>}
+            {more && <p className="px-4 pt-3 text-xs text-[color:var(--j-7F5F01)]">{tr("Only the first 2,000 are shown: narrow the period or the branch")}</p>}
             <table className="m-cards w-full text-sm">
               <thead className={kcTable.thead}><tr><th className="px-3 py-2">{tr("Document")}</th><th className="px-3 py-2.5">{tr("Day")}</th><th className="px-3 py-2.5">{tr("Branch")}</th>
                 <th className="px-3 py-2.5">{tr("Counterparty")}</th><th className="px-3 py-2.5">{tr("Note")}</th><th className="px-3 py-2.5 text-right">{tr("Total")}</th><th className="px-3 py-2">{tr("Status")}</th></tr></thead>
@@ -134,7 +134,7 @@ function DocDrawer({ module, docNum, onClose }: { module: string; docNum: string
   return (
     <Drawer open onClose={onClose} icon={<FileText size={18} />} title={docNum} description={d ? `${d.name} · ${dmyOf(d.day)} · ${d.branch ?? ""}` : undefined}
       footer={<Button variant="ghost" onClick={onClose}>{tr("Close")}</Button>}>
-      {error ? <p className="text-sm text-red-600">{error}</p> : !d ? <SkeletonList rows={5} /> : (
+      {error ? <p className="text-sm text-[color:var(--j-C9372C)]">{error}</p> : !d ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
             {([[tr("Branch"), d.branch], [tr("Location"), d.location], [tr("Counterparty"), d.counterparty], [tr("Reference"), d.ref], [tr("Type"), d.type],

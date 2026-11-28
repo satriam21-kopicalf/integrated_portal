@@ -23,7 +23,7 @@ export default function LiveClock() {
   return (
     <p className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)] ring-1 ring-[color:var(--j-DCDFE4)]/80 lg:bg-transparent lg:p-0 lg:text-2xl lg:shadow-none lg:ring-0"
       aria-label={`${clockText(now)} ${TZ_LABEL}`}>
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 lg:hidden" aria-hidden />
+      <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--j-22A06B)] lg:hidden" aria-hidden />
       {clockText(now)}<span className="text-[11px] font-medium text-[color:var(--j-626F86)] lg:text-xs">{TZ_LABEL}</span>
     </p>
   );

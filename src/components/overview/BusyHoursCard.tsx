@@ -55,7 +55,7 @@ function HoursGrowth({ query }: { query: string }) {
   const res = useOverview<HourlyCompareResponse>('hourly-compare', withParams(query, { mode: 'period' }));
   const d = res.data && res.data.mode === 'period' ? res.data : null;
   const rows = useMemo(() => (d ? hourRows(d.current, d.compare) : []), [d]);
-  if (res.error) return <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{res.error}</p>;
+  if (res.error) return <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{res.error}</p>;
   if (!d) return <LoadingState height={300} label={tr('hourly growth')} />;
   return (
     <div className="space-y-3">
@@ -218,7 +218,7 @@ function HoursVs({ data }: { data: HourlyResponse }) {
     <p className="mb-2 flex flex-wrap gap-x-4 gap-y-1 rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">
       <span>{tr('Peak')} <b className="text-[color:var(--j-172B4D)]">{peak !== undefined ? hourLabel(peak) : '–'}</b> {tr('vs')} {prev.peakHour !== null ? hourLabel(prev.peakHour) : '–'}</span>
       <span>{tr('Bills per Day')} <b className="tabular-nums text-[color:var(--j-172B4D)]">{formatNumber(Math.round(perDay))}</b> {tr('vs')} {formatNumber(Math.round(prev.avgBillsPerDay))}
-        {delta !== null && <b className={delta >= 0 ? ' text-emerald-700' : ' text-red-700'}> {delta >= 0 ? '+' : '−'}{fixed(Math.abs(delta), 1)}%</b>}</span>
+        {delta !== null && <b className={delta >= 0 ? ' text-[color:var(--j-216E4E)]' : ' text-[color:var(--j-AE2E24)]'}> {delta >= 0 ? '+' : '−'}{fixed(Math.abs(delta), 1)}%</b>}</span>
       <span className="text-[color:var(--j-626F86)]">{tr('comparison')} {prev.from === prev.to ? prev.from : `${prev.from} – ${prev.to}`}</span>
     </p>
   );

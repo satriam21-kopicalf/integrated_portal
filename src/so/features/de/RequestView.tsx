@@ -54,8 +54,8 @@ export function Steps({ r }: { r: Request }) {
             <li key={s} className="relative flex min-w-0 flex-1 flex-col items-center px-0.5 text-center">
               {i > 0 && <span className={cx("absolute right-1/2 top-3.5 h-0.5 w-full", done || here ? "bg-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-DCDFE4)]")} aria-hidden />}
               <span className={cx("relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold",
-                done ? "bg-[color:var(--j-0C66E4)] text-white" : here ? (r.status === "ON_HOLD" ? "bg-amber-500 text-white ring-4 ring-amber-100" : r.status === "REJECTED" ? "bg-red-600 text-white ring-4 ring-red-100" : "bg-white text-[color:var(--j-0C66E4)] ring-2 ring-[color:var(--j-388BFF)]")
-                  : "bg-white text-[color:var(--j-626F86)] ring-1 ring-neutral-300")}>
+                done ? "bg-[color:var(--j-0C66E4)] text-white" : here ? (r.status === "ON_HOLD" ? "bg-[color:var(--j-E2B203)] text-white ring-4 ring-[color:var(--j-F8E6A0)]" : r.status === "REJECTED" ? "bg-[color:var(--j-C9372C)] text-white ring-4 ring-[color:var(--j-FFD5D2)]" : "bg-white text-[color:var(--j-0C66E4)] ring-2 ring-[color:var(--j-388BFF)]")
+                  : "bg-white text-[color:var(--j-626F86)] ring-1 ring-[color:var(--j-DCDFE4)]")}>
                 {done ? <Check size={14} /> : here && r.status === "ON_HOLD" ? <PauseCircle size={14} /> : here && r.status === "REJECTED" ? <XCircle size={14} /> : i + 1}
               </span>
               <span className={cx("mt-1.5 text-[10px] font-semibold leading-tight sm:text-xs", here ? "text-[color:var(--j-0C66E4)]" : done ? "text-[color:var(--j-172B4D)]" : "text-[color:var(--j-626F86)]")}>{statusLabel(r.kind, s)}</span>
@@ -65,7 +65,7 @@ export function Steps({ r }: { r: Request }) {
         })}
       </ol>
       {(r.status === "ON_HOLD" || r.status === "REJECTED") && (
-        <p className={cx("mt-2 rounded-[3px] px-3 py-1.5 text-center text-xs font-medium", r.status === "ON_HOLD" ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-700")}>
+        <p className={cx("mt-2 rounded-[3px] px-3 py-1.5 text-center text-xs font-medium", r.status === "ON_HOLD" ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" : "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]")}>
           {r.status === "ON_HOLD" ? tr("On hold at {0}", r.holdFrom ? statusLabel(r.kind, r.holdFrom) : "—") : r.duplicateOf ? tr("Rejected: duplicate of {0}", r.duplicateOf.number ?? "—") : tr("Rejected")}
         </p>
       )}
@@ -88,7 +88,7 @@ function Tracker({ r }: { r: Request }) {
         {t.stages.map((s) => (
           <li key={s.status} className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-2 text-xs">
             <span className="truncate text-[color:var(--j-44546F)]">{statusLabel(r.kind, s.status)}</span>
-            <span className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", s.status === "ON_HOLD" ? "bg-amber-400" : "bg-[color:var(--j-388BFF)]")} style={{ width: `${(s.hours / max) * 100}%` }} /></span>
+            <span className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", s.status === "ON_HOLD" ? "bg-[color:var(--j-E2B203)]" : "bg-[color:var(--j-388BFF)]")} style={{ width: `${(s.hours / max) * 100}%` }} /></span>
             <span className="text-right tabular-nums text-[color:var(--j-44546F)]">{fmtHours(s.hours)}</span>
           </li>
         ))}
@@ -117,7 +117,7 @@ export function EvidenceGrid({ list, urls, onRemove, add, empty, by = false }: {
             </figcaption>
             {onRemove && (
               <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove photo {0}", i + 1)}
-                className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur hover:bg-red-600"><XCircle size={15} /></button>
+                className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur hover:bg-[color:var(--j-C9372C)]"><XCircle size={15} /></button>
             )}
           </figure>
         </li>
@@ -132,7 +132,7 @@ export function AddPhotoTile({ onClick, label, tone = "slate" }: { onClick: () =
   return (
     <button type="button" onClick={onClick}
       className={cx("flex aspect-[4/3] w-full flex-col items-center justify-center gap-1 rounded-[3px] border-2 border-dashed text-xs font-medium transition-colors",
-        tone === "blue" ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]" : "border-[color:var(--j-8590A2)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-626F86)] hover:border-brand-400 hover:text-[color:var(--j-0055CC)]")}>
+        tone === "blue" ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]" : "border-[color:var(--j-8590A2)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-626F86)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]")}>
       <Camera size={20} />{label}
     </button>
   );
@@ -150,7 +150,7 @@ export function Invoices({ list, urls, onRemove }: { list: Media[]; urls: MediaU
     <ul className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)]">
       {list.map((m) => (
         <li key={m.id} className="flex items-center gap-3 px-3 py-2">
-          <span className={cx("flex h-8 w-10 flex-shrink-0 items-center justify-center rounded-[3px] text-[10px] font-bold uppercase", m.mime === "application/pdf" ? "bg-red-50 text-red-700" : "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]")}>
+          <span className={cx("flex h-8 w-10 flex-shrink-0 items-center justify-center rounded-[3px] text-[10px] font-bold uppercase", m.mime === "application/pdf" ? "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]" : "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]")}>
             {m.mime === "application/pdf" ? "PDF" : <FileText size={14} />}
           </span>
           <a href={urls.media(m.id)} target="_blank" rel="noreferrer" className="min-w-0 flex-1 hover:text-[color:var(--j-0055CC)]">
@@ -158,7 +158,7 @@ export function Invoices({ list, urls, onRemove }: { list: Media[]; urls: MediaU
             <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{m.note ? `${m.note} · ` : ""}{fmtMb(m.bytes)} · {m.uploadedBy ?? "—"} · {wibDateTime(m.uploadedAt)}</span>
           </a>
           <a href={urls.media(m.id)} download={m.fileName ?? undefined} aria-label={tr("Download {0}", m.fileName ?? tr("Invoice"))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"><Download size={15} /></a>
-          {onRemove && <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove {0}", m.fileName ?? tr("Invoice"))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><XCircle size={15} /></button>}
+          {onRemove && <button type="button" onClick={() => onRemove(m.id)} aria-label={tr("Remove {0}", m.fileName ?? tr("Invoice"))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><XCircle size={15} /></button>}
         </li>
       ))}
     </ul>
@@ -199,9 +199,9 @@ function Activity({ events, kind }: { events: DeEvent[]; kind: Request["kind"] }
           : e.kind === "WORK" ? (e.details?.link === "sent" ? tr("Technician sent {0} photo(s) of the work", String(e.details?.photos ?? 0)) : tr("Photo link sent to {0}", String(tech ?? "")))
           : e.kind === "COST" ? (e.details?.invoice !== undefined ? tr("Invoice attached: {0}", String(e.details.invoice)) : `${EVENT_LABEL.COST()}: ${fmtRp(e.details?.estCost as number)} / ${fmtRp(e.details?.actualCost as number)}`)
           : `${EVENT_LABEL[e.kind]()}${tech ? `: ${tech}` : ""}${e.details?.scheduledFor ? ` · ${tr("scheduled {0}", String(e.details.scheduledFor))}` : ""}`;
-        const tone = e.to === "REJECTED" ? "bg-red-100 text-red-700" : e.to === "ON_HOLD" ? "bg-amber-100 text-amber-800"
-          : e.to === "DONE" || e.kind === "HANDOVER" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-emerald-100 text-emerald-700"
-          : e.kind === "TARGET" ? "bg-violet-100 text-violet-700" : "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0C66E4)]";
+        const tone = e.to === "REJECTED" ? "bg-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)]" : e.to === "ON_HOLD" ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]"
+          : e.to === "DONE" || e.kind === "HANDOVER" || (e.kind === "WORK" && e.details?.link === "sent") ? "bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]"
+          : e.kind === "TARGET" ? "bg-[color:var(--j-DFD8FD)] text-[color:var(--j-5E4DB2)]" : "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0C66E4)]";
         return (
           <li key={e.id} className="flex gap-3">
             <span className={cx("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold", tone)} aria-hidden>{initials(e.actor)}</span>
@@ -234,7 +234,7 @@ export function DetailsPanel({ r, hidePriority = false }: { r: Request; hidePrio
     ["PIC", r.picName],
     [r.mode === "VENDOR" ? tr("Vendor") : tr("Technician"), techs.join(", ") || <span key="n" className="text-[color:var(--j-626F86)]">{tr("Unassigned")}</span>],
     [tr("Sent"), wibDateTime(r.submittedAt)],
-    [tr("Estimated Finish"), <span key="d" className={r.tracker?.overdue || r.tracker?.late ? "font-semibold text-red-600" : undefined}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}</span>],
+    [tr("Estimated Finish"), <span key="d" className={r.tracker?.overdue || r.tracker?.late ? "font-semibold text-[color:var(--j-C9372C)]" : undefined}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}</span>],
     [tr("Updated"), wibDateTime(r.updatedAt)],
     ...(r.closedAt ? [[tr("Closed"), wibDateTime(r.closedAt)] as [string, React.ReactNode]] : []),
     ...(r.estCost !== null || r.actualCost !== null ? [[tr("Cost"), <span key="c" className="tabular-nums">{fmtRp(r.actualCost ?? r.estCost)}
@@ -258,10 +258,10 @@ export function DetailsPanel({ r, hidePriority = false }: { r: Request; hidePrio
 export function TargetNote({ r }: { r: Request }) {
   if (!r.tracker?.targetAdjusted || !r.target || !["PENDING", "VALIDATION", "REVIEW", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "HANDOVER"].includes(r.status)) return null;
   return (
-    <p className="flex items-start gap-2 rounded-[3px] bg-violet-50 px-3 py-2 text-xs text-violet-900">
+    <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-F3F0FF)] px-3 py-2 text-xs text-[color:var(--j-5E4DB2)]">
       <CalendarClock size={14} className="mt-px flex-shrink-0" />
       <span><b>{tr("Estimated finish adjusted by the maintenance team: {0}", wibDateTime(r.target.at))}</b>
-        {r.target.note ? ` — ${r.target.note}` : ""}<span className="text-violet-700/80"> · {r.target.by ?? ""}{r.target.setAt ? `, ${wibDateTime(r.target.setAt)}` : ""}</span></span>
+        {r.target.note ? ` — ${r.target.note}` : ""}<span className="text-[color:var(--j-5E4DB2)]/80"> · {r.target.by ?? ""}{r.target.setAt ? `, ${wibDateTime(r.target.setAt)}` : ""}</span></span>
     </p>
   );
 }
@@ -282,8 +282,8 @@ export function RequestHero({ r, compact = false, facts: showFacts = true }: { r
   const facts: [React.ReactNode, string, React.ReactNode][] = [
     [<User key="u" size={13} />, "PIC", r.picName],
     [<Calendar key="c" size={13} />, tr("Sent"), wibDateTime(r.submittedAt)],
-    [<CalendarClock key="t" size={13} />, tr("Estimated Finish"), <span key="v" className={r.tracker?.overdue || r.tracker?.late ? "text-red-600" : undefined}>
-      {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}{r.tracker?.targetAdjusted ? <span className="ml-1 rounded bg-violet-100 px-1 text-[10px] font-semibold text-violet-700">{tr("adjusted")}</span> : null}
+    [<CalendarClock key="t" size={13} />, tr("Estimated Finish"), <span key="v" className={r.tracker?.overdue || r.tracker?.late ? "text-[color:var(--j-C9372C)]" : undefined}>
+      {r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}{r.tracker?.targetAdjusted ? <span className="ml-1 rounded bg-[color:var(--j-DFD8FD)] px-1 text-[10px] font-semibold text-[color:var(--j-5E4DB2)]">{tr("adjusted")}</span> : null}
       <span className="block text-[11px] font-normal text-[color:var(--j-626F86)]">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></span>],
     r.kind === "PROCUREMENT"
       ? [<ShoppingCart key="w" size={13} />, tr("Shop / Supplier"), <span key="w">{r.vendor || "—"}
@@ -300,7 +300,7 @@ export function RequestHero({ r, compact = false, facts: showFacts = true }: { r
             <span className="font-mono font-semibold text-[color:var(--j-0C66E4)]">{r.number ?? tr("Draft")}</span></p>
           <h2 className={cx("mt-0.5 font-semibold leading-snug text-[color:var(--j-172B4D)]", compact ? "text-base" : "text-lg sm:text-xl")}>{summary(r)}</h2>
           <p className="flex items-center gap-1 text-xs text-[color:var(--j-626F86)]"><MapPin size={12} /> {r.branchName} ({r.branchCode})
-            {r.distanceM !== null && <span className={r.outsideRadius ? "text-red-600" : undefined}> · {tr("sent {0} m from the outlet", r.distanceM)}</span>}</p>
+            {r.distanceM !== null && <span className={r.outsideRadius ? "text-[color:var(--j-C9372C)]" : undefined}> · {tr("sent {0} m from the outlet", r.distanceM)}</span>}</p>
         </div>
         <span className="flex flex-wrap gap-1.5"><StatusBadge r={r} /><UrgencyBadge u={r.urgency} tier={r.tier} /></span>
       </div>
@@ -315,7 +315,7 @@ export function RequestHero({ r, compact = false, facts: showFacts = true }: { r
       <div className={cx("px-4 py-4 sm:px-5", !showFacts && "border-t border-[color:var(--j-F1F2F4)]")}>
         <Steps r={r} />
         <div className="mt-2"><TargetNote r={r} /></div>
-        {why && <p className={cx("mt-2 rounded-[3px] px-3 py-2 text-xs", r.status === "ON_HOLD" ? "bg-amber-50 text-amber-900" : "bg-red-50 text-red-800")}><b>{tr("Reason")}:</b> {why}</p>}
+        {why && <p className={cx("mt-2 rounded-[3px] px-3 py-2 text-xs", r.status === "ON_HOLD" ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" : "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]")}><b>{tr("Reason")}:</b> {why}</p>}
       </div>
     </section>
   );
@@ -360,9 +360,9 @@ export default function RequestView({ r, urls, children, part = "all", numbered 
             <div><dt className="text-[11px] text-[color:var(--j-626F86)]">PIC</dt><dd className="font-medium text-[color:var(--j-172B4D)]">{r.picName}</dd></div>
             <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Sent")}</dt><dd className="text-[color:var(--j-172B4D)]">{wibDateTime(r.submittedAt)}</dd></div>
             <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Location when sent")}</dt>
-              <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-red-700" : "text-[color:var(--j-172B4D)]")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
+              <dd className={cx("inline-flex items-center gap-1", r.outsideRadius ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-172B4D)]")}><MapPin size={12} />{r.distanceM === null ? "—" : tr("{0} m from the outlet", r.distanceM)}</dd></div>
             <div><dt className="text-[11px] text-[color:var(--j-626F86)]">{tr("Estimated Finish")}</dt>
-              <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-red-600" : "text-[color:var(--j-172B4D)]")}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}
+              <dd className={cx("font-medium tabular-nums", r.tracker?.overdue ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-172B4D)]")}>{r.tracker?.dueAt ? wibDateTime(r.tracker.dueAt) : "—"}
                 <span className="block text-[11px] font-normal text-[color:var(--j-626F86)]">{tr("handled {0}", fmtHours(r.tracker?.workHours))}</span></dd></div>
           </dl>
           <Steps r={r} />

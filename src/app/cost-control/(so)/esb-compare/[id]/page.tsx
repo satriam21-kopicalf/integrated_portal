@@ -85,7 +85,7 @@ export default function CompareDetail() {
                 </thead>
                 <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {lines.map((l) => (
-                    <tr key={l.product_id} className={cx(l.status !== "MATCH" && "bg-red-50/30")}>
+                    <tr key={l.product_id} className={cx(l.status !== "MATCH" && "bg-[color:var(--j-FFECEB)]/30")}>
                       <td className="max-w-[18rem] px-3 py-2.5"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{l.product_name}</span>
                         <span className="block font-mono text-[11px] text-[color:var(--j-626F86)]">{l.product_code}</span></td>
                       <td className="px-3 py-2.5 text-xs text-[color:var(--j-626F86)]">{l.unit ?? "—"}</td>

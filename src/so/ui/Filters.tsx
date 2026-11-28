@@ -147,7 +147,7 @@ export function PeriodField({ value, onChange, presets, maxDays }: {
         <input type="date" value={value.to} min={value.from} max={today} aria-label={tr('To')} className={cx(inputClass, 'h-10')}
           onChange={(e) => e.target.value && onChange({ from: value.from > e.target.value ? e.target.value : value.from, to: e.target.value })} />
       </div>
-      <p className={cx('text-xs', maxDays && days > maxDays ? 'text-red-600' : 'text-[color:var(--j-626F86)]')}>
+      <p className={cx('text-xs', maxDays && days > maxDays ? 'text-[color:var(--j-C9372C)]' : 'text-[color:var(--j-626F86)]')}>
         {dmy(value.from)} – {dmy(value.to)} · {tr('{0} days', days)}{maxDays && days > maxDays ? ` · ${tr('at most {0} days', maxDays)}` : ''}
       </p>
     </div>

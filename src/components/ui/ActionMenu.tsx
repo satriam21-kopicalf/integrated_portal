@@ -104,10 +104,10 @@ export default function ActionMenu({ items, label = tr('Actions') }: { items: Ac
                   item.onSelect();
                 }}
                 className={`flex w-full items-center gap-2.5 rounded-[3px] px-2.5 py-2 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-                  item.danger ? 'text-red-600 hover:bg-red-50' : 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]'
+                  item.danger ? 'text-[color:var(--j-C9372C)] hover:bg-[color:var(--j-FFECEB)]' : 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]'
                 }`}
               >
-                <span className={item.danger ? 'text-red-500' : 'text-[color:var(--j-626F86)]'}>{item.icon}</span>
+                <span className={item.danger ? 'text-[color:var(--j-C9372C)]' : 'text-[color:var(--j-626F86)]'}>{item.icon}</span>
                 {item.label}
               </button>
             </div>

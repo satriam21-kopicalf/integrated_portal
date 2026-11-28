@@ -179,7 +179,7 @@ export function BatchesTab() {
                         ))}
                       </ul>
                     )}
-                    {(b.waste ?? 0) > 0 && <p className="rounded-[3px] bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">{tr('Production waste: {0} cups', b.waste ?? 0)}{b.wasteReason ? ` · ${b.wasteReason}` : ''}</p>}
+                    {(b.waste ?? 0) > 0 && <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-2.5 py-1.5 text-xs text-[color:var(--j-7F5F01)]">{tr('Production waste: {0} cups', b.waste ?? 0)}{b.wasteReason ? ` · ${b.wasteReason}` : ''}</p>}
                     <WasteLine batch={b} onSaved={() => setTick((t) => t + 1)} />
                     {b.atHub > 0 && (sending === b.id
                       ? <SendForm batch={b} pools={(pools.rows ?? []).filter((p) => p.code !== b.hub)} onClose={() => setSending(null)} onSent={() => { setSending(null); setTick((t) => t + 1); }} />
@@ -202,14 +202,14 @@ function WasteLine({ batch, onSaved }: { batch: Batch; onSaved: () => void }) {
   const [qty, setQty] = useState(String(batch.waste ?? 0));
   const [reason, setReason] = useState(batch.wasteReason ?? '');
   const [busy, setBusy] = useState(false);
-  if (!open) return <button type="button" onClick={() => setOpen(true)} className="text-xs font-medium text-amber-700 hover:underline">{(batch.waste ?? 0) > 0 ? tr('Change production waste') : tr('+ Production waste')}</button>;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className="text-xs font-medium text-[color:var(--j-7F5F01)] hover:underline">{(batch.waste ?? 0) > 0 ? tr('Change production waste') : tr('+ Production waste')}</button>;
   const save = async () => {
     setBusy(true);
     try { await call(`/api/cotr/batches/${batch.id}/waste`, { method: 'POST', json: { qty: Number(qty) || 0, reason: reason || null } }); toast(tr('Saved')); setOpen(false); onSaved(); }
     catch (e) { toast((e as Error).message, 'error'); } finally { setBusy(false); }
   };
   return (
-    <div className="grid gap-2 rounded-[3px] border border-amber-200 bg-amber-50/50 p-2.5 sm:grid-cols-[6rem_1fr_auto]">
+    <div className="grid gap-2 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/50 p-2.5 sm:grid-cols-[6rem_1fr_auto]">
       <Input inputMode="numeric" value={qty} onChange={(e) => setQty(e.target.value.replace(/\D/g, ''))} className="h-10 text-right" aria-label={tr('Cups wasted')} />
       <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Reason (spilled, failed the taste …)')} className="h-10" />
       <div className="flex gap-2"><Button size="sm" variant="ghost" onClick={() => setOpen(false)}>{tr('Cancel')}</Button>
@@ -256,11 +256,11 @@ export function PoolBatches({ pool }: { pool: string }) {
     <Panel title={tr('Stock from the main hub')} description={tr('Batches of the pool, first expired first: hand the oldest to the drivers')}>
       {data.incoming.length > 0 && (
         <div className="border-b border-[color:var(--j-F1F2F4)] p-3 sm:p-4">
-          <p className="mb-2 text-xs font-semibold text-amber-800">{tr('On the way to this pool ({0})', data.incoming.length)}</p>
+          <p className="mb-2 text-xs font-semibold text-[color:var(--j-7F5F01)]">{tr('On the way to this pool ({0})', data.incoming.length)}</p>
           <ul className="grid gap-2 sm:grid-cols-2">
             {data.incoming.map((i) => (
-              <li key={i.transfer} className="flex items-center gap-3 rounded-[3px] border border-amber-200 bg-amber-50/50 px-3 py-2">
-                <Truck size={16} className="flex-shrink-0 text-amber-700" />
+              <li key={i.transfer} className="flex items-center gap-3 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/50 px-3 py-2">
+                <Truck size={16} className="flex-shrink-0 text-[color:var(--j-7F5F01)]" />
                 <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{i.menuName} · {i.qty}</span><span className="font-mono text-[11px] text-[color:var(--j-626F86)]">{i.batchNo} · {tr('exp')} {dmy(i.expiresOn)}</span></span>
                 <Button size="sm" onClick={() => void receive(i.transfer)}><PackageCheck size={14} /> {tr('Receive')}</Button>
               </li>
@@ -273,7 +273,7 @@ export function PoolBatches({ pool }: { pool: string }) {
           <thead className={theadClass}><tr><th className="px-4 py-2">{tr('Product')}</th><th className="px-3 py-2">{tr('Batch')}</th><th className="px-3 py-2 text-right">{tr('Quantity')}</th><th className="px-3 py-2">{tr('Produced')}</th><th className="px-4 py-2">{tr('Expiry')}</th></tr></thead>
           <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
             {data.received.map((i) => (
-              <tr key={i.transfer} className={cx(i.daysLeft < 0 && 'bg-red-50/50')}>
+              <tr key={i.transfer} className={cx(i.daysLeft < 0 && 'bg-[color:var(--j-FFECEB)]/50')}>
                 <td className="px-4 py-2 font-medium text-[color:var(--j-172B4D)]">{i.menuName}</td><td className="px-3 py-2 font-mono text-xs">{i.batchNo}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{i.qty}</td><td className="px-3 py-2 text-xs">{dmy(i.producedOn)}</td>
                 <td className="px-4 py-2"><ExpiryBadge days={i.daysLeft} date={i.expiresOn} /></td>

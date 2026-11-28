@@ -39,8 +39,8 @@ const NO_F = (): F => ({ period: { from: wibOffset(-89), to: wibOffset(0) }, bgr
 type GroupOpt = { id: string; code: string; name: string };
 type Tab = Status | "" | "OPEN" | "MINE";
 const TABS: Tab[] = ["MINE", "OPEN", "", "SUBMITTED", "APPROVED", "REVISION", "PAID", "VERIFYING", "DONE", "REJECTED", "CANCELLED"];
-const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-[color:var(--j-388BFF)]", APPROVED: "bg-cyan-500", REVISION: "bg-amber-500",
-  PAID: "bg-violet-500", VERIFYING: "bg-amber-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500", CANCELLED: "bg-neutral-400" };
+const DOT: Partial<Record<Status, string>> = { SUBMITTED: "bg-[color:var(--j-388BFF)]", APPROVED: "bg-[color:var(--j-2898BD)]", REVISION: "bg-[color:var(--j-E2B203)]",
+  PAID: "bg-[color:var(--j-6E5DC6)]", VERIFYING: "bg-[color:var(--j-E2B203)]", DONE: "bg-[color:var(--j-22A06B)]", REJECTED: "bg-[color:var(--j-C9372C)]", CANCELLED: "bg-[color:var(--j-8590A2)]" };
 const sum = (rows: Pengajuan[], f: (p: Pengajuan) => number | null | undefined) => rows.reduce((a, p) => a + (f(p) ?? 0), 0);
 /** the requests that are a cost: the money between the PTs stays out of every total */
 const cost = (rows: Pengajuan[]) => rows.filter((p) => p.kind !== "INTERCOMPANY");
@@ -205,7 +205,7 @@ export default function PengajuanMonitor() {
           ))}
         </StatStrip>
         {res?.pipeline && res.pipeline.count > 0 && (
-          <p className="mt-3 flex items-start gap-2 rounded-[3px] border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+          <p className="mt-3 flex items-start gap-2 rounded-[3px] border border-[color:var(--j-CCE0FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]">
             <Clock size={14} className="mt-px shrink-0" />{tr("{0} requests ({1}) are still in approval: they appear here once every approval is given", fmtNumber(res.pipeline.count), fmtRp(res.pipeline.amount))}</p>
         )}
         </>
@@ -254,7 +254,7 @@ export default function PengajuanMonitor() {
                 <tbody>
                   {paged.rows.map((p) => (
                     <tr key={p.id} onClick={() => setOpen(p.id)} className={jRow}>
-                      <td className={jTd}><span className="flex items-center gap-2">{canPick(p) && <input type="checkbox" aria-label={p.number ?? p.id} checked={pick.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => togglePick(p.id)} />}<TypeIcon tone={KIND_TONE[p.kind] ?? "bg-neutral-500"} title={requestLabel(p)}><Wallet size={11} /></TypeIcon></span></td>
+                      <td className={jTd}><span className="flex items-center gap-2">{canPick(p) && <input type="checkbox" aria-label={p.number ?? p.id} checked={pick.has(p.id)} onClick={(e) => e.stopPropagation()} onChange={() => togglePick(p.id)} />}<TypeIcon tone={KIND_TONE[p.kind] ?? "bg-[color:var(--j-626F86)]"} title={requestLabel(p)}><Wallet size={11} /></TypeIcon></span></td>
                       <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{p.number}</span></td>
                       <td className={cx(jTd, "max-w-[22rem]")}>
                         <span className="block truncate text-[color:var(--j-172B4D)]">{placeOf(p)} · {p.kind === "PETTY_CASH" && p.periodFrom && p.periodTo ? `${wibDay(p.periodFrom)} – ${wibDay(p.periodTo)}` : p.purpose ?? requestLabel(p)}</span>
@@ -284,7 +284,7 @@ export default function PengajuanMonitor() {
   );
 }
 
-const KIND_TONE: Partial<Record<Kind, string>> = { PETTY_CASH: "bg-emerald-600", EMERGENCY: "bg-red-600", MARKETING: "bg-violet-600", EVENT: "bg-sky-600", BILL: "bg-amber-600" };
+const KIND_TONE: Partial<Record<Kind, string>> = { PETTY_CASH: "bg-[color:var(--j-22A06B)]", EMERGENCY: "bg-[color:var(--j-C9372C)]", MARKETING: "bg-[color:var(--j-6E5DC6)]", EVENT: "bg-[color:var(--j-0C66E4)]", BILL: "bg-[color:var(--j-E2B203)]" };
 const PG_TONE: Record<Status, LozengeTone> = { DRAFT: "grey", SUBMITTED: "blue", REVISION: "amber", APPROVED: "cyan", PAID: "violet", VERIFYING: "amber", DONE: "green", REJECTED: "red", CANCELLED: "grey" };
 function PgLozenge({ s }: { s: Status }) {
   return <Lozenge tone={PG_TONE[s]}>{STATUS_LABEL[s]()}</Lozenge>;
@@ -293,11 +293,11 @@ function PgLozenge({ s }: { s: Status }) {
 function StepWaiting({ p }: { p: Pengajuan }) {
   const today = wibDate();
   const days = (d: string) => Math.round((Date.parse(d) - Date.parse(today)) / 86400000);
-  if (p.status === "PAID" && p.proofDueOn) return <span className={cx("mt-0.5 block truncate text-[11px]", p.proofOverdue ? "font-semibold text-red-700" : "text-[color:var(--j-626F86)]")}>
+  if (p.status === "PAID" && p.proofDueOn) return <span className={cx("mt-0.5 block truncate text-[11px]", p.proofOverdue ? "font-semibold text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-626F86)]")}>
     {p.proofOverdue ? tr("Proof overdue since {0}", wibDay(p.proofDueOn)) : tr("Proof due {0}", wibDay(p.proofDueOn))}</span>;
   if (p.status === "APPROVED" && p.neededOn) {
     const n = days(p.neededOn);
-    return <span className={cx("mt-0.5 block truncate text-[11px]", n < 0 ? "font-semibold text-red-700" : n <= 3 ? "font-semibold text-amber-700" : "text-[color:var(--j-626F86)]")}>
+    return <span className={cx("mt-0.5 block truncate text-[11px]", n < 0 ? "font-semibold text-[color:var(--j-AE2E24)]" : n <= 3 ? "font-semibold text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")}>
       {n < 0 ? tr("Due date passed: {0}", wibDay(p.neededOn)) : n === 0 ? tr("Due today") : tr("Due {0}", wibDay(p.neededOn))}</span>;
   }
   if (!p.step || !["SUBMITTED", "APPROVED", "VERIFYING"].includes(p.status)) return null;
@@ -418,7 +418,7 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               )}
               <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000}
                 placeholder={needNote ? tr("Reason for the outlet (required)") : tr("Note (optional)")} className={cx(inputClass, "h-auto py-2 text-sm")} />
-              {action === "PAID" && !payment.length && <p className="text-xs text-red-600">{tr("Attach the transfer proof above first")}</p>}
+              {action === "PAID" && !payment.length && <p className="text-xs text-[color:var(--j-C9372C)]">{tr("Attach the transfer proof above first")}</p>}
             </div>
           )}
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -445,9 +445,9 @@ function TeamDrawer({ id, onClose, onChanged }: { id: string; onClose: () => voi
               {tr("Check every line and its receipt. A rejected line is left out of the approved amount (lines accepted {0} now).", fmtRp(acceptedTotal(p.lines ?? [])))}</p>
           )}
           {p.can?.payment && (
-            <section className="rounded-[3px] border border-cyan-200 bg-cyan-50/40 p-3">
+            <section className="rounded-[3px] border border-[color:var(--j-C6EDFB)] bg-[color:var(--j-E7F9FF)]/40 p-3">
               <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><Wallet size={15} /> {tr("Payment: approved {0}", fmtRp(p.approvedAmount))}</p>
-              {p.payer && <p className="mb-2 text-sm font-semibold text-cyan-900">{tr("Transfer from the account of {0}", p.payer)}</p>}
+              {p.payer && <p className="mb-2 text-sm font-semibold text-[color:var(--j-206A83)]">{tr("Transfer from the account of {0}", p.payer)}</p>}
               <div className="flex flex-wrap items-end gap-2">
                 {payment.map((x) => <FileChip key={x.id} f={x} onRemove={() => void removeProof(x.id)} />)}
                 <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-0055CC)]">
@@ -600,7 +600,7 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
                             on ? "bg-[color:var(--j-E9F2FF)] font-medium text-[color:var(--j-0055CC)]" : "text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]")}>
                           <span className={cx("min-w-0 flex-1 truncate", i.muted && !on && "text-[color:var(--j-626F86)]")}>{i.label}</span>
                           {i.count !== undefined && <span className="rounded-full bg-[color:var(--j-DCDFE4)]/70 px-1.5 text-[11px] tabular-nums text-[color:var(--j-44546F)]">{i.count}</span>}
-                          {i.muted && <span className="h-1.5 w-1.5 rounded-full bg-neutral-300" title={tr("Uses the default flow")} />}
+                          {i.muted && <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--j-8590A2)]" title={tr("Uses the default flow")} />}
                         </button>
                       </li>
                     );
@@ -631,9 +631,9 @@ function SettingsDrawer({ branches, onClose, onChanged }: { branches: { value: s
                     ...(data.units ?? []).filter((u) => (kind !== "VENDOR" && kind !== "INTERCOMPANY") || u.vendor).map((u) => ({ key: u.code, label: u.name, dot: data.flows[`${kind}@${u.code}`]?.length ? "bg-[color:var(--j-0C66E4)]" : undefined }))]} />
                   {flowUnit && ownFlow && edit && <Button variant="ghost" size="sm" disabled={busy} onClick={() => void dropUnitFlow()}>{tr("Use the flow of every unit")}</Button>}
                 </div>
-                {flowUnit && !ownFlow && <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">{tr("This unit follows the flow of every unit. Saving here gives it its own.")}</p>}
+                {flowUnit && !ownFlow && <p className="rounded border border-[color:var(--j-CCE0FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]">{tr("This unit follows the flow of every unit. Saving here gives it its own.")}</p>}
                 {!flowUnit && personalFlow && kind !== "PERSONAL" && !ownFlow && (
-                  <p className="rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">{tr("No flow of its own yet: the default personal flow applies. Saving here gives it its own.")}</p>
+                  <p className="rounded border border-[color:var(--j-CCE0FF)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]">{tr("No flow of its own yet: the default personal flow applies. Saving here gives it its own.")}</p>
                 )}
                 {!edit && <p className="text-xs text-[color:var(--j-626F86)]">{tr("Only a superadmin changes the approvals.")}</p>}
                 <ol className="space-y-2">
@@ -911,7 +911,7 @@ function OptionDialog({ list, label, option, onClose, onSaved }: { list: OptionL
     <Dialog open onClose={onClose} size="md" title={option ? tr("Edit {0}", label) : tr("Create {0}", label)}
       description={purpose ? tr("The name shown on the form, its type and the rules checked before sending.") : undefined}
       footer={<div className="flex w-full justify-end gap-2">
-        {option && <Button variant="ghost" className="mr-auto text-red-600" disabled={busy} title={tr("Only when never used; otherwise switch it off")} onClick={() => void remove()}><Trash2 size={14} /> {tr("Delete")}</Button>}
+        {option && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" disabled={busy} title={tr("Only when never used; otherwise switch it off")} onClick={() => void remove()}><Trash2 size={14} /> {tr("Delete")}</Button>}
         <Button variant="ghost" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!name.trim()} onClick={() => void submit()}>{option ? tr("Save") : tr("Create")}</Button>
       </div>}>
@@ -976,15 +976,15 @@ export function StepRow({ n, step, users, names, edit, payment, fixedName, onCha
   names: Map<string, string>; edit: boolean; payment?: boolean; /** the name is not edited (a PT) */ fixedName?: boolean; onChange: (s: StepEdit) => void; onUp?: () => void; onDown?: () => void; onRemove?: () => void }) {
   const [pick, setPick] = useState("");
   return (
-    <li className={cx("rounded-[3px] border p-3", payment ? "border-cyan-200 bg-cyan-50/40" : "border-[color:var(--j-DCDFE4)] bg-white")}>
+    <li className={cx("rounded-[3px] border p-3", payment ? "border-[color:var(--j-C6EDFB)] bg-[color:var(--j-E7F9FF)]/40" : "border-[color:var(--j-DCDFE4)] bg-white")}>
       <div className="flex items-center gap-2">
-        <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-cyan-600" : "bg-[color:var(--j-0C66E4)]")}>{n}</span>
+        <span className={cx("flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", payment ? "bg-[color:var(--j-2898BD)]" : "bg-[color:var(--j-0C66E4)]")}>{n}</span>
         {edit && !fixedName ? <input value={step.label} maxLength={60} onChange={(e) => onChange({ ...step, label: e.target.value })} aria-label={tr("Step Name")}
           className={cx(inputClass, "h-9 min-w-0 flex-1 text-sm font-semibold")} /> : <p className="flex-1 text-sm font-semibold text-[color:var(--j-172B4D)]">{step.label}</p>}
         {payment && <Badge tone="cyan">{tr("Payment")}</Badge>}
         {edit && onUp && <button type="button" onClick={onUp} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Move Up")}><ArrowUp size={15} /></button>}
         {edit && onDown && <button type="button" onClick={onDown} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]" aria-label={tr("Move Down")}><ArrowDown size={15} /></button>}
-        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Step")}><Trash2 size={15} /></button>}
+        {edit && onRemove && <button type="button" onClick={onRemove} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove Step")}><Trash2 size={15} /></button>}
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {step.userIds.map((id) => (
@@ -1018,7 +1018,7 @@ function PlafonRow({ label, amount, edit, removable, onSave }: { label: string; 
         <input value={v} inputMode="numeric" placeholder={tr("No plafon")} onChange={(e) => setV(typeRp(parseRp(e.target.value)))} aria-label={tr("Plafon {0}", label)}
           className={cx(inputClass, "h-9 w-36 text-right font-semibold tabular-nums")} />
         {changed && <Button onClick={() => onSave(parseRp(v))}>{tr("Save")}</Button>}
-        {removable && <button type="button" onClick={() => onSave(null)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>}
+        {removable && <button type="button" onClick={() => onSave(null)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove")}><Trash2 size={15} /></button>}
       </> : <span className="text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtRp(amount)}</span>}
     </div>
   );

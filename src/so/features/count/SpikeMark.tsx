@@ -20,7 +20,7 @@ export function SpikeMark({ l }: { l: Pick<CountLine, "previous_qty" | "qty_base
     <span className="inline-flex flex-col gap-0.5" title={help}>
       <Badge tone="amber">{above ? tr("Far above the last count") : tr("Far below the last count")}</Badge>
       {prev !== null && now !== null && (
-        <span className="text-[11px] text-amber-800">
+        <span className="text-[11px] text-[color:var(--j-7F5F01)]">
           {tr("Last count {0} → now {1}", `${fmt(prev)} ${l.base_uom}`, `${fmt(now)} ${l.base_uom}`)}
           {times ? ` (${times.toLocaleString(undefined, { maximumFractionDigits: 1 })}×)` : ""}
         </span>

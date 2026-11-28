@@ -69,7 +69,7 @@ export function UsageReport({ period, branch, canFix }: { period: Period; branch
         <div className="flex flex-wrap items-center gap-2">
           <div className="w-full sm:w-72"><SearchBox value={search} onChange={setSearch} placeholder={tr("Search item or branch")} /></div>
           <QuickChips<Show> value={show} onChange={setShow} label={tr("Show")} items={[{ key: "all", label: tr("All"), count: rowsAll.length },
-            { key: "unusual", label: tr("Unusual"), dot: "bg-amber-500", count: rowsAll.filter((r) => r.unusual).length },
+            { key: "unusual", label: tr("Unusual"), dot: "bg-[color:var(--j-E2B203)]", count: rowsAll.filter((r) => r.unusual).length },
             { key: "corrected", label: tr("Corrected"), dot: "bg-[color:var(--j-388BFF)]", count: rowsAll.filter((r) => r.corrections).length }]} />
           {canFix && suggestable.length > 0 && show === "unusual" && (
             <span className="ml-auto flex items-center gap-2">
@@ -97,14 +97,14 @@ export function UsageReport({ period, branch, canFix }: { period: Period; branch
             </tr></thead>
             <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
               {paged.rows.map((r) => (
-                <tr key={idOf(r)} className={cx("align-top", r.unusual && "bg-amber-50/40")}>
+                <tr key={idOf(r)} className={cx("align-top", r.unusual && "bg-[color:var(--j-FFF7D6)]/40")}>
                   <td className={cx(jTd, "whitespace-nowrap text-[color:var(--j-44546F)]")}>
                     {canFix && show === "unusual" && r.suggested != null && <input type="checkbox" className="mr-2 align-middle" aria-label={tr("Select")} checked={picked.has(idOf(r))} onChange={() => toggle(r)} />}
                     {dmy(r.businessDate)}</td>
                   <td className={cx(jTd, "text-[color:var(--j-172B4D)]")}>{r.branchName}</td>
                   <td className={jTd}><span className="text-[color:var(--j-172B4D)]">{r.itemName}</span> <span className="block text-[11px] text-[color:var(--j-626F86)]">{r.itemCode}</span></td>
-                  <td className={cx(jTd, "text-right tabular-nums")}><span className={cx(r.unusual && "font-semibold text-amber-800")}>{fmtQty(r.qty)}</span> <span className="text-xs text-[color:var(--j-626F86)]">{r.unit}</span>
-                    {r.unusual && <span className="block text-[11px] text-amber-800"><AlertTriangle size={11} className="mr-1 inline" aria-hidden />{tr("usual {0}", fmtQty(r.usual ?? 0))}{r.suggested != null && <> · {tr("suggested {0}", fmtQty(r.suggested))}</>}</span>}
+                  <td className={cx(jTd, "text-right tabular-nums")}><span className={cx(r.unusual && "font-semibold text-[color:var(--j-7F5F01)]")}>{fmtQty(r.qty)}</span> <span className="text-xs text-[color:var(--j-626F86)]">{r.unit}</span>
+                    {r.unusual && <span className="block text-[11px] text-[color:var(--j-7F5F01)]"><AlertTriangle size={11} className="mr-1 inline" aria-hidden />{tr("usual {0}", fmtQty(r.usual ?? 0))}{r.suggested != null && <> · {tr("suggested {0}", fmtQty(r.suggested))}</>}</span>}
                     {!!r.corrections && <span className="block"><Lozenge tone="blue">{tr("Corrected")}</Lozenge></span>}</td>
                   <td className={cx(jTd, "text-xs text-[color:var(--j-44546F)]")}>{r.category ?? "—"}{r.note && <span className="block text-[color:var(--j-626F86)]">“{r.note}”</span>}</td>
                   <td className={jTd}>{r.hasPhoto ? (
@@ -183,7 +183,7 @@ function UsageCorrect({ row, onClose, onDone }: { row: UsageRow; onClose: () => 
           <Field label={tr("Unit")}><Input value={unit} disabled /></Field>
         </div>
         {packs != null && item === row.itemCode && packs !== amount && (
-          <button type="button" onClick={() => setQty(String(packs))} className="flex w-full items-center gap-2 rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs text-amber-900 hover:bg-amber-100">
+          <button type="button" onClick={() => setQty(String(packs))} className="flex w-full items-center gap-2 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-left text-xs text-[color:var(--j-7F5F01)] hover:bg-[color:var(--j-F8E6A0)]">
             <Wand2 size={14} className="shrink-0" /><span>{tr("Entered in pieces or grams? {0} ÷ {1} = {2} {3}", fmtQty(row.qty), fmtNumber(row.packSize!), fmtQty(packs), row.unit)}</span></button>)}
         <Field label={tr("Category")}><Select value={category} onChange={(e) => setCategory(e.target.value)}>
           {[...new Set([row.category ?? "", ...(opts?.categories ?? [])])].map((c) => <option key={c} value={c} disabled={!c}>{c || "—"}</option>)}</Select></Field>

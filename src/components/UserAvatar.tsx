@@ -23,7 +23,7 @@ export default function UserAvatar({
     return <img src={src} alt={name} className={`${box} object-cover`} onError={() => setFailed(true)} />;
   }
   return (
-    <span className={`${box} bg-gradient-to-br from-brand-700 to-brand-900 font-semibold text-white`} aria-label={name}>
+    <span className={`${box} bg-[color:var(--j-0C66E4)] font-semibold text-white`} aria-label={name}>
       {initials(name)}
     </span>
   );
@@ -137,13 +137,13 @@ export function AvatarEditor({
           </button>
           {preview && (
             <button type="button" onClick={remove} disabled={busy}
-              className="inline-flex h-9 items-center gap-1.5 rounded-[3px] px-3 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60">
+              className="inline-flex h-9 items-center gap-1.5 rounded-[3px] px-3 text-sm font-medium text-[color:var(--j-C9372C)] hover:bg-[color:var(--j-FFECEB)] disabled:opacity-60">
               <Trash2 size={15} /> {tr('Remove')}
             </button>
           )}
         </div>
         <p className="text-xs text-[color:var(--j-626F86)]">{tr('JPG, PNG or WebP. Cropped to a square, 256 × 256 px.')}</p>
-        {error && <p className="text-xs text-red-600" role="alert">{error}</p>}
+        {error && <p className="text-xs text-[color:var(--j-C9372C)]" role="alert">{error}</p>}
       </div>
       <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pick} />
     </div>

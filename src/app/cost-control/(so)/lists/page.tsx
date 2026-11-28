@@ -261,7 +261,7 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
           </DrawerSection>
           <DrawerSection title={tr("Own Items")} description={d.source_ref ? `${SOURCE[d.source]?.() ?? d.source} · ${d.source_ref}` : undefined}>
             {groupIds.length > 0 && (
-              <p className="mb-3 rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              <p className="mb-3 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-sm text-[color:var(--j-7F5F01)]">
                 {tr("Groups are assigned: own items that are not in a group are not counted. Remove all groups to count the own items again.")}
               </p>
             )}

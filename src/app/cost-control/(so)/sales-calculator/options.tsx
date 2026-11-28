@@ -71,7 +71,7 @@ export function OptionsStep() {
       {error ? <ErrorState message={error} onRetry={load} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={4} /></tbody></table> : (
         <>
           {res.pendingDays > 0 && (
-            <p className="mx-4 mt-3 flex items-start gap-2 rounded-[3px] bg-sky-50 px-3 py-2 text-xs text-sky-800">
+            <p className="mx-4 mt-3 flex items-start gap-2 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]">
               <Database size={14} className="mt-0.5 flex-shrink-0" />
               {tr("The choices of {0} earlier days are still being prepared from the transactions (a few days every 15 minutes); the numbers grow until then.", res.pendingDays)}
             </p>
@@ -213,7 +213,7 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
     <Drawer open onClose={onClose} size="lg" icon={<SlidersHorizontal size={18} />} title={choice.name}
       description={tr("{0} sold in 90 days with {1} menus", num(choice.qty, 0), choice.menus)}
       footer={<>
-        {choice.rule && <Button variant="ghost" className="mr-auto text-red-600" disabled={busy} onClick={() => void send({ effect: "clear" })}><Trash2 size={15} /> {tr("Remove Rule")}</Button>}
+        {choice.rule && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" disabled={busy} onClick={() => void send({ effect: "clear" })}><Trash2 size={15} /> {tr("Remove Rule")}</Button>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} onClick={save}><Save size={15} /> {tr("Save")}</Button>
       </>}>
@@ -255,7 +255,7 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
                     onChange={(e) => set(i, { text: e.target.value.replace(/[^0-9,.-]/g, "") })} aria-label={tr("Value")} />
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[color:var(--j-626F86)]">{unit(l)}</span>
                 </div>
-                <button type="button" onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))} className="justify-self-end rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-red-600" aria-label={tr("Remove")}><X size={16} /></button>
+                <button type="button" onClick={() => setLines((ls) => ls.filter((_, j) => j !== i))} className="justify-self-end rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove")}><X size={16} /></button>
               </div>
             ))}
             <Button size="sm" variant="secondary" onClick={() => setLines((ls) => [...ls, { target: "item", mode: "qty", value: 0, text: "" }])}><Plus size={14} /> {tr("Add Adjustment")}</Button>
@@ -269,7 +269,7 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
           <div>
             <p className="text-xs font-semibold text-[color:var(--j-44546F)]">{tr("Sold most with")}</p>
             <ul className="mt-1 space-y-1 text-xs text-[color:var(--j-44546F)]">
-              {choice.top.map((t) => <li key={t.id} className="flex justify-between gap-3"><span>{t.name}{!t.hasCard && <span className="ml-1 text-amber-700">({tr("no card yet")})</span>}</span><span className="tabular-nums">{num(t.qty, 0)}</span></li>)}
+              {choice.top.map((t) => <li key={t.id} className="flex justify-between gap-3"><span>{t.name}{!t.hasCard && <span className="ml-1 text-[color:var(--j-7F5F01)]">({tr("no card yet")})</span>}</span><span className="tabular-nums">{num(t.qty, 0)}</span></li>)}
             </ul>
           </div>
         )}
@@ -352,7 +352,7 @@ export function BomImport({ onClose, onDone }: { onClose: () => void; onDone: ()
             </tbody>
           </table>
           {card.notes.length > 0 && (
-            <ul className="space-y-1 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <ul className="space-y-1 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
               {card.notes.map((n, i) => <li key={i} className="flex gap-1.5"><AlertTriangle size={13} className="mt-0.5 flex-shrink-0" />{n}</li>)}
             </ul>
           )}

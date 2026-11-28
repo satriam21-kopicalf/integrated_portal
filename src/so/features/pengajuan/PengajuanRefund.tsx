@@ -34,7 +34,7 @@ export default function RefundPanel({ p, base, onChanged }: { p: Pengajuan; base
     }
   };
   return (
-    <section className="rounded-[3px] border border-amber-200 bg-amber-50/50 p-3">
+    <section className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/50 p-3">
       <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><Undo2 size={15} /> {tr("Money back: {0}", fmtRp(p.refundAmount))}</p>
       <p className="mb-2 text-xs text-[color:var(--j-44546F)]">{tr("The actual cost was lower than paid. Attach the proof of the money received, then confirm.")}</p>
       <div className="flex flex-wrap items-end gap-2">

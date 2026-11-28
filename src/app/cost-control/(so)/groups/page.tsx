@@ -134,10 +134,10 @@ export default function GroupsPage() {
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">
                       {g.items}
-                      {g.pending > 0 && <span className="block text-[11px] font-medium text-amber-700">{tr("+{0} not in the item master", g.pending)}</span>}
+                      {g.pending > 0 && <span className="block text-[11px] font-medium text-[color:var(--j-7F5F01)]">{tr("+{0} not in the item master", g.pending)}</span>}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">
-                      {g.lists || <span className="text-xs font-medium text-amber-700">{tr("Not assigned")}</span>}
+                      {g.lists || <span className="text-xs font-medium text-[color:var(--j-7F5F01)]">{tr("Not assigned")}</span>}
                     </td>
                     <td className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{fmtDate(g.updated_at)}</td>
                   </tr>
@@ -480,7 +480,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
     <><Button variant="secondary" onClick={onClose}>{tr("Close")}</Button>
       <Button loading={busy} disabled={!dirty} onClick={saveItems}><Save size={16} /> {tr("Save Items")}</Button></>
   ) : tab === "branches" ? (
-    <><Button variant="ghost" className="mr-auto text-red-600" disabled={!picked.size || !countTypes.length || busy} onClick={() => applyBranches(true)}>{tr("Remove from Selected")}</Button>
+    <><Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" disabled={!picked.size || !countTypes.length || busy} onClick={() => applyBranches(true)}>{tr("Remove from Selected")}</Button>
       <Button variant="secondary" onClick={onClose}>{tr("Close")}</Button>
       <Button loading={busy} disabled={!picked.size || !countTypes.length} onClick={() => applyBranches(false)}>{tr("Add to {0} branches", picked.size)}</Button></>
   ) : (
@@ -495,7 +495,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
         <div className="space-y-5">
           <dl className="grid grid-cols-3 divide-x divide-[color:var(--j-DCDFE4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-center">
             <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Items")}</dt><dd className="text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{items.length}</dd></div>
-            <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-[color:var(--j-172B4D)]" : "text-amber-600")}>{g.used_by.length}</dd></div>
+            <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Used by lists")}</dt><dd className={cx("text-lg font-semibold tabular-nums", g.used_by.length ? "text-[color:var(--j-172B4D)]" : "text-[color:var(--j-B38600)]")}>{g.used_by.length}</dd></div>
             <div className="px-2 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Status")}</dt><dd className="mt-1">{g.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}</dd></div>
           </dl>
           <Tabs label={tr("View")} value={tab} onChange={(k) => setTab(k as typeof tab)} tabs={tabs.map((t) => ({ key: t.key, label: <>{t.label}{t.key === "items" && dirty ? " •" : ""}</> }))} />
@@ -507,7 +507,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
           {tab === "items" && g.pending_items.length > 0 && (
             <DrawerSection title={tr("Not in the item master yet ({0})", g.pending_items.length)}
               description={tr("Products of the template the item master does not have. Create one and it joins this group (and every other group that lists it).")}>
-              <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-amber-200 bg-amber-50/40">
+              <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/40">
                 {g.pending_items.map((p) => (
                   <li key={p.id} className="flex items-center gap-3 px-3 py-2">
                     <span className="min-w-0 flex-1">
@@ -535,7 +535,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
           {tab === "branches" && (
             <>
               <DrawerSection title={tr("Used by")}>
-                {g.used_by.length === 0 ? <p className="text-sm text-amber-700">{tr("Not assigned to any branch yet: pick branches below.")}</p> : (
+                {g.used_by.length === 0 ? <p className="text-sm text-[color:var(--j-7F5F01)]">{tr("Not assigned to any branch yet: pick branches below.")}</p> : (
                   <div className="flex flex-wrap gap-1.5">
                     {g.used_by.map((u) => (
                       <span key={u.list_id} className="inline-flex items-center gap-1 rounded-full border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] py-0.5 pl-2.5 pr-1 text-xs text-[color:var(--j-44546F)]">
@@ -543,7 +543,7 @@ function GroupDrawer({ groupId, facilities, types, onClose, onChanged }: {
                         {u.facility_name ?? `${u.facility_type} (${tr("default")})`} · {countTypeLabel(u.count_type)}
                         {u.facility_id ? (
                           <button type="button" disabled={busy} onClick={() => unassign(u)} aria-label={tr("Remove")}
-                            className="rounded-full p-0.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><X size={12} /></button>
+                            className="rounded-full p-0.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><X size={12} /></button>
                         ) : <span className="w-1" />}
                       </span>
                     ))}
@@ -621,16 +621,16 @@ function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone
         <Button variant="secondary" loading={busy && !report} disabled={!file} onClick={() => run(false)}><Search size={15} /> {tr("Check")}</Button>
         <Button loading={busy && !!report} disabled={!report || report.applied} onClick={() => run(true)}>{tr("Import {0} groups", report?.sheets.length ?? 0)}</Button></>}>
       <div className="space-y-4">
-        <label className="flex cursor-pointer items-center gap-3 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] px-4 py-3 text-sm hover:border-brand-400 hover:bg-[color:var(--j-E9F2FF)]">
+        <label className="flex cursor-pointer items-center gap-3 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] px-4 py-3 text-sm hover:border-[color:var(--j-388BFF)] hover:bg-[color:var(--j-E9F2FF)]">
           <Upload size={18} className="text-[color:var(--j-626F86)]" />
           <span className="min-w-0 flex-1 truncate text-[color:var(--j-44546F)]">{file ? file.name : tr("Choose TEMPLATE SO PER CATEGORY (.xlsx)")}</span>
           <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
         <p className="text-xs text-[color:var(--j-626F86)]">{tr("Items are matched by product code. Category becomes the area, the template unit the ESB unit (and pack when the item has it). Codes the item master does not have are kept on the group to create later. Importing again replaces the items of these groups; their branches stay.")}</p>
-        {error && <p role="alert" className="rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p role="alert" className="rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]">{error}</p>}
         {report && (
           <>
-            <p className={cx("rounded-[3px] px-3 py-2 text-sm", report.applied ? "bg-emerald-50 text-emerald-800" : "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]")}>
+            <p className={cx("rounded-[3px] px-3 py-2 text-sm", report.applied ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]")}>
               {report.applied ? tr("Imported.") : tr("Check result, nothing saved yet.")}{" "}
               {tr("{0} codes not in the item master, {1} units the item does not have.", report.pending_codes.length, report.unit_gaps)}
             </p>
@@ -645,7 +645,7 @@ function ImportTemplateDrawer({ onClose, onDone }: { onClose: () => void; onDone
                         <span className="block text-[11px] text-[color:var(--j-626F86)]">{sh.code} · {sh.status === "NEW" ? tr("new group") : tr("replaces the items")}</span></td>
                       <td className="px-3 py-2 text-right tabular-nums">{sh.rows}</td>
                       <td className="px-3 py-2 text-right tabular-nums">{sh.items}</td>
-                      <td className="px-3 py-2 text-xs text-amber-800">{sh.pending.length ? sh.pending.map((x) => x.code).join(", ") : "-"}</td>
+                      <td className="px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{sh.pending.length ? sh.pending.map((x) => x.code).join(", ") : "-"}</td>
                       <td className="px-3 py-2 text-xs text-[color:var(--j-44546F)]">{sh.unit_gaps.length ? sh.unit_gaps.map((x) => `${x.code} ${x.unit}`).join(", ") : "-"}</td>
                     </tr>
                   ))}

@@ -69,13 +69,13 @@ export function RecipeImport({ onClose, onDone }: { onClose: () => void; onDone:
       <div className="space-y-4">
         <label className={cx("flex cursor-pointer items-center gap-3 rounded-[3px] border border-dashed px-4 py-4 transition-colors",
           file ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)]" : "border-[color:var(--j-8590A2)] hover:bg-[color:var(--j-F7F8F9)]")}>
-          <FileSpreadsheet size={22} className="flex-shrink-0 text-emerald-600" />
+          <FileSpreadsheet size={22} className="flex-shrink-0 text-[color:var(--j-22A06B)]" />
           <span className="min-w-0 flex-1 text-sm"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{file ? file.name : tr("Choose the Excel file (.xlsx)")}</span>
             <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Columns: Kode Kartu, Nama Kartu, Kategori, Aktif, Catatan, Jenis Baris (Bahan / WIP / Lain / Menu), Kode Baris, Nama Baris, Qty, Satuan, Harga")}</span></span>
           <span className="rounded-[4px] border border-[color:var(--j-8590A2)] bg-white px-2.5 py-1 text-xs font-medium text-[color:var(--j-44546F)]">{file ? tr("Change") : tr("Choose")}</span>
           <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" className="hidden" onChange={(e) => { pick(e.target.files?.[0]); e.target.value = ""; }} />
         </label>
-        {error && <p className="rounded-[4px] border-l-[3px] border-red-600 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
+        {error && <p className="rounded-[4px] border-l-[3px] border-[color:var(--j-C9372C)] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]" role="alert">{error}</p>}
         {busy && !res && <p className="text-sm text-[color:var(--j-626F86)]">{tr("Checking the file…")}</p>}
         {res && (
           <>
@@ -98,8 +98,8 @@ export function RecipeImport({ onClose, onDone }: { onClose: () => void; onDone:
                         <td className={jTd}><Lozenge tone={c.errors.length ? "red" : c.action === "create" ? "blue" : "violet"}>
                           {c.errors.length ? tr("Refused") : c.action === "create" ? tr("New") : tr("Change")}</Lozenge></td>
                         <td className={cx(jTd, "text-right tabular-nums")}>{c.lines}</td>
-                        <td className={cx(jTd, "text-xs")}>{c.errors.length ? <ul className="space-y-0.5 text-red-700">{c.errors.map((e) => <li key={e}>{e}</li>)}</ul>
-                          : <span className="text-emerald-700">OK</span>}</td>
+                        <td className={cx(jTd, "text-xs")}>{c.errors.length ? <ul className="space-y-0.5 text-[color:var(--j-AE2E24)]">{c.errors.map((e) => <li key={e}>{e}</li>)}</ul>
+                          : <span className="text-[color:var(--j-216E4E)]">OK</span>}</td>
                       </tr>
                     ))}
                   </tbody>

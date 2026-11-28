@@ -24,9 +24,9 @@ export type Card = {
 export type Health = { at: string; cards: Card[]; counts: Record<Status, number> };
 
 export const STATUS: Record<Status, { icon: ReactNode; label: () => string; tone: string; dot: string }> = {
-  ok: { icon: <CheckCircle2 aria-hidden />, label: () => tr('Good'), tone: 'text-emerald-700 bg-emerald-50 border-emerald-200', dot: 'text-emerald-600' },
-  warn: { icon: <AlertTriangle aria-hidden />, label: () => tr('Check'), tone: 'text-amber-800 bg-amber-50 border-amber-200', dot: 'text-amber-600' },
-  high: { icon: <AlertOctagon aria-hidden />, label: () => tr('Figures affected'), tone: 'text-red-700 bg-red-50 border-red-200', dot: 'text-red-600' },
+  ok: { icon: <CheckCircle2 aria-hidden />, label: () => tr('Good'), tone: 'text-[color:var(--j-216E4E)] bg-[color:var(--j-DCFFF1)] border-[color:var(--j-BAF3DB)]', dot: 'text-[color:var(--j-22A06B)]' },
+  warn: { icon: <AlertTriangle aria-hidden />, label: () => tr('Check'), tone: 'text-[color:var(--j-7F5F01)] bg-[color:var(--j-FFF7D6)] border-[color:var(--j-F8E6A0)]', dot: 'text-[color:var(--j-B38600)]' },
+  high: { icon: <AlertOctagon aria-hidden />, label: () => tr('Figures affected'), tone: 'text-[color:var(--j-AE2E24)] bg-[color:var(--j-FFECEB)] border-[color:var(--j-FFD5D2)]', dot: 'text-[color:var(--j-C9372C)]' },
   error: { icon: <XCircle aria-hidden />, label: () => tr('Check failed'), tone: 'text-[color:var(--j-44546F)] bg-[color:var(--j-091E420F)] border-[color:var(--j-DCDFE4)]', dot: 'text-[color:var(--j-626F86)]' },
 };
 

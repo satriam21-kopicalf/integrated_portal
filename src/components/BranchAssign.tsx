@@ -56,7 +56,7 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
   const clear = () => onChange([]);
 
   return (
-    <div className={`rounded-[3px] border ${invalid ? 'border-red-300' : 'border-[color:var(--j-DCDFE4)]'}`}>
+    <div className={`rounded-[3px] border ${invalid ? 'border-[color:var(--j-F87168)]' : 'border-[color:var(--j-DCDFE4)]'}`}>
       {/* selection */}
       <div className="flex min-h-11 flex-wrap items-center gap-1.5 border-b border-[color:var(--j-F1F2F4)] px-2.5 py-2">
         {value.length === 0 ? (

@@ -101,7 +101,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
           {adding && <Loader2 size={14} className="animate-spin text-[color:var(--j-626F86)]" />}
           {note && <span className="text-xs text-[color:var(--j-626F86)]">{note}</span>}
           {items.length > 0 && (
-            <button type="button" className="ml-auto text-xs font-medium text-red-600 hover:underline"
+            <button type="button" className="ml-auto text-xs font-medium text-[color:var(--j-C9372C)] hover:underline"
               onClick={() => { if (window.confirm(tr("Remove all {0} items?", items.length))) onChange([]); }}>{tr("Remove all")}</button>
           )}
         </div>
@@ -149,7 +149,7 @@ export default function ItemsEditor({ items, onChange, readOnly = false }: { ite
               </div>
               {!readOnly && (
                 <button type="button" onClick={() => onChange(items.filter((x) => x.item_id !== i.item_id))}
-                  className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", i.item_name)}><Trash2 size={15} /></button>
+                  className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove {0}", i.item_name)}><Trash2 size={15} /></button>
               )}
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

@@ -311,7 +311,7 @@ function Diff({ value, rupiah = false }: { value: number; rupiah?: boolean }) {
   const sign = v > 0 ? '+' : v < 0 ? '−' : '±';
   const text = rupiah ? formatCurrency(Math.abs(v)) : formatNumber(Math.abs(v));
   return (
-    <span className={`font-semibold tabular-nums ${v > 0 ? 'text-emerald-700' : v < 0 ? 'text-red-700' : 'text-[color:var(--j-626F86)]'}`}>
+    <span className={`font-semibold tabular-nums ${v > 0 ? 'text-[color:var(--j-216E4E)]' : v < 0 ? 'text-[color:var(--j-AE2E24)]' : 'text-[color:var(--j-626F86)]'}`}>
       {sign}{text}
     </span>
   );

@@ -48,7 +48,7 @@ export default function ComponentSources({ have, onAdd }: { have: Set<string>; o
 }
 
 function AddButton({ added, onClick }: { added: boolean; onClick: () => void }) {
-  return added ? <span className="text-[11px] font-medium text-emerald-700">{tr("In recipe")}</span> : (
+  return added ? <span className="text-[11px] font-medium text-[color:var(--j-216E4E)]">{tr("In recipe")}</span> : (
     <button type="button" onClick={onClick} className="inline-flex items-center gap-0.5 rounded-[3px] border border-[color:var(--j-85B8FF)] px-1.5 py-0.5 text-[11px] font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]">
       <Plus size={11} /> {tr("Add")}
     </button>

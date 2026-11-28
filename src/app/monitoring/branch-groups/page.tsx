@@ -75,7 +75,7 @@ export default function BranchGroupsPage() {
                         <Lozenge tone={g.branches.length ? "blue" : "amber"}>{g.branches.length}</Lozenge>
                         {g.branches.slice(0, 4).map((b) => <span key={b.code} className="max-w-[9rem] truncate rounded-[3px] bg-[color:var(--j-091E420F)] px-1.5 py-0.5 text-[11px] text-[color:var(--j-44546F)]">{b.name.replace(/^Kopi Calf (To Go )?/, "")}</span>)}
                         {g.branches.length > 4 && <span className="text-[11px] text-[color:var(--j-626F86)]">+{g.branches.length - 4}</span>}
-                        {g.branches.length === 0 && <span className="text-xs text-amber-700">{tr("No branch yet")}</span>}
+                        {g.branches.length === 0 && <span className="text-xs text-[color:var(--j-7F5F01)]">{tr("No branch yet")}</span>}
                       </span>
                     </td>
                     <td className={cx(jTd, "text-right tabular-nums text-[color:var(--j-172B4D)]")}>{g.checkin_max_per_day ?? 1}×</td>
@@ -87,7 +87,7 @@ export default function BranchGroupsPage() {
           </div>
           <div className="border-t border-[color:var(--j-DCDFE4)] px-4 py-3 sm:px-5">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Without a group ({0})", data.unassigned.length)}</p>
-            {data.unassigned.length === 0 ? <p className="flex items-center gap-1.5 text-sm text-emerald-700"><Check size={14} /> {tr("Every outlet is in a group")}</p> : (
+            {data.unassigned.length === 0 ? <p className="flex items-center gap-1.5 text-sm text-[color:var(--j-216E4E)]"><Check size={14} /> {tr("Every outlet is in a group")}</p> : (
               <ul className="flex flex-wrap gap-1.5">
                 {data.unassigned.map((b) => <li key={b.code}><Badge tone="amber" icon={<Store size={11} />}>{b.name} · {b.code}</Badge></li>)}
               </ul>
@@ -158,8 +158,8 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
     <Drawer open onClose={onClose} size="lg" icon={<Boxes size={18} />} title={group ? group.code : tr("New Branch Group")}
       description={tr("{0} branches selected", picked.size)} focusFirstField={!group}
       footer={<>
-        {group && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setDeleting(true)}><Trash2 size={15} /> {tr("Delete")}</Button>}
-        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-red-600">{error}</p>}
+        {group && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" onClick={() => setDeleting(true)}><Trash2 size={15} /> {tr("Delete")}</Button>}
+        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-[color:var(--j-C9372C)]">{error}</p>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!code.trim() || !name.trim()} onClick={() => void save()}><Save size={16} /> {group ? tr("Save changes") : tr("Create group")}</Button>
       </>}>
@@ -199,7 +199,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
               {allShown ? tr("Clear shown") : tr("Select shown")} ({shown.length})
             </Button>
           </div>
-          {moving > 0 && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("{0} branches move from another group", moving)}</p>}
+          {moving > 0 && <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{tr("{0} branches move from another group", moving)}</p>}
           <ul className="max-h-[24rem] divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {shown.map((b) => (
               <li key={b.code}>

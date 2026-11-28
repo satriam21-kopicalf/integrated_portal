@@ -20,12 +20,12 @@ const factorOf = (l: CountLine) => Number(l.esb_factor || 1) || 1;
 
 function Qty({ l }: { l: CountLine }) {
   const wip = Number(l.qty_wip ?? 0);
-  if (l.source === "WIP_EXPLODED") return <span className="text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom} <span className="text-[11px]">WIP</span></span>;
+  if (l.source === "WIP_EXPLODED") return <span className="text-[color:var(--j-5E4DB2)]">{fmtQty(l.qty_wip ?? "0")} {l.base_uom} <span className="text-[11px]">WIP</span></span>;
   const n = l.qty_base === null ? null : Number(l.qty_base) / factorOf(l);
   return (
     <span className={cx(n === 0 ? "text-[color:var(--j-626F86)]" : "text-[color:var(--j-172B4D)]")}>
       {n === null ? "—" : `${fmtQty(n)} ${unitOf(l)}`}
-      {wip > 0 && <span className="block text-[11px] text-violet-700">+ {fmtQty(wip)} {l.base_uom} WIP</span>}
+      {wip > 0 && <span className="block text-[11px] text-[color:var(--j-5E4DB2)]">+ {fmtQty(wip)} {l.base_uom} WIP</span>}
     </span>
   );
 }
@@ -53,7 +53,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
       description={`${count.facility_name} · ${count.number}`} locked={busy} focusFirstField={false}
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <p className={cx("text-xs sm:mr-auto", blocked ? "text-red-600" : "text-[color:var(--j-626F86)]")}>
+          <p className={cx("text-xs sm:mr-auto", blocked ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>
             {nameMissing ? tr("Write the signer's name under the signature.") : signature ? tr("Signed · the quantities are locked after submitting.") : tr("Sign below to submit · the quantities are locked after submitting.")}
           </p>
           <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the Count")}</Button>
@@ -74,7 +74,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
 
         <section>
           <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]">
-            <CheckCircle2 size={16} className="text-emerald-600" /> {tr("Quantities")}
+            <CheckCircle2 size={16} className="text-[color:var(--j-22A06B)]" /> {tr("Quantities")}
             <span className="text-xs font-normal text-[color:var(--j-626F86)]">{tr("{0} items · {1} at 0", count.lines.length, zero)}</span>
           </h3>
           <div className="space-y-3">
@@ -140,7 +140,7 @@ export default function SubmitPreview({ count, open, busy, onClose, onSubmit }: 
           <SignaturePad onChange={setSignature} />
           <label className="mt-2 block">
             <span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Signer's name")}</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={cx(inputClass, nameMissing && "border-red-400")} />
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={cx(inputClass, nameMissing && "border-[color:var(--j-F87168)]")} />
           </label>
         </section>
       </div>

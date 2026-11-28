@@ -200,7 +200,7 @@ export default function ReviewsPage() {
                   <li key={r.id} className="relative">
                     {canReview && pickable(r) && <input type="checkbox" className="absolute right-3 top-3 z-[1] h-5 w-5 accent-[color:var(--j-0C66E4)]" checked={picked.has(r.id)}
                       onChange={() => pick(r.id)} aria-label={tr("Select {0}", r.facility_name)} />}
-                    <Link href={`/cost-control/reviews/${r.id}`} className={cx("block rounded-[3px] border bg-white p-3.5 active:bg-[color:var(--j-F7F8F9)]", picked.has(r.id) ? "border-brand-400" : "border-[color:var(--j-DCDFE4)]", canReview && pickable(r) && "pr-11")}>
+                    <Link href={`/cost-control/reviews/${r.id}`} className={cx("block rounded-[3px] border bg-white p-3.5 active:bg-[color:var(--j-F7F8F9)]", picked.has(r.id) ? "border-[color:var(--j-388BFF)]" : "border-[color:var(--j-DCDFE4)]", canReview && pickable(r) && "pr-11")}>
                       <span className="flex items-start justify-between gap-3">
                         <span className="min-w-0">
                           <span className="block truncate text-sm font-semibold text-[color:var(--j-172B4D)]">{r.facility_name}</span>
@@ -336,8 +336,8 @@ const EXPORT_ICON: Record<ExportKind, React.ReactNode> = {
   ENTERED: <Send size={16} />, SUBMITTED: <Clock size={16} />, ALL: <Layers size={16} />, REVIEWED: <CheckCircle2 size={16} />,
 };
 const EXPORT_TONE: Record<ExportKind, string> = {
-  ENTERED: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", SUBMITTED: "bg-amber-50 text-amber-600", ALL: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]",
-  REVIEWED: "bg-emerald-50 text-emerald-600",
+  ENTERED: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", SUBMITTED: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-B38600)]", ALL: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]",
+  REVIEWED: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-22A06B)]",
 };
 const EXPORT_FILE: Record<ExportKind, string> = { ENTERED: "Entered", SUBMITTED: "Waiting Review", ALL: "All", REVIEWED: "Approved" };
 
@@ -391,13 +391,13 @@ function BulkReview({ action, rows, onClose, onDone }: { action: Bulk; rows: Row
               <li key={r.id} className="flex items-center gap-3 px-3 py-2 text-sm">
                 <span className="min-w-0 flex-1"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{r.facility_name}</span>
                   <span className="text-[11px] text-[color:var(--j-626F86)]">{r.number} · {countTypeLabel(r.count_type)} · {dmy(r.business_date)}</span>
-                  {d && !d.ok && <span className="block text-[11px] text-red-700">{d.msg}</span>}</span>
+                  {d && !d.ok && <span className="block text-[11px] text-[color:var(--j-AE2E24)]">{d.msg}</span>}</span>
                 {d ? <Badge tone={d.ok ? "green" : "red"}>{d.ok ? tr("Done") : tr("Failed")}</Badge> : busy ? <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("Waiting…")}</span> : null}
               </li>
             );
           })}
         </ul>
-        {failed.length > 0 && <p className="text-xs text-red-700">{tr("{0} counts could not be changed (they may have been reviewed meanwhile)", failed.length)}</p>}
+        {failed.length > 0 && <p className="text-xs text-[color:var(--j-AE2E24)]">{tr("{0} counts could not be changed (they may have been reviewed meanwhile)", failed.length)}</p>}
       </div>
     </Drawer>
   );

@@ -356,7 +356,7 @@ function HeaderInfo({ label, info, alignRight }: { label: string; info: Info; al
       <button type="button" aria-label={tr("About {0}", label)} className="rounded-full p-0.5 text-[color:var(--j-8590A2)] outline-none hover:text-[color:var(--j-44546F)] focus-visible:text-[color:var(--j-0C66E4)] focus-visible:ring-2 focus-visible:ring-[color:var(--j-85B8FF)]">
         <InfoIcon size={12} aria-hidden />
       </button>
-      <span role="tooltip" className={cx("pointer-events-none invisible absolute top-full z-30 mt-1.5 w-72 whitespace-normal rounded-[3px] bg-neutral-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed tracking-normal text-neutral-100 opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100",
+      <span role="tooltip" className={cx("pointer-events-none invisible absolute top-full z-30 mt-1.5 w-72 whitespace-normal rounded-[3px] bg-neutral-900 px-3 py-2 text-left text-[11px] font-normal leading-relaxed tracking-normal text-[color:var(--j-F1F2F4)] opacity-0 shadow-lg transition-opacity group-hover/info:visible group-hover/info:opacity-100 group-focus-within/info:visible group-focus-within/info:opacity-100",
         alignRight ? "right-0" : "left-1/2 -translate-x-1/2")}>
         <span className="mb-1 block font-semibold text-white">{label}</span>
         <span className="block">{info.source()}</span>
@@ -481,7 +481,7 @@ function CostGroupForm({ category, minFrom, onCancel, onSaved }: { category: Cat
         <Button size="sm" onClick={() => void save()} loading={busy} disabled={!note.trim()}>{tr("Save")}</Button>
       </div>
       <p className="self-center text-[11px] text-[color:var(--j-626F86)]">{tr("Valid from {0} at the earliest: a closed month keeps its figures.", dmyIso(minFrom))}</p>
-      {err && <p className="text-xs text-red-700 sm:col-span-2">{err}</p>}
+      {err && <p className="text-xs text-[color:var(--j-AE2E24)] sm:col-span-2">{err}</p>}
     </div>
   );
 }
@@ -525,7 +525,7 @@ function SoDialog({ row, which, onClose, onSaved }: { row: Row; which: "soStart"
     <Dialog open size="sm" onClose={onClose} title={tr("{0} · {1}", which === "soStart" ? tr("SO awal") : tr("SO akhir"), row.branchName)}
       description={tr("Stock value on {0}", dmy(so.date))}
       footer={<>
-        {so.override && <Button variant="ghost" className="mr-auto text-red-600" disabled={busy} onClick={() => void send({ value: null, note: "" })}>{tr("Use the ESB value")}</Button>}
+        {so.override && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" disabled={busy} onClick={() => void send({ value: null, note: "" })}>{tr("Use the ESB value")}</Button>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!value.trim() || !note.trim()} onClick={() => void send({ value: Number(value.replace(/\./g, "").replace(",", ".")), note })}>{tr("Save correction")}</Button>
       </>}>
@@ -536,7 +536,7 @@ function SoDialog({ row, which, onClose, onSaved }: { row: Row; which: "soStart"
         <Field label={tr("Value Used (Rp)")} required><Input inputMode="numeric" value={value} onChange={e => setValue(e.target.value)} /></Field>
         <Field label={tr("Reason")} required><Input value={note} onChange={e => setNote(e.target.value)} placeholder={tr("e.g. espresso stock counted separately")} /></Field>
         {so.override && <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("Last corrected by {0}", so.override.by ?? "-")}</p>}
-        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-[color:var(--j-C9372C)]">{error}</p>}
       </div>
     </Dialog>
   );

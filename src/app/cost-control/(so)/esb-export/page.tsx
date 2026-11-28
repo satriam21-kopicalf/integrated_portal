@@ -114,7 +114,7 @@ export default function EsbExportPage() {
           <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {(batches ?? []).map((b) => (
               <li key={b.id} className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-5">
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-emerald-50 text-emerald-700"><FileSpreadsheet size={16} /></span>
+                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]"><FileSpreadsheet size={16} /></span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-[color:var(--j-172B4D)]">{b.number} · {countTypeLabel(b.count_type)} · {fmtDay(b.business_date)}</p>
                   <p className="truncate text-xs text-[color:var(--j-626F86)]">

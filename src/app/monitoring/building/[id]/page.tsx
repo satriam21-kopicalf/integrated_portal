@@ -55,11 +55,11 @@ export default function ProjectPage() {
         <StatStrip columns={4} label={tr("Project")} gridClassName="grid-cols-2 lg:grid-cols-4">
           <Stat label={tr("Progress")} value={`${num(p.progress, 1)}%`}><p>{tr("plan today {0}%", num(p.plannedToday, 1))}</p><ProgressBar value={p.progress} plan={p.plannedToday} className="mt-1.5" /></Stat>
           <Stat label="RAB" value={rp(p.rabTotal)}><Badge tone={RAB_TONE[p.rabStatus]}>{RAB_LABEL[p.rabStatus]()}{p.rabVersion ? ` · v${p.rabVersion}` : ""}</Badge>
-            {p.budget != null && <p className={cx(over && "font-semibold text-red-700")}>{tr("Budget {0}", rp(p.budget))}</p>}</Stat>
+            {p.budget != null && <p className={cx(over && "font-semibold text-[color:var(--j-AE2E24)]")}>{tr("Budget {0}", rp(p.budget))}</p>}</Stat>
           <Stat label={tr("Actual")} value={rp(p.actualTotal)}><p>{tr("{0} of {1} lines bought", p.bought, p.lines.length)}</p>
             {p.rabTotal ? <p>{num(((p.actualTotal ?? 0) / p.rabTotal) * 100, 1)}% {tr("of the RAB")}</p> : null}</Stat>
           <Stat label={tr("Status")} value={<Badge tone={STATUS_TONE[p.status]}>{STATUS_LABEL[p.status]()}</Badge>}>
-            <p className={cx(p.late && "font-semibold text-red-700")}>{p.planEnd ? tr("target {0}", dmy(p.planEnd)) : tr("No target yet")}{p.late ? ` · ${tr("late")}` : ""}</p>
+            <p className={cx(p.late && "font-semibold text-[color:var(--j-AE2E24)]")}>{p.planEnd ? tr("target {0}", dmy(p.planEnd)) : tr("No target yet")}{p.late ? ` · ${tr("late")}` : ""}</p>
             {p.next.length > 0 && <div className="mt-2 flex flex-wrap gap-1.5">{p.next.map((s) => <Button key={s} size="sm" variant={s === "CANCELLED" || s === "ON_HOLD" ? "secondary" : "primary"} disabled={busy} onClick={() => setStatus(s)}>{STATUS_LABEL[s]()}</Button>)}</div>}</Stat>
         </StatStrip>
         <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "summary", label: tr("Summary"), icon: <TrendingUp size={15} /> },
@@ -99,14 +99,14 @@ function Curve({ points }: { points: Full["curve"] }) {
   return (
     <figure>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={tr("S-curve: plan and actual progress")}>
-        {[0, 25, 50, 75, 100].map((v) => <g key={v}><line x1={L} x2={W - R} y1={y(v)} y2={y(v)} className="stroke-neutral-200" strokeWidth={1} /><text x={L - 6} y={y(v) + 3} textAnchor="end" className="fill-neutral-400 text-[10px]">{v}%</text></g>)}
-        {ticks.map((i) => <text key={i} x={x(i)} y={H - 8} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-neutral-400 text-[10px]">{dmy(points[i].day).slice(0, 5)}</text>)}
-        <path d={plan} fill="none" className="stroke-neutral-400" strokeWidth={2} strokeDasharray="5 4" />
+        {[0, 25, 50, 75, 100].map((v) => <g key={v}><line x1={L} x2={W - R} y1={y(v)} y2={y(v)} className="stroke-[color:var(--j-DCDFE4)]" strokeWidth={1} /><text x={L - 6} y={y(v) + 3} textAnchor="end" className="fill-[color:var(--j-8590A2)] text-[10px]">{v}%</text></g>)}
+        {ticks.map((i) => <text key={i} x={x(i)} y={H - 8} textAnchor={i === 0 ? "start" : i === points.length - 1 ? "end" : "middle"} className="fill-[color:var(--j-8590A2)] text-[10px]">{dmy(points[i].day).slice(0, 5)}</text>)}
+        <path d={plan} fill="none" className="stroke-[color:var(--j-8590A2)]" strokeWidth={2} strokeDasharray="5 4" />
         {act.length > 0 && <path d={actual} fill="none" className="stroke-[color:var(--j-0C66E4)]" strokeWidth={2.5} />}
         {act.length > 0 && <circle cx={x(points.indexOf(act[act.length - 1]))} cy={y(act[act.length - 1].actual ?? 0)} r={4} className="fill-[color:var(--j-0C66E4)]" />}
       </svg>
       <figcaption className="mt-1 flex flex-wrap gap-4 text-xs text-[color:var(--j-44546F)]">
-        <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-5 border-t-2 border-dashed border-neutral-400" />{tr("Plan")}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-5 border-t-2 border-dashed border-[color:var(--j-8590A2)]" />{tr("Plan")}</span>
         <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-5 bg-[color:var(--j-0C66E4)]" />{tr("Actual")}</span>
       </figcaption>
     </figure>
@@ -165,7 +165,7 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
       <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--j-DCDFE4)] p-4 sm:px-5">
         <span className="mr-auto flex flex-wrap items-center gap-2 text-sm"><Badge tone={RAB_TONE[p.rabStatus]}>{RAB_LABEL[p.rabStatus]()}</Badge>
           <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{rp(p.rabTotal)}</span>
-          {p.rabStatus === "DRAFT" && p.rabVersion > 0 && <span className="text-xs text-amber-700">{tr("Changed after v{0}: approve again", p.rabVersion)}</span>}</span>
+          {p.rabStatus === "DRAFT" && p.rabVersion > 0 && <span className="text-xs text-[color:var(--j-7F5F01)]">{tr("Changed after v{0}: approve again", p.rabVersion)}</span>}</span>
         <ExcelIconButton boxed label={tr("Export to Excel")} onClick={exportXlsx} />
         {!locked && <Button variant="secondary" onClick={() => setSection({ name: "" })}><Plus size={14} />{tr("Section")}</Button>}
         {p.rabStatus === "DRAFT" && !locked && <Button disabled={busy || !p.lines.length} onClick={() => void act("/rab/submit", {}, tr("RAB sent for approval"))}><Send size={14} />{tr("Send for approval")}</Button>}
@@ -180,7 +180,7 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
             <header className="flex flex-wrap items-center gap-2 bg-[color:var(--j-F7F8F9)] px-4 py-2 sm:px-5">
               <h3 className="mr-auto text-sm font-semibold text-[color:var(--j-172B4D)]">{s.name}<span className="ml-2 text-xs font-normal text-[color:var(--j-626F86)]">{rp(s.total)}{s.actual ? ` · ${tr("actual {0}", rp(s.actual))}` : ""}</span></h3>
               {!locked && <><button type="button" onClick={() => setSection({ id: s.id, name: s.name })} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-DCDFE4)] hover:text-[color:var(--j-172B4D)]" aria-label={tr("Rename {0}", s.name)}><Pencil size={13} /></button>
-                {!rows.length && <button type="button" onClick={() => void act(`/sections/${s.id}`, undefined, tr("Section removed"), "DELETE")} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", s.name)}><Trash2 size={13} /></button>}
+                {!rows.length && <button type="button" onClick={() => void act(`/sections/${s.id}`, undefined, tr("Section removed"), "DELETE")} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove {0}", s.name)}><Trash2 size={13} /></button>}
                 <Button size="sm" variant="secondary" onClick={() => setLine({ sectionId: s.id, kind: "MATERIAL", qty: 1 })}><Plus size={13} />{tr("RAB row")}</Button></>}
             </header>
             {rows.length > 0 && (
@@ -196,17 +196,17 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
                       <tr key={l.id} className="align-top">
                         <td className="px-4 py-2 sm:pl-5"><span className="block font-medium text-[color:var(--j-172B4D)]">{l.description}</span>
                           <span className="text-[11px] text-[color:var(--j-626F86)]">{LINE_KIND_LABEL[l.kind]()}{l.spec ? ` · ${l.spec}` : ""}{l.materialId ? ` · ${tr("catalog")}` : ""}{l.note ? ` · ${l.note}` : ""}</span>
-                          {moved && <span className="block text-[11px] text-amber-700">{tr("Catalog now {0}", rp(l.catalogPrice))}</span>}
-                          {l.fundNumber && <span className={cx("mt-0.5 inline-block rounded px-1.5 text-[10px] font-medium", taken(l) ? "bg-blue-50 text-blue-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)] line-through")}>{l.fundNumber}</span>}</td>
+                          {moved && <span className="block text-[11px] text-[color:var(--j-7F5F01)]">{tr("Catalog now {0}", rp(l.catalogPrice))}</span>}
+                          {l.fundNumber && <span className={cx("mt-0.5 inline-block rounded px-1.5 text-[10px] font-medium", taken(l) ? "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)] line-through")}>{l.fundNumber}</span>}</td>
                         <td className="px-2 py-2 text-right tabular-nums">{num(l.qty, 3)} {l.unit ?? ""}</td>
                         <td className="px-2 py-2 text-right tabular-nums">{rp(l.unitPrice)}{l.priceOn && <span className="block text-[10px] text-[color:var(--j-626F86)]">{dmy(l.priceOn)}</span>}</td>
                         <td className="px-2 py-2 text-right font-semibold tabular-nums text-[color:var(--j-172B4D)]">{rp(l.amount)}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{l.actualAmount != null ? <>{rp(l.actualAmount)}<span className={cx("block text-[10px]", (diff ?? 0) > 0 ? "text-red-700" : "text-emerald-700")}>{(diff ?? 0) > 0 ? "+" : ""}{rp(diff)}</span></> : <span className="text-[color:var(--j-626F86)]">—</span>}</td>
+                        <td className="px-2 py-2 text-right tabular-nums">{l.actualAmount != null ? <>{rp(l.actualAmount)}<span className={cx("block text-[10px]", (diff ?? 0) > 0 ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-216E4E)]")}>{(diff ?? 0) > 0 ? "+" : ""}{rp(diff)}</span></> : <span className="text-[color:var(--j-626F86)]">—</span>}</td>
                         <td className="truncate px-2 py-2 text-[color:var(--j-44546F)]" title={l.vendor ?? undefined}>{l.vendor ?? "—"}</td>
                         <td className="px-2 py-2 text-right whitespace-nowrap">
                           {!locked && <button type="button" onClick={() => setActual(l)} className="rounded px-1.5 py-1 text-[11px] font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]">{tr("Actual")}</button>}
                           {!locked && <button type="button" onClick={() => setLine(l)} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]" aria-label={tr("Edit {0}", l.description)}><Pencil size={13} /></button>}
-                          {!locked && <button type="button" onClick={() => void act(`/lines/${l.id}`, undefined, tr("Line removed"), "DELETE")} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", l.description)}><Trash2 size={13} /></button>}
+                          {!locked && <button type="button" onClick={() => void act(`/lines/${l.id}`, undefined, tr("Line removed"), "DELETE")} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove {0}", l.description)}><Trash2 size={13} /></button>}
                         </td>
                       </tr>);
                   })}</tbody>
@@ -345,7 +345,7 @@ function LineDrawer({ p, line, busy, onClose, onSave }: { p: Full; line: Partial
               {list.length === 0 ? <li className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{tr("Not in the catalog: type the description below")}</li> : list.map((m) => (
                 <li key={m.id}><button type="button" onClick={() => pick(m)} className="flex w-full items-start justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-[color:var(--j-F7F8F9)]">
                   <span className="min-w-0"><span className="block font-medium text-[color:var(--j-172B4D)]">{m.label}</span><span className="text-[color:var(--j-626F86)]">{m.group}{m.vendor ? ` · ${m.vendor}` : ""}</span></span>
-                  <span className="shrink-0 text-right tabular-nums"><span className="block font-semibold">{rp(m.price)}</span>{m.priceOn && <span className={cx("text-[10px]", m.stale ? "text-amber-700" : "text-[color:var(--j-626F86)]")}>{dmy(m.priceOn)}</span>}</span></button></li>))}
+                  <span className="shrink-0 text-right tabular-nums"><span className="block font-semibold">{rp(m.price)}</span>{m.priceOn && <span className={cx("text-[10px]", m.stale ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")}>{dmy(m.priceOn)}</span>}</span></button></li>))}
             </ul>}</div>}
       </Group>
       <Group title={tr("RAB row")}>
@@ -401,7 +401,7 @@ function Progress({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
         {p.stages.map((s) => (
           <li key={s.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_10rem_12rem] sm:items-center sm:gap-4 sm:px-5">
             <span className="min-w-0"><span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{s.name}</span>
-              <span className={cx("text-[11px]", s.late ? "text-red-700" : "text-[color:var(--j-626F86)]")}>{tr("weight {0}%", num(s.weight))} · {s.planStart ? `${dmy(s.planStart)} – ${s.planEnd ? dmy(s.planEnd) : "?"}` : tr("no plan dates")}{s.late ? ` · ${tr("late")}` : ""}{s.doneOn ? ` · ${tr("done {0}", dmy(s.doneOn))}` : ""}</span></span>
+              <span className={cx("text-[11px]", s.late ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-626F86)]")}>{tr("weight {0}%", num(s.weight))} · {s.planStart ? `${dmy(s.planStart)} – ${s.planEnd ? dmy(s.planEnd) : "?"}` : tr("no plan dates")}{s.late ? ` · ${tr("late")}` : ""}{s.doneOn ? ` · ${tr("done {0}", dmy(s.doneOn))}` : ""}</span></span>
             <ProgressBar value={s.progress} />
             <span className="text-right text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{num(s.progress, 1)}%</span>
           </li>))}
@@ -419,7 +419,7 @@ function Progress({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
             </li>))}</ol>)}
       </div>
       {stages && <Drawer open onClose={() => setStages(null)} size="lg" icon={<ListChecks size={18} />} title={tr("Stages of the work")} description={tr("The weights make 100%; the progress of a stage kept stays")}
-        footer={<div className="flex items-center justify-between gap-2"><span className={cx("text-sm font-semibold", Math.abs(weight - 100) > 0.01 ? "text-red-700" : "text-emerald-700")}>{tr("Total weight {0}%", num(weight))}</span>
+        footer={<div className="flex items-center justify-between gap-2"><span className={cx("text-sm font-semibold", Math.abs(weight - 100) > 0.01 ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-216E4E)]")}>{tr("Total weight {0}%", num(weight))}</span>
           <span className="flex gap-2"><Button variant="secondary" onClick={() => setStages(null)}>{tr("Cancel")}</Button>
             <Button disabled={busy || Math.abs(weight - 100) > 0.01} onClick={async () => { if (await act("/stages", { stages }, tr("Stages saved"), "PUT")) setStages(null); }}>{tr("Save")}</Button></span></div>}>
         <ul className="space-y-3">{stages.map((s, i) => (

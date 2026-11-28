@@ -231,7 +231,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
           </Stat>
           <Stat label={tr("Branches")} icon={<Store size={13} />} onClick={() => setView("branches")} active={view === "branches"} value={sm ? fmtNumber(sm.branches) : <StatSkeleton />} />
           <Stat label={tr("Waiting Review")} icon={<Tags size={13} />} onClick={() => setStatus(status === "submitted" ? "" : "submitted")} active={status === "submitted"}
-            value={sm ? <span className={sm.submitted ? "text-amber-600" : undefined}>{fmtNumber(sm.submitted)}</span> : <StatSkeleton />} />
+            value={sm ? <span className={sm.submitted ? "text-[color:var(--j-B38600)]" : undefined}>{fmtNumber(sm.submitted)}</span> : <StatSkeleton />} />
           <Stat label={tr("Waste Value")} icon={<Package size={13} />} onClick={() => setView("items")} active={view === "items"} value={sm ? fmtRp(sm.value ?? 0) : <StatSkeleton />}>
             {sm && <p>{sm.unpriced ? tr("{0} entries without a price", fmtNumber(sm.unpriced)) : tr("Without rejected entries")}</p>}
           </Stat>
@@ -258,7 +258,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                 <input type="checkbox" checked={picked.size > 0 && picked.size === rows.length}
                   onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((x) => x.id)) : new Set())} />
                 {tr("{0} of {1} selected", picked.size, rows.length)}
-                {picked.size > MAX_REVIEW && <span className="font-medium text-red-600">{tr("At most {0} entries at once", fmtNumber(MAX_REVIEW))}</span>}
+                {picked.size > MAX_REVIEW && <span className="font-medium text-[color:var(--j-C9372C)]">{tr("At most {0} entries at once", fmtNumber(MAX_REVIEW))}</span>}
               </label>
               <span className="flex-1" />
               <Button size="sm" variant="secondary" disabled={!picked.size} onClick={() => setRecat(true)}><Tags size={14} />{tr("Change category")}</Button>
@@ -310,7 +310,7 @@ export default function WasteMonitor({ mode }: { mode: "monitor" | "review" }) {
                         <td className="max-w-[12rem] px-3 py-2"><p className="truncate text-[color:var(--j-44546F)]">{e.branchName}</p></td>
                         <td className="whitespace-nowrap px-3 py-2 tabular-nums text-[color:var(--j-44546F)]">{dmy(e.businessDate)}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(e.qty)} <span className="text-[color:var(--j-626F86)]">{e.unit}</span></td>
-                        <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", e.value == null ? "text-amber-700" : "font-medium text-[color:var(--j-172B4D)]")}>{e.value == null ? tr("No price") : fmtRp(e.value)}</td>
+                        <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", e.value == null ? "text-[color:var(--j-7F5F01)]" : "font-medium text-[color:var(--j-172B4D)]")}>{e.value == null ? tr("No price") : fmtRp(e.value)}</td>
                         <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-[color:var(--j-44546F)]">{e.category || "—"}</p>{e.note && <p className="truncate text-[11px] text-[color:var(--j-626F86)]" title={e.note}>“{e.note}”</p>}</td>
                         <td className="max-w-[10rem] px-3 py-2"><p className="truncate text-[color:var(--j-44546F)]">{e.name}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{wibDateTime(e.createdAt)}</p></td>
                         <td className="px-3 py-2"><span className="flex flex-wrap items-center gap-1"><Badge tone={statusTone(e.status)}>{statusLabel(e.status)}</Badge>
@@ -502,7 +502,7 @@ function ItemsTable({ res }: { res: MonitorData }) {
         <tr key={`${i.scope}:${i.code}:${i.unit}`} className="hover:bg-[color:var(--j-F7F8F9)]"><td className={rank}>{(paged.page - 1) * paged.size + n + 1}</td>
           <td className="px-3 py-2"><p className="font-medium text-[color:var(--j-172B4D)]">{i.name}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{i.code}</p></td>
           <td className="px-3 py-2"><Badge tone="slate">{scopeLabel(i.scope)}</Badge></td><td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtQty(i.qty)} <span className="text-[color:var(--j-626F86)]">{i.unit}</span></td>
-          <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-amber-700" : "font-medium text-[color:var(--j-172B4D)]")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>
+          <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", i.value == null ? "text-[color:var(--j-7F5F01)]" : "font-medium text-[color:var(--j-172B4D)]")}>{i.value == null ? tr("No price") : fmtRp(i.value)}</td>
           <td className="px-3 py-2"><Share value={i.value} total={total} /></td>
           <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(i.entries)}</td><td className="px-3 py-2 pr-5 text-right tabular-nums">{fmtNumber(i.branches)}</td></tr>
       ))}</tbody>

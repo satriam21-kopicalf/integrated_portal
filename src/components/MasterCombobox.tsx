@@ -112,7 +112,7 @@ export default function MasterCombobox({ kind, id, value, onChange, canAdd, plac
           )}
         </ul>
       )}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-[color:var(--j-C9372C)]">{error}</p>}
     </div>
   );
 }

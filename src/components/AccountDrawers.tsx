@@ -110,7 +110,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
       description={tr('Your identity on the portal. Fields marked * complete your profile.')}
       footer={
         <>
-          {done && !dirty && <span className="mr-auto flex items-center gap-1.5 text-sm font-medium text-emerald-700"><Check size={16} /> {tr('Profile saved')}</span>}
+          {done && !dirty && <span className="mr-auto flex items-center gap-1.5 text-sm font-medium text-[color:var(--j-216E4E)]"><Check size={16} /> {tr('Profile saved')}</span>}
           <button type="button" className={buttonSecondary} onClick={onClose}>{done && !dirty ? tr('Close') : tr('Cancel')}</button>
           <button type="submit" form="my-profile" className={buttonPrimary} disabled={saving || !dirty}>
             {saving && <Loader2 size={16} className="animate-spin" />} {tr('Save profile')}
@@ -122,7 +122,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
         {/* identity (2026-11-16, the kopicalf-hrms profile card): one photo with the name, title, role, HRMS and how
             complete the profile is; the photo buttons under the name */}
         <div className="-mx-5 -mt-5 mb-6 border-b border-[color:var(--j-DCDFE4)] sm:-mx-6">
-          <div className="h-14 bg-gradient-to-r from-brand-800 via-brand-700 to-brand-500" aria-hidden />
+          <div className="h-14 bg-[color:var(--j-0C66E4)]" aria-hidden />
           <div className="px-5 pb-5 pt-4 sm:px-6">
             <AvatarEditor name={form.fullName || user.username} src={user.avatarUrl} endpoint="/api/auth/me/avatar" onSaved={setUser}>
               <div>
@@ -147,12 +147,12 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
         </div>
 
         {!user.profileComplete && (
-          <div className="mt-6 rounded-[3px] border border-amber-200 bg-amber-50/70 px-3.5 py-3 text-sm text-amber-900">
+          <div className="mt-6 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/70 px-3.5 py-3 text-sm text-[color:var(--j-7F5F01)]">
             <p className="font-medium">{tr('Complete your profile')}</p>
-            <p className="mt-0.5 text-amber-800/90">{tr('Your administrator only set up your sign-in. Please add your own details below.')}</p>
+            <p className="mt-0.5 text-[color:var(--j-7F5F01)]/90">{tr('Your administrator only set up your sign-in. Please add your own details below.')}</p>
             <div className="mt-2.5 flex items-center gap-2">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-amber-100">
-                <div className="h-full rounded-full bg-amber-500 transition-[width]" style={{ width: `${(filled / REQUIRED_PROFILE_KEYS.length) * 100}%` }} />
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[color:var(--j-F8E6A0)]">
+                <div className="h-full rounded-full bg-[color:var(--j-E2B203)] transition-[width]" style={{ width: `${(filled / REQUIRED_PROFILE_KEYS.length) * 100}%` }} />
               </div>
               <span className="text-xs font-medium tabular-nums">{filled} {tr('of')} {REQUIRED_PROFILE_KEYS.length} {tr('required')}</span>
             </div>
@@ -160,7 +160,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
         )}
 
         {error && !PROFILE_KEYS.includes(error.field as keyof ProfileValues) && (
-          <p className="mt-6 flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
+          <p className="mt-6 flex items-start gap-2 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
         )}
 
         <ProfileFields values={form} onChange={set} fieldError={fieldError} idPrefix="me" currentBranchName={user.workBranchName} locked={user.hrmsLocked ?? []} />
@@ -170,7 +170,7 @@ function MyProfileDrawer({ onClose, onChangePassword }: { onClose: () => void; o
             {([
               [tr('Username'), user.username],
               [tr('Email'), user.email],
-              [tr('Role'), <span key="r" className="inline-flex items-center gap-1">{user.role === 'superadmin' && <ShieldCheck size={13} className="text-red-600" />}{role}</span>],
+              [tr('Role'), <span key="r" className="inline-flex items-center gap-1">{user.role === 'superadmin' && <ShieldCheck size={13} className="text-[color:var(--j-C9372C)]" />}{role}</span>],
               [tr('Password changed'), user.passwordChangedAt ? formatDateTime(user.passwordChangedAt) : '—'],
             ] as [string, ReactNode][]).map(([k, v]) => (
               <div key={k} className="grid grid-cols-[9rem_1fr] gap-3 py-2">
@@ -217,7 +217,7 @@ function ProfileNudge({ user, onOpen }: { user: AuthUser; onOpen: () => void }) 
     <div className="fixed inset-x-4 bottom-4 z-[70] sm:left-auto sm:w-[360px]" role="status" data-bottom-notice>
       <div className="drawer-backdrop rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-xl">
         <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-amber-50 text-amber-600"><CircleUserRound size={20} /></span>
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-B38600)]"><CircleUserRound size={20} /></span>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr('Complete your profile')}</p>
             <p className="mt-0.5 text-sm text-[color:var(--j-626F86)]">{tr('Add your full name, phone number, job title and department.')}</p>

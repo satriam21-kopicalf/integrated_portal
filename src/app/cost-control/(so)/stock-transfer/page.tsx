@@ -111,18 +111,18 @@ function Transfers() {
       <StatStrip label={tr("Summary")} columns={5}>
         <Stat label={tr("Transfers")} emphasis icon={<Truck size={13} />} value={s ? fmtNumber(s.total) : <StatSkeleton />}>{s && <p>{tr("{0} processed in ESB", fmtNumber(s.processed + s.received))}</p>}</Stat>
         <Stat label={tr("Pending")} icon={<ListChecks size={13} />} active={f.status === "submitted"} onClick={s ? () => setF({ ...f, status: f.status === "submitted" ? "" : "submitted" }) : undefined}
-          value={s ? <span className={s.submitted ? "text-amber-700" : undefined}>{fmtNumber(s.submitted + s.accepted)}</span> : <StatSkeleton />}>{s && <p>{tr("waiting for Cost Control")}</p>}</Stat>
+          value={s ? <span className={s.submitted ? "text-[color:var(--j-7F5F01)]" : undefined}>{fmtNumber(s.submitted + s.accepted)}</span> : <StatSkeleton />}>{s && <p>{tr("waiting for Cost Control")}</p>}</Stat>
         <Stat label={tr("To Process in ESB")} icon={<Package size={13} />} active={f.status === "approved"} onClick={s ? () => setF({ ...f, status: f.status === "approved" ? "" : "approved" }) : undefined}
-          value={s ? <span className={s.approved ? "text-blue-700" : undefined}>{fmtNumber(s.approved)}</span> : <StatSkeleton />}>{s && <p>{tr("approved, not in ESB yet")}</p>}</Stat>
+          value={s ? <span className={s.approved ? "text-[color:var(--j-0055CC)]" : undefined}>{fmtNumber(s.approved)}</span> : <StatSkeleton />}>{s && <p>{tr("approved, not in ESB yet")}</p>}</Stat>
         <Stat label={tr("Value Processed")} icon={<CheckCircle2 size={13} />} value={s ? rpText(s.value) : <StatSkeleton />}>{s && <p>{tr("does not move the portal stock")}</p>}</Stat>
         <Stat label={tr("Rejected")} icon={<Tags size={13} />} value={s ? fmtNumber(s.rejected) : <StatSkeleton />}>{s && <p>{tr("{0} cancelled", fmtNumber(s.cancelled))}</p>}</Stat>
       </StatStrip>
       <Panel className="mt-4" toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search number, outlet or person")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_F())}
         extra={<div className="ml-auto"><ExcelExportMenu footer={<>{dmy(f.period.from)} – {dmy(f.period.to)}</>} choices={[
           { key: "list", label: tr("Transfers"), hint: tr("Every transfer with its steps and ESB number"), icon: <Truck size={16} />, tone: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", count: res ? rows.length : null, run: safe(exportList) },
-          { key: "lines", label: tr("Transfer Lines"), hint: tr("Every material of every transfer"), icon: <ClipboardList size={16} />, tone: "bg-violet-50 text-violet-600", run: safe(exportLines) },
-          { key: "outlets", label: tr("Per Outlet"), hint: tr("Value in and out of every outlet (processed)"), icon: <Store size={16} />, tone: "bg-emerald-50 text-emerald-600", run: safe(exportOutlets) },
-          { key: "materials", label: tr("Per Material"), hint: tr("Quantity and value per material (processed)"), icon: <Package size={16} />, tone: "bg-amber-50 text-amber-600", run: safe(exportMaterials) },
+          { key: "lines", label: tr("Transfer Lines"), hint: tr("Every material of every transfer"), icon: <ClipboardList size={16} />, tone: "bg-[color:var(--j-F3F0FF)] text-[color:var(--j-6E5DC6)]", run: safe(exportLines) },
+          { key: "outlets", label: tr("Per Outlet"), hint: tr("Value in and out of every outlet (processed)"), icon: <Store size={16} />, tone: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-22A06B)]", run: safe(exportOutlets) },
+          { key: "materials", label: tr("Per Material"), hint: tr("Quantity and value per material (processed)"), icon: <Package size={16} />, tone: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-B38600)]", run: safe(exportMaterials) },
         ]} /></div>} />}
         footer={res ? <><span>{tr("{0} shown", fmtNumber(rows.length))}{res.truncated ? ` · ${tr("the latest 1,000 of the period")}` : ""}</span><PageNav paged={paged} /></> : undefined}>
         {error ? <ErrorState message={error} onRetry={() => void load()} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={7} /></tbody></table>
@@ -133,7 +133,7 @@ function Transfers() {
                 <SortTh k="value" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5" align="right" first="desc">{tr("Value")}</SortTh><SortTh k="status" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5">{tr("Status")}</SortTh>
                 <SortTh k="label" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5">{tr("ESB document")}</SortTh></tr></thead>
               <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((t) => (
-                <tr key={t.id} className={cx("cursor-pointer", (t.status === "submitted" || t.status === "accepted" || t.status === "approved") && res.canDecide ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => setOpen(t.id)}>
+                <tr key={t.id} className={cx("cursor-pointer", (t.status === "submitted" || t.status === "accepted" || t.status === "approved") && res.canDecide ? "bg-[color:var(--j-FFF7D6)]/40 hover:bg-[color:var(--j-FFF7D6)]" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => setOpen(t.id)}>
                   <td className="py-2.5 pl-5 pr-3 font-mono text-[13px] font-medium text-[color:var(--j-172B4D)]">{t.number}</td>
                   <td className="max-w-[18rem] px-3 py-2.5"><p className="truncate text-[color:var(--j-172B4D)]">{shortBranch(t.fromName)} → {shortBranch(t.toName)}</p></td>
                   <td className="whitespace-nowrap px-3 py-2.5"><p className="text-[color:var(--j-44546F)]">{wibDateTime(t.requested.at)}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{t.requested.by}</p></td>

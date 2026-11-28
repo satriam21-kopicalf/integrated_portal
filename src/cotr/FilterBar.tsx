@@ -96,7 +96,7 @@ export function CotrChips<T extends string>({ value, onChange, choices, label }:
             className={cx("inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-[3px] border px-2.5 text-xs font-medium transition-colors",
               on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]")}>
             {c.label}
-            {c.count !== undefined && <span className={cx("tabular-nums", on ? "text-white/75" : c.tone === "warn" && c.count > 0 ? "font-semibold text-red-600" : "text-[color:var(--j-626F86)]")}>{c.count}</span>}
+            {c.count !== undefined && <span className={cx("tabular-nums", on ? "text-white/75" : c.tone === "warn" && c.count > 0 ? "font-semibold text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>{c.count}</span>}
           </button>
         );
       })}

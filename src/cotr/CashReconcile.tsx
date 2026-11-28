@@ -97,7 +97,7 @@ export function CashReconcile() {
                   <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{rupiah(r.operational)}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.expected)}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{r.actual === null ? "—" : rupiah(r.actual)}</td>
-                  <td className={`px-4 py-2 text-right font-semibold tabular-nums ${!r.diff ? "text-[color:var(--j-626F86)]" : r.diff < 0 ? "text-red-700" : "text-amber-700"}`}>
+                  <td className={`px-4 py-2 text-right font-semibold tabular-nums ${!r.diff ? "text-[color:var(--j-626F86)]" : r.diff < 0 ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-7F5F01)]"}`}>
                     {r.diff === null ? "—" : r.diff > 0 ? `+${rupiah(r.diff)}` : r.diff < 0 ? `−${rupiah(-r.diff)}` : "0"}</td>
                 </tr>
               ))}

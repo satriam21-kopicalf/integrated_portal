@@ -18,11 +18,11 @@ import { type Band, type Finding, type Report, type TravelPhoto, bandClass, band
 type Answer = { rating?: "OK" | "NOK" | "NA" | null; note?: string | null; fix?: string | null };
 type Shared = Omit<Report, "id"> & { answers: Record<string, Answer>; photos: TravelPhoto[]; definition: Definition; findings?: Finding[]; evaluation?: string[] };
 const RATING: Record<"OK" | "NOK" | "NA", { label: () => string; cls: string }> = {
-  OK: { label: () => tr("Meets"), cls: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
-  NOK: { label: () => tr("Does not meet"), cls: "bg-red-50 text-red-700 ring-red-200" },
+  OK: { label: () => tr("Meets"), cls: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)]" },
+  NOK: { label: () => tr("Does not meet"), cls: "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)] ring-[color:var(--j-FFD5D2)]" },
   NA: { label: () => "N/A", cls: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]" },
 };
-const CAT: Record<string, string> = { Kritikal: "bg-red-600 text-white", Mayor: "bg-amber-100 text-amber-800", Minor: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]" };
+const CAT: Record<string, string> = { Kritikal: "bg-[color:var(--j-C9372C)] text-white", Mayor: "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]", Minor: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]" };
 
 export default function TravelShare() {
   return <Suspense><View /></Suspense>;
@@ -50,7 +50,7 @@ function View() {
       <button key={p.id} type="button" onClick={() => setBig(p.id)} className="relative shrink-0" aria-label={tr("Open the photo")}>
         {/* eslint-disable-next-line @next/next/no-img-element -- photo through the share link */}
         <img src={thumb(url(p.id), 320)} alt="" loading="lazy" decoding="async" className="h-28 w-28 rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)] sm:h-32 sm:w-32" />
-        {p.kind === "AFTER" && <span className="absolute bottom-1 left-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{tr("After")}</span>}
+        {p.kind === "AFTER" && <span className="absolute bottom-1 left-1 rounded bg-[color:var(--j-22A06B)] px-1.5 py-0.5 text-[10px] font-bold text-white">{tr("After")}</span>}
       </button>))}</div>) : null;
   return (
     <div className="min-h-dvh bg-[color:var(--j-091E420F)]">
@@ -72,8 +72,8 @@ function View() {
               <p className="text-xs text-[color:var(--j-626F86)]">{[d.crew, d.supervisor].filter(Boolean).join(" & ")}</p></div>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
-            {d.late && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 font-medium text-amber-800"><Clock size={12} /> {tr("Sent late")}</span>}
-            {d.outsideRadius && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 font-medium text-amber-800"><MapPin size={12} /> {tr("Outside the outlet radius")}</span>}
+            {d.late && <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--j-FFF7D6)] px-2 py-1 font-medium text-[color:var(--j-7F5F01)]"><Clock size={12} /> {tr("Sent late")}</span>}
+            {d.outsideRadius && <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--j-FFF7D6)] px-2 py-1 font-medium text-[color:var(--j-7F5F01)]"><MapPin size={12} /> {tr("Outside the outlet radius")}</span>}
           </div>
         </section>
         {!!d.evaluation?.length && (
@@ -81,13 +81,13 @@ function View() {
             <ul className="mt-2 space-y-1.5 text-sm text-[color:var(--j-44546F)]">{d.evaluation.map((e) => <li key={e} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--j-0C66E4)]" />{e}</li>)}</ul></section>)}
         <section className="rounded-[3px] bg-white p-4">
           <h2 className="flex items-center justify-between text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Findings")}<span className="text-xs font-normal text-[color:var(--j-626F86)]">{d.findings?.length ?? 0}</span></h2>
-          {!d.findings?.length ? <p className="mt-2 flex items-center gap-1.5 text-sm text-emerald-700"><CheckCircle2 size={15} /> {tr("No finding in this Travel Path.")}</p> : (
+          {!d.findings?.length ? <p className="mt-2 flex items-center gap-1.5 text-sm text-[color:var(--j-216E4E)]"><CheckCircle2 size={15} /> {tr("No finding in this Travel Path.")}</p> : (
             <ul className="mt-2 space-y-3">{d.findings.map((f) => (
-              <li key={f.id} className={cx("rounded-[3px] border p-3", f.status === "FIXED" ? "border-emerald-100 bg-emerald-50/40" : "border-red-100 bg-red-50/40")}>
+              <li key={f.id} className={cx("rounded-[3px] border p-3", f.status === "FIXED" ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)]/40" : "border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]/40")}>
                 <p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]">{f.category && <span className={cx("rounded px-1.5 py-px text-[10px] font-bold uppercase", CAT[f.category] ?? CAT.Minor)}>{f.category}</span>}{f.label}</p>
                 {f.zone && <p className="text-[11px] text-[color:var(--j-626F86)]">{f.zone}</p>}
                 {f.note && <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{f.note}</p>}
-                <p className={cx("mt-1 text-xs font-medium", f.status === "FIXED" ? "text-emerald-700" : f.overdue ? "text-red-700" : "text-amber-800")}>
+                <p className={cx("mt-1 text-xs font-medium", f.status === "FIXED" ? "text-[color:var(--j-216E4E)]" : f.overdue ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-7F5F01)]")}>
                   {f.status === "FIXED" ? `${tr("Repaired")} ${wibDateTime(f.fixedAt)}${f.fixNote ? ` · ${f.fixNote}` : ""}` : f.overdue ? tr("Overdue, was due {0}", wibDateTime(f.dueAt)) : tr("Repair before {0}", wibDateTime(f.dueAt))}</p>
                 <Pics list={photosOf(f.itemKey)} />
               </li>))}</ul>)}

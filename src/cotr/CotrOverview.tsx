@@ -37,7 +37,7 @@ function Delta({ v, inverse = false }: { v: Change; inverse?: boolean }) {
   const up = v >= 0;
   const good = inverse ? !up : up;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${good ? "text-emerald-700" : "text-red-600"}`}>
+    <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${good ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-C9372C)]"}`}>
       {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{up ? "+" : "−"}{Math.abs(v * 100).toLocaleString(numberLocale(), { maximumFractionDigits: 1 })}%
     </span>
   );
@@ -91,7 +91,7 @@ function Trend({ rows }: { rows: Data["trend"] }) {
       </div>
       <div className="mt-2 flex flex-wrap gap-4 text-[11px] text-[color:var(--j-626F86)]">
         <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-[color:var(--j-0C66E4)]" />{tr("This period")}</span>
-        <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-3 bg-neutral-300" />{tr("Comparison period")}</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-3 bg-[color:var(--j-8590A2)]" />{tr("Comparison period")}</span>
       </div>
     </div>
   );
@@ -138,7 +138,7 @@ export default function CotrOverview({ from, to, compareFrom, compareTo, bare = 
     return () => { alive = false; };
   }, [from, to, compareFrom, compareTo]);
 
-  if (error) return <div className={pad}><p className="rounded-[3px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p></div>;
+  if (error) return <div className={pad}><p className="rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] px-4 py-3 text-sm text-[color:var(--j-AE2E24)]">{error}</p></div>;
   if (!data) {
     return (
       <div className={`grid gap-3 sm:grid-cols-2 xl:grid-cols-5 ${pad}`} aria-busy="true">
@@ -203,9 +203,9 @@ export default function CotrOverview({ from, to, compareFrom, compareTo, bare = 
             <div className="space-y-4">
               <div className="flex h-3 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]" role="img" aria-label={tr("Cash / QRIS")}>
                 <div className="h-full bg-[color:var(--j-0C66E4)]" style={{ width: `${(1 - qrisShare) * 100}%` }} />
-                <div className="h-full border-l-2 border-white bg-brand-300" style={{ width: `${qrisShare * 100}%` }} />
+                <div className="h-full border-l-2 border-white bg-[color:var(--j-85B8FF)]" style={{ width: `${qrisShare * 100}%` }} />
               </div>
-              {[[tr("Cash"), s.cash, 1 - qrisShare, "bg-[color:var(--j-0C66E4)]", <Banknote key="c" size={15} />], [tr("QRIS"), s.qris, qrisShare, "bg-brand-300", <QrCode key="q" size={15} />]].map(([label, v, share, dot, icon]) => (
+              {[[tr("Cash"), s.cash, 1 - qrisShare, "bg-[color:var(--j-0C66E4)]", <Banknote key="c" size={15} />], [tr("QRIS"), s.qris, qrisShare, "bg-[color:var(--j-85B8FF)]", <QrCode key="q" size={15} />]].map(([label, v, share, dot, icon]) => (
                 <div key={label as string} className="flex items-center gap-3 text-sm">
                   <span className={`h-2.5 w-2.5 flex-shrink-0 rounded-sm ${dot as string}`} />
                   <span className="flex flex-1 items-center gap-1.5 text-[color:var(--j-44546F)]">{icon as ReactNode}{label as string}</span>

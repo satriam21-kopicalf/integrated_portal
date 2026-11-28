@@ -36,9 +36,9 @@ const ATT: Record<Attendance, { label: () => string; tone: Tone } | null> = {
 };
 const OTHER: Record<Exclude<Status, "work">, () => string> = { off: () => tr("Off"), leave: () => tr("Leave"), sick: () => tr("Sick") };
 const TEMPLATE_TONE: Record<string, string> = {
-  amber: "bg-amber-50 text-amber-800 border-amber-200", blue: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] border-[color:var(--j-85B8FF)]",
-  violet: "bg-violet-50 text-violet-800 border-violet-200", green: "bg-emerald-50 text-emerald-800 border-emerald-200",
-  cyan: "bg-cyan-50 text-cyan-800 border-cyan-200", red: "bg-red-50 text-red-800 border-red-200",
+  amber: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] border-[color:var(--j-F8E6A0)]", blue: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] border-[color:var(--j-85B8FF)]",
+  violet: "bg-[color:var(--j-F3F0FF)] text-[color:var(--j-5E4DB2)] border-[color:var(--j-DFD8FD)]", green: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] border-[color:var(--j-BAF3DB)]",
+  cyan: "bg-[color:var(--j-E7F9FF)] text-[color:var(--j-206A83)] border-[color:var(--j-C6EDFB)]", red: "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)] border-[color:var(--j-FFD5D2)]",
 };
 
 /** The assignments of a cell (several areas in a day): a line that opens the slot editor. */
@@ -329,7 +329,7 @@ function RosterView() {
               {people.map((p) => { const r = recap(p.code); return (
                 <tr key={p.code}><td className="px-4 py-2"><span className="font-medium text-[color:var(--j-172B4D)]">{p.name}</span>{p.department && <span className="block text-[11px] text-[color:var(--j-626F86)]">{p.department}</span>}</td>
                   {(["scheduled", "worked", "on_time", "late", "absent", "off", "leave", "sick"] as const).map((k) => (
-                    <td key={k} className={cx("px-3 py-2 text-right tabular-nums", k === "late" && r?.late ? "text-amber-700" : k === "absent" && r?.absent ? "text-red-700" : "")}>{r?.[k] ?? 0}</td>
+                    <td key={k} className={cx("px-3 py-2 text-right tabular-nums", k === "late" && r?.late ? "text-[color:var(--j-7F5F01)]" : k === "absent" && r?.absent ? "text-[color:var(--j-AE2E24)]" : "")}>{r?.[k] ?? 0}</td>
                   ))}<td className="px-3 py-2 text-right font-semibold tabular-nums">{r?.pay ? rupiah(r.pay) : "—"}</td></tr>
               ); })}
             </tbody>

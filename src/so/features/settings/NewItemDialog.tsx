@@ -80,13 +80,13 @@ export default function NewItemDialog({ draft, onClose, onCreated }: { draft: It
                   onChange={e => setUnits(us => us.map((x, n) => (n === i ? { ...x, uom: e.target.value.toUpperCase() } : x)))} />
                 <input className={`${inputClass} h-9 text-right`} inputMode="decimal" value={u.factor} aria-label={tr("Base units in one pack")}
                   onChange={e => setUnits(us => us.map((x, n) => (n === i ? { ...x, factor: e.target.value.replace(",", ".") } : x)))} />
-                <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
+                <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove")}><Trash2 size={15} /></button>
               </li>
             ))}
           </ul>
           <button type="button" onClick={() => setUnits(us => [...us, { uom: "", factor: "" }])} className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline"><Plus size={12} /> {tr("Add pack unit")}</button>
         </div>
-        {error && <p role="alert" className="rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p role="alert" className="rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]">{error}</p>}
       </div>
     </Dialog>
   );
@@ -121,7 +121,7 @@ export function NewUnitDialog({ item, unit, onClose, onAdded }: {
         <Field label={tr("= {0} {1}", "…", item.base_uom)} required hint={tr("Base units in one {0}", uom || tr("unit"))}>
           <Input inputMode="decimal" value={factor} onChange={e => setFactor(e.target.value.replace(",", "."))} />
         </Field>
-        {error && <p role="alert" className="col-span-2 text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="col-span-2 text-sm text-[color:var(--j-C9372C)]">{error}</p>}
       </div>
     </Dialog>
   );

@@ -49,7 +49,7 @@ export function Ingredients({ entry, bare }: { entry: Entry; bare?: boolean }) {
               <tr>
                 <td className="px-3 py-1.5">{tr("Breakdown total")}{entry.grams ? <span className="ml-1 font-normal text-[color:var(--j-626F86)]">· {tr("entered")} {fmtQty(entry.grams)} g</span> : null}</td>
                 <td className="px-3 py-1.5 text-right tabular-nums">{fmtGrams(total)} g
-                  {entry.grams && diff !== 0 ? <span className={diff > 0 ? "ml-1 text-red-700" : "ml-1 text-emerald-700"}>({diff > 0 ? "+" : ""}{fmtGrams(diff)})</span> : null}</td>
+                  {entry.grams && diff !== 0 ? <span className={diff > 0 ? "ml-1 text-[color:var(--j-AE2E24)]" : "ml-1 text-[color:var(--j-216E4E)]"}>({diff > 0 ? "+" : ""}{fmtGrams(diff)})</span> : null}</td>
               </tr>
             </tfoot>
           );

@@ -7,7 +7,6 @@
 
 import { CardBody, WorkCard } from "@/so/ui/Jira";
 import { SortTh, useSort } from "@/so/ui/Sort";
-import { Tabs } from "@/components/kc";
 import { Calculator, ChevronDown, Copy, FlaskConical, Minus, Plus, RotateCcw, Scale, Search, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Page, Panel, SearchBox, SkeletonRows, fmtNumber, theadClass, useToast, PageNav, usePaged } from "@/so/ui";
@@ -256,7 +255,7 @@ function CalculatorTab({ recipes }: { recipes: Recipe[] | null }) {
               <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Enter a WIP quantity to start")}</p>
               <p className="mt-1 max-w-xs text-xs text-[color:var(--j-626F86)]">{tr("The grams of every ingredient appear here as you type, ready to copy or download.")}</p>
             </div>
-          ) : error ? <p className="p-4 text-sm text-red-600">{error}</p> : (
+          ) : error ? <p className="p-4 text-sm text-[color:var(--j-C9372C)]">{error}</p> : (
             <div className={cx(loading && !result && "opacity-60")}>
               <dl className="grid grid-cols-3 divide-x divide-[color:var(--j-F1F2F4)] border-b border-[color:var(--j-F1F2F4)] text-center">
                 <Tile k={tr("WIP")} v={fmtNumber(result?.rows.length ?? entries.length)} />

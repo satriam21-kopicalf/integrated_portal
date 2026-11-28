@@ -27,7 +27,7 @@ export default function InfoPage() {
         <RefreshCw size={14} /> {tr('Refresh')}</button>}
       stats={
         <StatStrip label={tr('Summary')} columns={4}>
-          <Stat label={STATUS.high.label()} emphasis icon={<span className="[&>svg]:h-3.5 [&>svg]:w-3.5">{STATUS.high.icon}</span>} value={c ? <span className={c.high ? 'text-red-700' : undefined}>{c.high}</span> : <StatSkeleton />}>
+          <Stat label={STATUS.high.label()} emphasis icon={<span className="[&>svg]:h-3.5 [&>svg]:w-3.5">{STATUS.high.icon}</span>} value={c ? <span className={c.high ? 'text-[color:var(--j-AE2E24)]' : undefined}>{c.high}</span> : <StatSkeleton />}>
             {c && <p>{tr('wrong until fixed')}</p>}</Stat>
           <Stat label={STATUS.warn.label()} icon={<span className="[&>svg]:h-3.5 [&>svg]:w-3.5">{STATUS.warn.icon}</span>} value={c ? c.warn : <StatSkeleton />}>
             {c && <p>{tr('to look at today')}</p>}</Stat>
@@ -82,10 +82,10 @@ function HealthCard({ card }: { card: Card }) {
             <li key={`${it.code ?? it.id ?? it.module ?? i}`} className="flex items-center gap-2 px-4 py-1.5">
               {it.status && <span className={cx('[&>svg]:h-3.5 [&>svg]:w-3.5', STATUS[it.status].dot)}>{STATUS[it.status].icon}</span>}
               <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{it.name}</span>
-              {it.diff != null ? <span className="tabular-nums text-red-700">{tr('ESB {0} · portal {1}', it.esb ?? 0, it.db ?? 0)}</span>
-                : it.failed != null || it.failedRun ? <span className="text-amber-700">{it.failedRun ? tr('sync failed') : tr('{0} failed · {1} waiting', it.failed ?? 0, it.waiting ?? 0)}</span>
+              {it.diff != null ? <span className="tabular-nums text-[color:var(--j-AE2E24)]">{tr('ESB {0} · portal {1}', it.esb ?? 0, it.db ?? 0)}</span>
+                : it.failed != null || it.failedRun ? <span className="text-[color:var(--j-7F5F01)]">{it.failedRun ? tr('sync failed') : tr('{0} failed · {1} waiting', it.failed ?? 0, it.waiting ?? 0)}</span>
                 : it.module ? <span className="tabular-nums text-[color:var(--j-626F86)]">{tr('doc {0} · {1} in 7 days{2}', it.lastDoc ? it.lastDoc.split('-').reverse().join('/') : '—', it.week ?? 0, it.drafts ? ` · ${tr('{0} drafts', it.drafts)}` : '')}</span>
-                : it.level ? <span className={it.level === 'none' ? 'text-red-700' : 'text-amber-700'}>{it.level === 'none' ? tr('no price') : tr('ESB HPP')}</span>
+                : it.level ? <span className={it.level === 'none' ? 'text-[color:var(--j-AE2E24)]' : 'text-[color:var(--j-7F5F01)]'}>{it.level === 'none' ? tr('no price') : tr('ESB HPP')}</span>
                   : it.qty != null ? <span className="tabular-nums text-[color:var(--j-626F86)]">{tr('{0} sold', it.qty.toLocaleString(numberLocale()))}</span>
                     : <span className="text-[color:var(--j-626F86)]">{it.code}</span>}
             </li>

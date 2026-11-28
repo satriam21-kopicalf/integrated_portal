@@ -180,15 +180,15 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
           </Stat>
           <Stat label={tr("Suspicious Location")} icon={<ShieldAlert size={13} />} active={f.location === "suspect"}
             onClick={s ? () => setF({ ...f, location: f.location === "suspect" ? "" : "suspect" }) : undefined}
-            value={s ? <span className={s.suspect ? "text-red-600" : undefined}>{fmtNumber(s.suspect)}</span> : <StatSkeleton />}>
+            value={s ? <span className={s.suspect ? "text-[color:var(--j-C9372C)]" : undefined}>{fmtNumber(s.suspect)}</span> : <StatSkeleton />}>
             {s && <p>{tr("{0} high risk · signs of fake GPS", fmtNumber(s.suspect_high))}</p>}
           </Stat>
         </StatStrip>
       }>
 
       {s && s.unreviewed > 0 && f.location !== "unreviewed" && (
-        <div role="alert" className="flex flex-col gap-3 rounded-[3px] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:flex-row sm:items-center">
-          <AlertTriangle size={18} className="hidden flex-shrink-0 text-red-600 sm:block" />
+        <div role="alert" className="flex flex-col gap-3 rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] px-4 py-3 text-sm text-[color:var(--j-AE2E24)] sm:flex-row sm:items-center">
+          <AlertTriangle size={18} className="hidden flex-shrink-0 text-[color:var(--j-C9372C)] sm:block" />
           <div className="min-w-0 flex-1">
             <p className="font-semibold">{tr("{0} check-ins need review", fmtNumber(s.unreviewed))}</p>
             <p className="text-xs">{tr("{0} outside the radius · {1} with signs of a faked location (fake GPS)", fmtNumber(s.outside), fmtNumber(s.suspect))}</p>
@@ -203,9 +203,9 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
         tabs={[{ key: "list", label: tr("Check-ins"), icon: <ScanFace size={15} />, count: res?.data.length }]}>
         <Toolbar>
           <QuickChips label={tr("Location")} value={f.location} onChange={(location) => setF({ ...f, location })}
-            items={[{ key: "", label: tr("All"), count: s?.total }, { key: "unreviewed", label: LOC.unreviewed(), dot: "bg-red-500", count: s?.unreviewed },
-              { key: "outside", label: LOC.outside(), dot: "bg-orange-500", count: s?.outside }, { key: "suspect", label: LOC.suspect(), dot: "bg-rose-600", count: s?.suspect },
-              { key: "low", label: LOC.low(), dot: "bg-amber-400", count: s?.low }, { key: "unlocated", label: LOC.unlocated(), dot: "bg-neutral-400", count: s?.unlocated }]} />
+            items={[{ key: "", label: tr("All"), count: s?.total }, { key: "unreviewed", label: LOC.unreviewed(), dot: "bg-[color:var(--j-C9372C)]", count: s?.unreviewed },
+              { key: "outside", label: LOC.outside(), dot: "bg-[color:var(--j-E2B203)]", count: s?.outside }, { key: "suspect", label: LOC.suspect(), dot: "bg-[color:var(--j-C9372C)]", count: s?.suspect },
+              { key: "low", label: LOC.low(), dot: "bg-[color:var(--j-E2B203)]", count: s?.low }, { key: "unlocated", label: LOC.unlocated(), dot: "bg-[color:var(--j-8590A2)]", count: s?.unlocated }]} />
           <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search PIC or outlet")} filters={chips}
             onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
         </Toolbar>
@@ -247,7 +247,7 @@ export default function CheckInMonitor({ kind = "pic" }: { kind?: Kind }) {
                 </thead>
                 <tbody>
                   {!res ? <SkeletonRows cols={kind === "surveyor" ? 7 : 6} /> : paged.rows.map((c) => (
-                    <tr key={c.id} onClick={() => setOpen(c)} className={cx(jRow, (c.outsideRadius || suspect(c)) && !c.review && "bg-red-50/50 hover:bg-red-50")}>
+                    <tr key={c.id} onClick={() => setOpen(c)} className={cx(jRow, (c.outsideRadius || suspect(c)) && !c.review && "bg-[color:var(--j-FFECEB)]/50 hover:bg-[color:var(--j-FFECEB)]")}>
                       <td className={jTd}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
                         <img src={thumb(photoUrl(c.id), 96)} decoding="async" alt={tr("Face Photo")} loading="lazy" className="h-9 w-9 rounded-[3px] bg-[color:var(--j-091E420F)] object-cover" />
@@ -321,8 +321,8 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
   const verdict = !c.outletLocated ? { tone: "slate", icon: <MapPinOff size={20} />, title: tr("Outlet Has No Coordinates"), text: tr("Set the outlet's location in Cost Control → Outlet Locations") }
     : c.outsideRadius ? { tone: "red", icon: <MapPin size={20} />, title: tr("Outside Radius"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? "?", c.radiusM ?? 100) }
     : { tone: "green", icon: <CheckCircle2 size={20} />, title: tr("At the Outlet"), text: tr("{0} m from the outlet (radius {1} m)", c.distanceM ?? 0, c.radiusM ?? 100) };
-  const toneBox: Record<string, string> = { green: "border-emerald-200 bg-emerald-50 text-emerald-900", red: "border-red-200 bg-red-50 text-red-900", slate: "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-172B4D)]" };
-  const toneIcon: Record<string, string> = { green: "bg-emerald-600", red: "bg-red-600", slate: "bg-neutral-500" };
+  const toneBox: Record<string, string> = { green: "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]", red: "border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]", slate: "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-172B4D)]" };
+  const toneIcon: Record<string, string> = { green: "bg-[color:var(--j-22A06B)]", red: "bg-[color:var(--j-C9372C)]", slate: "bg-[color:var(--j-626F86)]" };
   return (
     <Drawer open onClose={onClose} size="lg" icon={<ScanFace size={18} />} title={c.name} description={`${c.branchName} · ${wibDateTime(c.visitedAt)}`}>
       <div className="space-y-5">
@@ -360,9 +360,9 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
 
         <DrawerBlock title={tr("Location")}>
           <div className="grid grid-cols-3 divide-x divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
-            <Figure label={tr("Distance")} value={c.distanceM !== null ? `${c.distanceM} m` : "—"} tone={c.outsideRadius ? "text-red-700" : undefined} />
+            <Figure label={tr("Distance")} value={c.distanceM !== null ? `${c.distanceM} m` : "—"} tone={c.outsideRadius ? "text-[color:var(--j-AE2E24)]" : undefined} />
             <Figure label={tr("Radius")} value={c.radiusM !== null ? `${c.radiusM} m` : "—"} />
-            <Figure label={tr("GPS Accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-amber-700" : undefined} />
+            <Figure label={tr("GPS Accuracy")} value={c.accuracyM !== null ? `±${Math.round(c.accuracyM)} m` : "—"} tone={c.lowAccuracy ? "text-[color:var(--j-7F5F01)]" : undefined} />
           </div>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             <MapLink href={mapsUrl(c.latitude, c.longitude)} label={tr("PIC Position")} value={`${c.latitude.toFixed(5)}, ${c.longitude.toFixed(5)}`} />
@@ -397,7 +397,7 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
                   <div className="grid grid-cols-3 divide-x divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
                     <Figure label={tr("Time")} value={wibClock(c.clockOut.at)} />
                     <Figure label={tr("At the Outlet")} value={duration(c.clockOut.durationMin)} />
-                    <Figure label={tr("Distance")} value={c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"} tone={c.clockOut.outsideRadius ? "text-red-700" : undefined} />
+                    <Figure label={tr("Distance")} value={c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"} tone={c.clockOut.outsideRadius ? "text-[color:var(--j-AE2E24)]" : undefined} />
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {c.clockOut.outsideRadius && <Badge tone="red" icon={<MapPin size={11} />}>{tr("Outside Radius")}</Badge>}
@@ -431,11 +431,11 @@ function CheckInDrawer({ c, onClose, onReviewed }: { c: CheckIn; onClose: () => 
         </DrawerBlock>
         {(c.riskSignals ?? []).length > 0 && (
           <DrawerBlock title={`${tr("Signs found")} · ${RISK_LABEL[c.riskLevel ?? "none"]()}`}>
-            <ul className={cx("space-y-1.5 rounded-[3px] border p-3 text-xs", c.riskLevel === "high" ? "border-red-200 bg-red-50"
-              : c.riskLevel === "medium" ? "border-amber-200 bg-amber-50" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]")}>
+            <ul className={cx("space-y-1.5 rounded-[3px] border p-3 text-xs", c.riskLevel === "high" ? "border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]"
+              : c.riskLevel === "medium" ? "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]")}>
               {(c.riskSignals ?? []).map((x) => (
                 <li key={x.code} className="flex gap-2">
-                  <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-red-500" : x.level === "medium" ? "bg-amber-500" : "bg-neutral-400")} />
+                  <span className={cx("mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full", x.level === "high" ? "bg-[color:var(--j-C9372C)]" : x.level === "medium" ? "bg-[color:var(--j-E2B203)]" : "bg-[color:var(--j-8590A2)]")} />
                   <span className="text-[color:var(--j-44546F)]">{x.text}</span>
                 </li>
               ))}
@@ -544,9 +544,9 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
         {kind === "outside" && (
           <>
             <SegmentBar parts={[
-              { label: tr("At the Outlet"), value: summary.inside, color: "bg-emerald-500" },
-              { label: tr("Outside Radius"), value: summary.outside, color: "bg-amber-500" },
-              { label: tr("Outlet Has No Coordinates"), value: summary.unlocated, color: "bg-neutral-300" },
+              { label: tr("At the Outlet"), value: summary.inside, color: "bg-[color:var(--j-22A06B)]" },
+              { label: tr("Outside Radius"), value: summary.outside, color: "bg-[color:var(--j-E2B203)]" },
+              { label: tr("Outlet Has No Coordinates"), value: summary.unlocated, color: "bg-[color:var(--j-8590A2)]" },
             ]} />
             {summary.low > 0 && <p className="text-xs text-[color:var(--j-626F86)]">{tr("{0} with low GPS accuracy", fmtNumber(summary.low))}</p>}
           </>
@@ -564,7 +564,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
                         <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{c.name} · {c.branchName}</span>
                         <span className="block text-xs text-[color:var(--j-626F86)]">{wibDateTime(c.visitedAt)} · {c.source === "attendance" ? tr("Attendance") : tr("Visit form")}</span>
                       </span>
-                      <span className="text-xs font-semibold tabular-nums text-amber-700">{c.distanceM} m</span>
+                      <span className="text-xs font-semibold tabular-nums text-[color:var(--j-7F5F01)]">{c.distanceM} m</span>
                     </button>
                   </li>
                 ))}
@@ -588,7 +588,7 @@ function DetailDrawer({ kind, data, summary, truncated, onClose, onPic, onOutlet
                       <td className="px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{g.label}</span>{g.sub && <span className="text-xs text-[color:var(--j-626F86)]">{g.sub}</span>}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-172B4D)]">{fmtNumber(g.n)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{fmtNumber(kind === "pics" ? g.places.size : g.people.size)}</td>
-                      <td className={`px-3 py-2 text-right tabular-nums ${g.outside ? "font-semibold text-amber-700" : "text-[color:var(--j-626F86)]"}`}>{fmtNumber(g.outside)}</td>
+                      <td className={`px-3 py-2 text-right tabular-nums ${g.outside ? "font-semibold text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]"}`}>{fmtNumber(g.outside)}</td>
                     </tr>
                   );
                 })}
@@ -635,10 +635,10 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
         className={cx(inputClass, "mt-2 h-auto py-2")} />
       <div className="mt-2 flex gap-2">
         <Button size="sm" variant="secondary" loading={busy === "valid"} disabled={!!busy} onClick={() => void save("valid")}>
-          <CheckCircle2 size={14} className="text-emerald-600" /> {tr("Valid")}
+          <CheckCircle2 size={14} className="text-[color:var(--j-22A06B)]" /> {tr("Valid")}
         </Button>
         <Button size="sm" variant="secondary" loading={busy === "invalid"} disabled={!!busy} onClick={() => void save("invalid")}>
-          <XCircle size={14} className="text-red-600" /> {tr("Not valid")}
+          <XCircle size={14} className="text-[color:var(--j-C9372C)]" /> {tr("Not valid")}
         </Button>
       </div>
     </section>
@@ -647,7 +647,7 @@ function ReviewBox({ c, onReviewed }: { c: CheckIn; onReviewed: () => void }) {
 
 /** One location check of the drawer: green ok, red (or amber when `warn`) not ok, grey not checked. */
 function Check({ ok, title, text, verdict, warn }: { ok: boolean | null; title: string; text: string; verdict: string; warn?: boolean }) {
-  const tone = ok === null ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]" : ok ? "bg-emerald-50 text-emerald-700" : warn ? "bg-amber-50 text-amber-700" : "bg-red-50 text-red-700";
+  const tone = ok === null ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]" : ok ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : warn ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" : "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]";
   return (
     <li className="flex items-start gap-3 px-3 py-2.5">
       <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full", tone)}>

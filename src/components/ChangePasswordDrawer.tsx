@@ -26,11 +26,11 @@ function strength(pw: string): number {
     .filter(Boolean).length;
 }
 const LEVELS = [
-  { get label() { return tr('Too weak'); }, bar: 'bg-red-500', text: 'text-red-600' },
-  { get label() { return tr('Weak'); }, bar: 'bg-red-500', text: 'text-red-600' },
-  { get label() { return tr('Fair'); }, bar: 'bg-amber-500', text: 'text-amber-600' },
-  { get label() { return tr('Good'); }, bar: 'bg-emerald-500', text: 'text-emerald-600' },
-  { get label() { return tr('Strong'); }, bar: 'bg-emerald-600', text: 'text-emerald-700' },
+  { get label() { return tr('Too weak'); }, bar: 'bg-[color:var(--j-C9372C)]', text: 'text-[color:var(--j-C9372C)]' },
+  { get label() { return tr('Weak'); }, bar: 'bg-[color:var(--j-C9372C)]', text: 'text-[color:var(--j-C9372C)]' },
+  { get label() { return tr('Fair'); }, bar: 'bg-[color:var(--j-E2B203)]', text: 'text-[color:var(--j-B38600)]' },
+  { get label() { return tr('Good'); }, bar: 'bg-[color:var(--j-22A06B)]', text: 'text-[color:var(--j-22A06B)]' },
+  { get label() { return tr('Strong'); }, bar: 'bg-[color:var(--j-22A06B)]', text: 'text-[color:var(--j-216E4E)]' },
 ];
 
 function PasswordInput({ id, value, onChange, autoComplete, invalid }: {
@@ -40,7 +40,7 @@ function PasswordInput({ id, value, onChange, autoComplete, invalid }: {
   return (
     <div className="relative">
       <input id={id} type={show ? 'text' : 'password'} autoComplete={autoComplete} value={value} onChange={e => onChange(e.target.value)}
-        className={`${inputClass} pr-10 ${invalid ? 'border-red-300 bg-red-50/40' : ''}`} />
+        className={`${inputClass} pr-10 ${invalid ? 'border-[color:var(--j-F87168)] bg-[color:var(--j-FFECEB)]/40' : ''}`} />
       <button type="button" onClick={() => setShow(s => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]"
         aria-label={show ? tr('Hide password') : tr('Show password')} aria-pressed={show}>
         {show ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -153,8 +153,8 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
             {RULES.map(r => {
               const ok = r.test(next, current);
               return (
-                <li key={r.label} className={`flex items-center gap-2 ${ok ? 'text-emerald-700' : 'text-[color:var(--j-626F86)]'}`}>
-                  <span className={`flex h-4 w-4 items-center justify-center rounded-full ${ok ? 'bg-emerald-100' : 'bg-[color:var(--j-DCDFE4)]'}`}>
+                <li key={r.label} className={`flex items-center gap-2 ${ok ? 'text-[color:var(--j-216E4E)]' : 'text-[color:var(--j-626F86)]'}`}>
+                  <span className={`flex h-4 w-4 items-center justify-center rounded-full ${ok ? 'bg-[color:var(--j-BAF3DB)]' : 'bg-[color:var(--j-DCDFE4)]'}`}>
                     {ok ? <Check size={11} strokeWidth={3} /> : <X size={10} strokeWidth={3} className="text-[color:var(--j-626F86)]" />}
                   </span>
                   {r.label}
@@ -165,7 +165,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
           <Field label={tr('Confirm New Password')} htmlFor="pw-confirm" required error={confirm && !matches ? tr('Does not match') : null}>
             <PasswordInput id="pw-confirm" autoComplete="new-password" value={confirm} onChange={setConfirm} invalid={!!confirm && !matches} />
           </Field>
-          {matches && <p className="-mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-700"><CheckCircle2 size={14} /> {tr('Passwords match')}</p>}
+          {matches && <p className="-mt-2 flex items-center gap-1.5 text-xs font-medium text-[color:var(--j-216E4E)]"><CheckCircle2 size={14} /> {tr('Passwords match')}</p>}
         </DrawerSection>
 
         {!forced && (
@@ -173,7 +173,7 @@ export default function ChangePasswordDrawer({ open, onClose, forced = false }: 
             <Info size={14} className="mt-px flex-shrink-0" /> {tr('After saving, every other device signed in to your account is signed out. This device stays signed in.')}
           </p>
         )}
-        {error && <p className="mt-4 rounded-[4px] border-l-[3px] border-red-600 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{error}</p>}
+        {error && <p className="mt-4 rounded-[4px] border-l-[3px] border-[color:var(--j-C9372C)] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]" role="alert">{error}</p>}
       </form>
     </Drawer>
   );

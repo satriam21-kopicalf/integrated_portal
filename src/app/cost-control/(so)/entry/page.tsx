@@ -151,7 +151,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
     <Panel title={tr("Import a File")} description={tr('A file in the "Stock Opname Report" layout: Branch, Product Code, Unit and Actual Opname Qty per row. Rows without a quantity are skipped.')}>
       <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-[1fr_220px_180px]">
         <Field label={tr("File (.xlsx)")} required>
-          <label className={cx("flex h-10 cursor-pointer items-center gap-2 rounded-[3px] border border-dashed px-3 text-sm", file ? "border-brand-400 bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-8590A2)] text-[color:var(--j-626F86)] hover:border-neutral-400")}>
+          <label className={cx("flex h-10 cursor-pointer items-center gap-2 rounded-[3px] border border-dashed px-3 text-sm", file ? "border-[color:var(--j-388BFF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-8590A2)] text-[color:var(--j-626F86)] hover:border-[color:var(--j-8590A2)]")}>
             <Upload size={15} /> <span className="truncate">{file ? file.name : tr("Choose a file")}</span>
             <input type="file" accept=".xlsx" className="sr-only" onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); }} />
           </label>
@@ -180,7 +180,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
             <Stat label={tr("Unknown Items / Units")} value={(p?.items.length ?? 0) + (p?.units.length ?? 0)} tone={(p?.items.length ?? 0) + (p?.units.length ?? 0) ? "amber" : undefined} />
           </div>
           {(p?.branches.length || p?.items.length || p?.units.length) ? (
-            <details className="rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <details className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-sm text-[color:var(--j-7F5F01)]">
               <summary className="cursor-pointer font-medium">{tr("Rows that are skipped")}</summary>
               <ul className="mt-2 space-y-1 text-xs">
                 {p.branches.map((b) => <li key={b}>{tr("Branch not found: {0}", b)}</li>)}
@@ -212,7 +212,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
             </div>
           )}
           {result.applied && (
-            <p className="flex items-center gap-2 text-sm text-emerald-700"><CheckCircle2 size={16} /> {tr("The imported counts are waiting in Review.")}
+            <p className="flex items-center gap-2 text-sm text-[color:var(--j-216E4E)]"><CheckCircle2 size={16} /> {tr("The imported counts are waiting in Review.")}
               <Link href="/cost-control/reviews" className="font-semibold underline">{tr("Open Review")}</Link></p>
           )}
         </div>
@@ -223,7 +223,7 @@ function ImportEntry({ types }: { types: CountType[] }) {
 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "green" | "amber" }) {
   return (
-    <div className={cx("rounded-[3px] border px-3 py-2", tone === "green" ? "border-emerald-200 bg-emerald-50" : tone === "amber" ? "border-amber-200 bg-amber-50" : "border-[color:var(--j-DCDFE4)] bg-white")}>
+    <div className={cx("rounded-[3px] border px-3 py-2", tone === "green" ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)]" : tone === "amber" ? "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]" : "border-[color:var(--j-DCDFE4)] bg-white")}>
       <p className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{label}</p>
       <p className="text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{fmtNumber(value)}</p>
     </div>

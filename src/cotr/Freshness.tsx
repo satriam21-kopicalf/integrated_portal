@@ -24,7 +24,7 @@ const behind = (d: string | null, today: string) => (d ? Math.round((Date.parse(
 function Cell({ d, today }: { d: string | null; today: string }) {
   const n = behind(d, today);
   if (n === null) return <td className="px-3 py-2 text-right text-[color:var(--j-8590A2)]">—</td>;
-  const cls = n <= 1 ? "bg-emerald-50 text-emerald-800" : n <= 3 ? "bg-amber-50 text-amber-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]";
+  const cls = n <= 1 ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : n <= 3 ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]";
   return (
     <td className="px-3 py-2 text-right">
       <span className={`inline-flex items-center gap-1 rounded-[3px] px-1.5 py-0.5 text-xs tabular-nums ${cls}`} title={n === 0 ? tr("today") : tr("{0} days ago", n)}>

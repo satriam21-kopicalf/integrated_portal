@@ -29,15 +29,15 @@ export function useNotifications() {
 export function UnreadBadge({ n, className }: { n: number; className?: string }) {
   if (!n) return null;
   return (
-    <span className={cx("flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white", className)}>
+    <span className={cx("flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--j-C9372C)] px-1 text-[10px] font-bold leading-none text-white", className)}>
       {n > 99 ? "99+" : n}
     </span>
   );
 }
 
 const SEVERITY = {
-  high: { icon: AlertOctagon, chip: "bg-red-50 text-red-700" },
-  warn: { icon: AlertTriangle, chip: "bg-amber-50 text-amber-700" },
+  high: { icon: AlertOctagon, chip: "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]" },
+  warn: { icon: AlertTriangle, chip: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" },
   info: { icon: Info, chip: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" },
 } as const;
 

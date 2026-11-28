@@ -21,7 +21,7 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 
 function Card({ n, icon, title, hint, aside, children }: { n: number; icon: ReactNode; title: string; hint: string; aside?: ReactNode; children: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <header className="flex flex-wrap items-start gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3.5 sm:px-5">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
         <div className="min-w-0 flex-1"><h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]"><span className="mr-1.5 text-[color:var(--j-626F86)]">{n}.</span>{title}</h3><p className="mt-0.5 text-xs text-[color:var(--j-626F86)]">{hint}</p></div>
@@ -35,7 +35,7 @@ const Label = ({ t, hint }: { t: string; hint?: string }) => <span className="mb
 function Switch({ on, onChange, disabled, label }: { on: boolean; onChange: (v: boolean) => void; disabled?: boolean; label: string }) {
   return (
     <button type="button" role="switch" aria-checked={on} aria-label={label} disabled={disabled} onClick={() => onChange(!on)}
-      className={cx("relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition disabled:opacity-50", on ? "bg-[color:var(--j-0C66E4)]" : "bg-neutral-300")}>
+      className={cx("relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition disabled:opacity-50", on ? "bg-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-8590A2)]")}>
       <span className={cx("inline-block h-5 w-5 rounded-full bg-white shadow transition", on ? "translate-x-5" : "translate-x-0.5")} />
     </button>
   );
@@ -89,7 +89,7 @@ export function TravelSettings({ canEdit }: { canEdit: boolean }) {
                 <div className={cx(lock || undefined)}><Label t={tr("Time (WIB, 24 h)")} />
                   <span className="flex items-center gap-1.5"><span className="block w-24"><TimeField label={tr("From")} value={s.from} onChange={(v) => ses(i, { from: v })} /></span><span className="text-[color:var(--j-626F86)]">–</span><span className="block w-24"><TimeField label={tr("To")} value={s.to} onChange={(v) => ses(i, { to: v })} /></span></span></div>
                 <label className="flex h-10 items-center gap-2 text-sm text-[color:var(--j-44546F)]"><Switch on={s.active} disabled={!canEdit} onChange={(v) => ses(i, { active: v })} label={tr("Active")} />{s.active ? tr("Active") : tr("Inactive")}</label>
-                {canEdit && !saved.includes(`"key":"${s.key}"`) && <button type="button" aria-label={tr("Remove")} onClick={() => set({ sessions: d.sessions.filter((_, n) => n !== i) })} className="flex h-10 w-10 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={16} /></button>}
+                {canEdit && !saved.includes(`"key":"${s.key}"`) && <button type="button" aria-label={tr("Remove")} onClick={() => set({ sessions: d.sessions.filter((_, n) => n !== i) })} className="flex h-10 w-10 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={16} /></button>}
               </div>
               <div className="mt-3"><Label t={tr("Done by")} />
                 <span className="flex flex-wrap gap-1.5" role="group" aria-label={tr("Branch Groups")}>
@@ -103,7 +103,7 @@ export function TravelSettings({ canEdit }: { canEdit: boolean }) {
 
       <Card n={2} icon={<Gauge />} title={tr("Score")} hint={tr("Score = areas that meet ÷ areas rated (N/A left out).")}>
         <div className="mb-4 flex h-7 overflow-hidden rounded-[3px] ring-1 ring-[color:var(--j-DCDFE4)]" aria-hidden>
-          {band(0, d.pass, "bg-red-100 text-red-800", tr("Not passed"))}{band(d.pass, d.standard, "bg-amber-100 text-amber-800", tr("Needs repair"))}{band(d.standard, 100, "bg-emerald-100 text-emerald-800", tr("Standard"))}
+          {band(0, d.pass, "bg-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)]", tr("Not passed"))}{band(d.pass, d.standard, "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]", tr("Needs repair"))}{band(d.standard, 100, "bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]", tr("Standard"))}
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {num("pass", tr("Passed from"), "%", tr("Below it: not passed"))}

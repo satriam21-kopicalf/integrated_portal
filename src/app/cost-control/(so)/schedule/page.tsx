@@ -26,8 +26,8 @@ const monday = (d: Date) => { const x = new Date(d); x.setDate(x.getDate() - ((x
 const short = (name: string) => name.replace(/^Kopi Calf (To Go )?/i, '');
 const addDays = (s: string, n: number) => { const d = new Date(`${s}T00:00:00`); d.setDate(d.getDate() + n); return iso(d); };
 const STATUS = {
-  done: { icon: CheckCircle2, cls: 'bg-emerald-50 text-emerald-800 ring-emerald-200', label: () => tr('Done') },
-  missed: { icon: XCircle, cls: 'bg-red-50 text-red-700 ring-red-200', label: () => tr('Missed') },
+  done: { icon: CheckCircle2, cls: 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)]', label: () => tr('Done') },
+  missed: { icon: XCircle, cls: 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)] ring-[color:var(--j-FFD5D2)]', label: () => tr('Missed') },
   planned: { icon: CircleDashed, cls: 'bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]', label: () => tr('Planned') },
 };
 
@@ -63,7 +63,7 @@ export default function SchedulePage() {
       stats={
         <StatStrip label={tr('Summary')} columns={4}>
           <Stat label={STATUS.done.label()} emphasis icon={<CheckCircle2 size={13} />} value={c ? c.done : <StatSkeleton />}>{c && <p>{tr('clocked in as planned')}</p>}</Stat>
-          <Stat label={STATUS.missed.label()} icon={<XCircle size={13} />} value={c ? <span className={c.missed ? 'text-red-700' : undefined}>{c.missed}</span> : <StatSkeleton />}>{c && <p>{tr('a day gone by without a clock in')}</p>}</Stat>
+          <Stat label={STATUS.missed.label()} icon={<XCircle size={13} />} value={c ? <span className={c.missed ? 'text-[color:var(--j-AE2E24)]' : undefined}>{c.missed}</span> : <StatSkeleton />}>{c && <p>{tr('a day gone by without a clock in')}</p>}</Stat>
           <Stat label={STATUS.planned.label()} icon={<CircleDashed size={13} />} value={c ? c.planned : <StatSkeleton />}>{c && <p>{tr('today or later')}</p>}</Stat>
           <Stat label={tr('Unplanned')} icon={<CalendarDays size={13} />} value={c ? c.unplanned : <StatSkeleton />}>{c && <p>{tr('clock ins outside the plan')}</p>}</Stat>
         </StatStrip>
@@ -102,7 +102,7 @@ export default function SchedulePage() {
                                 return <span key={v.id} title={[v.branchName, S.label(), v.note].filter(Boolean).join(' · ')} className={cx('flex items-center gap-1 truncate rounded-[3px] px-1.5 py-1 ring-1 ring-inset', S.cls)}>
                                   <S.icon size={11} className="flex-shrink-0" /><span className="truncate">{short(v.branchName)}</span></span>;
                               })}
-                              {extra.map((v) => <span key={v.branchCode} title={tr('Clocked in outside the plan')} className="truncate rounded-[3px] bg-amber-50 px-1.5 py-1 italic text-amber-800">+ {short(v.branchName)}</span>)}
+                              {extra.map((v) => <span key={v.branchCode} title={tr('Clocked in outside the plan')} className="truncate rounded-[3px] bg-[color:var(--j-FFF7D6)] px-1.5 py-1 italic text-[color:var(--j-7F5F01)]">+ {short(v.branchName)}</span>)}
                               {!visits.length && !extra.length && editable && <span className="text-[11px] text-[color:var(--j-8590A2)]">{tr('+ plan')}</span>}
                             </button>
                           </td>

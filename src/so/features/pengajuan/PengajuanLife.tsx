@@ -31,13 +31,13 @@ export function LifeSummary({ p }: { p: Pengajuan }) {
     [tr("Spent (requester)"), fmtRp(p.actualAmount)],
     [tr("Accepted by Finance"), fmtRp(accepted)],
     [tr("Difference"), diff == null ? "—" : diff === 0 ? tr("Even") : `${diff > 0 ? "+" : "−"}${fmtRp(Math.abs(diff))}`,
-      diff == null || diff === 0 ? undefined : diff > 0 ? "text-amber-700" : "text-emerald-700"],
+      diff == null || diff === 0 ? undefined : diff > 0 ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-216E4E)]"],
   ];
   return (
-    <section className="space-y-3 rounded-[3px] border border-violet-200 bg-violet-50/30 p-4">
-      <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Scale size={15} className="text-violet-600" /> {tr("Proof & difference")}
+    <section className="space-y-3 rounded-[3px] border border-[color:var(--j-DFD8FD)] bg-[color:var(--j-F3F0FF)]/30 p-4">
+      <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Scale size={15} className="text-[color:var(--j-6E5DC6)]" /> {tr("Proof & difference")}
         {p.status === "PAID" && p.proofDueOn && (
-          <span className={cx("ml-auto rounded px-2 py-0.5 text-xs font-medium", p.proofOverdue ? "bg-red-100 text-red-800" : "bg-white text-[color:var(--j-44546F)] ring-1 ring-[color:var(--j-DCDFE4)]")}>
+          <span className={cx("ml-auto rounded px-2 py-0.5 text-xs font-medium", p.proofOverdue ? "bg-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)]" : "bg-white text-[color:var(--j-44546F)] ring-1 ring-[color:var(--j-DCDFE4)]")}>
             {p.proofOverdue ? tr("Proof overdue since {0}", wibDay(p.proofDueOn)) : tr("Proof due {0}", wibDay(p.proofDueOn))}</span>)}
       </h3>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -58,7 +58,7 @@ export function LifeSummary({ p }: { p: Pengajuan }) {
       {(proof.length > 0 || topup.length > 0) && (
         <div className="flex flex-wrap gap-2">{proof.map((f) => <FileChip key={f.id} f={f} />)}{topup.map((f) => <FileChip key={f.id} f={f} />)}</div>
       )}
-      {p.status === "DONE" && <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-700"><CheckCircle2 size={13} /> {tr("Verified {0}{1}", p.verifiedBy ? `${p.verifiedBy} · ` : "", p.doneAt ? wibDay(p.doneAt) : "")}</p>}
+      {p.status === "DONE" && <p className="flex items-center gap-1.5 text-xs font-medium text-[color:var(--j-216E4E)]"><CheckCircle2 size={13} /> {tr("Verified {0}{1}", p.verifiedBy ? `${p.verifiedBy} · ` : "", p.doneAt ? wibDay(p.doneAt) : "")}</p>}
     </section>
   );
 }
@@ -97,11 +97,11 @@ export function ProofPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Peng
   };
   const asked = rule.proofDocs.length ? rule.proofDocs.map(docLabel).join(", ") : tr("bill / receipt / invoice");
   return (
-    <section className={cx("space-y-3 rounded-[3px] border p-4", p.proofOverdue ? "border-red-300 bg-red-50/40" : "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)]")}>
+    <section className={cx("space-y-3 rounded-[3px] border p-4", p.proofOverdue ? "border-[color:var(--j-F87168)] bg-[color:var(--j-FFECEB)]/40" : "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)]")}>
       <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Receipt size={15} className="text-[color:var(--j-0C66E4)]" /> {tr("Send the proof to Finance")}</h3>
       <p className="text-xs text-[color:var(--j-44546F)]">{tr("The money was paid. Attach the proof ({0}) and the amount really spent; Finance checks it and closes the request.", asked)}
         {p.proofDueOn && ` ${tr("Due {0}.", wibDay(p.proofDueOn))}`}</p>
-      {p.proofOverdue && <p className="flex items-center gap-1.5 text-xs font-semibold text-red-700"><AlertTriangle size={13} /> {tr("The proof is overdue")}</p>}
+      {p.proofOverdue && <p className="flex items-center gap-1.5 text-xs font-semibold text-[color:var(--j-AE2E24)]"><AlertTriangle size={13} /> {tr("The proof is overdue")}</p>}
       <div className="flex flex-wrap items-end gap-2">
         {proof.map((f) => <FileChip key={f.id} f={f} onRemove={() => void remove(f.id)} />)}
         <select value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Document")} className={cx(inputClass, "h-9 !w-auto text-xs")}>
@@ -119,10 +119,10 @@ export function ProofPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Peng
           <input value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} placeholder={tr("e.g. the rest is returned by transfer")} className={cx(inputClass, "h-10 text-sm")} /></label>
       </div>
       {diff != null && diff !== 0 && (
-        <p className={cx("text-xs font-medium", diff > 0 ? "text-amber-800" : "text-emerald-800")}>
+        <p className={cx("text-xs font-medium", diff > 0 ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-216E4E)]")}>
           {diff > 0 ? tr("Spent {0} more than paid: Finance pays the shortfall after checking", fmtRp(diff)) : tr("{0} less than paid: it goes back to the company", fmtRp(-diff))}</p>
       )}
-      {(p.proofMissing ?? []).length > 0 && <ul className="list-disc pl-5 text-xs text-red-700">{p.proofMissing!.map((m) => <li key={m}>{m}</li>)}</ul>}
+      {(p.proofMissing ?? []).length > 0 && <ul className="list-disc pl-5 text-xs text-[color:var(--j-AE2E24)]">{p.proofMissing!.map((m) => <li key={m}>{m}</li>)}</ul>}
       <div className="flex justify-end"><Button loading={busy} disabled={!proof.length || spent == null} onClick={() => void send()}><Send size={14} /> {tr("Send proof")}</Button></div>
     </section>
   );
@@ -144,8 +144,8 @@ export function CancelPanel({ p, onChanged }: { p: Pengajuan; onChanged: (p: Pen
   };
   if (!open) return <div className="flex justify-end"><Button variant="ghost" onClick={() => setOpen(true)}><Ban size={14} /> {tr("Cancel request")}</Button></div>;
   return (
-    <section className="space-y-2 rounded-[3px] border border-red-200 bg-red-50/40 p-4">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Ban size={15} className="text-red-700" /> {tr("Cancel request")}</h3>
+    <section className="space-y-2 rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]/40 p-4">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Ban size={15} className="text-[color:var(--j-AE2E24)]" /> {tr("Cancel request")}</h3>
       <p className="text-xs text-[color:var(--j-44546F)]">{tr("The request stops here and cannot be reopened. Only possible before Finance pays.")}</p>
       <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Reason for cancelling (required)")} className={cx(inputClass, "h-auto py-2 text-sm")} />
       <div className="flex justify-end gap-2">
@@ -185,8 +185,8 @@ export function VerifyPanel({ p, base, onChanged }: { p: Pengajuan; base: string
     try { onChanged(await call<Pengajuan>(`${base}/topup-files/${id}`, { method: "DELETE" })); } catch (e) { toast((e as Error).message, "error"); }
   };
   return (
-    <section className="space-y-3 rounded-[3px] border border-amber-300 bg-amber-50/40 p-4">
-      <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Scale size={15} className="text-amber-700" /> {tr("Verify the proof")}</h3>
+    <section className="space-y-3 rounded-[3px] border border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)]/40 p-4">
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><Scale size={15} className="text-[color:var(--j-7F5F01)]" /> {tr("Verify the proof")}</h3>
       <p className="text-xs text-[color:var(--j-44546F)]">{p.outstanding == null ? tr("The amount spent is not filled in: set it with Adjust amount.") : diff > 0 ? tr("Spent {0} more than paid: pay the shortfall here, then Done.", fmtRp(diff))
         : diff < 0 ? tr("{0} less than paid: Done asks for the money back; confirm it with its proof.", fmtRp(-diff)) : tr("Spent as paid: check the proof and press Done.")}</p>
       {mode && (

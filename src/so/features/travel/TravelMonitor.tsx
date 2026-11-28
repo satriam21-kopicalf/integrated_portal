@@ -34,7 +34,7 @@ type FShow = "open" | "overdue" | "critical" | "fixed" | "all";
 type RShow = "all" | "failed" | "late" | "critical";
 
 const short = (n: string) => n.replace(/^Kopi Calf (To Go )?/, "");
-const CELL: Record<CellState, string> = { done: "bg-emerald-500", late: "bg-amber-400", missing: "bg-red-500", waiting: "bg-[color:var(--j-DCDFE4)]", none: "bg-transparent" };
+const CELL: Record<CellState, string> = { done: "bg-[color:var(--j-22A06B)]", late: "bg-[color:var(--j-E2B203)]", missing: "bg-[color:var(--j-C9372C)]", waiting: "bg-[color:var(--j-DCDFE4)]", none: "bg-transparent" };
 const cellText = (s: CellState) => ({ done: tr("On time"), late: tr("Late"), missing: tr("Not done"), waiting: tr("Not due yet"), none: "—" })[s];
 const Cat = ({ c }: { c: string | null | undefined }) => (c ? <span className={cx("inline-block rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", categoryClass(c))}>{categoryText(c)}</span> : null);
 const Score = ({ v, band }: { v: number | null; band?: Band | null }) => <span className={cx("rounded px-1.5 py-0.5 text-xs font-bold tabular-nums", bandClass(band ?? null))}>{v != null ? `${v}%` : "—"}</span>;
@@ -103,10 +103,10 @@ export default function TravelMonitor() {
         <div className="space-y-4">
           <StatStrip columns={5} label={tr("Summary")} gridClassName="grid-cols-2 lg:grid-cols-5">
             <Stat label={tr("Compliance")} value={s ? (s.rate != null ? `${s.rate}%` : "—") : <StatSkeleton />}>{s && <p>{tr("{0} of {1} sessions", fmtNumber(s.done), fmtNumber(s.expected))}</p>}</Stat>
-            <Stat label={tr("Not done")} value={s ? <span className={s.missing ? "text-red-600" : undefined}>{fmtNumber(s.missing)}</span> : <StatSkeleton />}>{s && <p>{tr("{0} late", fmtNumber(s.late))}</p>}</Stat>
+            <Stat label={tr("Not done")} value={s ? <span className={s.missing ? "text-[color:var(--j-C9372C)]" : undefined}>{fmtNumber(s.missing)}</span> : <StatSkeleton />}>{s && <p>{tr("{0} late", fmtNumber(s.late))}</p>}</Stat>
             <Stat label={tr("Average score")} value={s ? (s.score != null ? `${s.score}%` : "—") : <StatSkeleton />}>{s && <p>{tr("{0} not passed", fmtNumber(s.failed))}</p>}</Stat>
-            <Stat label={tr("Critical findings")} value={s ? <span className={s.critical ? "text-red-600" : undefined}>{fmtNumber(s.critical)}</span> : <StatSkeleton />} />
-            <Stat label={tr("Open findings")} value={s ? fmtNumber(s.openFindings) : <StatSkeleton />}>{s && <p className={s.overdue ? "font-semibold text-red-600" : undefined}>{tr("{0} overdue", fmtNumber(s.overdue))}</p>}</Stat>
+            <Stat label={tr("Critical findings")} value={s ? <span className={s.critical ? "text-[color:var(--j-C9372C)]" : undefined}>{fmtNumber(s.critical)}</span> : <StatSkeleton />} />
+            <Stat label={tr("Open findings")} value={s ? fmtNumber(s.openFindings) : <StatSkeleton />}>{s && <p className={s.overdue ? "font-semibold text-[color:var(--j-C9372C)]" : undefined}>{tr("{0} overdue", fmtNumber(s.overdue))}</p>}</Stat>
           </StatStrip>
           <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "compliance", label: tr("Compliance"), icon: <CalendarCheck size={15} /> }, { key: "reports", label: tr("Reports"), icon: <FileText size={15} />, count: s?.reports },
             { key: "findings", label: tr("Findings"), icon: <AlertTriangle size={15} />, count: s?.openFindings }, { key: "analysis", label: tr("Analysis"), icon: <BarChart3 size={15} /> }]}
@@ -117,8 +117,8 @@ export default function TravelMonitor() {
             </div>}>
             {tab !== "analysis" && <Toolbar><div className="flex flex-wrap items-center gap-2">
               <div className="w-full sm:w-64"><SearchBox value={q} onChange={setQ} placeholder={tr("Search outlet")} /></div>
-              {tab === "reports" && <QuickChips<RShow> value={rshow} onChange={setRshow} label={tr("Show")} items={[{ key: "all", label: tr("All") }, { key: "failed", label: tr("Not passed"), dot: "bg-red-500", count: s?.failed }, { key: "critical", label: tr("Critical") }, { key: "late", label: tr("Late"), dot: "bg-amber-400" }]} />}
-              {tab === "findings" && <QuickChips<FShow> value={fshow} onChange={setFshow} label={tr("Show")} items={[{ key: "open", label: tr("Open"), count: s?.openFindings }, { key: "overdue", label: tr("Overdue"), dot: "bg-red-500", count: s?.overdue }, { key: "critical", label: tr("Critical") }, { key: "fixed", label: tr("Repaired"), dot: "bg-emerald-500" }, { key: "all", label: tr("All") }]} />}
+              {tab === "reports" && <QuickChips<RShow> value={rshow} onChange={setRshow} label={tr("Show")} items={[{ key: "all", label: tr("All") }, { key: "failed", label: tr("Not passed"), dot: "bg-[color:var(--j-C9372C)]", count: s?.failed }, { key: "critical", label: tr("Critical") }, { key: "late", label: tr("Late"), dot: "bg-[color:var(--j-E2B203)]" }]} />}
+              {tab === "findings" && <QuickChips<FShow> value={fshow} onChange={setFshow} label={tr("Show")} items={[{ key: "open", label: tr("Open"), count: s?.openFindings }, { key: "overdue", label: tr("Overdue"), dot: "bg-[color:var(--j-C9372C)]", count: s?.overdue }, { key: "critical", label: tr("Critical") }, { key: "fixed", label: tr("Repaired"), dot: "bg-[color:var(--j-22A06B)]" }, { key: "all", label: tr("All") }]} />}
             </div>
               {tab === "compliance" && data && <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--j-626F86)]">{(["done", "late", "missing", "waiting"] as CellState[]).map((k) => <span key={k} className="inline-flex items-center gap-1.5"><span className={cx("h-3 w-3 rounded-sm", CELL[k])} />{cellText(k)}</span>)}
                 <span>{data.sessions.map((x) => `${sessionName(x)} ${x.from}–${x.to}`).join(" · ")}</span><span>{tr("Counted from {0}", dmy(data.since))}</span></p>}
@@ -130,11 +130,11 @@ export default function TravelMonitor() {
                 <tbody>{po.rows.map((o) => (
                   <tr key={o.code} className={jRow.replace("cursor-pointer", "")}>
                     <td className={cx(jTd, "sticky left-0 z-10 bg-white")}><span className="block font-medium text-[color:var(--j-172B4D)]">{short(o.name)}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{o.code}{o.group ? ` · ${o.group}` : ""}</span></td>
-                    <td className={cx(jTd, "whitespace-nowrap text-right tabular-nums", o.missing > 0 && "font-semibold text-red-700")}>{o.done}/{o.expected}</td>
+                    <td className={cx(jTd, "whitespace-nowrap text-right tabular-nums", o.missing > 0 && "font-semibold text-[color:var(--j-AE2E24)]")}>{o.done}/{o.expected}</td>
                     <td className={cx(jTd, "text-right tabular-nums")}>{o.score != null ? `${o.score}%` : "—"}</td>
                     {o.days.map((d) => <td key={d.date} className="px-1 py-2 text-center"><span className="inline-flex gap-0.5">{d.sessions.map((c) => {
                       const label = `${short(o.name)} · ${dmy(d.date)} · ${sname(c.session)}: ${cellText(c.state)}${c.score != null ? ` ${c.score}%` : ""}`;
-                      const box = cx("block h-5 w-4 rounded-sm", CELL[c.state], c.critical > 0 && "ring-2 ring-red-600 ring-offset-1");
+                      const box = cx("block h-5 w-4 rounded-sm", CELL[c.state], c.critical > 0 && "ring-2 ring-[color:var(--j-C9372C)] ring-offset-1");
                       return c.id ? <button key={c.session} type="button" title={label} aria-label={label} onClick={() => setOpen(c.id)} className={box} /> : <span key={c.session} title={label} className={box} />;
                     })}</span></td>)}
                   </tr>))}</tbody></table></div>
@@ -146,7 +146,7 @@ export default function TravelMonitor() {
                     <td className={cx(jTd, "whitespace-nowrap text-[color:var(--j-44546F)]")}>{wibDateTime(r.submittedAt)}</td><td className={jTd}>{r.sessionLabel}</td>
                     <td className={cx(jTd, "font-medium text-[color:var(--j-172B4D)]")}><button type="button" className="text-left hover:underline" onClick={(e) => { e.stopPropagation(); setOpen(r.id); }}>{short(r.branchName)}</button></td>
                     <td className={cx(jTd, "text-[color:var(--j-44546F)]")}>{[r.crew, r.supervisor].filter(Boolean).join(" & ")}</td><td className={jTd}><Score v={r.score} band={r.band} /></td>
-                    <td className={jTd}>{r.counts?.nok ? <span className={cx("tabular-nums", r.counts.critical > 0 && "font-semibold text-red-700")}>{r.counts.nok}{r.counts.critical ? ` (${tr("{0} critical", r.counts.critical)})` : ""}</span> : "0"}</td><td className={cx(jTd, "tabular-nums")}>{r.counts?.na ?? 0}</td>
+                    <td className={jTd}>{r.counts?.nok ? <span className={cx("tabular-nums", r.counts.critical > 0 && "font-semibold text-[color:var(--j-AE2E24)]")}>{r.counts.nok}{r.counts.critical ? ` (${tr("{0} critical", r.counts.critical)})` : ""}</span> : "0"}</td><td className={cx(jTd, "tabular-nums")}>{r.counts?.na ?? 0}</td>
                     <td className={jTd}><span className="flex flex-wrap gap-1">{r.late && <Lozenge tone="amber">{tr("Late")}</Lozenge>}{r.reportLate && <Lozenge tone="amber">{tr("Late report")}</Lozenge>}{r.outsideRadius && <Lozenge tone="red">{tr("Outside radius")}</Lozenge>}</span></td>
                   </tr>))}</tbody></table></div>
             )) : tab === "findings" ? (findings.length === 0 ? <Empty title={tr("No finding here")} /> : (
@@ -155,9 +155,9 @@ export default function TravelMonitor() {
                 <tbody>{pf.rows.map((f) => (
                   <tr key={f.id} className="border-b border-[color:var(--j-F1F2F4)] align-top hover:bg-[color:var(--j-F7F8F9)]">
                     <td className={jTd}><button type="button" onClick={() => setOpen(f.reportId)} className="text-left font-medium text-[color:var(--j-172B4D)] hover:underline">{short(f.branchName)}</button><span className="block text-[11px] text-[color:var(--j-626F86)]">{dmy(f.day)} · {sname(f.session)}</span></td>
-                    <td className={jTd}><Cat c={f.category} /> <span className="text-[color:var(--j-172B4D)]">{f.label}</span></td><td className={cx(jTd, "max-w-[18rem] text-[color:var(--j-44546F)]")}>{f.note}{f.reopenedNote && <span className="block text-xs text-amber-800">{tr("Opened again by {0}: {1}", f.reopenedBy ?? "", f.reopenedNote)}</span>}</td>
+                    <td className={jTd}><Cat c={f.category} /> <span className="text-[color:var(--j-172B4D)]">{f.label}</span></td><td className={cx(jTd, "max-w-[18rem] text-[color:var(--j-44546F)]")}>{f.note}{f.reopenedNote && <span className="block text-xs text-[color:var(--j-7F5F01)]">{tr("Opened again by {0}: {1}", f.reopenedBy ?? "", f.reopenedNote)}</span>}</td>
                     <td className={jTd}><Photos ids={f.photos.MAIN} /> <Photos ids={f.photos.AFTER} label={tr("After")} /></td>
-                    <td className={cx(jTd, "whitespace-nowrap", f.overdue && "font-semibold text-red-700")}>{f.dueAt ? wibDateTime(f.dueAt) : "—"}</td>
+                    <td className={cx(jTd, "whitespace-nowrap", f.overdue && "font-semibold text-[color:var(--j-AE2E24)]")}>{f.dueAt ? wibDateTime(f.dueAt) : "—"}</td>
                     <td className={jTd}>{f.status === "OPEN" ? <Lozenge tone={f.overdue ? "red" : "amber"}>{f.overdue ? tr("Overdue") : tr("Open")}</Lozenge> : <><Lozenge tone="green">{tr("Repaired")}</Lozenge>{f.fixedLate && <span className="ml-1"><Lozenge tone="amber">{tr("Late")}</Lozenge></span>}
                       <span className="block max-w-[14rem] text-xs text-[color:var(--j-44546F)]">{f.fixNote}</span><span className="block text-[11px] text-[color:var(--j-626F86)]">{f.fixedBy} · {wibDateTime(f.fixedAt)}</span></>}</td>
                     <td className={cx(jTd, "text-right")}>{f.status === "FIXED" && <Button size="sm" variant="ghost" onClick={() => setReopening(f)}><RotateCcw size={13} /> {tr("Open again")}</Button>}</td>
@@ -198,7 +198,7 @@ function ReportDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           {r.definition.groups.flatMap((g) => g.sections).map((z) => (
             <section key={z.key}><h3 className="mb-1 text-sm font-semibold text-[color:var(--j-172B4D)]">{tl(z, "title")}</h3>
               <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">{z.items.map((i) => { const a = r.answers[i.key]; const f = r.findings?.find((x) => x.itemKey === i.key); return (
-                <li key={i.key} className={cx("space-y-1 px-3 py-2.5 text-sm", a?.rating === "NOK" && "bg-red-50/40")}>
+                <li key={i.key} className={cx("space-y-1 px-3 py-2.5 text-sm", a?.rating === "NOK" && "bg-[color:var(--j-FFECEB)]/40")}>
                   <p className="flex flex-wrap items-center gap-1.5"><span className="font-medium text-[color:var(--j-172B4D)]">{i.no}. {tl(i)}</span><Cat c={i.category} />{a?.rating && <Lozenge tone={a.rating === "OK" ? "green" : a.rating === "NOK" ? "red" : "grey"}>{ratingText(a.rating)}</Lozenge>}</p>
                   {a?.note && <p className="text-[color:var(--j-44546F)]">{a.note}</p>}
                   <Photos ids={r.photos.filter((p) => p.item === i.key && p.kind === "MAIN").map((p) => p.id)} />

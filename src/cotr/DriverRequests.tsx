@@ -36,7 +36,7 @@ function Decide({ url, onDone }: { url: string; onDone: () => Promise<void> }) {
     <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
       <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (a rejection needs it)")} className="h-9 min-w-0 flex-1 sm:w-48 sm:flex-none" />
       <Button size="sm" loading={busy} onClick={() => void decide(true)}><Check size={14} /> {tr("Approve")}</Button>
-      <Button size="sm" variant="secondary" disabled={busy} className="text-red-600" onClick={() => void decide(false)}><X size={14} /> {tr("Reject")}</Button>
+      <Button size="sm" variant="secondary" disabled={busy} className="text-[color:var(--j-C9372C)]" onClick={() => void decide(false)}><X size={14} /> {tr("Reject")}</Button>
     </div>
   );
 }

@@ -22,9 +22,9 @@ const short = (name: string) => name.replace(/^Kopi Calf (To Go )?/, '');
 
 const STATUS: Record<NonNullable<GrowthSplit['status']>, { label: string; cls: string }> = {
   new: { get label() { return tr('New'); }, cls: 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' },
-  lost: { get label() { return tr('No sales now'); }, cls: 'bg-red-50 text-red-700' },
+  lost: { get label() { return tr('No sales now'); }, cls: 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]' },
   growing: { get label() { return tr('Growing'); }, cls: 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' },
-  declining: { get label() { return tr('Declining'); }, cls: 'bg-red-50 text-red-700' },
+  declining: { get label() { return tr('Declining'); }, cls: 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]' },
   flat: { get label() { return tr('Flat'); }, cls: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]' },
 };
 
@@ -93,7 +93,7 @@ export function GrowthDrawer({ q, basis: initial }: { q: string; basis: GrowthBa
 
       <Block title={tr('Growth per Hour')} subtitle={tr('Gross sales per day in each hour (outlet time){0}', basis === 'sequential' ? tr(' · compared with the previous period') : '')}>
         {hours.res.error ? (
-          <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{hours.res.error}</p>
+          <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{hours.res.error}</p>
         ) : !hours.data ? (
           <LoadingState height={240} label={tr('sales growth')} />
         ) : (
@@ -174,7 +174,7 @@ function SplitTable({ rows, kind, onOpen }: { rows: GrowthSplit[]; kind: 'branch
         { key: 'abs', label: tr('Growth'), align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },
         { key: 'pct', label: tr('Growth %'), align: 'right', value: r => r.growthPct, render: r => <Delta value={r.growthPct} /> },
         { key: 'contribution', label: tr('Contribution'), align: 'right', value: r => r.contributionPp, title: tr('Percentage points of the total growth'),
-          render: r => (r.contributionPp === null ? '-' : <span className={r.contributionPp >= 0 ? 'text-[color:var(--j-0C66E4)]' : 'text-red-600'}>{r.contributionPp >= 0 ? '+' : '−'}{fixed(Math.abs(r.contributionPp), 2)} {tr('pp')}</span>) },
+          render: r => (r.contributionPp === null ? '-' : <span className={r.contributionPp >= 0 ? 'text-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-C9372C)]'}>{r.contributionPp >= 0 ? '+' : '−'}{fixed(Math.abs(r.contributionPp), 2)} {tr('pp')}</span>) },
         { key: 'bills', label: tr('Bills'), align: 'right', value: r => r.bills },
       ]} />
   );

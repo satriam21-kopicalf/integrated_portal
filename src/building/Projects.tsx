@@ -40,7 +40,7 @@ function ApproversDrawer({ list, can, onClose, onSaved }: { list: Approver[]; ca
         {ids.map((id) => { const a = byId.get(id); return (
           <li key={id} className="flex items-center justify-between gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-2 text-sm">
             <span><span className="block font-medium text-[color:var(--j-172B4D)]">{a?.name ?? id}</span>{a?.jobTitle && <span className="text-xs text-[color:var(--j-626F86)]">{a.jobTitle}</span>}</span>
-            {can && <button type="button" onClick={() => setIds(ids.filter((x) => x !== id))} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove {0}", a?.name ?? id)}><X size={14} /></button>}
+            {can && <button type="button" onClick={() => setIds(ids.filter((x) => x !== id))} className="rounded p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove {0}", a?.name ?? id)}><X size={14} /></button>}
           </li>); })}
         {!ids.length && <li className="text-sm text-[color:var(--j-626F86)]">{tr("Nobody listed: the superadmins approve")}</li>}
       </ul>
@@ -55,7 +55,7 @@ export function ProgressBar({ value, plan, className }: { value: number | null; 
   const v = Math.max(0, Math.min(100, value ?? 0));
   return (
     <span className={cx("relative block h-2 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]", className)} role="progressbar" aria-valuenow={v} aria-valuemin={0} aria-valuemax={100}>
-      <span className={cx("absolute inset-y-0 left-0 rounded-full", v >= 100 ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${v}%` }} />
+      <span className={cx("absolute inset-y-0 left-0 rounded-full", v >= 100 ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${v}%` }} />
       {plan != null && plan > 0 && <span className="absolute inset-y-0 w-0.5 bg-neutral-900/60" style={{ left: `calc(${Math.min(100, plan)}% - 1px)` }} title={tr("Plan {0}%", plan)} />}
     </span>
   );
@@ -97,7 +97,7 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
           </div>
         </Floating>
       </div>
-      {err ? <p className="p-5 text-sm text-red-700">{err}</p> : !rows ? <div className="p-4"><SkeletonList /></div> : !shown.length ? <Empty title={rows.length ? tr("No project matches") : tr("No project yet")} /> : (
+      {err ? <p className="p-5 text-sm text-[color:var(--j-AE2E24)]">{err}</p> : !rows ? <div className="p-4"><SkeletonList /></div> : !shown.length ? <Empty title={rows.length ? tr("No project matches") : tr("No project yet")} /> : (
         <ul className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
           {shown.map((p) => (
             <li key={p.id}>
@@ -116,7 +116,7 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
                     {p.budget != null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("Budget {0}", rp(p.budget))}</span>}</span>
                 </span>
                 <span className="mt-2 block"><Badge tone={RAB_TONE[p.rabStatus]}>{RAB_LABEL[p.rabStatus]()}{p.rabVersion ? ` · v${p.rabVersion}` : ""}</Badge></span>
-                <span className={cx("mt-3 flex items-center gap-1 text-[11px]", p.late ? "text-red-700" : "text-[color:var(--j-626F86)]")}><CalendarDays size={12} />
+                <span className={cx("mt-3 flex items-center gap-1 text-[11px]", p.late ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-626F86)]")}><CalendarDays size={12} />
                   {p.planStart ? `${dmy(p.planStart)} – ${p.planEnd ? dmy(p.planEnd) : "?"}` : tr("No plan dates yet")}{p.late && ` · ${tr("past the target")}`}</span>
                 {(p.picName || p.contractor) && <span className="mt-1 flex items-center gap-1 text-[11px] text-[color:var(--j-626F86)]"><HardHat size={12} />{[p.picName, p.contractor].filter(Boolean).join(" · ")}</span>}
               </Link>

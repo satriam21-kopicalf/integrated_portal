@@ -174,10 +174,10 @@ export function RealtimeIndicator({ className = '' }: { className?: string }) {
     ? `${new Date(salesSyncedAt).toLocaleTimeString(locale(), { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false })} WIB` : null;
   const syncAgo = ago === null ? null : ago < 1 ? tr('just now') : ago < 60 ? tr('{0} min ago', ago) : tr('{0} h ago', Math.floor(ago / 60));
   const tone = status === 'live'
-    ? { dot: 'bg-emerald-500', ring: 'bg-emerald-400', text: 'text-emerald-700', label: tr('Live') }
+    ? { dot: 'bg-[color:var(--j-22A06B)]', ring: 'bg-[color:var(--j-22A06B)]', text: 'text-[color:var(--j-216E4E)]', label: tr('Live') }
     : status === 'connecting'
-    ? { dot: 'bg-amber-400', ring: 'bg-amber-300', text: 'text-amber-700', label: tr('Connecting') }
-    : { dot: 'bg-neutral-400', ring: '', text: 'text-[color:var(--j-626F86)]', label: tr('Reconnecting') };
+    ? { dot: 'bg-[color:var(--j-E2B203)]', ring: 'bg-[color:var(--j-F5CD47)]', text: 'text-[color:var(--j-7F5F01)]', label: tr('Connecting') }
+    : { dot: 'bg-[color:var(--j-8590A2)]', ring: '', text: 'text-[color:var(--j-626F86)]', label: tr('Reconnecting') };
   return (
     <span
       className={`inline-flex items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2.5 text-xs ${className}`}

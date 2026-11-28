@@ -67,7 +67,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
     <Drawer open onClose={onClose} size="xl" icon={<FileSpreadsheet size={18} />} title={tr('Import the COTR team from Excel')}
       description={tr('The workbook DATA COTR (every employee, pool by placement) or an armada file (Armada, Nama, HP / Report Armada)')}
       footer={<>
-        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-red-600">{error}</p>}
+        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-[color:var(--j-C9372C)]">{error}</p>}
         <Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button>
         <Button loading={busy} disabled={!result || !changes} onClick={() => void send(true)}><Save size={16} /> {tr('Save {0} people', changes)}</Button>
       </>}>
@@ -139,7 +139,7 @@ export default function ImportDrivers({ pools, onClose, onDone }: { pools: Pool[
               )}
             </div>
             {!!result.skipped?.length && (
-              <div className="rounded-[3px] border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+              <div className="rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] px-3 py-2 text-xs text-[color:var(--j-AE2E24)]">
                 <p className="font-semibold">{tr('Left out')}</p>
                 <ul className="mt-1 space-y-0.5">{result.skipped.slice(0, 20).map((r) => <li key={r.employeeId}>{r.employeeId} · {r.name}: {r.reason}</li>)}</ul>
               </div>

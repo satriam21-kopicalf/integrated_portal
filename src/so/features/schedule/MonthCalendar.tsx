@@ -12,7 +12,7 @@ export type CalendarCount = { code: string; name: string; frequency: string; win
 export type CalendarDay = { date: string; counts: CalendarCount[] };
 
 export const TYPE_COLORS = [
-  "bg-[color:var(--j-0C66E4)]", "bg-emerald-600", "bg-amber-500", "bg-violet-600", "bg-rose-600", "bg-cyan-600", "bg-lime-600", "bg-orange-500",
+  "bg-[color:var(--j-0C66E4)]", "bg-[color:var(--j-22A06B)]", "bg-[color:var(--j-E2B203)]", "bg-[color:var(--j-6E5DC6)]", "bg-[color:var(--j-C9372C)]", "bg-[color:var(--j-2898BD)]", "bg-lime-600", "bg-[color:var(--j-E2B203)]",
 ];
 
 /** Monday on or before the first day of the month: the first cell of a 6-week month grid. */

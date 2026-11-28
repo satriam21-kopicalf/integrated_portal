@@ -24,7 +24,7 @@ const dateTime = (v: string | null | undefined) => {
 };
 
 function Line({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div className="flex gap-2"><span className="w-40 flex-shrink-0">{label}</span><span className="flex-1 border-b border-neutral-400">: {value}</span></div>;
+  return <div className="flex gap-2"><span className="w-40 flex-shrink-0">{label}</span><span className="flex-1 border-b border-[color:var(--j-8590A2)]">: {value}</span></div>;
 }
 
 function Box({ children }: { children: React.ReactNode }) {
@@ -36,7 +36,7 @@ function Sheet() {
   const [inv, setInv] = useState<Investigation | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => { if (id) call<Investigation>(`/api/waste/investigations/${id}`).then(setInv).catch((e: Error) => setError(e.message)); }, [id]);
-  if (error) return <p className="p-8 text-sm text-red-600">{error}</p>;
+  if (error) return <p className="p-8 text-sm text-[color:var(--j-C9372C)]">{error}</p>;
   if (!inv) return <div className="skeleton m-8 h-[80vh] rounded-[3px]" />;
   const r = inv.report;
   const mark = (on: boolean) => <span className="inline-block w-6 text-center font-semibold">( {on ? "✓" : " "} )</span>;
@@ -98,7 +98,7 @@ function Sheet() {
           const v = r.checks[c] ?? { checked: false, finding: "" };
           return (
             <div key={c} className="grid grid-cols-[3rem_16rem_6rem_1fr] items-end">
-              {mark(v.checked)}<span>{c}</span><span>Hasil Temuan</span><span className="border-b border-neutral-400">: {v.finding}</span>
+              {mark(v.checked)}<span>{c}</span><span>Hasil Temuan</span><span className="border-b border-[color:var(--j-8590A2)]">: {v.finding}</span>
             </div>
           );
         })}

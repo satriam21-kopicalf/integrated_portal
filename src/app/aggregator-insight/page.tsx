@@ -63,7 +63,7 @@ export default function AggregatorOverview() {
           <Panel title={tr("To work on")} description={tr("The last 7 days, {0}", fmtPeriod(brief?.from ?? daysAgo(6), brief?.to ?? daysAgo(0)))}>
             <div className="grid grid-cols-1 gap-px bg-[color:var(--j-DCDFE4)] sm:grid-cols-2 lg:grid-cols-4">
               {todo.map((x) => <Link key={x.href} href={`/aggregator-insight/${x.href}`} className="group flex items-start justify-between gap-2 bg-white px-4 py-3.5 hover:bg-[color:var(--j-F7F8F9)] sm:px-5"><span className="min-w-0"><span className="block text-xs font-semibold text-[color:var(--j-626F86)]">{x.label}</span>
-                <span className={cx("mt-1 block text-2xl font-semibold tabular-nums", x.n ? "text-[color:var(--j-172B4D)]" : "text-emerald-700")}>{x.n == null ? "…" : nf(x.n)}</span><span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{x.sub}</span></span><ChevronRight size={16} className="mt-1 shrink-0 text-[color:var(--j-8590A2)] group-hover:text-[color:var(--j-0C66E4)]" /></Link>)}
+                <span className={cx("mt-1 block text-2xl font-semibold tabular-nums", x.n ? "text-[color:var(--j-172B4D)]" : "text-[color:var(--j-216E4E)]")}>{x.n == null ? "…" : nf(x.n)}</span><span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{x.sub}</span></span><ChevronRight size={16} className="mt-1 shrink-0 text-[color:var(--j-8590A2)] group-hover:text-[color:var(--j-0C66E4)]" /></Link>)}
             </div>
           </Panel>
           <div className="grid items-start gap-4 lg:grid-cols-2">
@@ -89,7 +89,7 @@ export default function AggregatorOverview() {
     </Page>
   );
 }
-const Alert = ({ tone, children }: { tone: "amber" | "red"; children: React.ReactNode }) => <div className={cx("flex gap-2 rounded-[3px] border px-4 py-3 text-sm", tone === "red" ? "border-red-200 bg-red-50 text-red-900" : "border-amber-200 bg-amber-50 text-amber-900")}><AlertTriangle size={16} className="mt-0.5 shrink-0" /><span>{children}</span></div>;
+const Alert = ({ tone, children }: { tone: "amber" | "red"; children: React.ReactNode }) => <div className={cx("flex gap-2 rounded-[3px] border px-4 py-3 text-sm", tone === "red" ? "border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]" : "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]")}><AlertTriangle size={16} className="mt-0.5 shrink-0" /><span>{children}</span></div>;
 const Fact = ({ k, v, sub }: { k: string; v: React.ReactNode; sub?: string }) => <div className="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5"><dt className="text-[color:var(--j-626F86)]">{k}</dt><dd className="text-right font-medium text-[color:var(--j-172B4D)]">{v}{sub && <span className="block text-[11px] font-normal text-[color:var(--j-626F86)]">{sub}</span>}</dd></div>;
 
 type MapRow = { bfBranchId: number; bfName: string; branchCode: string | null; matched: "auto" | "manual"; branchName: string | null };
@@ -110,8 +110,8 @@ function MatchDrawer({ onClose }: { onClose: () => void }) {
     <Drawer open size="lg" title={tr("Match the BotFood outlets")} description={tr("Each BotFood outlet to our outlet, so its figures count for the right branch and member.")} onClose={onClose} icon={<Database size={18} />}>
       <div className="space-y-4">
         <label className="flex min-h-11 items-center gap-2.5 text-sm text-[color:var(--j-44546F)] sm:min-h-0"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={all} onChange={(e) => setAll(e.target.checked)} /> {tr("Show the matched ones too")}</label>
-        {err && <p className="text-sm text-red-600">{err}</p>}
-        {!rows ? <SkeletonList rows={6} /> : shown.length === 0 ? <p className="rounded-[3px] bg-emerald-50 px-3 py-3 text-sm text-emerald-800">{tr("Every BotFood outlet is matched.")}</p> : (
+        {err && <p className="text-sm text-[color:var(--j-C9372C)]">{err}</p>}
+        {!rows ? <SkeletonList rows={6} /> : shown.length === 0 ? <p className="rounded-[3px] bg-[color:var(--j-DCFFF1)] px-3 py-3 text-sm text-[color:var(--j-216E4E)]">{tr("Every BotFood outlet is matched.")}</p> : (
           <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
             {shown.map((r) => (
               <li key={r.bfBranchId} className="grid gap-2 px-3 py-3 sm:grid-cols-[1fr_1.3fr] sm:items-center">

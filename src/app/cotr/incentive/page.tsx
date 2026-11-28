@@ -164,10 +164,10 @@ function RecapView() {
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.tiers.reduce((a, t) => a + t.pay, 0))}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.bonus.reduce((a, b) => a + b.pay, 0))}</td>
-                    <td className={cx("px-3 py-2 text-right tabular-nums", r.deduction ? "text-red-700" : "")}>{r.deduction ? `−${rupiah(r.deduction)}` : "—"}</td>
+                    <td className={cx("px-3 py-2 text-right tabular-nums", r.deduction ? "text-[color:var(--j-AE2E24)]" : "")}>{r.deduction ? `−${rupiah(r.deduction)}` : "—"}</td>
                     <td className="px-3 py-2 text-right tabular-nums">{rupiah(r.total)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{r.adjustments?.bonus ? `+${rupiah(r.adjustments.bonus)}` : "—"}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-red-700">{cutOf(r) ? `−${rupiah(cutOf(r))}` : "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-216E4E)]">{r.adjustments?.bonus ? `+${rupiah(r.adjustments.bonus)}` : "—"}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-AE2E24)]">{cutOf(r) ? `−${rupiah(cutOf(r))}` : "—"}</td>
                     <td className="px-4 py-2 text-right font-semibold tabular-nums">{rupiah(r.takeHome ?? r.total)}</td>
                   </tr>
                   {open === r.driver && (
@@ -250,13 +250,13 @@ function Simulator() {
           <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-4">
             <p className="text-xs text-[color:var(--j-626F86)]">{tr("Incentive")}</p>
             <p className="text-3xl font-bold tabular-nums text-[color:var(--j-172B4D)]">{rupiah(result.total)}</p>
-            {!result.eligible && <p className="mt-1 text-xs text-red-700">{tr("Attendance {0}% is below the minimum {1}%", result.pct ?? 0, s!.min_attendance_pct)}</p>}
+            {!result.eligible && <p className="mt-1 text-xs text-[color:var(--j-AE2E24)]">{tr("Attendance {0}% is below the minimum {1}%", result.pct ?? 0, s!.min_attendance_pct)}</p>}
             <table className="mt-4 w-full text-sm">
               <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {result.tiers.map((t, i) => (
                   <tr key={i} className={t.cups ? "" : "text-[color:var(--j-626F86)]"}><td className="py-1.5">{num(t.from)}–{t.to === null ? "∞" : num(t.to)} {tr("cups")}</td><td className="py-1.5 text-right tabular-nums">{num(t.cups)} × {rupiah(t.rate)}</td><td className="py-1.5 text-right tabular-nums">{rupiah(t.pay)}</td></tr>
                 ))}
-                <tr><td className="py-1.5" colSpan={2}>{tr("Deduction")}</td><td className="py-1.5 text-right tabular-nums text-red-700">{result.deduction ? `−${rupiah(result.deduction)}` : "—"}</td></tr>
+                <tr><td className="py-1.5" colSpan={2}>{tr("Deduction")}</td><td className="py-1.5 text-right tabular-nums text-[color:var(--j-AE2E24)]">{result.deduction ? `−${rupiah(result.deduction)}` : "—"}</td></tr>
               </tbody>
             </table>
           </div>
@@ -277,7 +277,7 @@ function TiersInput({ value, onChange }: { value: Tier[]; onChange: (v: Tier[]) 
           <Input type="number" value={t.to ?? ""} placeholder="∞" onChange={(e) => onChange(tiers.map((x, j) => (j === i ? { ...x, to: e.target.value === "" ? null : Number(e.target.value) } : x)))} className="h-9 w-24 text-right" aria-label={tr("To")} />
           <span>{tr("cups")} ×</span>
           <Input type="number" value={t.rate} onChange={(e) => onChange(tiers.map((x, j) => (j === i ? { ...x, rate: Number(e.target.value) } : x)))} className="h-9 w-28 text-right" aria-label={tr("Rate")} />
-          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(tiers.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={14} /></button>
+          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(tiers.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={14} /></button>
         </div>
       ))}
       <Button size="sm" variant="ghost" onClick={() => { const last = tiers[tiers.length - 1]; onChange([...tiers, { from: last?.to ?? 0, to: null, rate: 0 }]); }}><Plus size={13} /> {tr("Tier")}</Button>
@@ -296,7 +296,7 @@ function BonusInput({ value, onChange, menus }: { value: Bonus[]; onChange: (v: 
           </Select>
           <span>×</span>
           <Input type="number" value={b.rate} onChange={(e) => onChange(rows.map((x, j) => (j === i ? { ...x, rate: Number(e.target.value) } : x)))} className="h-9 w-28 text-right" aria-label={tr("Rate")} />
-          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={14} /></button>
+          <button type="button" aria-label={tr("Delete")} onClick={() => onChange(rows.filter((_, j) => j !== i))} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={14} /></button>
         </div>
       ))}
       <Button size="sm" variant="ghost" onClick={() => onChange([...rows, { menu: "", rate: 0 }])}><Plus size={13} /> {tr("Bonus")}</Button>
@@ -345,7 +345,7 @@ function Schemes() {
             <div><p className="mb-2 text-xs font-semibold text-[color:var(--j-44546F)]">{tr("Tiers")}</p><TiersInput value={edit.tiers} onChange={(tiers) => setEdit({ ...edit, tiers })} /></div>
             <div><p className="mb-2 text-xs font-semibold text-[color:var(--j-44546F)]">{tr("Product bonus (per cup)")}</p><BonusInput value={edit.product_bonus} menus={menus.rows ?? []} onChange={(product_bonus) => setEdit({ ...edit, product_bonus })} /></div>
           </div>
-          {error && <p className="px-4 pb-4 text-xs text-red-700">{error}</p>}
+          {error && <p className="px-4 pb-4 text-xs text-[color:var(--j-AE2E24)]">{error}</p>}
         </Panel>
       )}
     </>

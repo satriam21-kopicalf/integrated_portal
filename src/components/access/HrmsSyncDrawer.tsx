@@ -70,7 +70,7 @@ function LinkPicker({ row, onLinked }: { row: Row; onLinked: (msg: string) => vo
           placeholder={tr('Name, email or employee no.')} aria-label={tr('Search HRMS employee')} />
         <button type="button" className={buttonSecondary} onClick={find} disabled={busy} aria-label={tr('Search')}><Search size={14} /></button>
       </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-[color:var(--j-C9372C)]">{error}</p>}
       <ul className="max-h-48 divide-y divide-[color:var(--j-DCDFE4)] overflow-y-auto">
         {hits.map(e => (
           <li key={e.id} className="flex items-center justify-between gap-3 py-2 text-xs">

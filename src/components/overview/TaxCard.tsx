@@ -92,7 +92,7 @@ export default function TaxCard({ resource }: { resource: Resource<TaxResponse> 
               <>
                 <Rows rows={data.branches.filter(b => b.tax)} label={k => data.branches.find(b => b.key === k)?.name ?? k} limit={15} />
                 {untaxed.length > 0 && (
-                  <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
                     {tr('No tax in this period: {0}', untaxed.slice(0, 12).map(b => b.name).join(', '))}{untaxed.length > 12 ? ` ${tr('+{0} more', untaxed.length - 12)}` : ''}
                   </p>
                 )}

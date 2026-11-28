@@ -64,10 +64,10 @@ export function Field({ label, hint, error, required, children, className }: {
   return (
     <label className={cx("block", className)}>
       <span className="mb-1.5 block text-xs font-medium text-[color:var(--j-44546F)]">
-        {tc(label)}{required && <span className="ml-0.5 text-red-500">*</span>}
+        {tc(label)}{required && <span className="ml-0.5 text-[color:var(--j-C9372C)]">*</span>}
       </span>
       {children}
-      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span>
+      {error ? <span className="mt-1 block text-xs text-[color:var(--j-C9372C)]">{error}</span>
         : hint ? <span className="mt-1 block text-xs text-[color:var(--j-626F86)]">{hint}</span> : null}
     </label>
   );
@@ -159,7 +159,7 @@ export function Empty({ icon, title, children }: { icon?: ReactNode; title?: str
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
-      <AlertCircle className="text-red-500" />
+      <AlertCircle className="text-[color:var(--j-C9372C)]" />
       <p className="text-sm text-[color:var(--j-44546F)]">{message}</p>
       {onRetry && <Button variant="secondary" onClick={onRetry}>{tr("Try Again")}</Button>}
     </div>
@@ -226,9 +226,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="pointer-events-none fixed left-1/2 top-4 z-[90] flex w-[min(92vw,460px)] -translate-x-1/2 flex-col items-center gap-2">
         {toasts.map((t) => (
           <div key={t.id} role="status"
-            className={cx("notice-in pointer-events-auto flex max-w-full items-center gap-2 rounded-[3px] px-4 py-3 text-sm font-medium text-white shadow-lg",
-              t.tone === "ok" ? "bg-neutral-900" : "bg-red-600")}>
-            {t.tone === "ok" ? <CheckCircle2 size={16} className="flex-shrink-0 text-emerald-400" /> : <AlertCircle size={16} className="flex-shrink-0" />}
+            className={cx("notice-in pointer-events-auto flex max-w-full items-center gap-2 rounded-[3px] px-4 py-3 text-sm font-medium text-white",
+              t.tone === "ok" ? "bg-neutral-900" : "bg-[color:var(--j-C9372C)]")}>
+            {t.tone === "ok" ? <CheckCircle2 size={16} className="flex-shrink-0 text-[color:var(--j-22A06B)]" /> : <AlertCircle size={16} className="flex-shrink-0" />}
             <span className="min-w-0">{t.text}</span>
             <button type="button" onClick={() => dismiss(t.id)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label={tr("Dismiss")}>
               <X size={14} />

@@ -15,7 +15,7 @@ export type SectionOption = { key: string; label: string; done: number; total: n
 function Progress({ done, total }: { done: number; total: number }) {
   const full = total > 0 && done >= total;
   return full
-    ? <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white"><Check size={12} strokeWidth={3} /></span>
+    ? <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--j-22A06B)] text-white"><Check size={12} strokeWidth={3} /></span>
     : <span className="text-xs font-semibold tabular-nums text-[color:var(--j-626F86)]">{done}/{total}</span>;
 }
 
@@ -59,7 +59,7 @@ export default function SectionPicker({ options, value, onChange, allLabel, titl
             className={cx("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium",
               value === o.key ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
             {o.label}
-            <span className={cx("tabular-nums", o.total && o.done >= o.total ? "text-emerald-600" : "text-[color:var(--j-626F86)]")}>{o.total && o.done >= o.total ? "✓" : `${o.done}/${o.total}`}</span>
+            <span className={cx("tabular-nums", o.total && o.done >= o.total ? "text-[color:var(--j-22A06B)]" : "text-[color:var(--j-626F86)]")}>{o.total && o.done >= o.total ? "✓" : `${o.done}/${o.total}`}</span>
           </button>
         ))}
       </div>
@@ -89,7 +89,7 @@ export default function SectionPicker({ options, value, onChange, allLabel, titl
                         <span className={cx("block truncate text-sm font-semibold", on ? "text-[color:var(--j-0055CC)]" : "text-[color:var(--j-172B4D)]")}>{o.label}</span>
                         <span className="mt-1 flex items-center gap-2">
                           <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]">
-                            <span className={cx("block h-full rounded-full", pct === 100 ? "bg-emerald-500" : "bg-[color:var(--j-388BFF)]")} style={{ width: `${pct}%` }} />
+                            <span className={cx("block h-full rounded-full", pct === 100 ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-388BFF)]")} style={{ width: `${pct}%` }} />
                           </span>
                           <span className="text-[11px] tabular-nums text-[color:var(--j-626F86)]">{o.done}/{o.total}</span>
                         </span>

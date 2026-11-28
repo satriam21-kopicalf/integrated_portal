@@ -380,8 +380,8 @@ export default function UsersPage() {
       {issued && <IssuedLoginDrawer issued={issued} branchName={branchName} onClose={() => setIssued(null)} />}
 
       {toast && (
-        <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-[3px] px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-[color:var(--j-172B4D)]' : 'bg-red-600'}`} role="status">
-          {toast.tone === 'ok' ? <CheckCircle2 size={16} className="text-emerald-400" /> : <AlertCircle size={16} />}
+        <div className={`fixed left-1/2 top-4 z-[90] flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-[3px] px-4 py-3 text-sm font-medium text-white shadow-lg ${toast.tone === 'ok' ? 'bg-[color:var(--j-172B4D)]' : 'bg-[color:var(--j-C9372C)]'}`} role="status">
+          {toast.tone === 'ok' ? <CheckCircle2 size={16} className="text-[color:var(--j-22A06B)]" /> : <AlertCircle size={16} />}
           {toast.text}
           <button type="button" onClick={() => setToast(null)} className="ml-1 rounded p-0.5 opacity-70 hover:opacity-100" aria-label={tr('Dismiss')}><X size={14} /></button>
         </div>
@@ -487,7 +487,7 @@ function HrmsSection({ user }: { user: AuthUser }) {
   if (!id) {
     return (
       <DrawerSection title={tr('HRMS')}>
-        <p className="flex items-center gap-2 rounded-[3px] bg-amber-50 px-3 py-2 text-sm text-amber-800"><CircleAlert size={16} /> {tr('Not linked to an HRMS employee: job title and department are filled in by hand.')}</p>
+        <p className="flex items-center gap-2 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-sm text-[color:var(--j-7F5F01)]"><CircleAlert size={16} /> {tr('Not linked to an HRMS employee: job title and department are filled in by hand.')}</p>
       </DrawerSection>
     );
   }
@@ -496,7 +496,7 @@ function HrmsSection({ user }: { user: AuthUser }) {
     <DrawerSection title={tr('HRMS')} description={user.hrmsSyncedAt ? tr('Follows HRMS · last synced {0}', formatDateTime(user.hrmsSyncedAt)) : tr('Follows HRMS')}>
       {emp === undefined ? <div className="h-16 skeleton rounded-[3px]" /> : (
         <InfoGrid items={[
-          [tr('Employee status'), status ? <span key="s" className={status === 'keluar' ? 'font-medium text-red-700' : undefined}>{HRMS_STATUS[status] ?? status}</span> : null],
+          [tr('Employee status'), status ? <span key="s" className={status === 'keluar' ? 'font-medium text-[color:var(--j-AE2E24)]' : undefined}>{HRMS_STATUS[status] ?? status}</span> : null],
           [tr('Employee Number'), emp?.employeeNo ?? user.employeeNumber],
           [tr('Joined'), emp?.joinDate ? formatDate(emp.joinDate) : null],
           [tr('Site'), emp?.site ?? null],
@@ -504,7 +504,7 @@ function HrmsSection({ user }: { user: AuthUser }) {
           [tr('Linked by'), user.hrmsLinkedBy ? LINKED_BY[user.hrmsLinkedBy] ?? user.hrmsLinkedBy : null],
         ]} />
       )}
-      {emp === null && <p className="mt-2 text-xs text-red-600">{tr('The linked HRMS employee could not be read.')}</p>}
+      {emp === null && <p className="mt-2 text-xs text-[color:var(--j-C9372C)]">{tr('The linked HRMS employee could not be read.')}</p>}
     </DrawerSection>
   );
 }
@@ -708,21 +708,21 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
     >
       <form id="user-form" onSubmit={submit} noValidate>
         {error && !knownField && (
-          <p className="mb-5 flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
+          <p className="mb-5 flex items-start gap-2 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]" role="alert"><AlertCircle size={16} className="mt-0.5" />{error.text}</p>
         )}
 
         {!creating && (
           <DrawerSection title={tr('Profile Photo')}>
             <AvatarEditor name={user!.displayName} src={user!.avatarUrl} endpoint={`/api/users/${user!.id}/avatar`}
               onSaved={u => { if (u.id === me?.id) setMe(u); }} />
-            {error?.field === 'avatar' && <p className="text-xs text-red-600">{error.text}</p>}
+            {error?.field === 'avatar' && <p className="text-xs text-[color:var(--j-C9372C)]">{error.text}</p>}
           </DrawerSection>
         )}
 
         {cotrMode && (
           <DrawerSection title={tr('COTR employee')} description={tr('Choose the employee in Master Driver: the name, phone, position and department are filled from it and the account is tied to them.')}>
             <EmployeePicker value={cotrEmployee} onPick={pickEmployee} inputClass={inputClass} />
-            {fieldError('cotrDriver') && <p className="text-xs text-red-600">{fieldError('cotrDriver')}</p>}
+            {fieldError('cotrDriver') && <p className="text-xs text-[color:var(--j-C9372C)]">{fieldError('cotrDriver')}</p>}
             <Field label={tr('Kind of account')} htmlFor="f-cotr-kind" hint={COTR_KINDS.find(k => k.key === cotrKind)?.hint()}>
               <NativeSelect id="f-cotr-kind" className={inputClass} value={cotrKind} onChange={e => pickKind(e.target.value as CotrKind)}>
                 {COTR_KINDS.map(k => <option key={k.key} value={k.key}>{k.label()}</option>)}
@@ -747,7 +747,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
               <HrmsEmployeePicker linked={hrmsLinked} picked={hrmsPick} onPick={pickHrms} onUnlink={unlinkHrms}
                 initialQuery={profile.fullName} error={fieldError('hrmsEmployeeId')} />
             )}
-            {!person && fieldError('hrmsEmployeeId') && <p className="text-xs text-red-600">{fieldError('hrmsEmployeeId')}</p>}
+            {!person && fieldError('hrmsEmployeeId') && <p className="text-xs text-[color:var(--j-C9372C)]">{fieldError('hrmsEmployeeId')}</p>}
           </DrawerSection>
         )}
 
@@ -843,7 +843,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
           <DrawerSection title={tr('Page Access')} description={tr('Pages of the role are ticked; tick or untick to add or remove a page for this user only. Change the role pages under Roles & pages.')}>
             <PageAccessEditor role={form.role} overrides={pageOverrides} onChange={setPageOverrides} hidden={hiddenPages} onHiddenChange={setHiddenPages}
               limit={me?.role === 'admin' ? me.pages ?? [] : undefined} />
-            {fieldError('pageOverrides') && <p className="text-xs text-red-600">{fieldError('pageOverrides')}</p>}
+            {fieldError('pageOverrides') && <p className="text-xs text-[color:var(--j-C9372C)]">{fieldError('pageOverrides')}</p>}
           </DrawerSection>
         )}
 
@@ -865,15 +865,15 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
                 <BranchAssign branches={branchLimitable(form.role) ? branches : [...tabBranches(branches, tab), ...branches.filter(b => branchCodes.includes(b.branch_code) && !tabBranches(branches, tab).includes(b))]}
                   loading={branchesLoading} value={branchCodes} onChange={setBranchCodes} invalid={error?.field === 'branches'} />
                 {branchLimitable(form.role) && branchCodes.length > 0 && !branches.some(b => b.unit === 'CALF7' && branchCodes.includes(b.branch_code)) && (
-                  <p className="mt-1.5 text-xs text-amber-800">{tr('No Wasgee branch chosen: this account will not see the figures of Wasgee.')}</p>
+                  <p className="mt-1.5 text-xs text-[color:var(--j-7F5F01)]">{tr('No Wasgee branch chosen: this account will not see the figures of Wasgee.')}</p>
                 )}
               </div>
             )}
-            {fieldError('branches') && <p className="mt-1.5 text-xs text-red-600">{fieldError('branches')}</p>}
+            {fieldError('branches') && <p className="mt-1.5 text-xs text-[color:var(--j-C9372C)]">{fieldError('branches')}</p>}
           </DrawerSection>
         ) : (
           <p className="mt-6 flex items-start gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-sm text-[color:var(--j-44546F)]">
-            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-red-700" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('A Superadmin sees every branch.')}
+            <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-[color:var(--j-AE2E24)]" /> {form.role === 'driver' ? tr('Drivers have no branches: their pool and fleet are set in Master Driver.') : tr('A Superadmin sees every branch.')}
           </p>
         )}
 
@@ -896,7 +896,7 @@ function UserFormDrawer({ user, isMe, branches, branchesLoading, line, onClose, 
         ) : (
           <>
             {!user!.profileComplete && (
-              <p className="mt-6 flex items-start gap-2 rounded-[3px] border border-amber-200 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900">
+              <p className="mt-6 flex items-start gap-2 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/70 px-3 py-2.5 text-sm text-[color:var(--j-7F5F01)]">
                 <CircleAlert size={16} className="mt-0.5 flex-shrink-0" /> {tr('The user has not completed their profile yet. They can fill it in themself under My profile.')}
               </p>
             )}
@@ -1047,7 +1047,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 
       <DrawerSection title={tr('Branch Access')} description={!limited ? tr('{0} sees every branch', ROLE_LABELS[user.role]) : tr('Overview, Sales Transactions and exports are limited to these branches')}>
         {!limited ? (
-          <p className="flex items-center gap-2 text-sm text-[color:var(--j-44546F)]"><ShieldCheck size={16} className="text-red-700" /> {tr('All Branches')}</p>
+          <p className="flex items-center gap-2 text-sm text-[color:var(--j-44546F)]"><ShieldCheck size={16} className="text-[color:var(--j-AE2E24)]" /> {tr('All Branches')}</p>
         ) : branchCodes.length ? (
           <ul className="grid gap-2 sm:grid-cols-2">
             {branchCodes.map(code => (
@@ -1059,7 +1059,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
             ))}
           </ul>
         ) : (
-          <p className="flex items-center gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-sm text-red-700"><CircleAlert size={16} /> {tr('No branch assigned — this user sees no data.')}</p>
+          <p className="flex items-center gap-2 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-sm text-[color:var(--j-AE2E24)]"><CircleAlert size={16} /> {tr('No branch assigned — this user sees no data.')}</p>
         )}
       </DrawerSection>
 
@@ -1070,12 +1070,12 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           {PAGES.filter(p => user.role === 'superadmin' || (user.pages ?? []).includes(p.key)).map(p => {
             const extra = user.pageOverrides?.[p.key] === true;
             return (
-              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-emerald-50 font-medium text-emerald-800' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]'}`}
+              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-[color:var(--j-DCFFF1)] font-medium text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]'}`}
                 title={extra ? tr('Added for this user') : p.group}>{p.label}</li>
             );
           })}
           {Object.entries(user.pageOverrides ?? {}).filter(([, on]) => !on).map(([key]) => (
-            <li key={key} className="rounded-full bg-rose-50 px-2.5 py-1 text-xs text-rose-700 line-through" title={tr('Removed for This User')}>
+            <li key={key} className="rounded-full bg-[color:var(--j-FFECEB)] px-2.5 py-1 text-xs text-[color:var(--j-AE2E24)] line-through" title={tr('Removed for This User')}>
               {PAGES.find(p => p.key === key)?.label ?? key}
             </li>
           ))}
@@ -1088,7 +1088,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           [tr('Phone'), user.phoneNumber ? (
             <span key="p" className="flex flex-wrap items-center gap-2">
               <a href={`tel:${user.phoneNumber}`} className="text-[color:var(--j-0C66E4)] hover:underline">{user.phoneNumber}</a>
-              <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100">{tr('WhatsApp')}</a>
+              <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-[color:var(--j-DCFFF1)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--j-216E4E)] hover:bg-[color:var(--j-BAF3DB)]">{tr('WhatsApp')}</a>
             </span>
           ) : null],
           [tr('Address'), user.address],
@@ -1134,7 +1134,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           <ol className="relative space-y-3 border-l border-[color:var(--j-DCDFE4)] pl-4">
             {recent.map(a => (
               <li key={a.id} className="relative">
-                <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-white ${a.status === 'ok' ? 'bg-neutral-300' : a.status === 'denied' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                <span className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-white ${a.status === 'ok' ? 'bg-[color:var(--j-8590A2)]' : a.status === 'denied' ? 'bg-[color:var(--j-C9372C)]' : 'bg-[color:var(--j-E2B203)]'}`} />
                 <p className="text-sm text-[color:var(--j-172B4D)]">{a.summary || a.action}</p>
                 <p className="text-[11px] text-[color:var(--j-626F86)]">{formatDateTime(a.at)} · <span className="font-mono">{a.action}</span></p>
               </li>
@@ -1158,7 +1158,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
 }
 
 function Glance({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'good' | 'warn' | 'bad' }) {
-  const color = tone === 'bad' ? 'text-red-700' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : 'text-[color:var(--j-172B4D)]';
+  const color = tone === 'bad' ? 'text-[color:var(--j-AE2E24)]' : tone === 'warn' ? 'text-[color:var(--j-7F5F01)]' : tone === 'good' ? 'text-[color:var(--j-216E4E)]' : 'text-[color:var(--j-172B4D)]';
   return (
     <div className="min-w-0 bg-white px-3 py-3">
       <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{label}</p>
@@ -1258,8 +1258,8 @@ function DeleteDialog({ user, onClose, onDeleted, onError }: { user: AuthUser; o
         </>
       }
     >
-      <div className="flex items-center gap-3 rounded-[3px] bg-red-50 px-3 py-3">
-        <KeyRound size={18} className="text-red-600" />
+      <div className="flex items-center gap-3 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-3">
+        <KeyRound size={18} className="text-[color:var(--j-C9372C)]" />
         <div className="text-sm">
           <p className="font-semibold text-[color:var(--j-172B4D)]">{user.displayName}</p>
           <p className="text-[color:var(--j-44546F)]">{user.username} · {user.email}</p>

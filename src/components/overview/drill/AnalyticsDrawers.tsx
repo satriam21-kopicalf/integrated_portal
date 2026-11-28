@@ -706,7 +706,7 @@ export function DeductionsDrawer({ q }: { q: string }) {
                 onRowClick={b => drill.drill(to.branch(b.branchCode, b.branchName))}
                 columns={[
                   { key: 'status', label: tr('Status'), value: b => b.status, render: b => (b.status === 'review'
-                    ? <span className="inline-flex items-center gap-1 font-medium text-amber-700"><AlertTriangle size={12} /> {tr('Review')}</span>
+                    ? <span className="inline-flex items-center gap-1 font-medium text-[color:var(--j-7F5F01)]"><AlertTriangle size={12} /> {tr('Review')}</span>
                     : <span className="inline-flex items-center gap-1 text-[color:var(--j-626F86)]"><CheckCircle2 size={12} /> {tr('Normal')}</span>) },
                   { key: 'branch', label: tr('Branch'), value: b => b.branchName, render: b => short(b.branchName) },
                   { key: 'bills', label: tr('Transactions'), align: 'right', value: b => b.bills },

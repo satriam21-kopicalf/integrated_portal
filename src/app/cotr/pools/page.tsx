@@ -30,8 +30,8 @@ const deptTone = (dep: string): Tone => {
   return "slate";
 };
 const TONE_CLASS: Record<Tone, string> = {
-  blue: "bg-blue-50 text-blue-800 ring-blue-200", cyan: "bg-cyan-50 text-cyan-800 ring-cyan-200", amber: "bg-amber-50 text-amber-800 ring-amber-200",
-  violet: "bg-violet-50 text-violet-800 ring-violet-200", slate: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]",
+  blue: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] ring-[color:var(--j-CCE0FF)]", cyan: "bg-[color:var(--j-E7F9FF)] text-[color:var(--j-206A83)] ring-[color:var(--j-C6EDFB)]", amber: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] ring-[color:var(--j-F8E6A0)]",
+  violet: "bg-[color:var(--j-F3F0FF)] text-[color:var(--j-5E4DB2)] ring-[color:var(--j-DFD8FD)]", slate: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]",
 };
 
 /** The employees of a pool per department: a badge each, its count in bold. */

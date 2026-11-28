@@ -51,7 +51,7 @@ export default function LocateDialog({ title, onCancel, onDone }: { title: strin
       {state === "locating" ? (
         <div className="flex flex-col items-center gap-3 py-4 text-center">
           <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]">
-            <span className="absolute inset-0 animate-ping rounded-full bg-brand-200/60" />
+            <span className="absolute inset-0 animate-ping rounded-full bg-[color:var(--j-85B8FF)]/60" />
             <Crosshair size={24} className="relative" />
           </span>
           <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tr("Finding your location…")}</p>
@@ -61,16 +61,16 @@ export default function LocateDialog({ title, onCancel, onDone }: { title: strin
           <Loader2 size={16} className="animate-spin text-[color:var(--j-626F86)]" />
         </div>
       ) : state === "weak" ? (
-        <div className="flex gap-3 rounded-[3px] bg-amber-50 p-4 text-sm text-amber-900">
-          <TriangleAlert size={20} className="mt-0.5 flex-shrink-0 text-amber-600" />
+        <div className="flex gap-3 rounded-[3px] bg-[color:var(--j-FFF7D6)] p-4 text-sm text-[color:var(--j-7F5F01)]">
+          <TriangleAlert size={20} className="mt-0.5 flex-shrink-0 text-[color:var(--j-B38600)]" />
           <div>
             <p className="font-semibold">{tr("The location is not precise (±{0} m)", Math.round(fix?.accuracy ?? 0))}</p>
             <p className="mt-1 text-xs leading-relaxed">{tr("Move near a window or outside, turn on Wi-Fi and precise location, then try again. If you start now, the count is marked \"low accuracy\" for Cost Control.")}</p>
           </div>
         </div>
       ) : (
-        <div className="flex gap-3 rounded-[3px] bg-red-50 p-4 text-sm text-red-900">
-          <MapPinOff size={20} className="mt-0.5 flex-shrink-0 text-red-600" />
+        <div className="flex gap-3 rounded-[3px] bg-[color:var(--j-FFECEB)] p-4 text-sm text-[color:var(--j-AE2E24)]">
+          <MapPinOff size={20} className="mt-0.5 flex-shrink-0 text-[color:var(--j-C9372C)]" />
           <div>
             <p className="font-semibold">{state === "denied" ? tr("Location is blocked for this site") : tr("Location is not available")}</p>
             <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs leading-relaxed">

@@ -102,7 +102,7 @@ export default function ExportButton({
             {confirmReport ? (
               <div className="p-4">
                 <div className="flex gap-3">
-                  <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-amber-500" />
+                  <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-[color:var(--j-B38600)]" />
                   <div>
                     <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{splitInParts ? tr('Split into several Google Sheets') : tr('Large export')}</p>
                     <p className="mt-1 text-xs leading-relaxed text-[color:var(--j-626F86)]">
@@ -140,7 +140,7 @@ export default function ExportButton({
                         className={`inline-flex items-center justify-center gap-1.5 rounded-[3px] px-2 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                           format === f.value ? 'rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white' : 'text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)] disabled:hover:text-[color:var(--j-626F86)]'}`}
                       >
-                        {f.value === 'gsheet' ? <Sheet size={14} className="text-emerald-600" /> : <FileSpreadsheet size={14} className="text-emerald-700" />}
+                        {f.value === 'gsheet' ? <Sheet size={14} className="text-[color:var(--j-22A06B)]" /> : <FileSpreadsheet size={14} className="text-[color:var(--j-216E4E)]" />}
                         {f.label}
                       </button>
                     );
@@ -165,7 +165,7 @@ export default function ExportButton({
                       <span>
                         <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{r.label}</span>
                         <span className="block text-xs text-[color:var(--j-626F86)]">{r.description}</span>
-                        {tooLong && <span className="block text-xs text-amber-700">{tr('At most {0} days for {1}: choose a shorter period', MENU_MAX_DAYS[format], destination)}</span>}
+                        {tooLong && <span className="block text-xs text-[color:var(--j-7F5F01)]">{tr('At most {0} days for {1}: choose a shorter period', MENU_MAX_DAYS[format], destination)}</span>}
                       </span>
                     </button>
                   );

@@ -63,7 +63,7 @@ export default function BranchLeaderboard({ resource, query: baseQuery }: { reso
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={tr('Search Branch')}
-            className="h-8 w-40 rounded-[3px] border border-[color:var(--j-DCDFE4)] pl-8 pr-2 text-xs text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] focus:border-neutral-400 focus:outline-none sm:w-48"
+            className="h-8 w-40 rounded-[3px] border border-[color:var(--j-DCDFE4)] pl-8 pr-2 text-xs text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] focus:border-[color:var(--j-8590A2)] focus:outline-none sm:w-48"
           />
         </label>
         </>

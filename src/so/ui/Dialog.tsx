@@ -52,7 +52,7 @@ export default function Dialog({
     <div className="fixed inset-0 z-[85] !m-0 flex items-end justify-center sm:items-center sm:p-4" role="presentation">
       <div className="absolute inset-0 bg-neutral-900/30 dark:bg-black/70" onClick={locked ? undefined : onClose} aria-hidden />
       <div ref={panel} role="dialog" aria-modal="true" aria-label={title} tabIndex={-1}
-        className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white shadow-xl outline-none sm:rounded-[3px] ${width}`}>
+        className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white outline-none sm:rounded-[3px] ${width}`}>
         <header className="flex items-start justify-between gap-3 border-b border-[color:var(--j-DCDFE4)] px-5 py-4">
           <div className="min-w-0">
             <h2 className="text-[15px] font-semibold text-[color:var(--j-172B4D)]">{title}</h2>

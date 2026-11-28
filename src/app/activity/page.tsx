@@ -98,15 +98,15 @@ const PAGES: Record<string, string> = {
 
 /** category -> icon tile + bar colour */
 const TONES: Record<string, { tile: string; bar: string; label: string }> = {
-  export: { tile: 'bg-emerald-50 text-emerald-700', bar: 'bg-emerald-500', get label() { return tr('Exports'); } },
+  export: { tile: 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]', bar: 'bg-[color:var(--j-22A06B)]', get label() { return tr('Exports'); } },
   auth: { tile: 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]', bar: 'bg-[color:var(--j-388BFF)]', get label() { return tr('Sign-in'); } },
-  page: { tile: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]', bar: 'bg-neutral-400', get label() { return tr('Pages'); } },
-  filter: { tile: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]', bar: 'bg-neutral-300', get label() { return tr('Filters'); } },
-  transaction: { tile: 'bg-violet-50 text-violet-700', bar: 'bg-violet-500', get label() { return tr('Transactions'); } },
-  user: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-500', get label() { return tr('User Accounts'); } },
-  profile: { tile: 'bg-amber-50 text-amber-700', bar: 'bg-amber-300', get label() { return tr('Own Profile'); } },
-  access: { tile: 'bg-red-50 text-red-700', bar: 'bg-red-500', get label() { return tr('Access Denied'); } },
-  form: { tile: 'bg-teal-50 text-teal-700', bar: 'bg-teal-500', get label() { return tr('Forms'); } },
+  page: { tile: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]', bar: 'bg-[color:var(--j-8590A2)]', get label() { return tr('Pages'); } },
+  filter: { tile: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]', bar: 'bg-[color:var(--j-8590A2)]', get label() { return tr('Filters'); } },
+  transaction: { tile: 'bg-[color:var(--j-F3F0FF)] text-[color:var(--j-5E4DB2)]', bar: 'bg-[color:var(--j-6E5DC6)]', get label() { return tr('Transactions'); } },
+  user: { tile: 'bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]', bar: 'bg-[color:var(--j-E2B203)]', get label() { return tr('User Accounts'); } },
+  profile: { tile: 'bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]', bar: 'bg-[color:var(--j-F5CD47)]', get label() { return tr('Own Profile'); } },
+  access: { tile: 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]', bar: 'bg-[color:var(--j-C9372C)]', get label() { return tr('Access Denied'); } },
+  form: { tile: 'bg-[color:var(--j-E7F9FF)] text-[color:var(--j-206A83)]', bar: 'bg-[color:var(--j-2898BD)]', get label() { return tr('Forms'); } },
   system: { tile: 'bg-[color:var(--j-172B4D)] text-white', bar: 'bg-neutral-700', get label() { return tr('System'); } },
 };
 
@@ -331,9 +331,9 @@ export default function ActivityPage() {
           </>} />
 
         {notice && (
-          <div className="flex items-center gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
+          <div className="flex items-center gap-2 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-4 py-2.5 text-sm text-[color:var(--j-216E4E)]">
             <CheckCircle2 size={16} /> {notice}
-            <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-emerald-700 hover:bg-emerald-100" aria-label={tr('Dismiss')}><X size={14} /></button>
+            <button type="button" onClick={() => setNotice(null)} className="ml-auto rounded p-1 text-[color:var(--j-216E4E)] hover:bg-[color:var(--j-BAF3DB)]" aria-label={tr('Dismiss')}><X size={14} /></button>
           </div>
         )}
 
@@ -378,7 +378,7 @@ export default function ActivityPage() {
             </>}>
             {error ? (
               <div className="flex flex-col items-center gap-2 px-4 py-14 text-center">
-                <AlertCircle className="text-red-500" />
+                <AlertCircle className="text-[color:var(--j-C9372C)]" />
                 <p className="text-sm text-[color:var(--j-44546F)]">{error}</p>
                 <p className="text-xs text-[color:var(--j-626F86)]">{tr('Retrying automatically…')}</p>
               </div>
@@ -447,7 +447,7 @@ export default function ActivityPage() {
                 <div className="flex justify-between gap-2"><dt className="text-[color:var(--j-626F86)]">{tr('Oldest entry')}</dt><dd className="text-[color:var(--j-172B4D)]">{summary?.storage?.oldest ? formatDateTime(summary.storage.oldest) : '—'}</dd></div>
                 <div className="flex justify-between gap-2"><dt className="text-[color:var(--j-626F86)]">{tr('Auto clean-up')}</dt><dd className="text-[color:var(--j-172B4D)]">{summary?.retentionDays ? tr('older than {0} days, daily 03:30', summary.retentionDays) : tr('off')}</dd></div>
               </dl>
-              <button type="button" onClick={() => setResetting(true)} className={`${btn('outline', 'sm')} mt-3 w-full border-red-200 text-red-700 hover:bg-red-50`}>
+              <button type="button" onClick={() => setResetting(true)} className={`${btn('outline', 'sm')} mt-3 w-full border-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)] hover:bg-[color:var(--j-FFECEB)]`}>
                 <Trash2 size={13} /> {tr('Reset logs now')}
               </button>
             </Card>
@@ -466,7 +466,7 @@ export default function ActivityPage() {
                         <span className="tabular-nums text-[color:var(--j-172B4D)]">{formatNumber(n)}</span>
                       </div>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]">
-                        <div className={`h-full rounded-full ${TONES[cat]?.bar ?? 'bg-neutral-400'}`} style={{ width: `${Math.max(2, (n / categoryTotal) * 100)}%` }} />
+                        <div className={`h-full rounded-full ${TONES[cat]?.bar ?? 'bg-[color:var(--j-8590A2)]'}`} style={{ width: `${Math.max(2, (n / categoryTotal) * 100)}%` }} />
                       </div>
                     </li>
                   ))}
@@ -680,7 +680,7 @@ function ActivityTable({ entries, fresh, loading, onOpen }: { entries: Entry[]; 
                 </td>
                 <td className="max-w-[22rem] px-3 py-2 text-xs text-[color:var(--j-44546F)]"><span className="line-clamp-2">{e.summary ?? '—'}</span></td>
                 <td className="whitespace-nowrap px-3 py-2 text-xs text-[color:var(--j-44546F)]">{pageLabel(e.page)}</td>
-                <td className="whitespace-nowrap px-3 py-2">{e.status === 'ok' ? <span className="text-xs text-emerald-700">{tr('Succeeded')}</span> : <StatusBadge status={e.status} />}</td>
+                <td className="whitespace-nowrap px-3 py-2">{e.status === 'ok' ? <span className="text-xs text-[color:var(--j-216E4E)]">{tr('Succeeded')}</span> : <StatusBadge status={e.status} />}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-[11px] text-[color:var(--j-626F86)]">{device(e.userAgent)}<span className="block">{e.ip ?? ''}</span></td>
               </tr>
             );

@@ -19,9 +19,9 @@ type Detail = TransactionCombined & { report_rows?: TransactionCombined[] };
 
 function statusStyle(status?: string | null) {
   const s = (status || '').toLowerCase();
-  if (s === 'finished' || s === 'completed') return 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
-  if (s === 'void' || s === 'cancelled') return 'bg-rose-50 text-rose-700 ring-rose-600/20';
-  return 'bg-amber-50 text-amber-700 ring-amber-600/20';
+  if (s === 'finished' || s === 'completed') return 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-22A06B)]/20';
+  if (s === 'void' || s === 'cancelled') return 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)] ring-[color:var(--j-C9372C)]/20';
+  return 'bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] ring-[color:var(--j-E2B203)]/20';
 }
 
 function duration(from?: string | null, to?: string | null): string {
@@ -116,7 +116,7 @@ export default function TransactionDrawer({ transaction, onClose }: Props) {
           <Section title={tr('Payment Summary')}>
             <dl className="space-y-1.5 text-sm">
               <Row label={tr('Subtotal')} value={formatCurrency(tx.subtotal)} />
-              {discount > 0 && <Row label={tr('Discount')} value={`−${formatCurrency(discount)}`} tone="text-rose-600" />}
+              {discount > 0 && <Row label={tr('Discount')} value={`−${formatCurrency(discount)}`} tone="text-[color:var(--j-C9372C)]" />}
               {Number(tx.tax_amount) > 0 && <Row label={tr('Tax')} value={formatCurrency(tx.tax_amount)} />}
               <div className="my-2 border-t border-[color:var(--j-DCDFE4)]" />
               <Row label={tr('Grand Total')} value={formatCurrency(tx.total_amount)} strong />

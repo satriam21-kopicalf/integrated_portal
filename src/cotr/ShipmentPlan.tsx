@@ -78,7 +78,7 @@ export function ShipmentPlan() {
                           <td className="px-3 py-1.5 text-right tabular-nums">{n(r.avgSold)}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums text-[color:var(--j-626F86)]">{n(r.avgUsed)}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{n(r.need)}</td>
-                          <td className="px-3 py-1.5 text-right tabular-nums">{n(r.have)}{r.expiring > 0 && <span className="ml-1 text-[11px] text-red-600">(−{r.expiring} {tr("expired")})</span>}</td>
+                          <td className="px-3 py-1.5 text-right tabular-nums">{n(r.have)}{r.expiring > 0 && <span className="ml-1 text-[11px] text-[color:var(--j-C9372C)]">(−{r.expiring} {tr("expired")})</span>}</td>
                           <td className={`px-3 py-1.5 text-right font-semibold tabular-nums ${r.send ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-626F86)]"}`}>{r.send ? n(r.send) : "—"}</td>
                         </tr>
                       ))}

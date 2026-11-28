@@ -95,10 +95,10 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
   const recipes = !open ? [] : recount ? wip.recipes.filter((r) => !wip.lines.some((l) => l.recipe_id === r.id)) : wip.recipes;
   const entered = wip.lines.length;
   return (
-    <section className="overflow-hidden rounded-[3px] border border-violet-200 bg-white">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DFD8FD)] bg-white">
       <button type="button" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}
-        className="flex w-full items-center gap-3 bg-violet-50/70 px-4 py-3 text-left">
-        <FlaskConical size={18} className="flex-shrink-0 text-violet-700" />
+        className="flex w-full items-center gap-3 bg-[color:var(--j-F3F0FF)]/70 px-4 py-3 text-left">
+        <FlaskConical size={18} className="flex-shrink-0 text-[color:var(--j-5E4DB2)]" />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("WIP / Premix")}</span>
           <span className="block text-xs text-[color:var(--j-626F86)]">{tr("Enter each WIP in its unit (grams, portions or pieces); the ingredients are calculated and filled into the items")}</span>
@@ -116,7 +116,7 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                 const k = keyOf(l.recipe_id, l.uom);
                 const edit = asked(l);
                 return (
-                  <li key={l.id} className={cx("flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5", l.flags?.includes("RECOUNT") && "bg-amber-50/50")}>
+                  <li key={l.id} className={cx("flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5", l.flags?.includes("RECOUNT") && "bg-[color:var(--j-FFF7D6)]/50")}>
                     <span className="min-w-0 flex-1 basis-48">
                       <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{l.name}</span>
                       <span className="mt-0.5 flex flex-wrap gap-1">
@@ -129,12 +129,12 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                     <span className="flex items-center gap-1.5">
                       {edit && l.flags?.includes("RECOUNT") && (
                         <button type="button" disabled={busy} onClick={() => void save(l.id)}
-                          className="h-11 rounded-[3px] border border-amber-300 bg-amber-50 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                          className="h-11 rounded-[3px] border border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)] px-2 text-xs font-semibold text-[color:var(--j-7F5F01)] hover:bg-[color:var(--j-F8E6A0)]"
                           aria-label={tr("{0}: the quantity is right", l.name)} title={tr("The quantity is right: confirm the recount")}>{tr("Same ✓")}</button>
                       )}
                       <input inputMode="decimal" disabled={!edit} value={values[k] ?? ""} placeholder="0" aria-label={`${l.name} ${l.uom}`}
                         onChange={(e) => setValues((v) => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "").replace(/^(\d*\.\d{0,2}).*$/, "$1") }))}
-                        className={cx("h-11 w-24 rounded-[3px] border px-2 text-right text-base tabular-nums disabled:bg-[color:var(--j-F7F8F9)] disabled:text-[color:var(--j-626F86)]", edit ? "border-violet-400 bg-violet-50/50" : "border-[color:var(--j-DCDFE4)]")} />
+                        className={cx("h-11 w-24 rounded-[3px] border px-2 text-right text-base tabular-nums disabled:bg-[color:var(--j-F7F8F9)] disabled:text-[color:var(--j-626F86)]", edit ? "border-[color:var(--j-B8ACF6)] bg-[color:var(--j-F3F0FF)]/50" : "border-[color:var(--j-DCDFE4)]")} />
                       <span className="text-sm text-[color:var(--j-44546F)]">{isGram(l.uom) ? "g" : l.uom}</span>
                     </span>
                   </li>
@@ -160,12 +160,12 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                       <span className="min-w-0 flex-1 basis-48">
                         <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{r.name}</span>
                         {fixed.length > 0 && <span className="block text-[11px] text-[color:var(--j-626F86)]">{fixed.map((u) => `1 ${u.uom} = ${fmtG(u.grams)} g`).join(" · ")}</span>}
-                        {others.map((u) => <span key={u.uom} className="block text-[11px] text-amber-700">{tr("Also entered: {0} {1}", values[keyOf(r.id, u.uom)], u.uom)}</span>)}
+                        {others.map((u) => <span key={u.uom} className="block text-[11px] text-[color:var(--j-7F5F01)]">{tr("Also entered: {0} {1}", values[keyOf(r.id, u.uom)], u.uom)}</span>)}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <input inputMode="decimal" value={values[k] ?? ""} placeholder="0" aria-label={`${r.name} ${uom}`}
                           onChange={e => setValues(v => ({ ...v, [k]: e.target.value.replace(",", ".").replace(/[^0-9.]/g, "").replace(/^(\d*\.\d{0,2}).*$/, "$1") }))}
-                          className={cx("h-11 w-24 rounded-[3px] border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-violet-400 bg-violet-50/50" : "border-[color:var(--j-DCDFE4)]")} />
+                          className={cx("h-11 w-24 rounded-[3px] border px-2 text-right text-base tabular-nums", Number(values[k]) > 0 ? "border-[color:var(--j-B8ACF6)] bg-[color:var(--j-F3F0FF)]/50" : "border-[color:var(--j-DCDFE4)]")} />
                         {r.units.length > 1 ? (
                           <NativeSelect value={uom} onChange={(e) => setUnitOf((m) => ({ ...m, [r.id]: e.target.value }))} aria-label={tr("Unit of {0}", r.name)}
                             className="h-11 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-2 text-sm text-[color:var(--j-44546F)]">
@@ -174,10 +174,10 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                         ) : <span className="text-sm text-[color:var(--j-44546F)]">{isGram(unit.uom) ? "g" : unit.uom}</span>}
                       </span>
                       {!isGram(uom) && (Number(values[k]) >= 1000 || grams >= 100_000) && (
-                        <span role="alert" className="w-full rounded-[3px] bg-amber-50 px-2 py-1.5 text-[11px] font-medium text-amber-900">
+                        <span role="alert" className="w-full rounded-[3px] bg-[color:var(--j-FFF7D6)] px-2 py-1.5 text-[11px] font-medium text-[color:var(--j-7F5F01)]">
                           {tr("{0} {1} is {2} kg. If you typed grams, change the unit to g.", values[k], uom, fmtG(Math.round(grams / 1000)))}</span>
                       )}
-                      {grams > 0 && !isGram(uom) && <span className="w-full text-right text-[11px] tabular-nums text-violet-700 sm:w-auto">= {fmtG(grams)} g</span>}
+                      {grams > 0 && !isGram(uom) && <span className="w-full text-right text-[11px] tabular-nums text-[color:var(--j-5E4DB2)] sm:w-auto">= {fmtG(grams)} g</span>}
                     </li>
                   );
                 })}
@@ -198,8 +198,8 @@ export default function WipSection({ count, open, onSaved, onDirty }: {
                   </li>
                 ))}
               </ul>
-              {dirty && <p className="mt-1.5 text-[11px] text-amber-700">{tr("Save the WIP to fill these grams into the item lines.")}</p>}
-              {!dirty && unsaved && <p className="mt-1.5 text-[11px] text-amber-700">{tr("Save the WIP before submitting, even when there is none (leave it empty or 0).")}</p>}
+              {dirty && <p className="mt-1.5 text-[11px] text-[color:var(--j-7F5F01)]">{tr("Save the WIP to fill these grams into the item lines.")}</p>}
+              {!dirty && unsaved && <p className="mt-1.5 text-[11px] text-[color:var(--j-7F5F01)]">{tr("Save the WIP before submitting, even when there is none (leave it empty or 0).")}</p>}
             </div>
           )}
           {open && (recipes.length > 0 || (recount && wip.lines.some(asked))) && (

@@ -20,7 +20,7 @@ import { wibDay } from "@/so/ui/Filters";
 import { locale, tr } from "@/lib/i18n";
 import { VisitEditor } from "./VisitForm";
 import { type ActionPlan, type Audit, type AuditTeam, type Person, type Visit, type WwwrState } from "./visit";
-import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
+import { SkeletonList } from "@/components/kc/Skeleton";
 
 const dayLabel = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString(locale(), { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const dayShort = (d: string | null | undefined) => (d ? new Date(`${d.slice(0, 10)}T00:00:00`).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" }) : "—");
@@ -79,13 +79,13 @@ export default function WwwrForm() {
   );
   return (
     <Page title="WW-WR" subtitle={tr("SWAT audit of the outlet: Product and Outlet in one form")}>
-      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={4} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && (
-            <p className="flex items-start gap-3 rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+            <p className="flex items-start gap-3 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-4 py-3 text-sm text-[color:var(--j-216E4E)]">
+              <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
               <span><b>{tr("Audit sent for {0}", sent.branchName)}</b><br /><span className="text-xs">{wibDateTime(sent.submittedAt)} · {tr("Follow the action plans until the revisit")}</span></span>
             </p>
           )}
@@ -111,7 +111,7 @@ export default function WwwrForm() {
 
 function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <p className="flex items-center gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-sm font-semibold text-[color:var(--j-172B4D)] sm:px-5">
         {title}<span className="rounded-full bg-[color:var(--j-091E420F)] px-1.5 text-[11px] tabular-nums text-[color:var(--j-44546F)]">{count}</span>
       </p>
@@ -190,7 +190,7 @@ function TeamDrawer({ audit, me, onClose, onChanged }: { audit: Audit | AuditTea
               <li key={m.id} className="flex items-center gap-2.5 px-3 py-2">
                 <span className="min-w-0 flex-1"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{m.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{m.jobTitle ?? `@${m.username ?? ""}`}</span></span>
                 {m.id === audit.lead.id ? <Badge tone="amber" icon={<Crown size={11} />}>{tr("Lead")}</Badge>
-                  : audit.lead.id === me && <button type="button" onClick={() => void remove(m)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><X size={15} /></button>}
+                  : audit.lead.id === me && <button type="button" onClick={() => void remove(m)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove")}><X size={15} /></button>}
               </li>
             ))}
           </ul>
@@ -255,9 +255,9 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
         <p className="text-lg font-semibold text-[color:var(--j-172B4D)]">{tr("Evaluation & Action Plan")}</p>
         <p className="text-xs text-[color:var(--j-626F86)]">{tr("The team writes what it found, what the outlet must do, who of the team follows it and when the team comes back.")}</p>
       </div>
-      {!dirty && missing.length > 0 && <p className="rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
+      {!dirty && missing.length > 0 && <p className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{tr("Still needed before the lead sends: {0}", missing.join(", "))}</p>}
 
-      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Team")}</h3>
           {audit.lead.id === me && <Button size="sm" variant="secondary" onClick={() => setTeamOpen(true)}><UserPlus size={14} /> {tr("Add Colleagues")}</Button>}
@@ -265,15 +265,15 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
         <p className="flex flex-wrap gap-1.5">{members.map((m) => <Badge key={m.id} tone={m.id === audit.lead.id ? "amber" : "slate"}>{m.name}{m.id === audit.lead.id ? ` · ${tr("lead")}` : ""}</Badge>)}</p>
       </section>
 
-      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-        <label className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("General Evaluation")} <span className="text-red-500">*</span>
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
+        <label className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("General Evaluation")} <span className="text-[color:var(--j-C9372C)]">*</span>
           <textarea rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} className={cx(inputClass, "mt-2 py-2 font-normal")}
             placeholder={tr("e.g. Bar clean, but the stock of premix is under par and two shelf-life labels are missing …")} /></label>
       </section>
 
-      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <div><h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Action Plans")} <span className="text-red-500">*</span></h3><p className="text-xs text-[color:var(--j-626F86)]">{tr("What must be done, who of the team handles it and by when")}</p></div>
+          <div><h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Action Plans")} <span className="text-[color:var(--j-C9372C)]">*</span></h3><p className="text-xs text-[color:var(--j-626F86)]">{tr("What must be done, who of the team handles it and by when")}</p></div>
           <Button size="sm" variant="secondary" onClick={() => setActions((a) => [...a, { title: "", detail: "", assigneeId: "", dueOn: revisit }])}><Plus size={14} /> {tr("Action plan")}</Button>
         </div>
         <ol className="space-y-2">
@@ -291,7 +291,7 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
                   <label className="text-[11px] font-medium text-[color:var(--j-626F86)] sm:col-span-2">{tr("Due")}
                     <input type="date" value={x.dueOn} min={audit.day} onChange={(e) => set(i, { dueOn: e.target.value })} className={cx(inputClass, "mt-1 h-9")} /></label>
                 </div>
-                <button type="button" onClick={() => setActions((a) => a.filter((_, j) => j !== i))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={15} /></button>
+                <button type="button" onClick={() => setActions((a) => a.filter((_, j) => j !== i))} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Delete")}><Trash2 size={15} /></button>
               </div>
             </li>
           ))}
@@ -299,14 +299,14 @@ function EvaluationPanel({ audit, me, onSaved }: { audit: AuditTeam; me: string;
         </ol>
       </section>
 
-      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
-        <label className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Revisit")} <span className="text-red-500">*</span>
+      <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
+        <label className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Revisit")} <span className="text-[color:var(--j-C9372C)]">*</span>
           <span className="block text-xs font-normal text-[color:var(--j-626F86)]">{tr("When the team comes back to check the progress; the audit stays open until then")}</span>
           <input type="date" value={revisit} min={audit.day} onChange={(e) => setRevisit(e.target.value)} className={cx(inputClass, "mt-2 h-10 max-w-[14rem] font-normal")} /></label>
       </section>
 
       <div className="flex items-center justify-end gap-3">
-        <span className={cx("text-xs", dirty ? "text-amber-700" : "text-emerald-700")}>{dirty ? tr("Not saved yet") : tr("Saved")}</span>
+        <span className={cx("text-xs", dirty ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-216E4E)]")}>{dirty ? tr("Not saved yet") : tr("Saved")}</span>
         <Button loading={busy} disabled={!dirty} onClick={() => void save()}><ClipboardList size={15} /> {tr("Save Evaluation")}</Button>
       </div>
       {teamOpen && <TeamDrawer audit={{ ...audit, members }} me={me} onClose={() => setTeamOpen(false)}
@@ -350,7 +350,7 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
         <Button onClick={onClose}>{tr("Close")}</Button>
       </>}>
       <div className="space-y-4 text-sm">
-        <div className={cx("rounded-[3px] border px-4 py-3", done ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
+        <div className={cx("rounded-[3px] border px-4 py-3", done ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]")}>
           <p className="font-semibold">{done ? tr("Completed {0}", wibDateTime(audit.completedAt)) : tr("Follow-up: {0} of {1} action plans open", left, audit.actions.length)}</p>
           <p className="text-xs">{tr("Revisit {0}", dayShort(audit.revisitOn))}{audit.revisitNote ? ` · ${audit.revisitNote}` : ""}</p>
         </div>
@@ -359,15 +359,15 @@ function FollowUpDrawer({ audit, me, onClose, onChanged }: { audit: Audit; me: s
           <h3 className="mb-2 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Action Plans")}</h3>
           <ul className="space-y-2">
             {audit.actions.map((x) => (
-              <li key={x.id} className={cx("flex items-start gap-3 rounded-[3px] border p-3", x.status === "done" ? "border-emerald-200 bg-emerald-50/50" : "border-[color:var(--j-DCDFE4)]")}>
+              <li key={x.id} className={cx("flex items-start gap-3 rounded-[3px] border p-3", x.status === "done" ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)]/50" : "border-[color:var(--j-DCDFE4)]")}>
                 <button type="button" disabled={done || busy === x.id} onClick={() => void toggle(x)} aria-pressed={x.status === "done"}
-                  className={cx("mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border", x.status === "done" ? "border-emerald-600 bg-emerald-600 text-white" : "border-[color:var(--j-8590A2)] bg-white hover:border-[color:var(--j-388BFF)]")}>
+                  className={cx("mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border", x.status === "done" ? "border-[color:var(--j-22A06B)] bg-[color:var(--j-22A06B)] text-white" : "border-[color:var(--j-8590A2)] bg-white hover:border-[color:var(--j-388BFF)]")}>
                   {x.status === "done" && <CheckCircle2 size={13} />}</button>
                 <div className="min-w-0 flex-1">
                   <p className={cx("font-medium", x.status === "done" ? "text-[color:var(--j-626F86)] line-through" : "text-[color:var(--j-172B4D)]")}>{x.title}</p>
                   {x.detail && <p className="text-xs text-[color:var(--j-626F86)]">{x.detail}</p>}
                   <p className="mt-1 flex flex-wrap gap-x-3 text-[11px] text-[color:var(--j-626F86)]"><span>{tr("Handled by {0}", x.assignee ?? "—")}</span><span>{tr("Due {0}", dayShort(x.dueOn))}</span>
-                    {x.status === "done" && <span className="text-emerald-700">{tr("Done by {0} · {1}", x.doneBy ?? "—", wibDateTime(x.doneAt))}</span>}</p>
+                    {x.status === "done" && <span className="text-[color:var(--j-216E4E)]">{tr("Done by {0} · {1}", x.doneBy ?? "—", wibDateTime(x.doneAt))}</span>}</p>
                   {x.doneNote && <p className="mt-1 text-xs text-[color:var(--j-44546F)]">“{x.doneNote}”</p>}
                 </div>
               </li>

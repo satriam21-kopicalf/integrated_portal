@@ -39,7 +39,7 @@ export function SignatureCard({ count, bare = false }: { count: Count; /** the s
     );
   }
   return (
-    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <div className="flex items-center gap-3 border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-4 py-3">
         <PenLine size={18} className="text-[color:var(--j-626F86)]" />
         <h2 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Signature")}</h2>
@@ -82,8 +82,8 @@ export function EvidenceDownloads({ count }: { count: Count }) {
 }
 
 const FILE_TONE: Record<string, string> = {
-  pdf: "bg-red-50 text-red-700", xlsx: "bg-emerald-50 text-emerald-700", xls: "bg-emerald-50 text-emerald-700", csv: "bg-emerald-50 text-emerald-700",
-  docx: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", doc: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", pptx: "bg-orange-50 text-orange-700", ppt: "bg-orange-50 text-orange-700",
+  pdf: "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]", xlsx: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]", xls: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]", csv: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]",
+  docx: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", doc: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", pptx: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]", ppt: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]",
 };
 
 /** The attached documents: name, size, who and when; a tap downloads the file. Removable by its uploader while open. */
@@ -105,7 +105,7 @@ export function CountFileList({ files, onRemove, canRemove }: {
             </a>
             <a href={fileUrl(f.id)} download={f.file_name} aria-label={tr("Download {0}", f.file_name)} className="rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]"><Download size={15} /></a>
             {onRemove && canRemove?.(f) && (
-              <button type="button" onClick={() => onRemove(f.id)} aria-label={tr("Remove {0}", f.file_name)} className="rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><X size={15} /></button>
+              <button type="button" onClick={() => onRemove(f.id)} aria-label={tr("Remove {0}", f.file_name)} className="rounded-[3px] p-2 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><X size={15} /></button>
             )}
           </li>
         );
@@ -154,7 +154,7 @@ export function EvidenceFiles({ count, open, onChange }: { count: Count; open: b
   };
 
   return (
-    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <div className="flex flex-wrap items-center gap-3 border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-4 py-3">
         <Paperclip size={18} className="text-[color:var(--j-626F86)]" />
         <div className="min-w-0 flex-1">
@@ -175,13 +175,13 @@ export function EvidenceFiles({ count, open, onChange }: { count: Count; open: b
         {files.length === 0 ? (
           open ? (
             <button type="button" onClick={() => input.current?.click()} disabled={!!busy}
-              className="flex w-full flex-col items-center gap-1 rounded-[3px] border-2 border-dashed border-[color:var(--j-8590A2)] px-4 py-6 text-sm text-[color:var(--j-626F86)] hover:border-brand-400 hover:text-[color:var(--j-0055CC)]">
+              className="flex w-full flex-col items-center gap-1 rounded-[3px] border-2 border-dashed border-[color:var(--j-8590A2)] px-4 py-6 text-sm text-[color:var(--j-626F86)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]">
               <Paperclip size={18} /> {tr("Attach files (optional)")}
               <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("The count can be submitted without files")}</span>
             </button>
           ) : <p className="text-sm text-[color:var(--j-626F86)]">{tr("No files were attached.")}</p>
         ) : <CountFileList files={files} onRemove={open ? (id) => void remove(id) : undefined} canRemove={(f) => f.uploaded_by === me?.id} />}
-        {open && full && <p className="text-xs text-amber-700">{tr("The maximum of 15 files is reached; remove one to attach another.")}</p>}
+        {open && full && <p className="text-xs text-[color:var(--j-7F5F01)]">{tr("The maximum of 15 files is reached; remove one to attach another.")}</p>}
       </div>
     </section>
   );
@@ -218,7 +218,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
   };
 
   return (
-    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <div className="flex flex-wrap items-center gap-3 border-b border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-4 py-3">
         <Images size={18} className="text-[color:var(--j-626F86)]" />
         <div className="min-w-0 flex-1">
@@ -246,7 +246,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
               <li>
                 <button type="button" onClick={() => setCamera(true)} disabled={busy}
                   className={cx("flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-[3px] border-2 border-dashed text-xs font-medium",
-                    "border-[color:var(--j-8590A2)] text-[color:var(--j-626F86)] hover:border-brand-400 hover:text-[color:var(--j-0055CC)]")}>
+                    "border-[color:var(--j-8590A2)] text-[color:var(--j-626F86)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]")}>
                   {busy ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
                   {tr("Take Photo")}
                 </button>
@@ -254,7 +254,7 @@ export default function Evidence({ count, open, onChange }: { count: Count; open
             )}
           </ul>
         )}
-        {open && full && <p className="mt-2 text-xs text-amber-700">{tr("The maximum of 15 photos is reached; remove one to take another.")}</p>}
+        {open && full && <p className="mt-2 text-xs text-[color:var(--j-7F5F01)]">{tr("The maximum of 15 photos is reached; remove one to take another.")}</p>}
       </div>
       <CameraCapture open={camera} title={tr("Stock opname evidence")} branch={count.facility_name} countNumber={count.number}
         onClose={() => setCamera(false)} onShot={upload} />

@@ -80,7 +80,7 @@ export default function FleetSharePage() {
               <div className="relative flex aspect-[16/9] items-center justify-center bg-[color:var(--j-091E420F)] text-[color:var(--j-8590A2)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {f.has_photo ? <img src={thumb(`${base}/photo?v=${encodeURIComponent(f.updated_at ?? "")}`, 640)} decoding="async" loading="lazy" alt="" className="h-full w-full object-cover" /> : <Bike size={56} />}
-                <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${f.is_active === false ? "bg-neutral-800 text-white" : f.condition === "service" ? "bg-amber-500 text-white" : "bg-emerald-600 text-white"}`}>
+                <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${f.is_active === false ? "bg-neutral-800 text-white" : f.condition === "service" ? "bg-[color:var(--j-E2B203)] text-white" : "bg-[color:var(--j-22A06B)] text-white"}`}>
                   {f.is_active === false ? tr("Not in use") : f.condition === "service" ? <><Wrench size={12} /> {tr("In Service")}</> : <><CheckCircle2 size={12} /> {tr("Ready to sell")}</>}
                 </span>
               </div>
@@ -122,7 +122,7 @@ export default function FleetSharePage() {
 
             <Section icon={<UserRound size={16} />} title={tr("Driver")}>
               {card.today && (
-                <p className={`mb-3 flex items-center gap-2 rounded-[3px] px-3 py-2 text-xs font-medium ${card.today.status === "open" ? "bg-emerald-50 text-emerald-800" : "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]"}`}>
+                <p className={`mb-3 flex items-center gap-2 rounded-[3px] px-3 py-2 text-xs font-medium ${card.today.status === "open" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]"}`}>
                   <Clock size={14} /> {card.today.status === "open"
                     ? tr("On the road today with {0} since {1}", card.today.name, clock(card.today.startedAt))
                     : tr("Shift of {0} closed at {1}", card.today.name, clock(card.today.endedAt))}
@@ -140,7 +140,7 @@ export default function FleetSharePage() {
                         <p className="font-semibold text-[color:var(--j-172B4D)]">{d.name}{d.nickname ? <span className="font-normal text-[color:var(--j-626F86)]"> ({d.nickname})</span> : null}</p>
                         <p className="text-xs text-[color:var(--j-626F86)]">{[d.employee_id, d.position ?? d.department, d.pool_name].filter(Boolean).join(" · ")}</p>
                         <p className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                          <span className={`rounded-full px-2 py-0.5 font-medium ${d.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{d.status === "active" ? tr("Active") : tr("On Leave")}</span>
+                          <span className={`rounded-full px-2 py-0.5 font-medium ${d.status === "active" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]"}`}>{d.status === "active" ? tr("Active") : tr("On Leave")}</span>
                           {d.joined_on && <span className="rounded-full bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[color:var(--j-44546F)]">{tr("Joined {0}", day(d.joined_on) ?? "")}</span>}
                         </p>
                         {card.full && d.phone && <a href={`tel:${d.phone}`} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)]"><Phone size={12} /> {d.phone}</a>}
@@ -193,7 +193,7 @@ function Fact({ label, value, warn, always }: { label: string; value: ReactNode;
   return (
     <div className="min-w-0">
       <dt className="text-xs font-medium capitalize text-[color:var(--j-626F86)]">{label}</dt>
-      <dd className={`truncate font-medium ${warn ? "text-red-600" : "text-[color:var(--j-172B4D)]"}`}>{value === null || value === undefined || value === "" ? "—" : value}</dd>
+      <dd className={`truncate font-medium ${warn ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-172B4D)]"}`}>{value === null || value === undefined || value === "" ? "—" : value}</dd>
     </div>
   );
 }

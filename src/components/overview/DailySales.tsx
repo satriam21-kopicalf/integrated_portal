@@ -102,7 +102,7 @@ export function DailySalesChart({ data, onSelect }: { data: GrowthResponse; onSe
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-[color:var(--j-626F86)]">
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKDAY_BLUE }} aria-hidden />{tr('Mon – Fri')}</span>
         <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: WEEKEND_BLUE }} aria-hidden />{tr('Sat – Sun')}</span>
-        <span className="flex items-center gap-1.5"><span className="h-0 w-3 border-t border-dashed border-neutral-500" aria-hidden />{tr('average per day')}</span>
+        <span className="flex items-center gap-1.5"><span className="h-0 w-3 border-t border-dashed border-[color:var(--j-626F86)]" aria-hidden />{tr('average per day')}</span>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label={tr('Highlight Weekdays')}>
         {WEEKDAYS.map((name, i) => {

@@ -149,7 +149,7 @@ export default function PricelistPage() {
                       <button type="button" role="switch" aria-checked={i.active !== false} onClick={() => setToggling(i)}
                         aria-label={i.active !== false ? tr("Deactivate {0}", i.name) : tr("Activate {0}", i.name)}
                         className="inline-flex items-center gap-2 text-xs font-medium text-[color:var(--j-44546F)]">
-                        <span className={cx("relative h-5 w-9 rounded-full transition-colors", i.active !== false ? "bg-emerald-500" : "bg-neutral-300")}>
+                        <span className={cx("relative h-5 w-9 rounded-full transition-colors", i.active !== false ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-8590A2)]")}>
                           <span className={cx("absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all", i.active !== false ? "left-[18px]" : "left-0.5")} />
                         </span>
                         {i.active !== false ? tr("Active") : tr("Inactive")}

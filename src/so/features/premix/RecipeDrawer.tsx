@@ -126,7 +126,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
       title={creating ? tr("New WIP recipe") : (r?.name ?? tr("WIP recipe"))}
       description={r ? `${r.code} · ${tr("{0} versions", r.versions.length)}` : tr("Components per batch; the batch of a pail recipe is one pail")}
       footer={<>
-        {version?.status === "DRAFT" && <Button variant="ghost" className="mr-auto text-red-600" disabled={busy} onClick={deleteDraft}><Trash2 size={16} /> {tr("Delete draft")}</Button>}
+        {version?.status === "DRAFT" && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" disabled={busy} onClick={deleteDraft}><Trash2 size={16} /> {tr("Delete draft")}</Button>}
         <Button variant="secondary" onClick={onClose}>{tr("Close")}</Button>
         <Button variant="secondary" loading={busy} disabled={!head.name.trim()} onClick={() => void saveAll()}><Save size={16} /> {draft ? tr("Save draft") : tr("Save")}</Button>
         {draft && <Button loading={busy} disabled={!head.name.trim() || !draft.lines.length} onClick={() => void activate()}><CheckCircle2 size={16} /> {tr("Save & activate")}</Button>}
@@ -161,7 +161,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                 const g = batch > 0 ? unitGrams(u, batch) : 0;
                 const isSo = (head.count_uom || "Gram").toLowerCase() === u.uom.trim().toLowerCase() && !!u.uom.trim();
                 return (
-                  <li key={i} className={cx("rounded-[3px] border p-3", isSo ? "border-violet-300 bg-violet-50/40" : "border-[color:var(--j-DCDFE4)]")}>
+                  <li key={i} className={cx("rounded-[3px] border p-3", isSo ? "border-[color:var(--j-B8ACF6)] bg-[color:var(--j-F3F0FF)]/40" : "border-[color:var(--j-DCDFE4)]")}>
                     <div className="grid gap-2 sm:grid-cols-[9rem_1fr_9rem_auto] sm:items-center">
                       <input className={cx(inputClass, "h-9 text-sm")} value={u.uom} placeholder={tr("Unit, e.g. Porsi")} aria-label={tr("Unit")} onChange={e => setUnit(i, { uom: e.target.value })} />
                       <Segmented label={tr("Unit Type")} value={share ? "share" : "grams"}
@@ -172,11 +172,11 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                           value={(share ? u.per_batch : u.qty_base) ?? ""} onChange={e => setUnit(i, share ? { per_batch: e.target.value.replace(",", ".") || null } : { qty_base: e.target.value.replace(",", ".") || null })} />
                         <span className="whitespace-nowrap text-xs text-[color:var(--j-626F86)]">{share ? tr("per batch") : "g"}</span>
                       </span>
-                      <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="justify-self-end rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={15} /></button>
+                      <button type="button" onClick={() => setUnits(us => us.filter((_, n) => n !== i))} className="justify-self-end rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove")}><Trash2 size={15} /></button>
                     </div>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
                       <span className="text-[color:var(--j-626F86)]">{g > 0 && u.uom.trim() ? `1 ${u.uom} = ${fmtG(g)} g${!share && batch > 0 && u.uom.toLowerCase() !== "gram" ? ` · ${tr("1 batch = {0} {1}", fmtG(batch / g), u.uom)}` : ""}` : "—"}</span>
-                      <label className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-violet-800">
+                      <label className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-[color:var(--j-5E4DB2)]">
                         <input type="radio" name="count-uom" checked={isSo} disabled={!u.uom.trim()} onChange={() => setHead({ ...head, count_uom: u.uom.trim() })} className="h-3.5 w-3.5" />
                         {tr("Used in stock opname")}
                       </label>
@@ -186,9 +186,9 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               })}
             </ul>
             {!units.some(u => u.uom.toLowerCase() === "gram") && (
-              <label className={cx("flex cursor-pointer items-center justify-between gap-2 rounded-[3px] border px-3 py-2 text-xs", !head.count_uom ? "border-violet-300 bg-violet-50/40" : "border-dashed border-[color:var(--j-DCDFE4)]")}>
+              <label className={cx("flex cursor-pointer items-center justify-between gap-2 rounded-[3px] border px-3 py-2 text-xs", !head.count_uom ? "border-[color:var(--j-B8ACF6)] bg-[color:var(--j-F3F0FF)]/40" : "border-dashed border-[color:var(--j-DCDFE4)]")}>
                 <span className="text-[color:var(--j-44546F)]">{tr("Gram (weighed) — always available in the calculator and the count")}</span>
-                <span className="inline-flex items-center gap-1.5 font-medium text-violet-800">
+                <span className="inline-flex items-center gap-1.5 font-medium text-[color:var(--j-5E4DB2)]">
                   <input type="radio" name="count-uom" checked={!head.count_uom} onChange={() => setHead({ ...head, count_uom: "" })} className="h-3.5 w-3.5" /> {tr("Used in stock opname")}
                 </span>
               </label>
@@ -197,7 +197,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               {([["Porsi", { uom: "Porsi", qty_base: "", per_batch: null }], ["Pcs", { uom: "Pcs", qty_base: "", per_batch: null }],
                 ["Pail & Teko", null], ["Gram", { uom: "Gram", qty_base: 1, per_batch: null }]] as [string, Unit | null][]).map(([label, u]) => (
                 <button key={label} type="button" onClick={() => (u ? addUnit(u) : (addUnit({ uom: "Pail", qty_base: null, per_batch: 1 }), addUnit({ uom: "Teko", qty_base: null, per_batch: 3 })))}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-[color:var(--j-8590A2)] px-3 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-brand-400 hover:text-[color:var(--j-0055CC)]">
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-[color:var(--j-8590A2)] px-3 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]">
                   <Plus size={12} /> {label}
                 </button>
               ))}
@@ -231,7 +231,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               <Field label={tr("Batch (Grams)")} hint={tr("A pail recipe: the grams of one pail")}>
                 <Input inputMode="decimal" value={draft ? draft.batch : String(batch)} disabled={!draft} onChange={e => setDraft(d => d && ({ ...d, batch: e.target.value }))} />
               </Field>
-              <div className={cx("flex items-end gap-2 pb-2 text-sm", Math.abs(ratio - 1) > 0.005 ? "text-amber-700" : "text-emerald-700")}>
+              <div className={cx("flex items-end gap-2 pb-2 text-sm", Math.abs(ratio - 1) > 0.005 ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-216E4E)]")}>
                 {tr("Components: {0} g = {1}% of the batch", fmtG(total), (ratio * 100).toFixed(1))}
               </div>
             </div>
@@ -252,12 +252,12 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
             )}
             {issues.length > 0 && (
               <ul className="space-y-1">
-                {issues.map((i, n) => <li key={n} className={cx("rounded-[3px] px-3 py-1.5 text-xs", i.level === "error" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-800")}>{i.message}</li>)}
+                {issues.map((i, n) => <li key={n} className={cx("rounded-[3px] px-3 py-1.5 text-xs", i.level === "error" ? "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]" : "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]")}>{i.message}</li>)}
               </ul>
             )}
             {draft && <Field label={tr("Note")}><Input value={draft.note} onChange={e => setDraft(d => d && ({ ...d, note: e.target.value }))} placeholder={tr("What changed")} /></Field>}
           </FormCard>
-          {error && <p role="alert" className="rounded-[3px] bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>}
+          {error && <p role="alert" className="rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2.5 text-sm text-[color:var(--j-AE2E24)]">{error}</p>}
         </div>
       )}
     </Drawer>
@@ -298,7 +298,7 @@ function ComponentTable({ lines, batch, editable, onChange, onRemove }: {
                   : fmtG(num(l.qty_base))}
               </td>
               <td className="px-3 py-2 text-right tabular-nums text-xs text-[color:var(--j-626F86)]">{batch ? ((num(l.qty_base) / batch) * 100).toFixed(1) : "-"}</td>
-              {editable && <td className="px-1 py-2"><button type="button" onClick={() => onRemove(i)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove")}><Trash2 size={14} /></button></td>}
+              {editable && <td className="px-1 py-2"><button type="button" onClick={() => onRemove(i)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove")}><Trash2 size={14} /></button></td>}
             </tr>
           ))}
         </tbody>
@@ -330,7 +330,7 @@ function ItemPicker({ value, onPick, onNotStock }: { value: DraftLine; onPick: (
       ) : (
         <div className="relative">
           <Search size={13} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
-          <input className={cx(searchClass, "h-8 pl-7 text-xs", !value.item_id && "border-red-300")} value={q} autoFocus={open} placeholder={tr("Search item for {0}", value.component_name || "…")}
+          <input className={cx(searchClass, "h-8 pl-7 text-xs", !value.item_id && "border-[color:var(--j-F87168)]")} value={q} autoFocus={open} placeholder={tr("Search item for {0}", value.component_name || "…")}
             onFocus={() => setOpen(true)} onChange={e => { setQ(e.target.value); setOpen(true); }} onBlur={() => setTimeout(() => setOpen(false), 150)} />
           {loading && <Loader2 size={12} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-[color:var(--j-626F86)]" />}
         </div>

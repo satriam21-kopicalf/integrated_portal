@@ -54,7 +54,7 @@ export default function MenusCard({ query }: { query: string }) {
                     </p>
                     <p className="text-base font-semibold text-[color:var(--j-172B4D)]">{c.share === null ? '-' : `${fixed(c.share, 1)}%`}</p>
                     <p className="text-[11px] text-[color:var(--j-626F86)]">{compactRupiah(c.subtotal)}
-                      {c.deltaPct !== undefined && c.deltaPct !== null && <span className={c.deltaPct >= 0 ? ' text-emerald-700' : ' text-red-700'}> {deltaText(c.deltaPct)}</span>}</p>
+                      {c.deltaPct !== undefined && c.deltaPct !== null && <span className={c.deltaPct >= 0 ? ' text-[color:var(--j-216E4E)]' : ' text-[color:var(--j-AE2E24)]'}> {deltaText(c.deltaPct)}</span>}</p>
                   </div>
                 ))}
               </div>
@@ -109,7 +109,7 @@ export default function MenusCard({ query }: { query: string }) {
                 {compactRupiah(data.totals.subtotal)} · {formatNumber(data.totals.qty)} {tr('pcs ordered')}
                 {data.totals.previousSubtotal !== undefined && (
                   <> {tr('· vs')} {compactRupiah(data.totals.previousSubtotal)}{' '}
-                    <span className={(data.totals.deltaPct ?? 0) >= 0 ? 'font-medium text-emerald-700' : 'font-medium text-red-700'}>{deltaText(data.totals.deltaPct)}</span></>
+                    <span className={(data.totals.deltaPct ?? 0) >= 0 ? 'font-medium text-[color:var(--j-216E4E)]' : 'font-medium text-[color:var(--j-AE2E24)]'}>{deltaText(data.totals.deltaPct)}</span></>
                 )}
               </p>
               <Segmented label={tr('Rank by')} value={sort} options={[{ value: 'subtotal', label: tr('Gross sales') }, { value: 'qty', label: tr('Qty') }]} onChange={setSort} />

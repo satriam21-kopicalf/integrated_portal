@@ -208,7 +208,7 @@ export function HourGrowthTable({ rows }: { rows: HourGrowthRow[] }) {
 
 export function GrowthText({ v, abs, absOnly = false }: { v: number | null; abs?: number | null; absOnly?: boolean }) {
   const up = (absOnly ? abs ?? 0 : v ?? 0) >= 0;
-  return <span className={`tabular-nums ${up ? 'text-[color:var(--j-0C66E4)]' : 'text-red-600'}`}>{absOnly ? signedRp(abs) : pctLabel(v)}</span>;
+  return <span className={`tabular-nums ${up ? 'text-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-C9372C)]'}`}>{absOnly ? signedRp(abs) : pctLabel(v)}</span>;
 }
 
 /** Strongest growing and declining hours. */
@@ -218,7 +218,7 @@ export function HourMovers({ rows }: { rows: HourGrowthRow[] }) {
   const down = ranked.filter(r => r.growthAbs < 0).slice(-3).reverse();
   if (!up.length && !down.length) return null;
   const chip = (r: HourGrowthRow) => (
-    <span key={r.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${r.growthAbs >= 0 ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'bg-red-50 text-red-700'}`}>
+    <span key={r.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${r.growthAbs >= 0 ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>
       {r.growthAbs >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(r.hour)} {signedRp(r.growthAbs)}{tr('/day')}
     </span>
   );
@@ -240,7 +240,7 @@ export function GrowthSummary({ data }: { data: GrowthResponse }) {
     <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
       <div>
         <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr('Growth')}</p>
-        <p className={`text-2xl font-semibold tabular-nums ${t.growthPct === null ? 'text-[color:var(--j-626F86)]' : up ? 'text-[color:var(--j-0C66E4)]' : 'text-red-600'}`}>
+        <p className={`text-2xl font-semibold tabular-nums ${t.growthPct === null ? 'text-[color:var(--j-626F86)]' : up ? 'text-[color:var(--j-0C66E4)]' : 'text-[color:var(--j-C9372C)]'}`}>
           {t.growthPct === null ? 'n/a' : pctLabel(t.growthPct)}
         </p>
       </div>

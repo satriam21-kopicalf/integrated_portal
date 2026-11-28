@@ -97,10 +97,10 @@ export default function VendorBatch({ units, unit, onEdit, onSent }: { units: Un
           <ul className="max-h-72 divide-y divide-[color:var(--j-DCDFE4)] overflow-y-auto rounded border border-[color:var(--j-DCDFE4)] bg-white text-xs">
             {check.rows.map((r) => (
               <li key={r.row} className="flex items-start gap-2 px-3 py-2">
-                {r.problems.length ? <AlertTriangle size={14} className="mt-px flex-shrink-0 text-red-600" /> : <CheckCircle2 size={14} className="mt-px flex-shrink-0 text-emerald-600" />}
+                {r.problems.length ? <AlertTriangle size={14} className="mt-px flex-shrink-0 text-[color:var(--j-C9372C)]" /> : <CheckCircle2 size={14} className="mt-px flex-shrink-0 text-[color:var(--j-22A06B)]" />}
                 <span className="min-w-0 flex-1"><span className="block truncate text-[color:var(--j-172B4D)]">{r.row}. {r.vendor || "—"} · {r.invoiceNo || "—"} · {unitName(r.unit)}</span>
-                  {r.problems.length > 0 && <span className="block text-red-700">{r.problems.join("; ")}</span>}
-                  {r.warnings.length > 0 && <span className="block text-amber-700">{r.warnings.join("; ")}</span>}</span>
+                  {r.problems.length > 0 && <span className="block text-[color:var(--j-AE2E24)]">{r.problems.join("; ")}</span>}
+                  {r.warnings.length > 0 && <span className="block text-[color:var(--j-7F5F01)]">{r.warnings.join("; ")}</span>}</span>
                 <span className="flex-shrink-0 font-semibold tabular-nums">{fmtRp(r.amount)}</span>
               </li>
             ))}
@@ -111,7 +111,7 @@ export default function VendorBatch({ units, unit, onEdit, onSent }: { units: Un
           </div>
         </div>
       )}
-      {notes.length > 0 && <ul className="max-h-40 list-disc overflow-y-auto rounded-[3px] bg-amber-50 py-2 pl-6 pr-3 text-xs text-amber-900">{notes.map((n) => <li key={n}>{n}</li>)}</ul>}
+      {notes.length > 0 && <ul className="max-h-40 list-disc overflow-y-auto rounded-[3px] bg-[color:var(--j-FFF7D6)] py-2 pl-6 pr-3 text-xs text-[color:var(--j-7F5F01)]">{notes.map((n) => <li key={n}>{n}</li>)}</ul>}
       {rows.length > 0 && (
         <>
           <div className="flex flex-wrap items-center gap-2 border-t border-[color:var(--j-F1F2F4)] pt-3">
@@ -132,7 +132,7 @@ export default function VendorBatch({ units, unit, onEdit, onSent }: { units: Un
                 <input type="checkbox" className="mt-1" checked={pick.has(d.id)} onChange={() => toggle(d.id)} aria-label={d.vendor ?? d.id} />
                 <span className="min-w-0 flex-1"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{d.vendor ?? "—"}</span>
                   <span className="block truncate text-xs text-[color:var(--j-626F86)]">{unitName(d.unit)} · {d.term ?? "—"} · {d.invoiceNo ?? "—"} · {d.due ? wibDay(d.due) : "—"} · {tr("{0} files", d.files)}</span>
-                  {d.missing.length > 0 && <span className="block text-xs text-red-700">{d.missing.join("; ")}</span>}</span>
+                  {d.missing.length > 0 && <span className="block text-xs text-[color:var(--j-AE2E24)]">{d.missing.join("; ")}</span>}</span>
                 <span className="flex-shrink-0 font-semibold tabular-nums">{fmtRp(d.amount)}</span>
                 <button type="button" onClick={() => onEdit(d.id)} className="rounded p-1 text-[color:var(--j-626F86)] hover:text-[color:var(--j-0055CC)]" aria-label={tr("Edit")}><Pencil size={14} /></button>
               </li>

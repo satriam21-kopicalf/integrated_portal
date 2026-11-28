@@ -160,14 +160,14 @@ function ItemOutlets({ form, item, canEdit, onClose, onSaved }: { form: "product
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{o.name}</span>
                     <span className="text-[11px] text-[color:var(--j-626F86)]">{o.code} · {o.groupCode ?? tr("Without a Group")} · {byGroup ? tr("group: asked") : tr("group: not asked")}
-                      {" · "}<b className={effective ? "text-emerald-700" : "text-[color:var(--j-626F86)]"}>{effective ? tr("asked here") : tr("not asked here")}</b></span>
+                      {" · "}<b className={effective ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-626F86)]"}>{effective ? tr("asked here") : tr("not asked here")}</b></span>
                   </span>
                   <span role="radiogroup" aria-label={o.name} className="flex rounded-[3px] bg-[color:var(--j-091E420F)] p-0.5">
                     {OPTS.map((x) => (
                       <button key={String(x.v)} type="button" role="radio" aria-checked={v === x.v} disabled={!canEdit}
                         onClick={() => setDraft((d) => ({ ...d, [o.code]: x.v }))}
                         className={cx("rounded-[3px] px-2.5 py-1 text-xs font-medium disabled:opacity-60", v === x.v
-                          ? x.v === null ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : x.v ? "bg-emerald-600 text-white" : "bg-neutral-700 text-white"
+                          ? x.v === null ? "rounded-[4px] border border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : x.v ? "bg-[color:var(--j-22A06B)] text-white" : "bg-neutral-700 text-white"
                           : "text-[color:var(--j-626F86)]")}>{x.label}</button>
                     ))}
                   </span>
@@ -277,7 +277,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                         className="inline-flex items-center gap-1 rounded-[3px] px-2 py-1 text-[11px] font-semibold normal-case tracking-normal text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]"><AddIcon size={12} /> {tr("Add item")}</button>}</span>
                   </td></tr>
                   {items.map((it) => (
-                    <tr key={it.key} className={cx("hover:bg-[color:var(--j-F7F8F9)]", drag?.key === it.key && "opacity-40", over === it.key && drag && drag.key !== it.key && "outline outline-2 -outline-offset-2 outline-brand-500")}
+                    <tr key={it.key} className={cx("hover:bg-[color:var(--j-F7F8F9)]", drag?.key === it.key && "opacity-40", over === it.key && drag && drag.key !== it.key && "outline outline-2 -outline-offset-2 outline-[color:var(--j-388BFF)]")}
                       draggable={canEdit && !s} onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; setDrag({ section: sec.key, key: it.key }); }}
                       onDragOver={(e) => { if (drag?.section === sec.key) { e.preventDefault(); setOver(it.key); } }}
                       onDragLeave={() => setOver((o) => (o === it.key ? null : o))}
@@ -294,7 +294,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                                 {e?.category && <span className={cx("rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", categoryTone(e.category))}>{categoryLabel(e.category)}</span>}
                                 {e && !e.active && <span className="rounded bg-[color:var(--j-DCDFE4)] px-1.5 py-px text-[10px] font-semibold text-[color:var(--j-44546F)]">{tr("Inactive")}</span>}
                                 {e?.custom && <span className="rounded bg-[color:var(--j-E9F2FF)] px-1.5 py-px text-[10px] font-semibold text-[color:var(--j-0C66E4)]">{tr("Added")}</span>}
-                                {e?.changed && <span className="rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold text-amber-700">{tr("Changed")}</span>}
+                                {e?.changed && <span className="rounded bg-[color:var(--j-FFF7D6)] px-1.5 py-px text-[10px] font-semibold text-[color:var(--j-7F5F01)]">{tr("Changed")}</span>}
                                 {e && e.photo !== "required" && <span className="text-[10px] text-[color:var(--j-626F86)]">{tr("photo {0}", e.photo === "none" ? tr("not asked") : tr("optional"))}</span>}
                                 {e && e.note !== "required" && <span className="text-[10px] text-[color:var(--j-626F86)]">{tr("note {0}", e.note === "none" ? tr("not asked") : tr("optional"))}</span>}
                               </span>
@@ -314,7 +314,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                               <input type="checkbox" className="h-[18px] w-[18px] cursor-pointer rounded border-[color:var(--j-8590A2)] accent-[color:var(--j-0C66E4)]" checked={v} disabled={!canEdit}
                                 aria-label={`${en ? it.labelEn : it.label} · ${g}`}
                                 onChange={() => setChanges((x) => { const n = { ...x }; const key = k(it.key, g); if (!v === c.shown) delete n[key]; else n[key] = !v; return n; })} />
-                              {changed && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden title={tr("Changed from the standard")} />}
+                              {changed && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[color:var(--j-E2B203)]" aria-hidden title={tr("Changed from the standard")} />}
                             </label>
                           </td>
                         );
@@ -326,7 +326,7 @@ export function FormItems({ canEdit }: { canEdit: boolean }) {
                           return (
                             <button type="button" onClick={() => setOutletsOf(it)}
                               className={cx("inline-flex items-center gap-1.5 rounded-[3px] px-2.5 py-1.5 text-xs font-medium ring-1 ring-inset",
-                                ex.length ? "bg-amber-50 text-amber-800 ring-amber-200 hover:bg-amber-100" : "text-[color:var(--j-626F86)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
+                                ex.length ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] ring-[color:var(--j-F8E6A0)] hover:bg-[color:var(--j-F8E6A0)]" : "text-[color:var(--j-626F86)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
                               <Store size={13} />{ex.length ? <>{on > 0 && `+${on}`}{on > 0 && off > 0 && " · "}{off > 0 && `−${off}`}</> : tr("Follow group")}
                             </button>
                           );
@@ -382,7 +382,7 @@ export function SalesTargets() {
   useEffect(() => { void load(); }, [load]);
   const rows = useMemo(() => (res?.data ?? []).filter((o) => !q || `${o.name} ${o.code} ${o.groupCode ?? ""}`.toLowerCase().includes(q.toLowerCase())), [res, q]);
   const paged = usePaged(rows, `${q}|${month}`, 25);
-  const tone = (v: number | null | undefined) => (v == null ? "text-[color:var(--j-626F86)]" : v >= 100 ? "text-emerald-600" : v >= 85 ? "text-amber-600" : "text-red-600");
+  const tone = (v: number | null | undefined) => (v == null ? "text-[color:var(--j-626F86)]" : v >= 100 ? "text-[color:var(--j-22A06B)]" : v >= 85 ? "text-[color:var(--j-B38600)]" : "text-[color:var(--j-C9372C)]");
   return (
     <Card flush title={<span className="inline-flex items-center gap-1.5">{tr("Net Sales of the Outlets")} <InfoTip info={SALES_INFO} /></span>}
       footer={res && rows.length > 0 ? <><span>{tr("{0} outlets", rows.length)}</span><PageNav paged={paged} /></> : undefined}

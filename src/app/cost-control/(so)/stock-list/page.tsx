@@ -135,7 +135,7 @@ export default function StockListPage() {
           : !rows.length ? <Empty icon={<Boxes size={26} />} title={tr("No stock matches")} />
           : view === "branch" ? (<>
             <ul className="divide-y divide-[color:var(--j-F1F2F4)] md:hidden">{paged.rows.map((r) => {
-              const vTone = r.variance == null ? "text-[color:var(--j-626F86)]" : r.variance > 1e-6 ? "text-red-700" : r.variance < -1e-6 ? "text-emerald-700" : "text-[color:var(--j-44546F)]";
+              const vTone = r.variance == null ? "text-[color:var(--j-626F86)]" : r.variance > 1e-6 ? "text-[color:var(--j-AE2E24)]" : r.variance < -1e-6 ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-44546F)]";
               return (
                 <li key={`${r.branch}:${r.code}`}><button type="button" onClick={() => setCalc(r)} className="block w-full px-4 py-3 text-left active:bg-[color:var(--j-F7F8F9)]">
                   <span className="block font-medium text-[color:var(--j-172B4D)]">{r.name}</span>
@@ -150,8 +150,8 @@ export default function StockListPage() {
             <div className="hidden overflow-x-auto md:block"><table className="w-full min-w-[2100px] border-separate border-spacing-0 text-[13px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
               <thead className={theadClass}>
                 <tr className="[&>th]:border-b [&>th]:border-[color:var(--j-DCDFE4)] [&>th]:px-3 [&>th]:py-1.5 [&>th]:text-center">
-                  <th colSpan={3} className="sticky left-0 z-[2] bg-white" /><th colSpan={3} className="border-l text-emerald-700">{tr("Items In")}</th>
-                  <th colSpan={6} className="border-l text-red-700">{tr("Items Out")}</th><th colSpan={7} className="border-l" /></tr>
+                  <th colSpan={3} className="sticky left-0 z-[2] bg-white" /><th colSpan={3} className="border-l text-[color:var(--j-216E4E)]">{tr("Items In")}</th>
+                  <th colSpan={6} className="border-l text-[color:var(--j-AE2E24)]">{tr("Items Out")}</th><th colSpan={7} className="border-l" /></tr>
                 <tr className="[&>th]:border-b-2 [&>th]:border-[color:var(--j-DCDFE4)]">
                 <SortTh k="branch" sort={sorted.sort} onSort={sorted.toggle} pad="sticky left-0 z-[2] w-[13rem] min-w-[13rem] bg-white py-2 pl-5 pr-3">{tr("Branch")}</SortTh>
                 <SortTh k="material" sort={sorted.sort} onSort={sorted.toggle} pad="sticky left-[13rem] z-[2] w-[15rem] min-w-[15rem] border-r border-[color:var(--j-DCDFE4)] bg-white px-3 py-2">{tr("Material")}</SortTh>
@@ -176,28 +176,28 @@ export default function StockListPage() {
                 const h = heads.find((x) => x.branch === r.branch);
                 const num = (v: number, sign: "+" | "−" | "", cls = "text-[color:var(--j-44546F)]") => (
                   <td className={cx("px-3 py-2 text-right tabular-nums", v ? cls : "text-[color:var(--j-8590A2)]")}>{v ? `${sign}${qtyText(Math.abs(v))}` : "—"}</td>);
-                const vTone = r.variance == null ? "text-[color:var(--j-8590A2)]" : r.variance > 1e-6 ? "text-red-700" : r.variance < -1e-6 ? "text-emerald-700" : "text-[color:var(--j-626F86)]";
+                const vTone = r.variance == null ? "text-[color:var(--j-8590A2)]" : r.variance > 1e-6 ? "text-[color:var(--j-AE2E24)]" : r.variance < -1e-6 ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-626F86)]";
                 return (
                   <tr key={`${r.branch}:${r.code}`} className="group cursor-pointer [&>td]:bg-white hover:[&>td]:bg-[color:var(--j-F7F8F9)]" onClick={() => setCalc(r)} title={tr("See the calculation")}>
                     <td className="sticky left-0 z-[1] w-[13rem] max-w-[13rem] py-2 pl-5 pr-3"
                       title={`${r.branchName}${h ? ` · ${h.prevDate ? dmy(h.prevDate) : "—"} → ${h.endDate ? dmy(h.endDate) : tr("no checkpoint yet")}` : ""}`}>
                       <span className="flex min-w-0 items-center gap-1.5">
-                        {h && !h.endDate && <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-500" aria-label={tr("no checkpoint yet")} />}
+                        {h && !h.endDate && <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[color:var(--j-E2B203)]" aria-label={tr("no checkpoint yet")} />}
                         <span className="truncate text-[color:var(--j-172B4D)]">{r.branchName}</span></span></td>
                     <td className="sticky left-[13rem] z-[1] w-[15rem] max-w-[15rem] border-r border-[color:var(--j-DCDFE4)] px-3 py-2" title={`${r.name} · ${r.code}${r.category ? ` · ${r.category}` : ""}`}>
                       <span className="block truncate font-medium text-[color:var(--j-172B4D)]">{r.name}</span></td>
                     <td className="px-3 py-2 text-right tabular-nums" title={h?.prevDate ? `${dmy(h.prevDate)} · ${h.prevRefs.join(", ")}` : tr("No count at the end of the month before")}>
                       {qtyText(r.prev)} <span className="text-[color:var(--j-626F86)]">{r.unit}</span></td>
-                    {num(r.received, "+", "border-l border-[color:var(--j-F1F2F4)] text-emerald-700")}
-                    {num(r.transferIn, "+", "text-emerald-700")}
-                    {num(r.transitIn, "+", "text-emerald-700")}
-                    {num(r.sales, "−", "border-l border-[color:var(--j-F1F2F4)] text-red-700")}
-                    {num(r.nonSales, "−", "text-red-700")}
-                    {num(r.transferOut, "−", "text-red-700")}
-                    {num(r.transitOut, "−", "text-red-700")}
-                    {num(r.journal, "−", "text-red-700")}
-                    {num(r.productSales, "−", "text-red-700")}
-                    <td className={cx("border-l border-[color:var(--j-F1F2F4)] px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-red-700" : "text-[color:var(--j-172B4D)]")}
+                    {num(r.received, "+", "border-l border-[color:var(--j-F1F2F4)] text-[color:var(--j-216E4E)]")}
+                    {num(r.transferIn, "+", "text-[color:var(--j-216E4E)]")}
+                    {num(r.transitIn, "+", "text-[color:var(--j-216E4E)]")}
+                    {num(r.sales, "−", "border-l border-[color:var(--j-F1F2F4)] text-[color:var(--j-AE2E24)]")}
+                    {num(r.nonSales, "−", "text-[color:var(--j-AE2E24)]")}
+                    {num(r.transferOut, "−", "text-[color:var(--j-AE2E24)]")}
+                    {num(r.transitOut, "−", "text-[color:var(--j-AE2E24)]")}
+                    {num(r.journal, "−", "text-[color:var(--j-AE2E24)]")}
+                    {num(r.productSales, "−", "text-[color:var(--j-AE2E24)]")}
+                    <td className={cx("border-l border-[color:var(--j-F1F2F4)] px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-172B4D)]")}
                       title={r.other ? tr("Includes other ESB moves {0} (outlet purchase, production, delivery, supplier return)", `${r.other > 0 ? "+" : "−"}${qtyText(Math.abs(r.other))}`) : undefined}>
                       {qtyText(r.estimate)}{r.other ? <span className="text-[color:var(--j-626F86)]">*</span> : null}</td>
                     <td className="px-3 py-2 text-right tabular-nums" title={h?.endDate ? `${dmy(h.endDate)} · ${h.endRefs.join(", ")}` : tr("No checkpoint SO this month yet")}>

@@ -250,7 +250,7 @@ export default function WasteForm() {
   if (error || !data) {
     return (
       <Page title={tr("Waste")} subtitle={subtitle} actions={<LiveClock />}>
-        {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={() => void load(branch, day)} /></div>
+        {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white"><ErrorState message={error} onRetry={() => void load(branch, day)} /></div>
           : <div className="mx-auto max-w-5xl space-y-4"><SkeletonList rows={3} /><SkeletonList rows={5} /></div>}
       </Page>
     );
@@ -261,7 +261,7 @@ export default function WasteForm() {
     <Page title={tr("Waste")} subtitle={subtitle} actions={<LiveClock />}>
       <div className="mx-auto max-w-5xl space-y-4">
         {data.branches.length === 0 ? (
-          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)] shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)]">
             {tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}
           </div>
         ) : (
@@ -275,14 +275,14 @@ export default function WasteForm() {
                 <Segmented label={tr("Day")} value={day} onChange={pickDay}
                   options={[{ value: data.days.to, label: `${tr("Today")} · ${dayName(data.days.to)}` }, { value: data.days.from, label: `${tr("Yesterday")} · ${dayName(data.days.from)}` }]} />
                 {b && (data.data.length > 0 ? (
-                  <p className="flex items-center gap-2 rounded-[3px] bg-emerald-50 px-3 py-2 text-xs text-emerald-800"><CheckCircle2 size={14} />{tr("Waste reported for this day: {0} items", data.data.length)}</p>
+                  <p className="flex items-center gap-2 rounded-[3px] bg-[color:var(--j-DCFFF1)] px-3 py-2 text-xs text-[color:var(--j-216E4E)]"><CheckCircle2 size={14} />{tr("Waste reported for this day: {0} items", data.data.length)}</p>
                 ) : data.noWaste ? (
-                  <div className="flex items-center gap-2 rounded-[3px] bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                  <div className="flex items-center gap-2 rounded-[3px] bg-[color:var(--j-DCFFF1)] px-3 py-2 text-xs text-[color:var(--j-216E4E)]">
                     <CheckCircle2 size={14} /><span className="flex-1">{tr("Reported: no waste this day ({0}, {1})", data.noWaste.by, wibDateTime(data.noWaste.at))}</span>
                     <button type="button" className="font-medium underline" disabled={flagging} onClick={() => void flagNoWaste(false)}>{tr("Undo")}</button>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800 sm:flex-row sm:items-center">
+                  <div className="flex flex-col gap-2 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)] sm:flex-row sm:items-center">
                     <span className="flex-1">{tr("Waste is reported every day. Enter the wasted items below, or confirm there was none.")}</span>
                     <Button size="sm" variant="secondary" loading={flagging} onClick={() => void flagNoWaste(true)}><CheckCircle2 size={14} />{tr("No waste today")}</Button>
                   </div>
@@ -314,7 +314,7 @@ export default function WasteForm() {
                         const calc = scope === "premix" && on ? explodePremix(i, uom, qtyOf(r)) : null;
                         return (
                           <Fragment key={i.code}>
-                            <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-[color:var(--j-E9F2FF)]"))}>
+                            <tr className={cx(on && (lack.length ? "bg-[color:var(--j-FFF7D6)]/60" : "bg-[color:var(--j-E9F2FF)]"))}>
                               <td className="px-2 py-1.5 text-right align-top text-xs tabular-nums text-[color:var(--j-626F86)]">{(data.items[scope] ?? []).indexOf(i) + 1}</td>
                               <td className="px-2 py-1.5 align-top">
                                 <span className="block text-[color:var(--j-172B4D)]">{i.name}</span>
@@ -333,11 +333,11 @@ export default function WasteForm() {
                               <td className="px-2 py-1.5 text-right align-top">
                                 <input className={cx(inputClass, "h-9 w-24 text-right")} inputMode="decimal" placeholder="0" aria-label={i.name} value={r.qty}
                                   onChange={(e) => setRow(i.code, { qty: e.target.value.replace(/[^0-9.,]/g, "") })} />
-                                {calc && uom.toLowerCase() !== "gram" && <span className="mt-0.5 block text-[11px] tabular-nums text-violet-700">= {fmtQty(calc.grams)} g</span>}
+                                {calc && uom.toLowerCase() !== "gram" && <span className="mt-0.5 block text-[11px] tabular-nums text-[color:var(--j-5E4DB2)]">= {fmtQty(calc.grams)} g</span>}
                               </td>
                             </tr>
                             {on && (
-                              <tr className={lack.length ? "bg-amber-50/60" : "bg-[color:var(--j-E9F2FF)]"}>
+                              <tr className={lack.length ? "bg-[color:var(--j-FFF7D6)]/60" : "bg-[color:var(--j-E9F2FF)]"}>
                                 <td />
                                 <td colSpan={4} className="px-2 pb-3">
                                   <div className="grid gap-2 sm:grid-cols-2">
@@ -357,7 +357,7 @@ export default function WasteForm() {
                                           {data.categories.map((c) => <option key={c} value={c}>{c}</option>)}
                                         </NativeSelect>
                                         <button type="button" aria-label={tr("Remove the category")} onClick={() => setRow(i.code, { more: r.more.filter((_, j) => j !== k) })}
-                                          className="rounded-[3px] px-2 py-2 text-xs font-medium text-[color:var(--j-626F86)] hover:text-red-600">✕</button>
+                                          className="rounded-[3px] px-2 py-2 text-xs font-medium text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]">✕</button>
                                       </div>
                                     ))}
                                     <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
@@ -373,8 +373,8 @@ export default function WasteForm() {
                                       <input type="date" className={cx(inputClass, "mt-0.5 h-9")} value={r.expires} min={r.made || undefined} onChange={(e) => setRow(i.code, { expires: e.target.value })} />
                                     </label>
                                     {calc && calc.ingredients.length > 0 && (
-                                      <div className="rounded-[3px] bg-white/70 px-2.5 py-1.5 text-[11px] text-[color:var(--j-44546F)] ring-1 ring-violet-100 sm:col-span-2">
-                                        <span className="font-semibold text-violet-700">{tr("Ingredients")}: </span>
+                                      <div className="rounded-[3px] bg-white/70 px-2.5 py-1.5 text-[11px] text-[color:var(--j-44546F)] ring-1 ring-[color:var(--j-DFD8FD)] sm:col-span-2">
+                                        <span className="font-semibold text-[color:var(--j-5E4DB2)]">{tr("Ingredients")}: </span>
                                         {calc.ingredients.map((c) => `${c.name} ${fmtGrams(c.grams)} g`).join(" · ")}
                                       </div>
                                     )}
@@ -388,7 +388,7 @@ export default function WasteForm() {
                                       ) : (
                                         <Button variant="secondary" size="sm" onClick={() => setShooting(i)} disabled={!b}><Camera size={14} />{tr("Take Photo")}</Button>
                                       )}
-                                      {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
+                                      {lack.length > 0 && <span className="text-[11px] text-[color:var(--j-7F5F01)]">{tr("Still missing: {0}", lack.join(", "))}</span>}
                                     </div>
                                   </div>
                                 </td>
@@ -403,8 +403,8 @@ export default function WasteForm() {
                   {items.length > 250 && <p className="px-3 py-2 text-center text-[11px] text-[color:var(--j-626F86)]">{tr("Search to see the other {0} SKUs", items.length - 250)}</p>}
                 </div>
                 {premixTotals.length > 0 && (
-                  <div className="rounded-[3px] bg-violet-50/60 px-3 py-2">
-                    <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-violet-700"><FlaskConical size={13} />{tr("Premix ingredients wasted (calculated)")}</p>
+                  <div className="rounded-[3px] bg-[color:var(--j-F3F0FF)]/60 px-3 py-2">
+                    <p className="mb-1 flex items-center gap-1.5 text-xs font-semibold capitalize text-[color:var(--j-5E4DB2)]"><FlaskConical size={13} />{tr("Premix ingredients wasted (calculated)")}</p>
                     <ul className="grid gap-x-4 gap-y-0.5 text-xs sm:grid-cols-2">
                       {premixTotals.map((p) => (
                         <li key={p.name} className={cx("flex justify-between gap-2", !p.stock && "text-[color:var(--j-626F86)]")}>
@@ -441,7 +441,7 @@ export default function WasteForm() {
                             const odd = usageChanged.has(i.code) ? usageOdd(i.code) : null;
                             return (
                               <Fragment key={i.code}>
-                                <tr className={cx(on && (lack.length ? "bg-amber-50/60" : "bg-[color:var(--j-E9F2FF)]"))}>
+                                <tr className={cx(on && (lack.length ? "bg-[color:var(--j-FFF7D6)]/60" : "bg-[color:var(--j-E9F2FF)]"))}>
                                   <td className="px-2 py-1.5 text-right text-xs tabular-nums text-[color:var(--j-626F86)]">{data.items.usage.indexOf(i) + 1}</td>
                                   <td className="px-2 py-1.5"><span className="block text-[color:var(--j-172B4D)]">{i.name}</span><span className="text-[11px] text-[color:var(--j-626F86)] xl:hidden">{i.code}</span></td>
                                   <td className="hidden whitespace-nowrap px-2 py-1.5 text-xs text-[color:var(--j-626F86)] xl:table-cell">{i.code}</td>
@@ -452,11 +452,11 @@ export default function WasteForm() {
                                   </td>
                                 </tr>
                                 {on && (
-                                  <tr className={lack.length ? "bg-amber-50/60" : "bg-[color:var(--j-E9F2FF)]"}>
+                                  <tr className={lack.length ? "bg-[color:var(--j-FFF7D6)]/60" : "bg-[color:var(--j-E9F2FF)]"}>
                                     <td />
                                     <td colSpan={4} className="px-2 pb-3">
                                       {odd && (
-                                        <div role="alert" className="mb-2 flex flex-wrap items-center gap-2 rounded-[3px] border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                        <div role="alert" className="mb-2 flex flex-wrap items-center gap-2 rounded-[3px] border border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
                                           <AlertTriangle size={14} className="shrink-0" aria-hidden />
                                           <span className="min-w-0 flex-1">{tr("{0} {1}? Usually about {2}.", fmtQty(odd.qty), i.unit, fmtQty(odd.usual))}{odd.suggested != null && ` ${tr("Did you mean {0} {1}?", fmtQty(odd.suggested), i.unit)}`}</span>
                                           {odd.suggested != null && <Button variant="secondary" size="sm" onClick={() => setULine(i.code, { qty: String(odd.suggested) })}>{tr("Use {0}", fmtQty(odd.suggested))}</Button>}
@@ -477,7 +477,7 @@ export default function WasteForm() {
                                           ) : (
                                             <Button variant="secondary" size="sm" onClick={() => setShooting({ ...i, usage: true })}><Camera size={14} />{tr("Take Photo")}</Button>
                                           )}
-                                          {lack.length > 0 && <span className="text-[11px] text-amber-700">{tr("Still missing: {0}", lack.join(", "))}</span>}
+                                          {lack.length > 0 && <span className="text-[11px] text-[color:var(--j-7F5F01)]">{tr("Still missing: {0}", lack.join(", "))}</span>}
                                         </div>
                                       </div>
                                     </td>
@@ -511,7 +511,7 @@ export default function WasteForm() {
         footer={<><Button variant="secondary" onClick={() => setOddAsk(false)}>{tr("Check again")}</Button><Button onClick={() => { setOddAsk(false); setSigning("usage"); }}>{tr("It is right, save")}</Button></>}>
         <ul className="divide-y divide-[color:var(--j-F1F2F4)] text-sm">{usageOdds.map((o) => (
           <li key={o.item.code} className="flex items-start justify-between gap-3 py-2"><span className="min-w-0 text-[color:var(--j-172B4D)]">{o.item.name}</span>
-            <span className="shrink-0 text-right tabular-nums"><b className="text-amber-800">{fmtQty(o.qty)}</b> <span className="text-xs text-[color:var(--j-626F86)]">{o.item.unit}</span>
+            <span className="shrink-0 text-right tabular-nums"><b className="text-[color:var(--j-7F5F01)]">{fmtQty(o.qty)}</b> <span className="text-xs text-[color:var(--j-626F86)]">{o.item.unit}</span>
               <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("usual {0}", fmtQty(o.usual))}{o.suggested != null && ` · ${tr("suggested {0}", fmtQty(o.suggested))}`}</span>
               <span className="block max-w-[12rem] text-[11px] text-[color:var(--j-44546F)]">“{usage[o.item.code]?.note}”</span></span></li>))}</ul>
       </Dialog>
@@ -534,7 +534,7 @@ function OwnCorrections({ entry }: { entry: Entry }) {
   }, [entry.id, n]);
   if (!n) return null;
   return (
-    <div className="mt-1 rounded-[3px] bg-sky-50 px-2 py-1 text-[11px] text-sky-900">
+    <div className="mt-1 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-2 py-1 text-[11px] text-[color:var(--j-0055CC)]">
       <p className="font-semibold">{tr("Corrected by Cost Control")}</p>
       {rows.map((x, i) => <p key={i}>{x.field}: {x.old ?? "—"} → {x.new ?? "—"}{x.reason ? ` · ${x.reason}` : ""}{x.by ? ` (${x.by})` : ""}</p>)}
     </div>
@@ -543,7 +543,7 @@ function OwnCorrections({ entry }: { entry: Entry }) {
 
 function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; branch: string; day: string; me: string; onRemove: (e: Entry) => void }) {
   return (
-    <section className="h-fit rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="h-fit rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <header className="flex items-center justify-between gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3">
         <span className="min-w-0">
           <span className="block text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Waste entered")}</span>
@@ -567,7 +567,7 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
                   <Badge tone={statusTone(e.status)}>{e.status === "approved" ? <CheckCircle2 size={11} /> : null}{statusLabel(e.status)}</Badge>
                 </div>
                 <p className="text-xs text-[color:var(--j-44546F)]">{fmtQty(e.qty)} {e.scope === "premix" ? unitText(e.unit) : e.unit}{e.scope === "premix" && e.grams != null && e.unit.toLowerCase() !== "gram" ? ` (${fmtQty(e.grams)} g)` : ""} · {scopeLabel(e.scope)} · {e.category}</p>
-                {e.ingredients?.length ? <p className="text-[11px] text-violet-700">{e.ingredients.map((c) => `${c.name} ${fmtGrams(c.grams)} g`).join(" · ")}</p> : null}
+                {e.ingredients?.length ? <p className="text-[11px] text-[color:var(--j-5E4DB2)]">{e.ingredients.map((c) => `${c.name} ${fmtGrams(c.grams)} g`).join(" · ")}</p> : null}
                 {(e.productionDate || e.expiredDate) && <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("Production")} {e.productionDate ?? "—"} · {tr("Expired")} {e.expiredDate ?? "—"}</p>}
                 {e.note && <p className="mt-0.5 text-xs text-[color:var(--j-626F86)]">“{e.note}”</p>}
                 {e.review?.note && <p className="mt-0.5 text-xs text-[color:var(--j-626F86)]">{tr("Cost Control")}: {e.review.note}</p>}
@@ -575,7 +575,7 @@ function EntryList({ entries, branch, day, me, onRemove }: { entries: Entry[]; b
                 <p className="mt-0.5 text-[11px] text-[color:var(--j-626F86)]">{e.name} · {wibDateTime(e.createdAt)}</p>
               </div>
               {e.status === "submitted" && e.userId === me && (
-                <button type="button" onClick={() => onRemove(e)} className="h-fit rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={16} /></button>
+                <button type="button" onClick={() => onRemove(e)} className="h-fit rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Delete")}><Trash2 size={16} /></button>
               )}
             </li>
           ))}

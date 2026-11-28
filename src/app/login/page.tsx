@@ -2,8 +2,9 @@
 
 import { FormEvent, KeyboardEvent, ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ArrowRight, Clock, Eye, EyeOff, Info, Loader2, Lock, TrendingUp, User } from 'lucide-react';
-import BrandWatermark, { BRAND_LINE } from '@/components/BrandWatermark';
+import { AlertCircle, ArrowRight, Clock, Eye, EyeOff, Info, Loader2, Lock, User } from 'lucide-react';
+import { BRAND_LINE } from '@/components/BrandWatermark';
+import { assetUrl } from '@/lib/assets';
 import { DAY_PART_ICONS } from '@/components/WelcomeNotice';
 import { PreferenceSwitches } from '@/components/ui/Preferences';
 import { OPERATIONS_URL, safeNext, useAuth } from '@/lib/auth';
@@ -97,28 +98,20 @@ export default function LoginPage() {
   const onPasswordKey = (e: KeyboardEvent<HTMLInputElement>) => setCapsLock(e.getModifierState?.('CapsLock') ?? false);
 
   return (
-    <main className="flex min-h-dvh bg-white">
-      <BrandPanel />
-
-      <div className="relative flex min-h-dvh flex-1 flex-col bg-gradient-to-br from-[#050A4A] via-[#080F68] to-[#0B1385] lg:bg-none">
-        {/* phones and tablets: the navy header of the app, as Operations (2026-11-25), the logo as a watermark (the brand panel is hidden) */}
-        <div className="relative overflow-hidden px-6 pb-16 text-white lg:hidden" style={{ paddingTop: 'max(3.5rem, calc(env(safe-area-inset-top) + 2.5rem))' }}>
-          <GridPattern />
-          <BrandWatermark className="-right-24 bottom-2 w-[520px] -rotate-[8deg] opacity-[0.11]" />
-          <span className="pointer-events-none absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-maroon-600/35 blur-3xl" aria-hidden />
-          <div className="relative mx-auto max-w-[420px]">
-            <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
-              <span className="h-px w-6 bg-maroon-300" aria-hidden />{BRAND_LINE}
-            </p>
-            <p className="mt-3 text-[34px] font-bold leading-none tracking-tight">Portal</p>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/75">{tr('Sales, stock, cost control and monitoring of every outlet in one place')}</p>
-          </div>
+    <main className="relative flex min-h-dvh flex-col items-center bg-[color:var(--j-F7F8F9)] px-4" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+      {/* 2026-11-28 the Jira look: a plain page, the Calf logo and the app name over one white card */}
+      <PreferenceSwitches className="absolute right-4 top-4 sm:right-6 sm:top-6" />
+      <div className="flex w-full flex-1 flex-col items-center justify-center py-12">
+        <div className="mb-6 flex flex-col items-center text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element -- brand logo from public/assets */}
+          <img src={assetUrl('assets/calf-logo.png')} alt="Kopi Calf" className="h-12 w-auto object-contain" />
+          <p className="mt-3 text-xl font-semibold tracking-tight text-[color:var(--j-172B4D)]">Portal</p>
+          <p className="mt-0.5 text-xs font-medium uppercase tracking-[0.18em] text-[color:var(--j-626F86)]">{BRAND_LINE}</p>
         </div>
-        <PreferenceSwitches className="absolute right-4 top-4 sm:right-6 sm:top-6" />
-        <div className="relative z-10 -mt-8 flex flex-1 justify-center rounded-t-[28px] bg-white px-5 pb-10 pt-8 sm:px-8 lg:mt-0 lg:items-center lg:rounded-none lg:py-12">
-          <div className="w-full max-w-[420px] lg:max-w-[380px]">
-            <h1 className="text-2xl font-bold tracking-tight text-[color:var(--j-172B4D)] lg:font-semibold">{tr('Sign in')}</h1>
-            <p className="mt-1.5 text-sm text-[color:var(--j-626F86)]">{tr('Kopi Calf Integration Platform')}</p>
+        <div className="w-full max-w-[400px] rounded-[3px] bg-white px-6 py-8 shadow-[0_1px_1px_#091E4240,0_0_1px_#091E424F] dark:shadow-none dark:ring-1 dark:ring-[color:var(--j-DCDFE4)] sm:px-10">
+          <div>
+            <h1 className="text-center text-base font-semibold text-[color:var(--j-172B4D)]">{tr('Sign in')}</h1>
+            <p className="mt-1 text-center text-sm text-[color:var(--j-626F86)]">{tr('Kopi Calf Integration Platform')}</p>
 
             <div className="mt-8 space-y-6">
               {farewell && <FarewellCard farewell={farewell} />}
@@ -191,7 +184,7 @@ export default function LoginPage() {
                 )}
 
                 {error && (
-                  <p className="flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">
+                  <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2.5 text-sm text-[color:var(--j-AE2E24)]" role="alert">
                     <AlertCircle size={16} className="mt-0.5 flex-shrink-0" /> {error}
                   </p>
                 )}
@@ -204,7 +197,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-[#0B1385] lg:h-11  text-sm font-semibold text-white shadow-[#050A4A]/20 transition-colors hover:bg-[#050A4A] focus:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--j-388BFF)]/25 disabled:cursor-wait disabled:bg-[#0B1385]/80"
+                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-[3px] bg-[color:var(--j-0C66E4)] lg:h-10 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--j-0055CC)] focus:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--j-388BFF)]/25 disabled:cursor-wait disabled:opacity-80"
                 >
                   {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
                   {submitting ? tr('Signing in…') : tr('Sign in')}
@@ -214,21 +207,21 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-
-        <footer className="bg-white pb-6 text-center text-xs text-[color:var(--j-626F86)]" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-          © {new Date().getFullYear()} {tr('Kopi Calf · PT Yuda Prawira Group')}
-        </footer>
       </div>
+
+      <footer className="pb-6 text-center text-xs text-[color:var(--j-626F86)]" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        © {new Date().getFullYear()} {tr('Kopi Calf · PT Yuda Prawira Group')}
+      </footer>
     </main>
   );
 }
 
 function inputClass(invalid: boolean) {
   return (
-    'h-12 w-full rounded-[3px] border bg-white pl-10 pr-3 text-base text-[color:var(--j-172B4D)] lg:h-11  lg:text-sm placeholder:text-[color:var(--j-626F86)] transition-colors ' +
+    'h-12 w-full rounded-[3px] border-2 bg-white pl-10 pr-3 text-base text-[color:var(--j-172B4D)] lg:h-10 lg:text-sm placeholder:text-[color:var(--j-626F86)] transition-colors ' +
     'focus:outline-none focus:ring-4 ' +
     (invalid
-      ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
+      ? 'border-[color:var(--j-F87168)] focus:border-[color:var(--j-C9372C)] focus:ring-[color:var(--j-C9372C)]/10'
       : 'border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-8590A2)] focus:border-[color:var(--j-0C66E4)] focus:ring-[color:var(--j-388BFF)]/10')
   );
 }
@@ -240,94 +233,8 @@ function Field({ id, label, error, hint, children }: {
     <div>
       <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[color:var(--j-44546F)]">{label}</label>
       <div className="relative">{children}</div>
-      {error && <p id={`${id}-error`} className="mt-1.5 text-xs text-red-600">{error}</p>}
-      {hint && <p id={`${id}-hint`} className="mt-1.5 text-xs text-amber-700">{hint}</p>}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ brand panel */
-
-/** Large screens: the brand side, the blue of the logo with white and a touch of dark red; decorative, no real figures. */
-function BrandPanel() {
-  return (
-    <aside className="relative hidden w-[46%] max-w-[720px] flex-col overflow-hidden bg-gradient-to-br from-[#050A4A] via-[#080F68] to-[#0B1385] p-10 text-white lg:flex xl:p-14">
-      <GridPattern />
-      <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-white/[0.06] blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-maroon-700/45 blur-3xl" aria-hidden />
-
-      <BrandWatermark className="-bottom-10 -right-40 w-[760px] -rotate-[8deg] opacity-[0.08]" />
-      <div className="relative">
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/70">
-          <span className="h-px w-8 bg-maroon-300" aria-hidden />{BRAND_LINE}
-        </p>
-        <p className="mt-3 text-4xl font-bold tracking-tight">Portal</p>
-        <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/75">{tr('Sales, stock, cost control and monitoring of every outlet in one place')}</p>
-      </div>
-
-      <div className="relative flex flex-1 items-center justify-center py-10">
-        <DashboardIllustration />
-      </div>
-      {/* balances the title so the illustration sits in the middle */}
-      <div className="h-24" aria-hidden />
-    </aside>
-  );
-}
-
-function GridPattern() {
-  return (
-    <svg className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.08]" aria-hidden>
-      <defs>
-        <pattern id="login-grid" width="36" height="36" patternUnits="userSpaceOnUse">
-          <path d="M36 0H0V36" fill="none" stroke="white" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#login-grid)" />
-    </svg>
-  );
-}
-
-/** A white dashboard card drawn in Calf blue only: a trend, bars and a floating KPI chip. */
-function DashboardIllustration() {
-  const bars = [38, 56, 46, 70, 60, 84, 66];
-  return (
-    <div className="relative w-full max-w-[460px]" aria-hidden>
-      <div className="rounded-[3px] bg-white p-5 shadow-2xl shadow-brand-950/30">
-        <div className="flex items-center justify-between">
-          <span className="space-y-1.5">
-            <span className="block h-2 w-20 rounded-full bg-[color:var(--j-DCDFE4)]" />
-            <span className="block h-3 w-32 rounded-full bg-[#0B1385]" />
-          </span>
-          <span className="flex gap-1.5">
-            <span className="h-6 w-12 rounded-[3px] bg-[#ECEEF9]" /><span className="h-6 w-12 rounded-[3px] bg-[#0B1385]" />
-          </span>
-        </div>
-        <svg viewBox="0 0 300 110" className="mt-4 h-32 w-full">
-          <defs>
-            <linearGradient id="login-area" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="#0B1385" stopOpacity=".18" /><stop offset="1" stopColor="#0B1385" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[26, 54, 82].map(y => <line key={y} x1="0" x2="300" y1={y} y2={y} stroke="#e2e8f0" />)}
-          <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20 L300,110 L0,110 Z" fill="url(#login-area)" />
-          <path d="M0,98 C35,94 50,84 80,86 S125,70 155,74 S205,58 230,62 S270,48 300,50" fill="none" stroke="#8A93D6" strokeWidth="2" strokeDasharray="5 5" />
-          <path d="M0,92 C30,84 45,66 75,70 S120,44 150,50 S200,28 225,34 S270,16 300,20" fill="none" stroke="#0B1385" strokeWidth="2.5" />
-          <circle cx="225" cy="34" r="5" fill="#fff" stroke="#0B1385" strokeWidth="2.5" />
-        </svg>
-        <div className="mt-4 flex h-16 items-end gap-2">
-          {bars.map((h, i) => (
-            <span key={i} className={`flex-1 rounded-t ${i === 5 ? 'bg-[#0B1385]' : 'bg-[#D9DCF3]'}`} style={{ height: `${h}%` }} />
-          ))}
-        </div>
-      </div>
-      {/* floating KPI chip */}
-      <div className="absolute -left-6 -top-6 flex items-center gap-2.5 rounded-[4px] bg-white px-3 py-2.5 shadow-xl shadow-brand-950/25">
-        <span className="flex h-8 w-8 items-center justify-center rounded-[3px] bg-[#ECEEF9] text-[#0B1385]"><TrendingUp size={16} /></span>
-        <span className="space-y-1.5">
-          <span className="block h-1.5 w-12 rounded-full bg-[color:var(--j-DCDFE4)]" />
-          <span className="block h-2.5 w-16 rounded-full bg-[#0B1385]" />
-        </span>
-      </div>
+      {error && <p id={`${id}-error`} className="mt-1.5 text-xs text-[color:var(--j-C9372C)]">{error}</p>}
+      {hint && <p id={`${id}-hint`} className="mt-1.5 text-xs text-[color:var(--j-7F5F01)]">{hint}</p>}
     </div>
   );
 }

@@ -90,7 +90,7 @@ export function DriverNames() {
                   <td className="px-3 py-2 font-mono text-xs font-semibold text-[color:var(--j-172B4D)]">{t.label}</td>
                   <td className="px-3 py-2.5">{t.poolName}</td>
                   <td className="px-3 py-2.5">{t.ignored ? <Badge tone="slate">{tr("Not a driver")}</Badge> : <span className="font-medium">{t.driverName ?? t.driver}</span>}</td>
-                  <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => void untie(t)} aria-label={tr("Remove")} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={14} /></button></td>
+                  <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => void untie(t)} aria-label={tr("Remove")} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={14} /></button></td>
                 </tr>
               ))}
             </tbody>
@@ -120,7 +120,7 @@ function LabelRow({ u, drivers, busy, onTie }: { u: Unmatched; drivers: Driver[]
         <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Suggested")}</span>
         {u.suggestions.map((s) => (
           <button key={s.code} type="button" disabled={busy} onClick={() => onTie(s.code, s.name)} title={[s.pool, s.fleet].filter(Boolean).join(" · ")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors disabled:opacity-50 ${s.score >= 0.9 ? "bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]"}`}>
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors disabled:opacity-50 ${s.score >= 0.9 ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)] hover:bg-[color:var(--j-BAF3DB)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]"}`}>
             <Users size={12} />{s.name}{s.fleet && <span className="text-[color:var(--j-626F86)]">{s.fleet}</span>}<span className="tabular-nums text-[color:var(--j-626F86)]">{Math.round(s.score * 100)}%</span>
           </button>
         ))}

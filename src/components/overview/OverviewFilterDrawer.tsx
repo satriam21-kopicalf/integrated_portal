@@ -222,7 +222,7 @@ export default function OverviewFilterDrawer({ value, branches, channels, defaul
                 })}
               </div>
               {dayA && dayB && !sameWeekday && (
-                <p className="flex items-start gap-2 text-xs text-amber-800">
+                <p className="flex items-start gap-2 text-xs text-[color:var(--j-7F5F01)]">
                   <AlertTriangle size={14} className="mt-px flex-shrink-0" /> {tr('Different weekdays. Pick the same weekday for a fair comparison.')}
                 </p>
               )}

@@ -96,13 +96,13 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
     : draftOf(code) ? { label: tr("Draft"), tone: "draft" } : null;
   return (
     <Page title={title} subtitle={subtitle} actions={clock}>
-      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={4} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {done && (
-            <div className="flex items-start gap-3 rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+            <div className="flex items-start gap-3 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-4 py-3 text-sm text-[color:var(--j-216E4E)]">
+              <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("{0} sent for {1}", title, done.branchName)}</p>
                 <p className="text-xs">{wibDateTime(done.submittedAt)} · {tr("{0} items rated", done.counts.rated)}</p>
@@ -111,7 +111,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
             <div className="flex items-center gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
@@ -128,8 +128,8 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
               )}
               <p className="text-xs text-[color:var(--j-626F86)]">{tr("One visit per outlet per day (server time when sent); a day without a visit counts as a day off. With several outlets, fill them one after the other.")}</p>
               {branch && data.today?.[branch] && (
-                <p className="flex items-start gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
-                  <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+                <p className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-3 py-2.5 text-sm text-[color:var(--j-216E4E)]">
+                  <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
                   <span>{tr("Already sent today for this outlet ({0}). The next one can be filled in tomorrow.", wibDateTime(data.today[branch].submittedAt))}</span>
                 </p>
               )}
@@ -140,13 +140,13 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
           </section>
 
           {data.drafts.length > 0 && (
-            <section className="rounded-[3px] border border-amber-200 bg-white">
-              <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("Drafts saved ({0})", data.drafts.length)}</p>
+            <section className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-white">
+              <p className="border-b border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/60 px-4 py-2.5 text-sm font-semibold text-[color:var(--j-7F5F01)] sm:px-5">{tr("Drafts saved ({0})", data.drafts.length)}</p>
               <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {data.drafts.map((d) => (
                   <li key={d.id}>
                     <button type="button" onClick={() => void open(d.branchCode)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)] sm:px-5">
-                      <ClipboardList size={18} className="flex-shrink-0 text-amber-600" />
+                      <ClipboardList size={18} className="flex-shrink-0 text-[color:var(--j-B38600)]" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{d.branchName}</span>
                         <span className="block text-xs text-[color:var(--j-626F86)]">{tr("{0} of {1} rated", d.counts.rated, d.counts.total)} · {tr("saved {0}", wibDateTime(d.updatedAt))}</span>
@@ -159,7 +159,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
             </section>
           )}
 
-          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
             <p className="border-b border-[color:var(--j-F1F2F4)] px-4 py-2.5 text-sm font-semibold text-[color:var(--j-172B4D)] sm:px-5">{tr("My latest visits")}</p>
             {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No visit sent yet")}</p> : (
               <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
@@ -169,7 +169,7 @@ export default function VisitForm({ form }: { form: VisitFormKey }) {
                       <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{v.branchName}</span>
                       <span className="block text-xs text-[color:var(--j-626F86)]">{wibDateTime(v.submittedAt)}</span>
                     </span>
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700"><CheckCircle2 size={14} /> {tr("Sent")}</span>
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-216E4E)]"><CheckCircle2 size={14} /> {tr("Sent")}</span>
                   </li>
                 ))}
               </ul>
@@ -330,7 +330,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
             {evaluation && (
               <button type="button" onClick={openEval} aria-pressed={evalOpen}
                 className={cx("order-last inline-flex h-10 flex-shrink-0 items-center gap-1.5 rounded-[3px] border px-3 text-xs font-semibold",
-                  evalOpen ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : evaluation.ready ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-800")}>
+                  evalOpen ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : evaluation.ready ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]")}>
                 {evaluation.ready ? <CheckCircle2 size={14} /> : <ClipboardList size={14} />} {tr("Evaluation")}
               </button>
             )}
@@ -358,7 +358,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           <ClipboardCheck size={15} className="mt-px flex-shrink-0 text-[color:var(--j-0C66E4)]" />
           <span><b>{tr("Items marked Required must be rated, with the note and photo they ask for")}</b> — {tr("optional items may be skipped. Write what you see and take a clear photo of it: they are the material for the analysis.")}</span>
         </p>
-        <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
           <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
             {current.items.map((it) => (
               <ItemRow key={it.key} item={it} group={group} answer={answers[it.key] ?? {}} auto={visit.auto?.[it.key] ?? null} photos={photos.filter((p) => p.item === it.key)}
@@ -379,7 +379,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
           )}
         </div>
         {canDiscard && <div className="flex justify-center pt-1">
-          <button type="button" onClick={() => setDiscarding(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-[color:var(--j-626F86)] hover:text-red-600">
+          <button type="button" onClick={() => setDiscarding(true)} className="inline-flex items-center gap-1.5 text-xs font-medium text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]">
             <Trash2 size={13} /> {tr("Delete this draft")}
           </button>
         </div>}
@@ -392,7 +392,7 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
         <div className="mx-auto flex max-w-4xl items-center gap-3">
           <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setShowMissing((v) => !v)} disabled={!todo.length}>
             <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("{0} of {1} rated", done, rated.length)}</p>
-            <p className={cx("truncate text-xs", blocking ? "text-red-600" : unrated ? "text-amber-700" : "text-emerald-700")}>
+            <p className={cx("truncate text-xs", blocking ? "text-[color:var(--j-C9372C)]" : unrated ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-216E4E)]")}>
               {requiredLeft.length ? tr("{0} required items not rated yet · see which", requiredLeft.length)
                 : missing.length ? tr("{0} rated items still need a note or a photo · see which", missing.length)
                 : unrated ? tr("{0} optional items not rated (can still be sent) · see which", unrated) : tr("Everything is complete")}
@@ -404,14 +404,14 @@ export function VisitEditor({ form, data, visit, onClose, onSubmitted, canSend =
             : <span className="max-w-[9rem] text-right text-[11px] leading-tight text-[color:var(--j-626F86)]">{tr("The lead {0} sends the audit", visit.audit?.lead.name ?? "")}</span>}
         </div>
         {showMissing && todo.length > 0 && (
-          <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-[3px] border border-amber-200 bg-amber-50 text-xs">
+          <ul className="mx-auto mt-2 max-h-48 max-w-4xl overflow-y-auto rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-xs">
             {[...requiredLeft, ...missing, ...todo.filter((m) => m.need === "optional")].slice(0, 120).map((m) => (
               <li key={m.item.key}>
-                <button type="button" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-amber-100"
+                <button type="button" className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-[color:var(--j-F8E6A0)]"
                   onClick={() => { setSection(m.item.sectionKey); setShowMissing(false); setTimeout(() => document.getElementById(`item-${m.item.key}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 80); }}>
-                  <AlertTriangle size={12} className={cx("flex-shrink-0", m.need === "optional" ? "text-[color:var(--j-626F86)]" : "text-red-500")} />
+                  <AlertTriangle size={12} className={cx("flex-shrink-0", m.need === "optional" ? "text-[color:var(--j-626F86)]" : "text-[color:var(--j-C9372C)]")} />
                   <span className="min-w-0 flex-1 truncate text-[color:var(--j-172B4D)]">{tl(m.item)}</span>
-                  <span className={cx("flex-shrink-0", m.need === "optional" ? "text-[color:var(--j-626F86)]" : "text-red-700")}>
+                  <span className={cx("flex-shrink-0", m.need === "optional" ? "text-[color:var(--j-626F86)]" : "text-[color:var(--j-AE2E24)]")}>
                     {m.need === "rating" ? tr("required, not rated") : m.need === "optional" ? tr("optional") : needLabel(m.what)}
                   </span>
                 </button>
@@ -449,7 +449,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
       description={`${title} · ${visit.branchName}`} locked={busy} focusFirstField={false}
       footer={
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <p className={cx("text-xs sm:mr-auto", nameMissing ? "text-red-600" : "text-[color:var(--j-626F86)]")}>
+          <p className={cx("text-xs sm:mr-auto", nameMissing ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>
             {nameMissing ? tr("Write the signer's name under the signature.") : tr("After sending the visit cannot be changed; your location is recorded.")}
           </p>
           <Button variant="secondary" onClick={onClose} disabled={busy}>{tr("Back to the Form")}</Button>
@@ -479,16 +479,16 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
           </div>
           <p className="mt-2 text-xs text-[color:var(--j-626F86)]">{tr("{0} of {1} rated", counts.UNDER + counts.MEET + counts.EXCEED, total)}</p>
           {unrated > 0 && (
-            <p className="mt-2 flex items-start gap-1.5 rounded-[3px] bg-amber-50 px-2.5 py-2 text-xs text-amber-800">
+            <p className="mt-2 flex items-start gap-1.5 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-2.5 py-2 text-xs text-[color:var(--j-7F5F01)]">
               <AlertTriangle size={13} className="mt-0.5 flex-shrink-0" /> {tr("{0} optional items are not rated: they are sent empty and left out of the score.", unrated)}
             </p>
           )}
         </section>
 
         <section>
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><AlertTriangle size={15} className="text-red-500" /> {tr("Findings (UNDER)")}</h3>
+          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[color:var(--j-172B4D)]"><AlertTriangle size={15} className="text-[color:var(--j-C9372C)]" /> {tr("Findings (UNDER)")}</h3>
           {under.length === 0 ? <p className="rounded-[3px] border border-dashed border-[color:var(--j-DCDFE4)] px-3 py-4 text-sm text-[color:var(--j-626F86)]">{tr("No UNDER in this visit.")}</p> : (
-            <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-red-100">
+            <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-FFD5D2)]">
               {under.map((u) => (
                 <li key={u.item.key} className="px-3 py-2.5 text-sm">
                   <p className="font-medium text-[color:var(--j-172B4D)]">{tl(u.item)}</p>
@@ -506,7 +506,7 @@ function SendSheet({ title, visit, counts, total, unrated, under, photos, busy, 
           <SignaturePad onChange={setSignature} />
           <label className="mt-2 block">
             <span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Signer's name")}</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={cx(inputClass, nameMissing && "border-red-400")} />
+            <input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} className={cx(inputClass, nameMissing && "border-[color:var(--j-F87168)]")} />
           </label>
         </section>
       </div>
@@ -533,7 +533,7 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-sm">
         {auto ? (
           <>
-            <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-[color:var(--j-172B4D)]"><Star size={15} className="fill-amber-400 text-amber-400" /> {fmtStars(auto.stars)}</span>
+            <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-[color:var(--j-172B4D)]"><Star size={15} className="fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]" /> {fmtStars(auto.stars)}</span>
             {auto.reviews != null && <span className="text-xs text-[color:var(--j-626F86)]">{tr("{0} reviews", auto.reviews.toLocaleString(locale()))}</span>}
             <span className="text-xs text-[color:var(--j-626F86)]">{tr("Google Maps, automatic")}{auto.fetchedAt ? ` · ${wibDateTime(auto.fetchedAt)}` : ""}</span>
             {auto.mapsUri && <a href={auto.mapsUri} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline">{tr("View on Maps")} <ExternalLink size={11} /></a>}
@@ -555,17 +555,17 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
     <div className="mt-2">
       <label className="flex items-center gap-2 text-sm">
         <span className="relative">
-          <Star size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 fill-amber-400 text-amber-400" />
+          <Star size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]" />
           <input value={text} onChange={(e) => setText(e.target.value.replace(/[^0-9.,]/g, "").slice(0, 3))} onBlur={commit}
             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
             inputMode="decimal" placeholder={auto ? fmtStars(auto.stars) : "4.5"} aria-label={tr("{0} stars", name)} aria-invalid={bad || undefined}
-            className={cx(inputClass, "h-10 w-24 pl-8 text-sm font-semibold tabular-nums", bad && "border-red-300")} />
+            className={cx(inputClass, "h-10 w-24 pl-8 text-sm font-semibold tabular-nums", bad && "border-[color:var(--j-F87168)]")} />
         </span>
         <span className="text-xs text-[color:var(--j-626F86)]">{auto ? tr("Change it only when the app shows another figure") : tr("{0} rating, typed from the app (1.0–5.0)", name)}</span>
       </label>
       {auto && (
         <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[color:var(--j-626F86)]">
-          <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--j-172B4D)]"><Star size={12} className="fill-amber-400 text-amber-400" />{fmtStars(auto.stars)}</span>
+          <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--j-172B4D)]"><Star size={12} className="fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]" />{fmtStars(auto.stars)}</span>
           {auto.reviews != null && <span>{tr("{0} reviews", auto.reviews.toLocaleString(locale()))}</span>}
           <span className="text-[color:var(--j-626F86)]">{tr("{0}, automatic", name)}{auto.fetchedAt ? ` · ${auto.fetchedAt.slice(0, 10)}` : ""}</span>
           {answer.stars != null && answer.stars !== auto.stars
@@ -573,7 +573,7 @@ function PlatformStars({ item, answer, auto, onAnswer }: { item: Item; answer: A
             : null}
         </p>
       )}
-      {bad && <p className="mt-1 text-xs text-red-600">{tr("Type a number from 1.0 to 5.0")}</p>}
+      {bad && <p className="mt-1 text-xs text-[color:var(--j-C9372C)]">{tr("Type a number from 1.0 to 5.0")}</p>}
     </div>
   );
 }
@@ -599,7 +599,7 @@ function QtyGrams({ answer, required, missing, label, units, onAnswer }: { answe
           <input value={text} onChange={(e) => setText(e.target.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 7))} onBlur={commit}
             onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
             inputMode="numeric" placeholder="0" aria-label={tr("{0}: grams (net weight)", label)} aria-invalid={bad || missing || undefined}
-            className={cx(inputClass, "h-11 w-32 pr-12 text-right text-base font-semibold tabular-nums sm:h-10 sm:text-sm", (bad || missing) && "border-red-300")} />
+            className={cx(inputClass, "h-11 w-32 pr-12 text-right text-base font-semibold tabular-nums sm:h-10 sm:text-sm", (bad || missing) && "border-[color:var(--j-F87168)]")} />
           <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[color:var(--j-626F86)]">{UNIT_LABEL[unit] ?? unit}</span>
         </span>
         {units?.length ? (
@@ -613,7 +613,7 @@ function QtyGrams({ answer, required, missing, label, units, onAnswer }: { answe
         ) : null}
         <span className="text-xs text-[color:var(--j-626F86)]">{units?.length ? tr("Stock quantity") : tr("Qty in grams (net weight)")}{required ? "" : ` · ${tr("optional")}`}</span>
       </label>
-      {bad && <p className="mt-1 text-xs text-red-600">{tr("Type a number from 0 to 1,000,000 grams")}</p>}
+      {bad && <p className="mt-1 text-xs text-[color:var(--j-C9372C)]">{tr("Type a number from 0 to 1,000,000 grams")}</p>}
     </div>
   );
 }
@@ -633,8 +633,8 @@ function LinkInput({ answer, missing, onAnswer }: { answer: Answer; missing: boo
       <input type="url" inputMode="url" value={text} onChange={(e) => setText(e.target.value)} onBlur={commit}
         onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
         placeholder="https://…" aria-label={tr("Link of the request form")} aria-invalid={bad || missing || undefined}
-        className={cx(inputClass, "h-11 text-base sm:h-10 sm:text-sm", (bad || missing) && "border-red-300")} />
-      <p className={cx("mt-1 text-[11px]", bad ? "text-red-600" : "text-[color:var(--j-626F86)]")}>{bad ? tr("The link starts with http:// or https://") : tr("Link of the request form (spreadsheet, drive …)")}</p>
+        className={cx(inputClass, "h-11 text-base sm:h-10 sm:text-sm", (bad || missing) && "border-[color:var(--j-F87168)]")} />
+      <p className={cx("mt-1 text-[11px]", bad ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>{bad ? tr("The link starts with http:// or https://") : tr("Link of the request form (spreadsheet, drive …)")}</p>
     </div>
   );
 }
@@ -657,14 +657,14 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
   const hint = required && !item.platform && !item.link && ev.note !== ev.photo ? (ev.note ? tr("Note required · photo optional") : tr("Photo required · note optional")) : null;
   const needs = [needNote && "note", needPhoto && "photo", needQty && "qty", needLink && "link"].filter(Boolean).join("+");
   return (
-    <li id={`item-${item.key}`} className={cx("px-4 py-3.5", under && "bg-red-50/40")}>
+    <li id={`item-${item.key}`} className={cx("px-4 py-3.5", under && "bg-[color:var(--j-FFECEB)]/40")}>
       <div className="flex items-start gap-2.5">
         <span className="mt-0.5 w-5 flex-shrink-0 text-right text-xs font-semibold tabular-nums text-[color:var(--j-626F86)]">{item.no}</span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium leading-snug text-[color:var(--j-172B4D)]">
             {tl(item)}
             <span className={cx("ml-1.5 inline-block rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase tracking-wide",
-              required ? "bg-red-50 text-red-700" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>{required ? tr("Required") : tr("Optional")}</span>
+              required ? "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>{required ? tr("Required") : tr("Optional")}</span>
           </p>
           {item.category && <CategoryTag item={item} />}
           {answer.by && <p className="mt-0.5 text-[11px] text-[color:var(--j-626F86)]">{tr("Filled by {0}", answer.by)}</p>}
@@ -688,7 +688,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
             <textarea value={answer.note ?? ""} onChange={(e) => onAnswer({ note: e.target.value })} rows={2} maxLength={1000}
               placeholder={item.kind === "text" ? tr("Names, separated by commas") : rated && ev.note ? tr("What you see (required)") : tr("Note (optional)")}
               aria-invalid={needNote || undefined}
-              className={cx(inputClass, "mt-2 h-auto py-2 text-sm", needNote && "border-red-300")} />
+              className={cx(inputClass, "mt-2 h-auto py-2 text-sm", needNote && "border-[color:var(--j-F87168)]")} />
           )}
           {(photos.length > 0 || (item.kind === "rating" && !(noPhoto && noNote)) || !!needs) && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -698,7 +698,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
                     {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
                     <img src={thumb(visitPhotoUrl(p.id), 160)} decoding="async" alt={tr("Photo")} loading="lazy" className="h-14 w-14 rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)]" />
                   </a>
-                  {p.outsideRadius && <span className="absolute bottom-0.5 left-0.5 rounded bg-amber-500 p-0.5 text-white" title={tr("Taken outside the outlet radius")}><MapPin size={9} /></span>}
+                  {p.outsideRadius && <span className="absolute bottom-0.5 left-0.5 rounded bg-[color:var(--j-E2B203)] p-0.5 text-white" title={tr("Taken outside the outlet radius")}><MapPin size={9} /></span>}
                   <button type="button" onClick={() => onRemovePhoto(p.id)} aria-label={tr("Remove Photo")}
                     className="absolute -right-1.5 -top-1.5 rounded-full bg-neutral-900 p-0.5 text-white shadow"><X size={11} /></button>
                 </span>
@@ -706,7 +706,7 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
               {item.kind === "rating" && !noPhoto && photos.length < MAX_PHOTOS && (
                 <button type="button" onClick={onCamera}
                   className={cx("inline-flex h-9 items-center gap-1.5 rounded-[3px] border px-2.5 text-xs font-medium",
-                    needPhoto ? "border-red-300 bg-white text-red-700" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
+                    needPhoto ? "border-[color:var(--j-F87168)] bg-white text-[color:var(--j-AE2E24)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
                   <Camera size={14} /> {photos.length ? tr("Photo ({0}/{1})", photos.length, MAX_PHOTOS) : tr("Photo")}
                 </button>
               )}
@@ -726,6 +726,6 @@ function ItemRow({ item, group, answer, auto, photos, onAnswer, onCamera, onRemo
 
 /** Travel Path category: Kritikal = food safety or safety, fixed in the same shift (2026-10-30). */
 export function CategoryTag({ item }: { item: Item }) {
-  const tone = item.category === "Kritikal" ? "bg-red-600 text-white" : item.category === "Mayor" ? "bg-amber-100 text-amber-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]";
+  const tone = item.category === "Kritikal" ? "bg-[color:var(--j-C9372C)] text-white" : item.category === "Mayor" ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]";
   return <span className={cx("mt-1 inline-block rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wide", tone)}>{tl({ label: item.category, labelEn: item.categoryEn })}</span>;
 }

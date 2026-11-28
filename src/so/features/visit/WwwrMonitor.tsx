@@ -81,7 +81,7 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
                       {a.note && <p className="mt-0.5 truncate text-[11px] text-[color:var(--j-626F86)]">{a.note}</p>}
                     </div>
                     <div className="flex flex-shrink-0 items-center gap-1">
-                      {a.status === "follow_up" && <span className="text-[11px] text-amber-700">{tr("{0} of {1} action plans open", a.actions.filter((x) => x.status === "open").length, a.actions.length)}{a.revisitOn ? ` · ${tr("revisit {0}", dayShort(a.revisitOn))}` : ""}</span>}
+                      {a.status === "follow_up" && <span className="text-[11px] text-[color:var(--j-7F5F01)]">{tr("{0} of {1} action plans open", a.actions.filter((x) => x.status === "open").length, a.actions.length)}{a.revisitOn ? ` · ${tr("revisit {0}", dayShort(a.revisitOn))}` : ""}</span>}
                       {sentAudit(a.status) && a.visitId && (
                         <button type="button" onClick={() => onOpenVisit(a.visitId!)} className="inline-flex items-center gap-1.5 rounded-[3px] px-2 py-1 text-xs font-medium text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-E9F2FF)]">
                           <span className={cx("tabular-nums", scoreTone(a.score ?? null))}>{a.score ?? "—"}%</span> {tr("Result")}
@@ -90,7 +90,7 @@ export function SchedulePanel({ branches, onOpenVisit }: { branches: BranchOpt[]
                       {a.status === "in_progress" && <span className="text-[11px] tabular-nums text-[color:var(--j-626F86)]">{tr("{0} of {1} rated", a.counts?.rated ?? 0, a.counts?.total ?? 0)}</span>}
                       {(a.status === "scheduled" || a.status === "in_progress") && <>
                         <button type="button" onClick={() => setEdit(a)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]" aria-label={tr("Edit")}><Pencil size={15} /></button>
-                        <button type="button" onClick={() => setCancel(a)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Cancel the Audit")}><Trash2 size={15} /></button>
+                        <button type="button" onClick={() => setCancel(a)} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Cancel the Audit")}><Trash2 size={15} /></button>
                       </>}
                     </div>
                   </li>
@@ -164,7 +164,7 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
                     <span className="min-w-0 flex-1"><span className="block truncate text-sm text-[color:var(--j-172B4D)]">{t.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">@{t.username}{t.jobTitle ? ` · ${t.jobTitle}` : ""}</span></span>
                     {isSwat(t) && <span className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--j-0C66E4)]">SWAT</span>}
                     <button type="button" onClick={() => { setLead(t.id); setMembers((s) => new Set(s).add(t.id)); }} aria-pressed={lead === t.id}
-                      className={cx("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", lead === t.id ? "bg-amber-100 text-amber-800" : "text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>
+                      className={cx("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", lead === t.id ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>
                       <Crown size={12} /> {lead === t.id ? tr("Lead") : tr("Make lead")}
                     </button>
                   </li>
@@ -214,7 +214,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile label={tr("Audits Compared")} value={fmtNumber(s.withPic)} note={tr("of {0} audits sent", fmtNumber(s.audits))} />
         <Tile label={tr("Conformity of the PICs")} value={<span className={scoreTone(s.conformity)}>{s.conformity === null ? "—" : `${s.conformity}%`}</span>} note={tr("items where the PIC and SWAT agree")} />
-        <Tile label={tr("Overrated by the PIC")} value={<span className={s.overrated ? "text-red-600" : undefined}>{fmtNumber(s.overrated)}</span>} note={tr("PIC passed, SWAT found UNDER")} />
+        <Tile label={tr("Overrated by the PIC")} value={<span className={s.overrated ? "text-[color:var(--j-C9372C)]" : undefined}>{fmtNumber(s.overrated)}</span>} note={tr("PIC passed, SWAT found UNDER")} />
         <Tile label={tr("Underrated by the PIC")} value={fmtNumber(s.underrated)} note={tr("PIC UNDER, SWAT passed")} />
       </div>
 
@@ -232,7 +232,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
                     <td className="py-2.5 pl-5 pr-3" data-label={tr("PIC")}><span className="block font-medium text-[color:var(--j-172B4D)]">{p.name}</span><span className="block truncate text-[11px] text-[color:var(--j-626F86)]" title={p.branches.join(", ")}>{p.branches.join(", ")}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Audits")}>{p.audits}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums" data-label={tr("Items Compared")}>{p.compared}</td>
-                    <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-red-600" : "text-[color:var(--j-626F86)]")} data-label={tr("Overrated")}>{p.overrated}</td>
+                    <td className={cx("px-3 py-2.5 text-right tabular-nums", p.overrated ? "font-semibold text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")} data-label={tr("Overrated")}>{p.overrated}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-[color:var(--j-44546F)]" data-label={tr("Underrated")}>{p.underrated}</td>
                     <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Conformity")}><Meter pct={p.conformity} /></td>
                   </tr>
@@ -259,7 +259,7 @@ export function ComparisonPanel({ period, branch, group }: { period: Period; bra
                         {p.pic?.conformity != null && <span className={cx("normal-case", scoreTone(p.pic.conformity))}>{tr("{0}% conform", p.pic.conformity)}</span>}</span>
                       {p.pic ? (
                         <span className="mt-0.5 block truncate text-xs text-[color:var(--j-44546F)]">{p.pic.name} · PIC {p.pic.score ?? "—"}% · SWAT {p.swatScore ?? "—"}%
-                          {p.pic.overrated > 0 && <span className="ml-1 font-semibold text-red-600">· {tr("{0} overrated", p.pic.overrated)}</span>}</span>
+                          {p.pic.overrated > 0 && <span className="ml-1 font-semibold text-[color:var(--j-C9372C)]">· {tr("{0} overrated", p.pic.overrated)}</span>}</span>
                       ) : <span className="mt-0.5 block text-xs text-[color:var(--j-626F86)]">{tr("No PIC visit in the {0} days before", res.days)} · SWAT {p.swatScore ?? "—"}%</span>}
                     </span>
                   ))}
@@ -299,20 +299,20 @@ function ComparisonDrawer({ id, onClose }: { id: string; onClose: () => void }) 
                     {p.pic?.conformity != null && <Badge tone={p.pic.conformity >= 90 ? "green" : p.pic.conformity >= 75 ? "amber" : "red"}>{tr("{0}% conform", p.pic.conformity)}</Badge>}
                   </div>
                 </header>
-                {rows.length === 0 ? <p className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-emerald-700"><CheckCircle2 size={16} /> {only ? tr("The PIC and SWAT agree on every item") : tr("No item")}</p> : (
+                {rows.length === 0 ? <p className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-[color:var(--j-216E4E)]"><CheckCircle2 size={16} /> {only ? tr("The PIC and SWAT agree on every item") : tr("No item")}</p> : (
                   <div className="overflow-x-auto">
                     <table className="m-cards w-full min-w-[640px] text-xs">
                       <thead className={theadClass}><tr><th className="py-2 pl-4 pr-3">{tr("Item")}</th><th className="px-3 py-2">PIC</th><th className="px-3 py-2">SWAT</th><th className="px-3 py-2 pr-4">{tr("Verdict")}</th></tr></thead>
                       <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                         {rows.map((r) => (
-                          <tr key={r.key} className={r.verdict === "overrated" ? "bg-red-50/40" : undefined}>
+                          <tr key={r.key} className={r.verdict === "overrated" ? "bg-[color:var(--j-FFECEB)]/40" : undefined}>
                             <td className="py-2.5 pl-4 pr-3"><span className="block font-medium text-[color:var(--j-172B4D)]">{tl(r)}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{tl(r, "section")}</span></td>
                             <td className="px-3 py-2.5"><Chip r={r.pic} />{r.picNote && <span className="mt-0.5 block max-w-[14rem] text-[11px] text-[color:var(--j-626F86)]">{r.picNote}</span>}</td>
                             <td className="px-3 py-2.5"><Chip r={r.swat} />{r.swatNote && <span className="mt-0.5 block max-w-[14rem] text-[11px] text-[color:var(--j-626F86)]">{r.swatNote}</span>}
                               {r.swatBy && <span className="block text-[10px] text-[color:var(--j-626F86)]">{r.swatBy}</span>}</td>
-                            <td className="px-3 py-2.5 pr-4 text-xs">{r.verdict === "agree" ? <span className="text-emerald-700">{tr("Agree")}</span>
-                              : r.verdict === "overrated" ? <span className="font-semibold text-red-600">{tr("PIC overrated")}</span>
-                              : r.verdict === "underrated" ? <span className="text-amber-700">{tr("PIC underrated")}</span> : <span className="text-[color:var(--j-626F86)]">—</span>}</td>
+                            <td className="px-3 py-2.5 pr-4 text-xs">{r.verdict === "agree" ? <span className="text-[color:var(--j-216E4E)]">{tr("Agree")}</span>
+                              : r.verdict === "overrated" ? <span className="font-semibold text-[color:var(--j-C9372C)]">{tr("PIC overrated")}</span>
+                              : r.verdict === "underrated" ? <span className="text-[color:var(--j-7F5F01)]">{tr("PIC underrated")}</span> : <span className="text-[color:var(--j-626F86)]">—</span>}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -343,7 +343,7 @@ function Meter({ pct }: { pct: number | null }) {
 
 function Tile({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
   return (
-    <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
       <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value}</p>
       <p className="mt-0.5 line-clamp-2 text-xs text-[color:var(--j-626F86)]">{note}</p>
@@ -361,7 +361,7 @@ export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
   const url = audit.shareToken ? `${window.location.origin}/share/wwwr/${audit.shareToken}` : null;
   const copy = async () => { if (!url) return; try { await navigator.clipboard.writeText(url); toast(tr("Link copied: share it with the PIC")); } catch { toast(url); } };
   return (
-    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3">
         <div>
           <h3 className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Evaluation & Action Plan")}</h3>
@@ -378,14 +378,14 @@ export function AuditEvaluation({ audit }: { audit: AuditTeam }) {
         <ul className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)]">
           {actions.map((x) => (
             <li key={x.id} className="flex items-start gap-2.5 px-3 py-2">
-              {x.status === "done" ? <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-emerald-600" /> : <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full border-2 border-amber-400" />}
+              {x.status === "done" ? <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" /> : <span className="mt-1 h-3 w-3 flex-shrink-0 rounded-full border-2 border-[color:var(--j-F5CD47)]" />}
               <span className="min-w-0 flex-1"><span className={cx("block", x.status === "done" ? "text-[color:var(--j-626F86)] line-through" : "font-medium text-[color:var(--j-172B4D)]")}>{x.title}</span>
                 <span className="text-[11px] text-[color:var(--j-626F86)]">{x.assignee ?? "—"} · {tr("Due {0}", x.dueOn ? dayShort(x.dueOn) : "—")}{x.doneNote ? ` · “${x.doneNote}”` : ""}</span></span>
             </li>
           ))}
           {actions.length === 0 && <li className="px-3 py-3 text-xs text-[color:var(--j-626F86)]">{tr("No action plan yet")}</li>}
         </ul>
-        {audit.revisitNote && <p className="rounded-[3px] bg-emerald-50 px-3 py-2 text-xs text-emerald-900">{tr("Revisit")}: {audit.revisitNote}</p>}
+        {audit.revisitNote && <p className="rounded-[3px] bg-[color:var(--j-DCFFF1)] px-3 py-2 text-xs text-[color:var(--j-216E4E)]">{tr("Revisit")}: {audit.revisitNote}</p>}
       </div>
     </section>
   );

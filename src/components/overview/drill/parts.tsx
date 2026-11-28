@@ -31,7 +31,7 @@ export function Block({ title, subtitle, actions, children }: { title: string; s
 export function Loaded<T>({ resource, height = 160, children }: { resource: Resource<T>; height?: number; children: (data: T) => ReactNode }) {
   if (resource.error && !resource.loading) {
     return (
-      <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-sm text-amber-800">
+      <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-sm text-[color:var(--j-7F5F01)]">
         {tr('Could not load:')} {resource.error}{' '}
         <button type="button" onClick={resource.retry} className="font-medium underline">{tr('Try Again')}</button>
       </p>
@@ -141,7 +141,7 @@ export function DetailTable<R>({
             <span className="sr-only">{tr('Search')} {caption}</span>
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Search')}
-              className="h-8 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] pl-8 pr-2 text-xs text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] focus:border-neutral-400 focus:outline-none" />
+              className="h-8 w-full rounded-[3px] border border-[color:var(--j-DCDFE4)] pl-8 pr-2 text-xs text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] focus:border-[color:var(--j-8590A2)] focus:outline-none" />
           </label>
         )}
         <span className="text-[11px] text-[color:var(--j-626F86)]">{formatNumber(shown.length)}{shown.length !== rows.length ? tr(' of {0}', formatNumber(rows.length)) : ''} {tr('rows')}{onRowClick ? ` · ${rowHint ?? tr('click a row for details')}` : ''}</span>

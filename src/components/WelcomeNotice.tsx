@@ -50,9 +50,9 @@ export default function WelcomeNotice({ user }: { user: AuthUser }) {
     <div className="fixed inset-x-4 top-4 z-[75] sm:left-auto sm:right-4 sm:w-[380px]" role="status" aria-live="polite"
       onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
-      <div className="notice-in overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-xl">
+      <div className="notice-in overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
         <div className="flex items-start gap-3 p-4">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-brand-800 text-white">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] text-white">
             <Icon size={20} />
           </span>
           <div className="min-w-0 flex-1">

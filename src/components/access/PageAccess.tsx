@@ -128,14 +128,14 @@ export function PageAccessEditor({ role, overrides, onChange, hidden, onHiddenCh
                 <li key={p.key} className="min-w-0">
                   {/* 2026-11-16: the page name in full (it wraps, never cut), the app badges and state on a second line */}
                   <label className={`flex h-full cursor-pointer items-start gap-2.5 rounded-[3px] border px-3 py-2.5 text-sm transition-colors ${
-                    exception ? (on ? 'border-emerald-300 bg-emerald-50/60' : 'border-rose-200 bg-rose-50/60') : 'border-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]'}`}>
+                    exception ? (on ? 'border-[color:var(--j-4BCE97)] bg-[color:var(--j-DCFFF1)]/60' : 'border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]/60') : 'border-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]'}`}>
                     <input type="checkbox" checked={on} onChange={() => toggle(p.key)} disabled={!!limit && !on && !limit.includes(p.key)}
                       title={limit && !on && !limit.includes(p.key) ? tr('Only pages you open yourself can be given') : undefined} className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-[color:var(--j-8590A2)] text-[color:var(--j-0C66E4)] disabled:opacity-40" />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-start justify-between gap-2">
                         <span className="min-w-0 break-words font-medium leading-snug text-[color:var(--j-172B4D)]">{p.label}</span>
                         {(exception || base.has(p.key)) && (
-                          <span className={`mt-0.5 flex-shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${exception ? (on ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800') : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]'}`}>
+                          <span className={`mt-0.5 flex-shrink-0 rounded px-1.5 py-px text-[10px] font-semibold ${exception ? (on ? 'bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)]') : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]'}`}>
                             {exception ? (on ? tr('Extra') : tr('Removed')) : tr('Role')}
                           </span>
                         )}
@@ -250,7 +250,7 @@ function RolePagesPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
           <OperationsNote only={false} some />
           <p className="text-xs text-[color:var(--j-626F86)]">{tr('Roles User and Outlet/HUB see only their assigned branches; Inventory Surveyor sees every branch. A new form is added to role User.')}</p>
           <p className="text-xs text-[color:var(--j-626F86)]">{tr('Not in the menu: the page opens only by its address. Being built: the menu entry shows a skeleton screen until the feature is ready.')}</p>
-          {message && <p role="status" className={`rounded-[3px] px-3 py-2 text-sm ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
+          {message && <p role="status" className={`rounded-[3px] px-3 py-2 text-sm ${message.ok ? 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>{message.text}</p>}
         </div>
       )}
     </div>
@@ -299,7 +299,7 @@ export function AccessSettingsDrawer({ onClose, initial = 'roles' }: { onClose: 
       description={tr('Roles, pages and the menus of the portal, Operations and Calf On The Road in one place. A saved change applies right away.')}
       footer={<button type="button" className={buttonSecondary} onClick={close}>{tr('Close')}</button>}>
       <Tabs className="mb-3" label={tr('Access Settings')} value={tab} onChange={k => setTab(k as AccessTab)} tabs={TABS.map(t => ({ key: t.key,
-        label: <span className="inline-flex items-center gap-1.5">{t.icon}{t.label}{t.key !== 'masters' && dirty[t.key] && <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-label={tr('Not saved')} />}</span> }))} />
+        label: <span className="inline-flex items-center gap-1.5">{t.icon}{t.label}{t.key !== 'masters' && dirty[t.key] && <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--j-E2B203)]" aria-label={tr('Not saved')} />}</span> }))} />
       {/* every tab stays mounted: a change not saved yet survives switching tabs */}
       <div hidden={tab !== 'roles'}><RolePagesPanel onDirty={mark.roles} /></div>
       <div hidden={tab !== 'platforms'}><PlatformsPanel onDirty={mark.platforms} /></div>
@@ -396,7 +396,7 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
     <div className="space-y-3">
       <SaveBar text={tr('Where every page is shown in the menu: the portal, Operations or the Calf On The Road app. Only the menu changes; the access and the flows stay as they are.')}
         dirty={dirty} busy={busy} onSave={save} onReset={() => setDraft({})} />
-      {message && <p className={`mb-3 rounded-[3px] px-3 py-2 text-xs ${message.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>{message.text}</p>}
+      {message && <p className={`mb-3 rounded-[3px] px-3 py-2 text-xs ${message.ok ? 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>{message.text}</p>}
       {!pages ? <SkeletonList rows={5} /> : (<>
         {/* 2026-11-28 phones: every page a card with its apps as toggles */}
         <div className="space-y-3 md:hidden">
@@ -435,7 +435,7 @@ function PlatformsPanel({ onDirty }: { onDirty: (dirty: boolean) => void }) {
                   <tr className="border-t border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]"><td colSpan={5} className="px-3 py-1.5 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{g.group}</td></tr>
                   {g.pages.map(p => (
                     <tr key={p.key} className="border-t border-[color:var(--j-F1F2F4)]">
-                      <td className="px-3 py-2 text-[color:var(--j-172B4D)]">{p.label}{custom(p) && <span className="ml-1 rounded bg-amber-50 px-1.5 py-px text-[10px] font-semibold uppercase text-amber-700">{tr('Set')}</span>}</td>
+                      <td className="px-3 py-2 text-[color:var(--j-172B4D)]">{p.label}{custom(p) && <span className="ml-1 rounded bg-[color:var(--j-FFF7D6)] px-1.5 py-px text-[10px] font-semibold uppercase text-[color:var(--j-7F5F01)]">{tr('Set')}</span>}</td>
                       {ALL_PLATFORMS.map(k => (
                         <td key={k} className="px-3 py-2 text-center">
                           {p.available.includes(k)
@@ -490,7 +490,7 @@ function usePlatforms(): PlatformMap | null | undefined {
 const PLATFORM_TAG: Record<PlatformKey, { label: string; cls: string }> = {
   portal: { label: 'Portal', cls: 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]' },
   operations: { label: 'Operations', cls: 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' },
-  cotr: { label: 'COTR', cls: 'bg-violet-50 text-violet-700' },
+  cotr: { label: 'COTR', cls: 'bg-[color:var(--j-F3F0FF)] text-[color:var(--j-5E4DB2)]' },
 };
 
 function OpsTag({ page }: { page: PageKey }) {
@@ -526,7 +526,7 @@ function OperationsNote({ only, some }: { only: boolean; some: boolean }) {
 /** "Not in the menu", "Being built" … beside a page whose menu entry is special. */
 function StateTag({ page }: { page: PageInfo }) {
   if (!page.state) return null;
-  const tone = page.state === 'hidden' ? 'bg-amber-50 text-amber-700' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]';
+  const tone = page.state === 'hidden' ? 'bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]';
   return <span className={`ml-1 inline-block whitespace-nowrap rounded px-1.5 py-px align-middle text-[10px] font-semibold uppercase ${tone}`}>{STATE_LABEL[page.state]()}</span>;
 }
 

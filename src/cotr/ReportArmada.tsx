@@ -108,7 +108,7 @@ export function ReportArmada() {
                     <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {d.days.map((x) => (
                         <tr key={x.day}>
-                          <td className="whitespace-nowrap py-1.5 pr-2 tabular-nums">{dmyOf(x.day)}{x.status === "sheet" && <span className="ml-1 text-violet-600" title={tr("From the workbook")}>•</span>}{x.status === "open" && <span className="ml-1 text-sky-600" title={tr("On the road")}>•</span>}</td>
+                          <td className="whitespace-nowrap py-1.5 pr-2 tabular-nums">{dmyOf(x.day)}{x.status === "sheet" && <span className="ml-1 text-[color:var(--j-6E5DC6)]" title={tr("From the workbook")}>•</span>}{x.status === "open" && <span className="ml-1 text-[color:var(--j-0C66E4)]" title={tr("On the road")}>•</span>}</td>
                           {menus.map((m) => { const l = x.lines[m.code]; return (["b", "s", "c", "w", "t"] as const).map((k, i) => (
                             <td key={m.code + k} className={cx("px-1 py-1.5 text-right tabular-nums", i === 0 && "border-l border-[color:var(--j-F1F2F4)]", k === "t" && "font-semibold text-[color:var(--j-172B4D)]")}>{l && l[k] ? l[k] : "—"}</td>)); })}
                           <td className="border-l border-[color:var(--j-F1F2F4)] px-2 py-1.5 text-right font-semibold tabular-nums">{rupiah(x.total)}</td>

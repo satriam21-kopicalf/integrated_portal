@@ -55,8 +55,8 @@ export function PayPanel({ driver, month, published, onChanged }: { driver: stri
             <li key={a.id} className="flex items-center gap-2 px-3 py-1.5">
               <Badge tone={a.kind === "bonus" ? "green" : "red"}>{PAY_LABEL[a.kind]()}</Badge>
               <span className="min-w-0 flex-1 truncate text-[color:var(--j-44546F)]" title={a.note ?? undefined}>{a.note ?? "—"}</span>
-              <span className={`tabular-nums ${a.kind === "bonus" ? "text-emerald-700" : "text-red-700"}`}>{a.kind === "bonus" ? "+" : "−"}{rupiah(a.amount)}</span>
-              {!published && <button type="button" aria-label={tr("Delete")} onClick={() => void remove(a.id)} className="text-[color:var(--j-626F86)] hover:text-red-600"><Trash2 size={13} /></button>}
+              <span className={`tabular-nums ${a.kind === "bonus" ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-AE2E24)]"}`}>{a.kind === "bonus" ? "+" : "−"}{rupiah(a.amount)}</span>
+              {!published && <button type="button" aria-label={tr("Delete")} onClick={() => void remove(a.id)} className="text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={13} /></button>}
             </li>
           ))}
         </ul>
@@ -130,7 +130,7 @@ export function PayslipDrawer({ driver, month, onClose }: { driver: string; mont
   return (
     <Drawer open onClose={onClose} icon={<FileText size={18} />} title={tr("Payslip")} description={slip ? `${slip.employee.name} · ${monthText(month)}` : undefined}
       footer={<><Button variant="ghost" onClick={onClose}>{tr("Close")}</Button><Button disabled={!slip} onClick={() => window.print()}><Printer size={15} /> {tr("Print / PDF")}</Button></>}>
-      {error ? <p className="text-sm text-red-600">{error}</p> : !slip ? <SkeletonList rows={6} /> : <SlipSheet slip={slip} />}
+      {error ? <p className="text-sm text-[color:var(--j-C9372C)]">{error}</p> : !slip ? <SkeletonList rows={6} /> : <SlipSheet slip={slip} />}
       <style>{`@media print { body * { visibility: hidden; } .payslip, .payslip * { visibility: visible; } .payslip { position: absolute; inset: 0; border: 0; } }`}</style>
     </Drawer>
   );

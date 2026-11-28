@@ -23,16 +23,16 @@ export default function DownloadProgress() {
   const status = done ? tr('Done') : s.phase === 'preparing' ? tr('Preparing the file…') : tr('Downloading…');
   return createPortal(
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-neutral-900/30 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-label={status}>
-      <div className="w-full max-w-[320px] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-6 text-center shadow-xl">
+      <div className="w-full max-w-[320px] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-6 text-center">
         <div className="relative mx-auto h-[120px] w-[120px]">
           <svg viewBox="0 0 120 120" className={`h-full w-full -rotate-90 ${measured ? '' : 'animate-spin [animation-duration:1.4s]'}`} aria-hidden>
-            <circle cx="60" cy="60" r={R} fill="none" strokeWidth="8" className="stroke-neutral-100" />
+            <circle cx="60" cy="60" r={R} fill="none" strokeWidth="8" className="stroke-[color:var(--j-F1F2F4)]" />
             <circle cx="60" cy="60" r={R} fill="none" strokeWidth="8" strokeLinecap="round" strokeDasharray={C}
               strokeDashoffset={measured ? C * (1 - pct / 100) : C * 0.72}
-              className={`transition-[stroke-dashoffset] duration-300 ease-out ${done ? 'stroke-emerald-500' : 'stroke-brand-700'}`} />
+              className={`transition-[stroke-dashoffset] duration-300 ease-out ${done ? 'stroke-[color:var(--j-22A06B)]' : 'stroke-[color:var(--j-0C66E4)]'}`} />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            {done ? <Check className="h-9 w-9 text-emerald-500" strokeWidth={2.5} />
+            {done ? <Check className="h-9 w-9 text-[color:var(--j-22A06B)]" strokeWidth={2.5} />
               : measured ? <span className="text-[26px] font-bold leading-none tabular-nums text-[color:var(--j-172B4D)]" aria-live="polite">{pct}%</span> : null}
           </div>
         </div>

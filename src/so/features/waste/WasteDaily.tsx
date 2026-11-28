@@ -76,24 +76,24 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
         ))}
       </div>
       {data.missingLast.length > 0 ? (
-        <div className="flex items-start gap-2 border-b border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <AlertTriangle size={16} className="mt-0.5 flex-shrink-0 text-amber-600" />
+        <div className="flex items-start gap-2 border-b border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-4 py-3 text-sm text-[color:var(--j-7F5F01)]">
+          <AlertTriangle size={16} className="mt-0.5 flex-shrink-0 text-[color:var(--j-B38600)]" />
           <div className="min-w-0 flex-1">
             <p className="font-medium">{tr("{0} branches have not reported their waste for {1}", data.missingLast.length, dmy(data.lastDate!))}</p>
             <div className="mt-1.5 flex flex-wrap gap-1">
               {missing.map((b) => (
                 <button key={b.code} type="button" onClick={() => onBranch(b.code)}
-                  className="rounded-full bg-white px-2 py-0.5 text-xs text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100">{shortName(b.name)}</button>
+                  className="rounded-full bg-white px-2 py-0.5 text-xs text-[color:var(--j-7F5F01)] ring-1 ring-[color:var(--j-F8E6A0)] hover:bg-[color:var(--j-F8E6A0)]">{shortName(b.name)}</button>
               ))}
               {data.missingLast.length > 10 && (
-                <button type="button" onClick={() => setAllMissing(!allMissing)} className="px-1 text-xs font-medium text-amber-800 underline">
+                <button type="button" onClick={() => setAllMissing(!allMissing)} className="px-1 text-xs font-medium text-[color:var(--j-7F5F01)] underline">
                   {allMissing ? tr("Show less") : tr("+{0} more", data.missingLast.length - 10)}</button>
               )}
             </div>
           </div>
         </div>
       ) : (
-        <p className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><CheckCircle2 size={16} />{tr("Every branch reported its waste for {0}", dmy(data.lastDate!))}</p>
+        <p className="flex items-center gap-2 border-b border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-4 py-3 text-sm text-[color:var(--j-216E4E)]"><CheckCircle2 size={16} />{tr("Every branch reported its waste for {0}", dmy(data.lastDate!))}</p>
       )}
       <div className="flex flex-col gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:flex-row sm:items-center">
         <div className="relative sm:w-72"><Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
@@ -122,15 +122,15 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
                   <td className="sticky left-0 z-10 max-w-[15rem] bg-white py-2 pl-5 pr-3">
                     <button type="button" onClick={() => onBranch(b.code)} className="block max-w-full truncate text-left font-medium text-[color:var(--j-172B4D)] hover:text-[color:var(--j-0C66E4)]" title={b.name}>{shortName(b.name)}</button>
                     <span className="block h-1 w-full overflow-hidden rounded-full bg-[color:var(--j-091E420F)]" aria-hidden>
-                      <span className={cx("block h-full rounded-full", b.missing ? "bg-amber-400" : "bg-emerald-500")} style={{ width: `${b.days.length ? (b.reported / b.days.length) * 100 : 0}%` }} /></span>
+                      <span className={cx("block h-full rounded-full", b.missing ? "bg-[color:var(--j-E2B203)]" : "bg-[color:var(--j-22A06B)]")} style={{ width: `${b.days.length ? (b.reported / b.days.length) * 100 : 0}%` }} /></span>
                   </td>
-                  <td className={cx("whitespace-nowrap px-2 py-2 text-right tabular-nums", b.missing ? "font-medium text-amber-700" : "text-[color:var(--j-44546F)]")}>{b.reported}/{b.days.length}</td>
+                  <td className={cx("whitespace-nowrap px-2 py-2 text-right tabular-nums", b.missing ? "font-medium text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-44546F)]")}>{b.reported}/{b.days.length}</td>
                   <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{b.usageDays}/{b.days.length}</td>
                   {b.days.map((c) => (
                     <td key={c.date} className="px-0.5 py-2 text-center">
                       <span title={`${dmy(c.date)} · ${c.entries ? tr("{0} waste entries", c.entries) : c.noWaste ? tr("No waste today") : tr("Not reported")}`}
                         className={cx("inline-flex h-6 min-w-6 items-center justify-center rounded-[3px] px-1 text-[11px] font-semibold",
-                          c.entries ? "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0C66E4)]" : c.noWaste ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700")}>
+                          c.entries ? "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0C66E4)]" : c.noWaste ? "bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]")}>
                         {c.entries ? c.entries : c.noWaste ? "0" : "–"}
                       </span>
                     </td>
@@ -144,8 +144,8 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--j-F1F2F4)] px-4 py-2 text-[11px] text-[color:var(--j-626F86)]">
         <span className="flex flex-wrap items-center gap-3">
           <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-[color:var(--j-CCE0FF)]" />{tr("waste entries")}</span>
-          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-emerald-100" />{tr("0 = no waste today")}</span>
-          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-amber-100" />{tr("– = not reported")}</span>
+          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-[color:var(--j-BAF3DB)]" />{tr("0 = no waste today")}</span>
+          <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-[color:var(--j-F8E6A0)]" />{tr("– = not reported")}</span>
           <span>{tr("{0} branches shown · closed outlets (no sales) left out", fmtNumber(rows.length))}</span>
         </span>
         <PageNav paged={paged} />
@@ -188,9 +188,9 @@ export function EsbCompare({ period, branch, onBranch }: { period: Period; branc
     <div>
       <div className="grid gap-3 p-4 sm:grid-cols-4">
         {tiles.map(([l, v, h], i) => (
-          <div key={l} className={cx("rounded-[3px] border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-amber-300" : "border-[color:var(--j-DCDFE4)]")}>
+          <div key={l} className={cx("rounded-[3px] border bg-white px-4 py-3", i === 3 && t.sameCount ? "border-[color:var(--j-F5CD47)]" : "border-[color:var(--j-DCDFE4)]")}>
             <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{l}</p>
-            <p className={cx("mt-1 text-lg font-semibold tabular-nums", i === 3 && t.sameCount ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}>{v}</p>
+            <p className={cx("mt-1 text-lg font-semibold tabular-nums", i === 3 && t.sameCount ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-172B4D)]")}>{v}</p>
             <p className="text-xs text-[color:var(--j-626F86)]">{h}</p>
           </div>))}
       </div>
@@ -213,11 +213,11 @@ export function EsbCompare({ period, branch, onBranch }: { period: Period; branc
               <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{fmtNumber(r.billPortions)}<span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("{0} bills", r.bills)}</span></td>
               <td className="whitespace-nowrap px-3 py-2 text-right">
                 {r.sameCount ? <button type="button" onClick={() => setOpen(open === r.branchCode ? null : r.branchCode)} aria-expanded={open === r.branchCode}
-                  className="inline-flex items-center gap-1 font-semibold text-amber-700 hover:underline"><AlertTriangle size={13} aria-hidden /> {fmtNumber(r.sameCount)}</button>
-                  : <span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 size={13} aria-hidden /> 0</span>}</td>
+                  className="inline-flex items-center gap-1 font-semibold text-[color:var(--j-7F5F01)] hover:underline"><AlertTriangle size={13} aria-hidden /> {fmtNumber(r.sameCount)}</button>
+                  : <span className="inline-flex items-center gap-1 text-[color:var(--j-216E4E)]"><CheckCircle2 size={13} aria-hidden /> 0</span>}</td>
             </tr>
             {open === r.branchCode && (
-              <tr><td colSpan={5} className="bg-amber-50/50 px-5 py-2 text-xs text-[color:var(--j-44546F)]">
+              <tr><td colSpan={5} className="bg-[color:var(--j-FFF7D6)]/50 px-5 py-2 text-xs text-[color:var(--j-44546F)]">
                 {r.same.map((x) => <span key={`${x.day}${x.code}`} className="mr-3 inline-block">{dmy(x.day)} · {x.name}</span>)}
               </td></tr>
             )}

@@ -106,7 +106,7 @@ export default function WasteAnalysis({ res, onBranch, onItem }: { res: MonitorD
           <ul className="space-y-1.5">
             {checks.map((c, i) => (
               <li key={i} className={cx("flex items-start gap-2 rounded-[3px] px-3 py-2 text-sm ring-1 ring-inset",
-                c.tone === "amber" ? "bg-amber-50 text-amber-900 ring-amber-200" : "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]")}>
+                c.tone === "amber" ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] ring-[color:var(--j-F8E6A0)]" : "bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]")}>
                 <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" />{c.text}
               </li>
             ))}

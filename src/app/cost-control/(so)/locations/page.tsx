@@ -92,7 +92,7 @@ export default function LocationsPage() {
           <Stat label={tr("With Coordinates")} emphasis value={rows ? `${pct}%` : <StatSkeleton />}>
             {rows && (
               <>
-                <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]"><div className="h-full rounded-full bg-[color:var(--j-22A06B)]" style={{ width: `${pct}%` }} /></div>
                 <p>{tr("{0} of {1}", fmtNumber(withCoords), fmtNumber(all.length))}</p>
               </>
             )}
@@ -146,7 +146,7 @@ export default function LocationsPage() {
                               {fmtDate(ls.started_at)}
                             </a>
                             {ls.start_accuracy_m != null && <> · ±{Math.round(Number(ls.start_accuracy_m))} m</>}
-                            {off !== null && <span className={off > r.radius_m ? " font-semibold text-amber-700" : ""}> · {tr("{0} m from the coordinates", off)}</span>}
+                            {off !== null && <span className={off > r.radius_m ? " font-semibold text-[color:var(--j-7F5F01)]" : ""}> · {tr("{0} m from the coordinates", off)}</span>}
                             {ls.started_by_name && <span className="block text-[color:var(--j-626F86)]">{ls.started_by_name} · {ls.number}</span>}
                           </>
                         ) : <span className="text-[color:var(--j-626F86)]">—</span>}
@@ -223,7 +223,7 @@ function LocationDrawer({ row, onClose, onSaved }: { row: Row; onClose: () => vo
   return (
     <Drawer open onClose={onClose} size="md" icon={<MapPin size={18} />} title={row.name} description={`${row.code} · ${row.facility_type}`}
       footer={<>
-        {located(row) && <Button variant="ghost" className="mr-auto text-red-600" disabled={busy} onClick={() => void save(true)}><Trash2 size={15} /> {tr("Remove coordinates")}</Button>}
+        {located(row) && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" disabled={busy} onClick={() => void save(true)}><Trash2 size={15} /> {tr("Remove coordinates")}</Button>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={invalid || !radiusOk || (!coords && !located(row))} onClick={() => void save()}><Save size={15} /> {tr("Save")}</Button>
       </>}>
@@ -249,7 +249,7 @@ function LocationDrawer({ row, onClose, onSaved }: { row: Row; onClose: () => vo
             {tr("Latest stock opname {0} started on {1}", ls.number, fmtDate(ls.started_at))}
             {ls.start_accuracy_m != null && ` · ±${Math.round(Number(ls.start_accuracy_m))} m`}
             {ls.started_by_name && ` · ${ls.started_by_name}`}
-            {off !== null && <span className={off > r ? "block font-semibold text-amber-700" : "block"}>{tr("{0} m from these coordinates", off)}</span>}
+            {off !== null && <span className={off > r ? "block font-semibold text-[color:var(--j-7F5F01)]" : "block"}>{tr("{0} m from these coordinates", off)}</span>}
             <span className="block text-[color:var(--j-626F86)]">{tr("Check the point on the map before using it: it is where the phone was, not necessarily the outlet.")}</span>
           </p>
         )}

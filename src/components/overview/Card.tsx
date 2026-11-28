@@ -56,7 +56,7 @@ export function Card<T>({
       <div className={`relative flex-1 px-4 pb-4 sm:px-5 ${tabs ? 'pt-4' : ''}`} style={{ minHeight }}>
         {error && !loading ? (
           <div className="flex h-full min-h-[inherit] flex-col items-center justify-center gap-2 text-center">
-            <AlertTriangle size={20} className="text-amber-500" />
+            <AlertTriangle size={20} className="text-[color:var(--j-B38600)]" />
             <p className="text-sm text-[color:var(--j-44546F)]">{tr('Could not load this widget')}</p>
             <p className="max-w-xs text-xs text-[color:var(--j-626F86)]">{error}</p>
             <button type="button" onClick={retry} className="mt-1 inline-flex items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-1.5 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]">
@@ -128,7 +128,7 @@ export function Delta({
   const up = value > 0;
   const good = flat ? null : up === upIsGood;
   const Icon = flat ? Minus : up ? ArrowUpRight : ArrowDownRight;
-  const tone = good === null ? 'text-[color:var(--j-626F86)]' : good ? 'text-emerald-700' : 'text-rose-700';
+  const tone = good === null ? 'text-[color:var(--j-626F86)]' : good ? 'text-[color:var(--j-216E4E)]' : 'text-[color:var(--j-AE2E24)]';
   return (
     <span className={`inline-flex items-center gap-0.5 text-xs font-medium tabular-nums ${tone} ${className}`}>
       <Icon size={13} strokeWidth={2.25} aria-hidden />

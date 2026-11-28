@@ -53,7 +53,7 @@ export default function KpiTiles({ resource }: { resource: Resource<KpisResponse
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <Delta value={k.deltaPct} />
                   {hasPrev && (
-                    <span className={`font-semibold tabular-nums ${k.value - k.previous > 0 ? 'text-emerald-700' : k.value - k.previous < 0 ? 'text-red-700' : 'text-[color:var(--j-626F86)]'}`}
+                    <span className={`font-semibold tabular-nums ${k.value - k.previous > 0 ? 'text-[color:var(--j-216E4E)]' : k.value - k.previous < 0 ? 'text-[color:var(--j-AE2E24)]' : 'text-[color:var(--j-626F86)]'}`}
                       title={tr('Difference with the comparison period')}>
                       {k.value - k.previous > 0 ? '+' : k.value - k.previous < 0 ? '−' : '±'}{m.format(Math.abs(Math.round(k.value - k.previous)))}
                     </span>

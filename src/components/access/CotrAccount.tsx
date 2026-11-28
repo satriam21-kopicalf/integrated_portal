@@ -93,7 +93,7 @@ export function EmployeePicker({ value, onPick, inputClass }: { value: CotrEmplo
                 <span className="block text-sm font-medium text-[color:var(--j-172B4D)]">{e.name}{e.nickname ? ` (${e.nickname})` : ''}</span>
                 <span className="block text-xs text-[color:var(--j-626F86)]">{[e.code, e.poolName, e.department].filter(Boolean).join(' · ')}</span>
               </span>
-              {e.username && <span className="flex-shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[11px] text-amber-700">{tr('has {0}', e.username)}</span>}
+              {e.username && <span className="flex-shrink-0 rounded bg-[color:var(--j-FFF7D6)] px-1.5 py-0.5 text-[11px] text-[color:var(--j-7F5F01)]">{tr('has {0}', e.username)}</span>}
             </button>
           </li>
         ))}

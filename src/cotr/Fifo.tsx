@@ -37,7 +37,7 @@ export function FifoPanel({ pool, day, version }: { pool: string; day: string; v
       {!data ? <SkeletonList rows={3} /> : (
         <div className="space-y-4 p-4">
           {expired.length > 0 && (
-            <p className="flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2 text-xs text-red-700 ring-1 ring-red-200"><PackageX size={15} className="mt-0.5 flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-xs text-[color:var(--j-AE2E24)] ring-1 ring-[color:var(--j-FFD5D2)]"><PackageX size={15} className="mt-0.5 flex-shrink-0" />
               <span>{tr("Expired, do not give")}: {expired.map((l) => `${l.name} ${l.batchNo ?? "—"} (${l.qty})`).join(", ")}</span></p>
           )}
           <div className="grid gap-3 lg:grid-cols-2">
@@ -66,7 +66,7 @@ export function FifoPanel({ pool, day, version }: { pool: string; day: string; v
                     <span className="w-40 flex-shrink-0 truncate text-sm font-medium text-[color:var(--j-172B4D)]">{d.name}</span>
                     <span className="flex min-w-0 flex-1 flex-wrap gap-1.5">
                       {d.lines.map((l, i) => (
-                        <span key={i} className={`inline-flex items-center gap-1 rounded-[3px] px-2 py-0.5 text-xs ring-1 ${l.short ? "bg-red-50 text-red-700 ring-red-200" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]"}`}>
+                        <span key={i} className={`inline-flex items-center gap-1 rounded-[3px] px-2 py-0.5 text-xs ring-1 ${l.short ? "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)] ring-[color:var(--j-FFD5D2)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)]"}`}>
                           {l.name} · <span className="font-mono font-semibold">{l.short ? tr("short") : l.batchNo ?? tr("new")}</span> × {l.qty}
                         </span>
                       ))}

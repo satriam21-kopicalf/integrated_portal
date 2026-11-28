@@ -8,7 +8,7 @@
 
 import { Check, MapPin, MapPinOff, Navigation, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { cx, inputClass, searchClass } from "@/so/ui";
+import { cx, searchClass } from "@/so/ui";
 import { type Fix } from "@/so/lib/counts";
 import { distanceM } from "@/so/features/checkin/checkin";
 import { tr } from "@/lib/i18n";
@@ -55,7 +55,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
     <div className="space-y-2.5">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--j-626F86)]">
         <span>{tr("{0} outlets assigned to you", rows.length)}{done ? ` · ${tr("{0} done today", done)}` : ""}</span>
-        {fix ? <span className="inline-flex items-center gap-1 text-emerald-700"><Navigation size={12} />{tr("Sorted by distance from you")}</span>
+        {fix ? <span className="inline-flex items-center gap-1 text-[color:var(--j-216E4E)]"><Navigation size={12} />{tr("Sorted by distance from you")}</span>
           : <span className="inline-flex items-center gap-1"><MapPinOff size={12} />{tr("Turn on the location to see the nearest outlet")}</span>}
       </div>
       {groups.length > 1 && (
@@ -89,18 +89,18 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-1.5">
                     <span className={cx("truncate text-sm font-semibold", on ? "text-[color:var(--j-0055CC)]" : "text-[color:var(--j-172B4D)]")}>{r.name}</span>
-                    {r.code === nearest && <span className="rounded-full bg-emerald-100 px-1.5 py-px text-[10px] font-semibold uppercase text-emerald-700">{tr("Nearest")}</span>}
+                    {r.code === nearest && <span className="rounded-full bg-[color:var(--j-BAF3DB)] px-1.5 py-px text-[10px] font-semibold uppercase text-[color:var(--j-216E4E)]">{tr("Nearest")}</span>}
                   </span>
                   <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-[color:var(--j-626F86)]">
                     <span className="font-mono">{r.code}</span>
                     {r.group && <span className="rounded bg-[color:var(--j-091E420F)] px-1 font-semibold text-[color:var(--j-44546F)]">{r.group}</span>}
                     {r.distance !== null ? <span className="inline-flex items-center gap-0.5"><MapPin size={11} />{tr("{0} from you", km(r.distance))}</span>
-                      : !r.located ? <span className="inline-flex items-center gap-0.5 text-amber-700"><MapPinOff size={11} />{tr("No coordinates")}</span> : null}
+                      : !r.located ? <span className="inline-flex items-center gap-0.5 text-[color:var(--j-7F5F01)]"><MapPinOff size={11} />{tr("No coordinates")}</span> : null}
                   </span>
                 </span>
                 {r.state && (
                   <span className={cx("flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                    r.state.tone === "done" ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-amber-50 text-amber-700 ring-1 ring-amber-200")}>{r.state.label}</span>
+                    r.state.tone === "done" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-1 ring-[color:var(--j-BAF3DB)]" : "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] ring-1 ring-[color:var(--j-F8E6A0)]")}>{r.state.label}</span>
                 )}
               </button>
             </li>

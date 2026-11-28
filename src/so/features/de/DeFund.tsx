@@ -59,7 +59,7 @@ function CancelFund({ r, busy, act }: { r: Request; busy: boolean; act: Act }) {
   const [note, setNote] = useState("");
   if (!open) return <Button variant="ghost" disabled={busy} onClick={() => setOpen(true)}>{tr("Cancel the fund")}</Button>;
   return (
-    <div className="space-y-2 rounded-[3px] border border-red-200 bg-red-50/40 p-3">
+    <div className="space-y-2 rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]/40 p-3">
       <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} maxLength={2000} placeholder={tr("Reason for cancelling (required)")} className="w-full rounded-[3px] border border-[color:var(--j-8590A2)] px-3 py-2 text-sm" />
       <div className="flex justify-end gap-2"><Button variant="secondary" disabled={busy} onClick={() => setOpen(false)}>{tr("Back")}</Button>
         <Button variant="danger" disabled={busy || !note.trim()} onClick={() => void act(`/api/de/monitor/${r.id}/fund-cancel`, { note: note.trim() }, tr("Request cancelled"))}>{tr("Cancel the fund")}</Button></div>

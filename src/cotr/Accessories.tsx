@@ -134,7 +134,7 @@ export function FleetAccessoryDrawer({ fleet, onClose, onChanged }: { fleet: Fle
                   <span className="block text-[11px] text-[color:var(--j-626F86)]">{r.code}{r.serialNo ? ` · SN ${r.serialNo}` : ""} · {tr("used since {0}", r.assignedOn)}</span></span>
                 <Badge tone={CONDITION[r.condition].tone} dot>{CONDITION[r.condition].label()}</Badge>
                 <button type="button" onClick={() => void remove(r.id)} title={tr("Take off")} aria-label={tr("Take off")}
-                  className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
+                  className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={15} /></button>
               </li>
             ))}
           </ul>

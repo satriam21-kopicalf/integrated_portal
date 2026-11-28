@@ -46,7 +46,7 @@ export default function FundUnits({ userId }: { userId: string }) {
           </label>
         ))}
       </div>
-      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-[color:var(--j-C9372C)]">{error}</p>}
     </DrawerSection>
   );
 }

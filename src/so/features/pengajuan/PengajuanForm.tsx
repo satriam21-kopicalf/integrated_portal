@@ -102,13 +102,13 @@ export default function PengajuanForm() {
   return (
     <Page title={tr("Fund Request")} actions={<LiveClock />}
       subtitle={now ? now.toLocaleDateString(locale(), { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }) : ""}>
-      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div> : !data ? (
+      {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white"><ErrorState message={error} onRetry={load} /></div> : !data ? (
         <div className="mx-auto max-w-4xl space-y-4"><SkeletonList rows={5} /><SkeletonList rows={5} /></div>
       ) : (
         <div className="mx-auto max-w-4xl space-y-4">
           {sent && (
-            <div className="flex items-start gap-3 rounded-[3px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+            <div className="flex items-start gap-3 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-4 py-3 text-sm text-[color:var(--j-216E4E)]">
+              <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{tr("Fund request {0} sent", sent.number ?? "")}</p>
                 <p className="text-xs">{requestLabel(sent)} · {placeOf(sent)} · {fmtRp(sent.requestedAmount ?? sent.totalOut)} · {tr("Management approves it, then Finance transfers")}</p>
@@ -118,7 +118,7 @@ export default function PengajuanForm() {
             </div>
           )}
 
-          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
             <div className="flex items-center gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3.5 sm:px-5">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
               <div className="min-w-0 flex-1">
@@ -169,13 +169,13 @@ export default function PengajuanForm() {
           </section>
 
           {editable.length > 0 && (
-            <section className="rounded-[3px] border border-amber-200 bg-white">
-              <p className="border-b border-amber-100 bg-amber-50/60 px-4 py-2.5 text-sm font-semibold text-amber-900 sm:px-5">{tr("To finish ({0})", editable.length)}</p>
+            <section className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-white">
+              <p className="border-b border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/60 px-4 py-2.5 text-sm font-semibold text-[color:var(--j-7F5F01)] sm:px-5">{tr("To finish ({0})", editable.length)}</p>
               <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                 {editable.map((d) => (
                   <li key={d.id}>
                     <button type="button" onClick={() => void open(d.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)] sm:px-5">
-                      <ClipboardList size={18} className={cx("flex-shrink-0", d.status === "REVISION" ? "text-red-600" : "text-amber-600")} />
+                      <ClipboardList size={18} className={cx("flex-shrink-0", d.status === "REVISION" ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-B38600)]")} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{d.number ?? tr("Draft")} · {requestLabel(d)} · {placeOf(d)}</span>
                         <span className="block text-xs text-[color:var(--j-626F86)]">{d.status === "REVISION" ? tr("Sent back for a revision: see the team's note") : tr("saved {0}", wibDateTime(d.updatedAt))}</span>
@@ -189,7 +189,7 @@ export default function PengajuanForm() {
             </section>
           )}
 
-          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
               <div>
                 <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("My fund requests")}</p>
@@ -228,7 +228,7 @@ export default function PengajuanForm() {
 
 /** The unit that asks: it decides the PT that pays (2026-11-24), so it is chosen, never guessed. */
 function UnitChoice({ units, value, onChange }: { units: Unit[]; value: string; onChange: (code: string) => void }) {
-  if (!units.length) return <p className="rounded-[3px] bg-amber-50 px-3 py-2.5 text-sm text-amber-900">{tr("Your account has no unit for this: ask your administrator.")}</p>;
+  if (!units.length) return <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2.5 text-sm text-[color:var(--j-7F5F01)]">{tr("Your account has no unit for this: ask your administrator.")}</p>;
   return (
     <div>
       <p className="mb-2 text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Unit that asks")}</p>
@@ -442,14 +442,14 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           </div>
           <span className="flex items-center gap-1 text-xs text-[color:var(--j-626F86)]" aria-live="polite">
             {saving === "saving" ? <><Loader2 size={13} className="animate-spin" /> {tr("Saving")}</> : saving === "pending" ? tr("Not saved yet")
-              : saving === "error" ? <span className="text-red-600">{tr("Not saved")}</span> : <><CloudUpload size={13} /> {tr("Saved")}</>}
+              : saving === "error" ? <span className="text-[color:var(--j-C9372C)]">{tr("Not saved")}</span> : <><CloudUpload size={13} /> {tr("Saved")}</>}
           </span>
         </div>
       </header>
 
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-6">
         {revision && (
-          <div className="rounded-[3px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="rounded-[3px] border border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)] px-4 py-3 text-sm text-[color:var(--j-7F5F01)]">
             <p className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} /> {tr("Sent back for a revision by {0}", revision.actor ?? "—")}</p>
             <p className="mt-1 whitespace-pre-line">{revision.note}</p>
             {rejectedLines.length > 0 && <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs">{rejectedLines.map((l) => <li key={l.id}>{l.description}: {l.reviewNote}</li>)}</ul>}
@@ -484,7 +484,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           <RpInput value={local.opening} onChange={(v) => update({ opening: v })} label={tr("Opening Balance")} allowNegative />
           {server.openingExpected !== null && opening !== null && opening !== server.openingExpected && (
             <textarea value={local.openingNote} onChange={(e) => update({ openingNote: e.target.value })} rows={2} maxLength={1000}
-              placeholder={tr("Why is it different from the previous closing balance? (required)")} className={cx(inputClass, "mt-2 h-auto py-2 text-sm", !local.openingNote.trim() && "border-red-300")} />
+              placeholder={tr("Why is it different from the previous closing balance? (required)")} className={cx(inputClass, "mt-2 h-auto py-2 text-sm", !local.openingNote.trim() && "border-[color:var(--j-F87168)]")} />
           )}
         </FormCard>
 
@@ -493,7 +493,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           {income > 0 && (
             <div className="mt-2 space-y-2">
               <input value={local.incomeNote} onChange={(e) => update({ incomeNote: e.target.value })} maxLength={1000}
-                placeholder={tr("From where and when, e.g. transfer Finance 21/10 (required)")} className={cx(inputClass, "h-11 text-sm", !local.incomeNote.trim() && "border-red-300")} />
+                placeholder={tr("From where and when, e.g. transfer Finance 21/10 (required)")} className={cx(inputClass, "h-11 text-sm", !local.incomeNote.trim() && "border-[color:var(--j-F87168)]")} />
               <Attachments files={files.filter((f) => f.kind === "INCOME")} docTypes={["TRANSFER", "KWITANSI", "OTHER"]} required
                 onAdd={(f, d) => attach("INCOME", f, d)} onRemove={removeFile} />
             </div>
@@ -504,10 +504,10 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         <FormCard n={2} title={tr("Purpose")} hint={KIND_HINT[kind]()}>
           <textarea value={local.purpose} onChange={(e) => update({ purpose: e.target.value })} rows={3} maxLength={1000}
             placeholder={kind === "EVENT" ? tr("Name and place of the event, target sales …") : kind === "BILL" ? tr("Which bill and period, e.g. PLN October") : tr("What it is for and why it is needed")}
-            className={cx(inputClass, "h-auto py-2 text-sm", !local.purpose.trim() && "border-red-300")} />
+            className={cx(inputClass, "h-auto py-2 text-sm", !local.purpose.trim() && "border-[color:var(--j-F87168)]")} />
           {(NEEDED_LABEL[kind] || server.rule?.vendor) && (
             <label className="mt-2 block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{NEEDED_LABEL[kind]?.() ?? tr("Due date")}</span>
-              <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-red-300")} /></label>
+              <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-[color:var(--j-F87168)]")} /></label>
           )}
           {server.rule?.vendor && <div className="mt-2"><Field label={tr("Invoice number")} value={local.invoiceNo} onChange={(v) => update({ invoiceNo: v })} max={80} /></div>}
         </FormCard>
@@ -521,7 +521,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
               <li key={l.key} className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-semibold text-[color:var(--j-626F86)]">{lineWord} {i + 1}</span>
-                  <button type="button" onClick={() => removeLine(l.key)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove Expense")}><Trash2 size={15} /></button>
+                  <button type="button" onClick={() => removeLine(l.key)} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove Expense")}><Trash2 size={15} /></button>
                 </div>
                 <div className={cx("grid gap-2", lineDate ? "sm:grid-cols-[9.5rem_minmax(0,1fr)_10rem]" : "sm:grid-cols-[minmax(0,1fr)_10rem]")}>
                   {lineDate && <input type="date" value={l.spentOn ?? ""} max={wibDate()} onChange={(e) => setLine(l.key, { spentOn: e.target.value })} aria-label={tr("Date")} className={cx(inputClass, "h-10 text-sm")} />}
@@ -551,7 +551,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
           </div>
           <textarea value={local.note} onChange={(e) => update({ note: e.target.value })} rows={2} maxLength={1000}
             placeholder={petty && closing !== null && closing < 0 ? tr("Negative closing balance: explain it (required)") : tr("Note for management / Finance (optional)")}
-            className={cx(inputClass, "mt-3 h-auto py-2 text-sm", petty && closing !== null && closing < 0 && !local.note.trim() && "border-red-300")} />
+            className={cx(inputClass, "mt-3 h-auto py-2 text-sm", petty && closing !== null && closing < 0 && !local.note.trim() && "border-[color:var(--j-F87168)]")} />
           <div className="mt-3">
             <p className="mb-1 text-xs font-medium text-[color:var(--j-44546F)]">{tr("Other attachments (optional)")}</p>
             <Attachments files={files.filter((f) => f.kind === "OTHER")} docTypes={["OTHER", "QUOTE", "INVOICE", "KWITANSI", "FOTO"]}
@@ -560,14 +560,14 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
         </FormCard>
 
         {server.status === "DRAFT" && (
-          <button type="button" onClick={() => setDiscarding(true)} className="mx-auto flex items-center gap-1.5 text-xs font-medium text-red-600 hover:underline"><Trash2 size={13} /> {tr("Delete this draft")}</button>
+          <button type="button" onClick={() => setDiscarding(true)} className="mx-auto flex items-center gap-1.5 text-xs font-medium text-[color:var(--j-C9372C)] hover:underline"><Trash2 size={13} /> {tr("Delete this draft")}</button>
         )}
       </div>
 
       <div className="action-bar fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 py-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <div className="mx-auto max-w-3xl space-y-2">
           {todo.length > 0 && (
-            <details className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <details className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
               <summary className="cursor-pointer font-semibold">{tr("{0} things to complete before sending", todo.length)}</summary>
               <ul className="mt-1 list-disc space-y-0.5 pl-4">{todo.map((t) => <li key={t}>{t}</li>)}</ul>
             </details>
@@ -596,7 +596,7 @@ function Field({ label, value, onChange, max, placeholder, inputMode }: { label:
   return (
     <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{label}</span>
       <input value={value} onChange={(e) => onChange(e.target.value)} maxLength={max} placeholder={placeholder} inputMode={inputMode}
-        className={cx(inputClass, "h-11 text-sm", !value.trim() && "border-red-300")} /></label>
+        className={cx(inputClass, "h-11 text-sm", !value.trim() && "border-[color:var(--j-F87168)]")} /></label>
   );
 }
 
@@ -672,7 +672,7 @@ function Attachments({ files, docTypes, required, onAdd, onRemove }: { files: Pg
   return (
     <div className="flex flex-wrap items-end gap-2">
       {files.map((f) => <FileChip key={f.id} f={f} onRemove={() => onRemove(f.id)} />)}
-      <div className={cx("flex items-center gap-1 rounded-[3px] border p-1", required && !files.length ? "border-red-300 bg-red-50/40" : "border-[color:var(--j-DCDFE4)] bg-white")}>
+      <div className={cx("flex items-center gap-1 rounded-[3px] border p-1", required && !files.length ? "border-[color:var(--j-F87168)] bg-[color:var(--j-FFECEB)]/40" : "border-[color:var(--j-DCDFE4)] bg-white")}>
         <NativeSelect value={doc} onChange={(e) => setDoc(e.target.value)} aria-label={tr("Kind of Document")} className="h-8 rounded-[3px] border-0 bg-transparent pl-1.5 pr-6 text-xs font-medium text-[color:var(--j-44546F)] focus:ring-0">
           {docTypes.map((d) => <option key={d} value={d}>{(DOC_LABEL[d] ?? (() => d))()}</option>)}
         </NativeSelect>
@@ -829,7 +829,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
   const discard = async () => { try { await call(base, { method: "DELETE" }); onClose(); } catch (e) { toast((e as Error).message, "error"); } };
   const revision = server.status === "REVISION" ? [...(server.events ?? [])].reverse().find((e) => e.to === "REVISION") : undefined;
   const select = (key: keyof PLocal, list: keyof FormState["options"], label: string, required = true) => (
-    <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{label}{required && <span className="text-red-600"> *</span>}</span>
+    <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{label}{required && <span className="text-[color:var(--j-C9372C)]"> *</span>}</span>
       <NativeSelect value={local[key]} onChange={(e) => update({ [key]: e.target.value } as Partial<PLocal>)} aria-label={label} className={cx(inputClass, "h-11 w-full")}>
         <option value="">{required ? tr("Choose") : tr("None")}</option>
         {opts[list].map((o) => <option key={o.id} value={String(o.id)}>{o.name}</option>)}
@@ -851,14 +851,14 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
           </div>
           <span className="flex items-center gap-1 text-xs text-[color:var(--j-626F86)]" aria-live="polite">
             {saving === "saving" ? <><Loader2 size={13} className="animate-spin" /> {tr("Saving")}</> : saving === "pending" ? tr("Not saved yet")
-              : saving === "error" ? <span className="text-red-600">{tr("Not saved")}</span> : <><CloudUpload size={13} /> {tr("Saved")}</>}
+              : saving === "error" ? <span className="text-[color:var(--j-C9372C)]">{tr("Not saved")}</span> : <><CloudUpload size={13} /> {tr("Saved")}</>}
           </span>
         </div>
       </header>
 
       <div className="mx-auto max-w-3xl space-y-4 p-4 sm:p-6">
         {revision && (
-          <div className="rounded-[3px] border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="rounded-[3px] border border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)] px-4 py-3 text-sm text-[color:var(--j-7F5F01)]">
             <p className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} /> {tr("Sent back for a revision by {0}", revision.actor ?? "—")}</p>
             <p className="mt-1 whitespace-pre-line">{revision.note}</p>
           </div>
@@ -878,7 +878,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
           </div>
           {ic && (
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Received by")}<span className="text-red-600"> *</span></span>
+              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Received by")}<span className="text-[color:var(--j-C9372C)]"> *</span></span>
                 <select value={local.payeePt} onChange={(e) => update({ payeePt: e.target.value })} aria-label={tr("Received by")} className={cx(inputClass, "h-11 w-full")}>
                   <option value="">{tr("Choose")}</option>{(data.payers ?? []).filter((x) => x !== payer).map((x) => <option key={x} value={x}>{x}</option>)}
                 </select></label>
@@ -887,7 +887,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
                   <option value="">{tr("The whole unit")}</option>
                   {data.branches.filter((b) => b.unit === local.unit).map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
                 </select></label>
-              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Report period")}<span className="text-red-600"> *</span></span>
+              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Report period")}<span className="text-[color:var(--j-C9372C)]"> *</span></span>
                 <input type="date" value={local.periodFrom} max={wibDate()} onChange={(e) => update({ periodFrom: e.target.value })} className={cx(inputClass, "h-11")} /></label>
               <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("until")}</span>
                 <input type="date" value={local.periodTo} max={wibDate()} onChange={(e) => update({ periodTo: e.target.value })} className={cx(inputClass, "h-11")} /></label>
@@ -897,16 +897,16 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
           {bill && (
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="sm:col-span-2"><Field label={tr("Vendor")} value={local.vendorName} onChange={(v) => update({ vendorName: v })} max={120} placeholder="SUKANDA DJAYA" /></div>
-              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Payment term")}<span className="text-red-600"> *</span></span>
+              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Payment term")}<span className="text-[color:var(--j-C9372C)]"> *</span></span>
                 <select value={local.paymentTerm} onChange={(e) => update({ paymentTerm: e.target.value })} aria-label={tr("Payment term")} className={cx(inputClass, "h-11 w-full")}>
                   <option value="">{tr("Choose")}</option><option value="COD">{tr("COD · paid on delivery")}</option><option value="TOP">{tr("TOP · paid by its due date")}</option><option value="CBD">{tr("CBD · paid before delivery")}</option>
                 </select></label>
               <Field label={tr("Invoice number")} value={local.invoiceNo} onChange={(v) => update({ invoiceNo: v })} max={80} />
-              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Invoice date")}<span className="text-red-600"> *</span></span>
+              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Invoice date")}<span className="text-[color:var(--j-C9372C)]"> *</span></span>
                 <input type="date" value={local.invoiceDate} onChange={(e) => update({ invoiceDate: e.target.value })} className={cx(inputClass, "h-11")} /></label>
-              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Due date")}<span className="text-red-600"> *</span></span>
+              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Due date")}<span className="text-[color:var(--j-C9372C)]"> *</span></span>
                 <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11")} />
-                {local.neededOn && local.neededOn < wibDate() && <span className="mt-1 block text-xs font-medium text-amber-700">{tr("The due date has passed")}</span>}</label>
+                {local.neededOn && local.neededOn < wibDate() && <span className="mt-1 block text-xs font-medium text-[color:var(--j-7F5F01)]">{tr("The due date has passed")}</span>}</label>
               <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Location")}</span>
                 <select value={local.branchCode} onChange={(e) => update({ branchCode: e.target.value })} aria-label={tr("Location")} className={cx(inputClass, "h-11 w-full")}>
                   <option value="">{tr("None")}</option>
@@ -919,26 +919,26 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
           {!plain && <div className="grid gap-3 sm:grid-cols-2">
             {select("purposeId", "PURPOSE", data.listNames?.PURPOSE ?? tr("Purpose of Funds"))}
             {select("transactionTypeId", "TRANSACTION", data.listNames?.TRANSACTION ?? tr("Transaction Type"))}
-            <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{vendor ? tr("Due date") : tr("Date Funds Needed")}<span className="text-red-600"> *</span></span>
-              <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-red-300")} /></label>
+            <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{vendor ? tr("Due date") : tr("Date Funds Needed")}<span className="text-[color:var(--j-C9372C)]"> *</span></span>
+              <input type="date" value={local.neededOn} onChange={(e) => update({ neededOn: e.target.value })} className={cx(inputClass, "h-11", !local.neededOn && "border-[color:var(--j-F87168)]")} /></label>
             {vendor && <Field label={tr("Invoice number")} value={local.invoiceNo} onChange={(v) => update({ invoiceNo: v })} max={80} />}
             {select("projectId", "PROJECT", data.listNames?.PROJECT ?? tr("Project"), false)}
-            <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Outlet")}{flags.outlet && <span className="text-red-600"> *</span>}</span>
+            <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Outlet")}{flags.outlet && <span className="text-[color:var(--j-C9372C)]"> *</span>}</span>
               <NativeSelect value={local.branchCode} onChange={(e) => update({ branchCode: e.target.value })} aria-label={tr("Outlet")} className={cx(inputClass, "h-11 w-full")}>
                 <option value="">{flags.outlet ? tr("Choose the outlet") : tr("No outlet")}</option>
                 {[...data.branches.filter((b) => b.unit === local.unit && !data.outlets.some((o) => o.code === b.code)), ...data.outlets].map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
               </NativeSelect></label>
           </div>}
           {settling && (
-            <div className="mt-3 rounded-[3px] border border-sky-200 bg-sky-50/60 p-3">
-              <label className="block"><span className="mb-1 block text-xs font-medium text-sky-900">{tr("Cash in Advance being settled")}<span className="text-red-600"> *</span></span>
+            <div className="mt-3 rounded-[3px] border border-[color:var(--j-CCE0FF)] bg-[color:var(--j-E9F2FF)]/60 p-3">
+              <label className="block"><span className="mb-1 block text-xs font-medium text-[color:var(--j-0055CC)]">{tr("Cash in Advance being settled")}<span className="text-[color:var(--j-C9372C)]"> *</span></span>
                 <NativeSelect value={local.settlesId} onChange={(e) => update({ settlesId: e.target.value })} aria-label={tr("Cash in Advance")} className={cx(inputClass, "h-11 w-full")}>
                   <option value="">{data.advances.length ? tr("Choose") : tr("No open Cash in Advance")}</option>
                   {[...data.advances, ...(server.settles && !data.advances.some((a) => a.id === server.settles!.id) ? [{ id: server.settles.id, number: server.settles.number, paidAmount: server.settles.paidAmount, paidOn: server.settles.paidOn, purpose: null }] : [])]
                     .map((a) => <option key={a.id} value={a.id}>{`${a.number} · ${fmtRp(a.paidAmount)}`}</option>)}
                 </NativeSelect></label>
               {diff !== null && (
-                <p className={cx("mt-2 text-sm font-medium", diff > 0 ? "text-amber-800" : diff < 0 ? "text-emerald-800" : "text-[color:var(--j-44546F)]")}>
+                <p className={cx("mt-2 text-sm font-medium", diff > 0 ? "text-[color:var(--j-7F5F01)]" : diff < 0 ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-44546F)]")}>
                   {diff > 0 ? tr("The company still pays {0}", fmtRp(diff)) : diff < 0 ? tr("{0} is returned to the company", fmtRp(-diff)) : tr("Settled exactly")}</p>
               )}
             </div>
@@ -948,7 +948,7 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
         <FormCard n={3} title={tr("Description and Details")} hint={tr("What it is for, the items or costs and why it is needed")}>
           <textarea value={local.purpose} onChange={(e) => update({ purpose: e.target.value })} rows={6} maxLength={1000}
             placeholder={tr("e.g. Train tickets Jakarta–Bandung for the outlet opening, 2 people, 24–25 Nov")}
-            className={cx(inputClass, "h-auto min-h-[9rem] py-2 text-sm", !local.purpose.trim() && "border-red-300")} />
+            className={cx(inputClass, "h-auto min-h-[9rem] py-2 text-sm", !local.purpose.trim() && "border-[color:var(--j-F87168)]")} />
         </FormCard>
 
         <FormCard n={4} title={settling ? tr("Total Spent") : tr("Total Requested")} hint={settling ? tr("What the Cash in Advance was spent on, in total") : undefined}>
@@ -977,14 +977,14 @@ function PersonalEditor({ data, initial, onClose, onSent }: { data: FormState; i
         </FormCard>
 
         {server.status === "DRAFT" && (
-          <button type="button" onClick={() => setDiscarding(true)} className="mx-auto flex items-center gap-1.5 text-xs font-medium text-red-600 hover:underline"><Trash2 size={13} /> {tr("Delete this draft")}</button>
+          <button type="button" onClick={() => setDiscarding(true)} className="mx-auto flex items-center gap-1.5 text-xs font-medium text-[color:var(--j-C9372C)] hover:underline"><Trash2 size={13} /> {tr("Delete this draft")}</button>
         )}
       </div>
 
       <div className="action-bar fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--j-DCDFE4)] bg-white/95 px-4 py-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <div className="mx-auto max-w-3xl space-y-2">
           {todo.length > 0 && (
-            <details className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <details className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
               <summary className="cursor-pointer font-semibold">{tr("{0} things to complete before sending", todo.length)}</summary>
               <ul className="mt-1 list-disc space-y-0.5 pl-4">{todo.map((t) => <li key={t}>{t}</li>)}</ul>
             </details>

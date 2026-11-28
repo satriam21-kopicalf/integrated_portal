@@ -71,7 +71,7 @@ function Bar({ c, className }: { c: { under: number; meet: number; exceed: numbe
 }
 
 function ScorePill({ score, large }: { score: number | null; large?: boolean }) {
-  const tone = score === null ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]" : score >= 90 ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : score >= 75 ? "bg-amber-50 text-amber-700 ring-amber-200" : "bg-red-50 text-red-700 ring-red-200";
+  const tone = score === null ? "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]" : score >= 90 ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)]" : score >= 75 ? "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] ring-[color:var(--j-F8E6A0)]" : "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)] ring-[color:var(--j-FFD5D2)]";
   return <span className={cx("inline-flex items-center justify-center rounded-[3px] font-semibold tabular-nums ring-1 ring-inset", tone, large ? "h-12 min-w-[4.5rem] px-3 text-xl" : "h-7 min-w-[3.5rem] px-2 text-sm")}>{score === null ? "—" : `${score}%`}</span>;
 }
 
@@ -151,7 +151,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
             {s && <p>{tr("items rated MEET or EXCEED")}</p>}
           </Stat>
           <Stat label={tr("UNDER Findings")} icon={<AlertTriangle size={13} />} onClick={s ? () => toggle("under") : undefined} active={f.only === "under"}
-            value={s ? <span className={s.under ? "text-red-600" : undefined}>{fmtNumber(s.under)}</span> : <StatSkeleton />}>
+            value={s ? <span className={s.under ? "text-[color:var(--j-C9372C)]" : undefined}>{fmtNumber(s.under)}</span> : <StatSkeleton />}>
             {s && <p>{tr("{0} MEET · {1} EXCEED", fmtNumber(s.meet), fmtNumber(s.exceed))}</p>}
           </Stat>
           {audit ? (
@@ -185,7 +185,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                   <li key={p.key} className="bg-white px-4 py-3">
                     <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{PLATFORM_LABEL[p.platform]}</p>
                     <p className="mt-1 inline-flex items-center gap-1.5 text-xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">
-                      <Star size={17} className={p.stars === null ? "text-[color:var(--j-8590A2)]" : "fill-amber-400 text-amber-400"} /> {p.stars === null ? "—" : fmtStars(p.stars)}
+                      <Star size={17} className={p.stars === null ? "text-[color:var(--j-8590A2)]" : "fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]"} /> {p.stars === null ? "—" : fmtStars(p.stars)}
                     </p>
                     <p className="text-[11px] text-[color:var(--j-626F86)]">{tr("{0} visits", fmtNumber(p.visits))}</p>
                   </li>
@@ -204,8 +204,8 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
         <>
           <Toolbar>
             <QuickChips label={tr("Show")} value={f.only} onChange={(only) => setF({ ...f, only })}
-              items={[{ key: "", label: tr("All"), count: res?.data.length }, { key: "under", label: tr("With UNDER findings"), dot: "bg-red-500", count: res ? res.data.filter((v) => v.counts.under > 0).length : null },
-                { key: "outside", label: tr("Outside Radius"), dot: "bg-amber-500", count: res ? res.data.filter((v) => v.outsideRadius).length : null }]} />
+              items={[{ key: "", label: tr("All"), count: res?.data.length }, { key: "under", label: tr("With UNDER findings"), dot: "bg-[color:var(--j-C9372C)]", count: res ? res.data.filter((v) => v.counts.under > 0).length : null },
+                { key: "outside", label: tr("Outside Radius"), dot: "bg-[color:var(--j-E2B203)]", count: res ? res.data.filter((v) => v.outsideRadius).length : null }]} />
             <FilterToolbar search={search} onSearch={setSearch} placeholder={tr("Search outlet or PIC")} filters={chips}
               onOpen={() => setSheet(true)} onClear={() => setF(NO_F())} />
           </Toolbar>
@@ -243,7 +243,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                   <tbody>
                     {!res ? <SkeletonRows cols={9} /> : paged.rows.map((v) => (
                       <tr key={v.id} onClick={() => setOpen(v.id)} className={jRow}>
-                        <td className={jTd}><TypeIcon tone={audit ? "bg-rose-600" : form === "product" ? "bg-sky-600" : "bg-emerald-600"} title={title}>
+                        <td className={jTd}><TypeIcon tone={audit ? "bg-[color:var(--j-C9372C)]" : form === "product" ? "bg-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-22A06B)]"} title={title}>
                           {audit ? <Scale size={11} /> : form === "product" ? <Layers size={11} /> : <Store size={11} />}</TypeIcon></td>
                         <td className={cx(jTd, "whitespace-nowrap")}><span className={jKey}>{v.branchCode}</span></td>
                         <td className={cx(jTd, "max-w-[16rem]")}><span className="block truncate text-[color:var(--j-172B4D)]">{v.branchName}</span>
@@ -252,7 +252,7 @@ export default function VisitMonitor({ form }: { form: VisitFormKey }) {
                         <td className={cx(jTd, "max-w-[14rem]")}><Person name={v.name} sub={v.audit ? tr("Team: {0}", v.audit.members.map((m) => m.name).join(", ")) : `@${v.username}`} /></td>
                         <td className={cx(jTd, "w-52")}>
                           <Bar c={v.counts} />
-                          <span className="mt-1 block text-[11px] text-[color:var(--j-626F86)]"><span className={v.counts.under ? "font-semibold text-red-600" : ""}>{v.counts.under} UNDER</span> · {v.counts.meet} MEET · {v.counts.exceed} EXCEED</span>
+                          <span className="mt-1 block text-[11px] text-[color:var(--j-626F86)]"><span className={v.counts.under ? "font-semibold text-[color:var(--j-C9372C)]" : ""}>{v.counts.under} UNDER</span> · {v.counts.meet} MEET · {v.counts.exceed} EXCEED</span>
                         </td>
                         <td className={jTd}><ScoreLozenge score={v.score} /></td>
                         <td className={jTd}>
@@ -312,9 +312,9 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
     <Panel title={tr("PIC Attendance")} description={att ? tr("{0}: {1} days in the month · counted from {2} · one visit per outlet per day; a past day without any visit is a day off", label, dates.length, dmy(att.since), ) : tr("Loading…")}
       actions={<div className="flex flex-wrap items-center gap-3">
         <span className="hidden items-center gap-3 text-[11px] text-[color:var(--j-626F86)] lg:flex">
-          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />{tr("Visit")}</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-amber-200" />{tr("Day off")}</span>
-          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-white ring-1 ring-inset ring-neutral-300" />{tr("Today")}</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-[color:var(--j-22A06B)]" />{tr("Visit")}</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-[color:var(--j-F8E6A0)]" />{tr("Day off")}</span>
+          <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-white ring-1 ring-inset ring-[color:var(--j-DCDFE4)]" />{tr("Today")}</span>
           <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-[color:var(--j-091E420F)]" />{tr("Not counted")}</span>
         </span>
         <span className="inline-flex items-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
@@ -333,7 +333,7 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
                 <th className="sticky left-0 z-10 min-w-[14rem] bg-[color:var(--j-F7F8F9)] py-2.5 pl-5 pr-3">{tr("PIC")}</th>
                 <th className="px-2 py-2.5 text-right">{tr("Visited")}</th><th className="px-2 py-2.5 text-right">{tr("Days Off")}</th><th className="px-2 py-2.5 text-right">{tr("Visits")}</th>
                 {dates.map((d) => (
-                  <th key={d} className={cx("w-6 px-0 py-2.5 text-center text-[10px] tabular-nums", d === att.today ? "text-[color:var(--j-0C66E4)]" : sunday(d) ? "text-red-500" : "")}>{Number(d.slice(8))}</th>
+                  <th key={d} className={cx("w-6 px-0 py-2.5 text-center text-[10px] tabular-nums", d === att.today ? "text-[color:var(--j-0C66E4)]" : sunday(d) ? "text-[color:var(--j-C9372C)]" : "")}>{Number(d.slice(8))}</th>
                 ))}
               </tr>
             </thead>
@@ -345,7 +345,7 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
                       <span className="min-w-0"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{p.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">@{p.username} · {tr("{0} outlets", p.branches)}</span></span></span>
                   </td>
                   <td className="px-2 py-2 text-right"><span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{p.active}</span><span className="block text-[10px] text-[color:var(--j-626F86)]">/{counted.size}</span></td>
-                  <td className={cx("px-2 py-2 text-right font-semibold tabular-nums", p.off ? "text-amber-700" : "text-[color:var(--j-626F86)]")}>{p.off}<span className="block text-[10px] font-normal text-[color:var(--j-626F86)]">/{past}</span></td>
+                  <td className={cx("px-2 py-2 text-right font-semibold tabular-nums", p.off ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")}>{p.off}<span className="block text-[10px] font-normal text-[color:var(--j-626F86)]">/{past}</span></td>
                   <td className="px-2 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{p.visits}</td>
                   {dates.map((d) => {
                     const n = p.days[d];
@@ -354,7 +354,7 @@ function AttendancePanel({ form, group, branch, onPic }: { form: VisitFormKey; g
                       <td key={d} className="px-px py-2 text-center">
                         <span title={`${dmy(d)} · ${n ? tr("{0} visits", n) : state === "today" ? tr("Today, not yet") : state === "off" ? tr("Day off") : tr("Not counted")}`}
                           className={cx("mx-auto flex h-6 w-5 items-center justify-center rounded text-[10px] font-semibold tabular-nums",
-                            state === "visit" ? "bg-emerald-500 text-white" : state === "off" ? "bg-amber-200 text-amber-800" : state === "today" ? "bg-white ring-1 ring-inset ring-neutral-300" : "bg-[color:var(--j-091E420F)]")}>
+                            state === "visit" ? "bg-[color:var(--j-22A06B)] text-white" : state === "off" ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : state === "today" ? "bg-white ring-1 ring-inset ring-[color:var(--j-DCDFE4)]" : "bg-[color:var(--j-091E420F)]")}>
                           {n && n > 1 ? n : ""}</span>
                       </td>
                     );
@@ -404,8 +404,8 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
         <Insight label={tr("Average Score")} value={<span className={scoreTone(s.score)}>{s.score === null ? "—" : `${s.score}%`}</span>}
           note={tr("{0} visits · target {1}%", fmtNumber(s.visits), TARGET)} />
         <Insight label={tr("Weakest Section")} value={weakest ? <span className={scoreTone(weakest.pct)}>{weakest.pct}%</span> : "—"} note={weakest ? tl(weakest, "title") : tr("No rating yet")} />
-        <Insight label={tr("Top Finding")} value={top ? <span className="text-red-600">{top.count}×</span> : "0"} note={top ? tl(top) : tr("No UNDER in this period")} />
-        <Insight label={tr("Outlets Below 75%")} value={<span className={below ? "text-red-600" : "text-emerald-600"}>{below}</span>} note={tr("of {0} outlets visited", fmtNumber(outlets.length))} />
+        <Insight label={tr("Top Finding")} value={top ? <span className="text-[color:var(--j-C9372C)]">{top.count}×</span> : "0"} note={top ? tl(top) : tr("No UNDER in this period")} />
+        <Insight label={tr("Outlets Below 75%")} value={<span className={below ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-22A06B)]"}>{below}</span>} note={tr("of {0} outlets visited", fmtNumber(outlets.length))} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -419,7 +419,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
                 </div>
                 <div className="relative h-2 rounded-full bg-[color:var(--j-091E420F)]">
                   <span className="absolute inset-y-0 left-0 rounded-full bg-[color:var(--j-0C66E4)]" style={{ width: `${sec.pct ?? 0}%` }} />
-                  <span className="absolute -inset-y-1 w-0.5 rounded bg-neutral-400" style={{ left: `${TARGET}%` }} aria-hidden />
+                  <span className="absolute -inset-y-1 w-0.5 rounded bg-[color:var(--j-8590A2)]" style={{ left: `${TARGET}%` }} aria-hidden />
                 </div>
                 {sec.under > 0 && <p className="mt-1 text-[11px] text-[color:var(--j-626F86)]">{tr("{0} UNDER of {1} ratings", sec.under, sec.n)}</p>}
               </li>
@@ -438,7 +438,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
                       <span className="min-w-0 truncate text-sm font-medium text-[color:var(--j-172B4D)]">{tl(x)}</span>
                       <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{x.count}×</span>
                     </div>
-                    <div className="mt-1 h-1.5 rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-red-500" style={{ width: `${(x.count / maxFinding) * 100}%` }} /></div>
+                    <div className="mt-1 h-1.5 rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-C9372C)]" style={{ width: `${(x.count / maxFinding) * 100}%` }} /></div>
                     <p className="mt-1 truncate text-[11px] text-[color:var(--j-626F86)]" title={x.branches.join(", ")}>{tl(x, "section")} · {tr("{0} outlets", x.branches.length)}</p>
                   </div>
                 </li>
@@ -458,7 +458,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
                   <span className={cx("text-xl font-semibold tabular-nums", scoreTone(g.score))}>{g.score === null ? "—" : `${g.score}%`}</span>
                 </div>
                 <p className="mt-0.5 text-[11px] text-[color:var(--j-626F86)]">{tr("{0} visits · {1} outlets · {2} PICs", fmtNumber(g.visits), fmtNumber(g.outlets), fmtNumber(g.pics))}</p>
-                <p className={cx("text-[11px]", g.under ? "text-red-600" : "text-[color:var(--j-626F86)]")}>{tr("{0} UNDER", fmtNumber(g.under))}</p>
+                <p className={cx("text-[11px]", g.under ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>{tr("{0} UNDER", fmtNumber(g.under))}</p>
               </li>
             ))}
           </ul>
@@ -477,7 +477,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
                 <tr key={o.code} onClick={() => onOutlet(o.code)} className="cursor-pointer hover:bg-[color:var(--j-E9F2FF)]">
                   <td className="py-2.5 pl-5 pr-3" data-label={tr("Outlet")}><span className="block font-medium text-[color:var(--j-172B4D)]">{o.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{o.code}</span></td>
                   <td className="px-3 py-2.5 text-right tabular-nums text-[color:var(--j-44546F)]" data-label={tr("Visits")}>{o.visits}</td>
-                  <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "font-semibold text-red-600" : "text-[color:var(--j-626F86)]")} data-label={tr("UNDER")}>{o.under}</td>
+                  <td className={cx("px-3 py-2.5 text-right tabular-nums", o.under ? "font-semibold text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")} data-label={tr("UNDER")}>{o.under}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-xs text-[color:var(--j-626F86)]" data-label={tr("Last Visit")}>{o.last ? wibDateTime(o.last) : "—"}</td>
                   <td className="px-3 py-2.5 pr-5 text-right" data-label={tr("Average Score")}><ScorePill score={o.avg} /></td>
                 </tr>
@@ -492,7 +492,7 @@ function Analysis({ res, onOutlet }: { res: Result; onOutlet: (code: string) => 
 
 function Insight({ label, value, note }: { label: string; value: React.ReactNode; note: string }) {
   return (
-    <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
       <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value}</p>
       <p className="mt-0.5 line-clamp-2 text-xs text-[color:var(--j-626F86)]">{note}</p>
@@ -553,7 +553,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
       description={v ? `${tl(v.definition, "title")} · ${wibDateTime(v.submittedAt)}` : undefined} focusFirstField={false}>
       {error ? <ErrorState message={error} /> : !v ? <SkeletonList rows={5} /> : (
         <div className="space-y-4">
-          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
             <div className="grid gap-4 px-4 py-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-5">
               <div className="flex items-center gap-3">
                 <ScorePill score={v.score} large />
@@ -581,7 +581,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
               <Fact icon={<CalendarDays size={12} />} k={tr("Started → sent")} v={<>{wibDateTime(v.submittedAt)}<span className="block text-[11px] font-normal text-[color:var(--j-626F86)]">{tr("started {0}", wibDateTime(v.startedAt))}</span>
                 {v.client && <span className="mt-1 block"><ClientTag v={v} /></span>}</>} />
               <Fact icon={<MapPin size={12} />} k={tr("Location when sent")} v={v.latitude !== null && v.longitude !== null ? (
-                <a href={mapsUrl(v.latitude, v.longitude)} target="_blank" rel="noreferrer" className={cx("hover:underline", v.outsideRadius ? "text-red-700" : "text-[color:var(--j-0C66E4)]")}>
+                <a href={mapsUrl(v.latitude, v.longitude)} target="_blank" rel="noreferrer" className={cx("hover:underline", v.outsideRadius ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-0C66E4)]")}>
                   {v.distanceM !== null ? tr("{0} m from the outlet", v.distanceM) : `${v.latitude.toFixed(4)}, ${v.longitude.toFixed(4)}`} <ExternalLink size={10} className="inline" />
                   {v.outsideRadius && <span className="block text-[11px] font-semibold">{tr("Outside Radius")}</span>}
                 </a>) : tr("No position")} />
@@ -621,16 +621,16 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                         const a = v.answers?.[it.key] ?? {};
                         const ph = photosOf(it.key);
                         return (
-                          <li key={it.key} className={cx("px-4 py-3", a.rating === "UNDER" && "bg-red-50/40")}>
+                          <li key={it.key} className={cx("px-4 py-3", a.rating === "UNDER" && "bg-[color:var(--j-FFECEB)]/40")}>
                             <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-start gap-2.5">
                               <span className="mt-0.5 text-right text-xs font-semibold tabular-nums text-[color:var(--j-626F86)]">{it.no}</span>
                               <span className="min-w-0 flex-1 text-sm font-medium text-[color:var(--j-172B4D)]">{tl(it)}
                                 {a.stars != null && (
-                                  <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap rounded-[3px] bg-amber-50 px-1.5 py-0.5 align-middle text-[11px] font-semibold tabular-nums text-amber-800"
+                                  <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap rounded-[3px] bg-[color:var(--j-FFF7D6)] px-1.5 py-0.5 align-middle text-[11px] font-semibold tabular-nums text-[color:var(--j-7F5F01)]"
                                     title={a.source === "google" ? tr("Google Maps, automatic") : tr("Typed by the PIC")}>
-                                    <Star size={11} className="fill-amber-400 text-amber-400" /> {fmtStars(a.stars)}
-                                    {a.reviews != null && <span className="font-normal text-amber-700">· {tr("{0} reviews", fmtNumber(a.reviews))}</span>}
-                                    <span className="font-normal text-amber-700">· {a.source === "google" ? "Google" : tr("manual")}</span>
+                                    <Star size={11} className="fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]" /> {fmtStars(a.stars)}
+                                    {a.reviews != null && <span className="font-normal text-[color:var(--j-7F5F01)]">· {tr("{0} reviews", fmtNumber(a.reviews))}</span>}
+                                    <span className="font-normal text-[color:var(--j-7F5F01)]">· {a.source === "google" ? "Google" : tr("manual")}</span>
                                   </span>
                                 )}
                                 {a.qty != null && (
@@ -654,7 +654,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
                                       <a key={p.id} href={visitPhotoUrl(p.id)} target="_blank" rel="noreferrer" className="group block w-28" title={p.takenAt ? wibDateTime(p.takenAt) : undefined}>
                                         {/* eslint-disable-next-line @next/next/no-img-element -- private photo through the API */}
                                         <img src={thumb(visitPhotoUrl(p.id), 320)} decoding="async" alt={tl(it)} loading="lazy" className="aspect-square w-full rounded-[3px] object-cover ring-1 ring-[color:var(--j-DCDFE4)] group-hover:ring-2 group-hover:ring-brand-400" />
-                                        <span className={cx("mt-0.5 block truncate text-[10px]", p.outsideRadius ? "font-semibold text-red-600" : "text-[color:var(--j-626F86)]")}>
+                                        <span className={cx("mt-0.5 block truncate text-[10px]", p.outsideRadius ? "font-semibold text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>
                                           {p.distanceM !== null ? tr("{0} m from the outlet", p.distanceM) : wibDateTime(p.takenAt ?? p.uploadedAt)}</span>
                                       </a>
                                     ))}
@@ -674,7 +674,7 @@ function VisitDrawer({ form, id, onClose }: { form: VisitFormKey; id: string; on
           {show === "under" && v.counts.under === 0 && <p className="py-6 text-center text-sm text-[color:var(--j-626F86)]">{tr("No UNDER in this visit")}</p>}
           <p className="px-1 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Signature of the PIC")}</p>
           {v.signature ? (
-            <section className="flex flex-col gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] sm:flex-row sm:items-end">
+            <section className="flex flex-col gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 sm:flex-row sm:items-end">
               {/* eslint-disable-next-line @next/next/no-img-element -- private signature image through the API */}
               <img src={visitSignatureUrl(v.id)} alt={tr("Signature")} className="h-24 w-auto max-w-full rounded-[3px] bg-white object-contain ring-1 ring-[color:var(--j-DCDFE4)]" />
               <div className="text-sm">

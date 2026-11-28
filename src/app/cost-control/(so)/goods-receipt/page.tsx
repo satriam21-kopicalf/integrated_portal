@@ -127,7 +127,7 @@ export default function GoodsReceiptPage() {
             {res && <p>{tr("delivered")}</p>}</Stat>
           <Stat label={tr("Corrected")} icon={<PenLine size={13} />} active={onlyCorrected}
             onClick={res ? () => setF({ ...f, corrected: onlyCorrected ? "" : "yes" }) : undefined}
-            value={res ? <span className={all.some((d) => d.dateCorrected || d.qtyCorrected) ? "text-amber-700" : undefined}>{fmtNumber(all.filter((d) => d.dateCorrected || d.qtyCorrected).length)}</span> : <StatSkeleton />}>
+            value={res ? <span className={all.some((d) => d.dateCorrected || d.qtyCorrected) ? "text-[color:var(--j-7F5F01)]" : undefined}>{fmtNumber(all.filter((d) => d.dateCorrected || d.qtyCorrected).length)}</span> : <StatSkeleton />}>
             {res && <p>{tr("{0} date · {1} qty lines", fmtNumber(all.filter((d) => d.dateCorrected).length), fmtNumber(all.reduce((a, d) => a + d.qtyCorrected, 0)))}</p>}</Stat>
         </StatStrip>
       }>
@@ -148,7 +148,7 @@ export default function GoodsReceiptPage() {
                 <SortTh k="correction" sort={sorted.sort} onSort={sorted.toggle} pad="px-3 py-2.5 pr-5" first="desc">{tr("Correction")}</SortTh>
               </tr></thead>
               <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{paged.rows.map((d) => (
-                <tr key={d.docNum} className={cx("cursor-pointer", d.dateCorrected || d.qtyCorrected ? "bg-amber-50/40 hover:bg-amber-50" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => setOpen(d.docNum)}>
+                <tr key={d.docNum} className={cx("cursor-pointer", d.dateCorrected || d.qtyCorrected ? "bg-[color:var(--j-FFF7D6)]/40 hover:bg-[color:var(--j-FFF7D6)]" : "hover:bg-[color:var(--j-F7F8F9)]")} onClick={() => setOpen(d.docNum)}>
                   <td className="py-2.5 pl-5 pr-3"><p className="font-mono text-[13px] font-medium text-[color:var(--j-172B4D)]">{d.docNum}</p><p className="text-[11px] text-[color:var(--j-626F86)]">{tr("PO")} {d.poNum ?? "—"}</p></td>
                   <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">{d.date ? dmy(d.date) : "—"}{d.dateCorrected && <p className="text-[11px] text-[color:var(--j-626F86)] line-through">{d.esbDate ? dmy(d.esbDate) : ""}</p>}</td>
                   <td className="max-w-[14rem] px-3 py-2.5"><p className="truncate text-[color:var(--j-172B4D)]">{d.branchName ?? "—"}</p>{d.location && <p className="truncate text-[11px] text-[color:var(--j-626F86)]">{d.location}</p>}</td>
@@ -289,10 +289,10 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
       {error ? <ErrorState message={error} onRetry={() => void load()} /> : !d ? <SkeletonList rows={4} /> : (
         <div className="space-y-4">
           {(d.dateCorrected || d.qtyCorrected > 0) && (d.finished ? (
-            <p className="flex items-start gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-3 py-2 text-xs text-[color:var(--j-216E4E)]"><CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
               <span>{tr("Finished by {0} · {1}: the corrections count in the Stock List and the COGS.", d.finished.by, wibDateTime(d.finished.at))}{d.finished.note ? ` “${d.finished.note}”` : ""}</span></p>
           ) : (
-            <p className="rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">{tr("Draft: the corrections do not count yet. Mark the GR Finished once the date and quantities are right.")}</p>
+            <p className="rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{tr("Draft: the corrections do not count yet. Mark the GR Finished once the date and quantities are right.")}</p>
           ))}
           <dl className="grid grid-cols-2 gap-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm sm:grid-cols-4">
             <div><dt className="text-xs text-[color:var(--j-626F86)]">{tr("Received")}</dt><dd className="font-medium">
@@ -312,7 +312,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
                 <td className="px-3 py-2 text-right tabular-nums">
                   {editing ? <input inputMode="decimal" className={inputClass + " w-24 text-right"} value={draft[l.lineNo] ?? ""}
                     onChange={(e) => setDraft((x) => ({ ...x, [l.lineNo]: e.target.value }))} />
-                    : <span className={l.corrected ? "font-semibold text-amber-700" : ""}>{qty(l.qty)}</span>}
+                    : <span className={l.corrected ? "font-semibold text-[color:var(--j-7F5F01)]" : ""}>{qty(l.qty)}</span>}
                 </td>
                 <td className="px-3 py-2 text-[color:var(--j-44546F)]">{l.unit}</td>
               </tr>
@@ -320,7 +320,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
           </table></div>
 
           {editing && (
-            <div className="space-y-3 rounded-[3px] border border-amber-200 bg-amber-50/60 p-3">
+            <div className="space-y-3 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/60 p-3">
               <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("Reason (required)")}
                 <textarea className={inputClass + " mt-1 h-20 w-full"} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)}
                   placeholder={tr("e.g. the goods arrived on 3/11, the delivery note says 3 bottles")} />
@@ -357,7 +357,7 @@ function GrDrawer({ docNum, onClose, onChanged }: { docNum: string; onClose: () 
                         ? tr("Date {0} → {1}", c.oldDate ? dmy(c.oldDate) : "—", c.newDate ? dmy(c.newDate) : "—")
                         : `${line?.name ?? c.code}: ${qty(c.oldQty)} → ${qty(c.newQty)} ${c.unit ?? ""}`}</span>
                       <Badge tone={c.state === "active" ? "green" : "slate"}>{c.state === "active" ? tr("Active") : c.state === "replaced" ? tr("Replaced") : tr("Cancelled")}</Badge>
-                      {c.state === "active" && <button type="button" className="ml-auto inline-flex items-center gap-1 text-xs text-red-600 hover:underline" onClick={() => setUndo(c)}><Undo2 size={12} />{tr("Cancel")}</button>}
+                      {c.state === "active" && <button type="button" className="ml-auto inline-flex items-center gap-1 text-xs text-[color:var(--j-C9372C)] hover:underline" onClick={() => setUndo(c)}><Undo2 size={12} />{tr("Cancel")}</button>}
                     </div>
                     <p className="mt-0.5 text-[color:var(--j-44546F)]">{c.reason}</p>
                     <p className="text-[11px] text-[color:var(--j-626F86)]">{c.by} · {wibDateTime(c.at)}{c.cancelledBy ? ` · ${tr("cancelled by {0}", c.cancelledBy)}` : ""}</p>

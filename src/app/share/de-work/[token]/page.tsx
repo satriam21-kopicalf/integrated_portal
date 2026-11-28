@@ -90,18 +90,18 @@ function Work() {
       {error ? <PublicError message={error} /> : !w ? <PublicLoading /> : (
         <div className="space-y-4 pb-24">
           {sent ? (
-            <section className="flex items-start gap-3 rounded-[3px] border border-emerald-200 bg-emerald-50 p-4">
-              <CheckCircle2 size={22} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+            <section className="flex items-start gap-3 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] p-4">
+              <CheckCircle2 size={22} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
               <div>
-                <p className="font-semibold text-emerald-900">{tr("Photos sent")}</p>
-                <p className="text-sm text-emerald-800">{tr("Sent {0}. The maintenance team checks them and closes the job.", wibDateTime(w.submittedAt))}</p>
+                <p className="font-semibold text-[color:var(--j-216E4E)]">{tr("Photos sent")}</p>
+                <p className="text-sm text-[color:var(--j-216E4E)]">{tr("Sent {0}. The maintenance team checks them and closes the job.", wibDateTime(w.submittedAt))}</p>
               </div>
             </section>
           ) : (
-            <section className={cx("grid grid-cols-3 divide-x overflow-hidden rounded-[3px] border bg-white", expired ? "border-red-200 divide-red-100" : "border-[color:var(--j-DCDFE4)] divide-[color:var(--j-F1F2F4)]")}>
+            <section className={cx("grid grid-cols-3 divide-x overflow-hidden rounded-[3px] border bg-white", expired ? "border-[color:var(--j-FFD5D2)] divide-[color:var(--j-FFD5D2)]" : "border-[color:var(--j-DCDFE4)] divide-[color:var(--j-F1F2F4)]")}>
               <div className="px-3 py-3 text-center">
                 <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Link valid")}</p>
-                <p className={cx("mt-0.5 inline-flex items-center gap-1 font-mono text-lg font-semibold tabular-nums", expired ? "text-red-600" : left !== null && left < 600000 ? "text-amber-600" : "text-[color:var(--j-172B4D)]")}>
+                <p className={cx("mt-0.5 inline-flex items-center gap-1 font-mono text-lg font-semibold tabular-nums", expired ? "text-[color:var(--j-C9372C)]" : left !== null && left < 600000 ? "text-[color:var(--j-B38600)]" : "text-[color:var(--j-172B4D)]")}>
                   <Clock size={15} />{expired ? tr("Expired") : `${mm}:${ss}`}</p>
               </div>
               <div className="px-3 py-3 text-center">
@@ -110,7 +110,7 @@ function Work() {
               </div>
               <div className="px-3 py-3 text-center">
                 <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Required")}</p>
-                <p className={cx("mt-0.5 text-sm font-semibold", w.photos.length ? "text-emerald-600" : "text-[color:var(--j-172B4D)]")}>{w.photos.length ? tr("Done ✓") : tr("Min. 1 photo")}</p>
+                <p className={cx("mt-0.5 text-sm font-semibold", w.photos.length ? "text-[color:var(--j-22A06B)]" : "text-[color:var(--j-172B4D)]")}>{w.photos.length ? tr("Done ✓") : tr("Min. 1 photo")}</p>
               </div>
             </section>
           )}
@@ -143,7 +143,7 @@ function Work() {
                   <span className="mt-0.5 block text-[10px] text-[color:var(--j-626F86)]">{wibDateTime(p.takenAt)}</span>
                   {!locked && (
                     <button type="button" onClick={() => void remove(p.id)} aria-label={tr("Remove photo {0}", i + 1)}
-                      className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-red-600"><X size={14} /></button>
+                      className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-[color:var(--j-C9372C)]"><X size={14} /></button>
                   )}
                 </li>
               ))}

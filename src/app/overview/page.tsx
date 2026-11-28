@@ -244,7 +244,7 @@ function OverviewContent({ filters, branches, company, defaultPeriod }: {
                     {periodText(f.previous.from, f.previous.to)}{f.previous.until ? ` ${tr('until {0} WIB', f.previous.until)}` : ''}
                   </span>
                   {f.previous.days !== undefined && f.previous.days !== f.days && (
-                    <span className="ml-1.5 text-amber-700">({f.previous.days} {tr('vs')} {f.days} {tr('days: totals are not like for like, compare per-day figures)')}</span>
+                    <span className="ml-1.5 text-[color:var(--j-7F5F01)]">({f.previous.days} {tr('vs')} {f.days} {tr('days: totals are not like for like, compare per-day figures)')}</span>
                   )}
                 </>
               ) : <> {tr('· no comparison before Aug 2025')}</>}

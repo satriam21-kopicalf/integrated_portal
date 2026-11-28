@@ -80,7 +80,7 @@ export default function OutOfStock() {
     } catch (e) { toast((e as Error).message, "error"); }
   };
   const filter = (
-    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, item or category")} excel={() => void exportXlsx()} excelOff={!data} more={<label className="flex min-h-11 items-center gap-2.5 text-sm text-[color:var(--j-44546F)]"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label>}>{tab !== "period" && <QuickChips<"period" | "all"> value={only} onChange={setOnly} label={tr("Out since")} items={[{ key: "period", label: tr("Went out in the period"), dot: "bg-red-500", count: nowAll.filter(inPeriod).length }, { key: "all", label: tr("All still out"), count: nowAll.length }]} />}
+    <FilterBar a={a} ctx={ctx} extra={[{ key: "cat", label: tr("Category"), value: cat, onChange: setCat, options: cats.map((c) => ({ value: c, label: c })) }]} q={q} onQ={setQ} placeholder={tr("Search outlet, item or category")} excel={() => void exportXlsx()} excelOff={!data} more={<label className="flex min-h-11 items-center gap-2.5 text-sm text-[color:var(--j-44546F)]"><input type="checkbox" className="h-5 w-5 sm:h-4 sm:w-4" checked={packaging} onChange={(e) => setPackaging(e.target.checked)} /> {tr("Include packaging")}</label>}>{tab !== "period" && <QuickChips<"period" | "all"> value={only} onChange={setOnly} label={tr("Out since")} items={[{ key: "period", label: tr("Went out in the period"), dot: "bg-[color:var(--j-C9372C)]", count: nowAll.filter(inPeriod).length }, { key: "all", label: tr("All still out"), count: nowAll.length }]} />}
 </FilterBar>
   );
   const card = <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">{filter}</section>;
@@ -104,7 +104,7 @@ export default function OutOfStock() {
               : tab === "now" ? <DataTable key={tab} cols={nowCols} rows={now} loading={!data} rowKey={(r) => `${r.outlet}${r.platform}${r.item}${r.category}`} resetKey={key} initial={{ key: "since", dir: "desc" }} empty={tr("Nothing out of stock")}
                 note={s ? tr("{0} items inactive for over {1} days are left out: switched off, not out of stock.", nf(s.inactiveLong), s.staleDays) : undefined} />
               : <DataTable key={tab} cols={perCols} rows={per} loading={!data} rowKey={(r) => `${r.outlet}${r.platform}${r.item}`} resetKey={key} initial={{ key: "minutes", dir: "desc" }} minWidth={940}
-                note={<span className={cx(s?.dataFrom && a.f.from < s.dataFrom.slice(0, 10) && "text-amber-800")}>{tr("Stock changes are kept from {0}; earlier days hold nothing. Outlets without hours count day and night.", fmtStamp(s?.dataFrom))}</span>} />}
+                note={<span className={cx(s?.dataFrom && a.f.from < s.dataFrom.slice(0, 10) && "text-[color:var(--j-7F5F01)]")}>{tr("Stock changes are kept from {0}; earlier days hold nothing. Outlets without hours count day and night.", fmtStamp(s?.dataFrom))}</span>} />}
           </WorkCard>
         </>
       )}

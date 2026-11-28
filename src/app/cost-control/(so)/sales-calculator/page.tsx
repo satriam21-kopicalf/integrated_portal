@@ -97,7 +97,7 @@ const CHANNEL: Record<ListPrice["channel"], () => string> = { "dine-in": () => t
 /** % HPP of the selling price: up to 30% healthy, up to 35% to watch, above it too high */
 const HPP_WARN = 0.3;
 const HPP_HIGH = 0.35;
-const hppTone = (r: number) => (r > HPP_HIGH ? "text-red-600" : r > HPP_WARN ? "text-amber-600" : "text-emerald-600");
+const hppTone = (r: number) => (r > HPP_HIGH ? "text-[color:var(--j-C9372C)]" : r > HPP_WARN ? "text-[color:var(--j-B38600)]" : "text-[color:var(--j-22A06B)]");
 /** the list prices of the menus of a card, one per channel and price (two menus of a card may sell at other prices) */
 function cardPrices(menus: Recipe["menus"]): ListPrice[] {
   const seen = new Map<string, ListPrice>();
@@ -135,7 +135,7 @@ export default function SalesCalculatorPage() {
   return (
     <Page title={tr("Sales Calculator by Menu")} subtitle={tr("Recipe cards per menu and, from the POS transactions of every branch: material planning, actual vs system usage and COGS")}>
       <DataSources keys={['esbSales', 'recipes', 'prices', 'so']} />
-      <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+      <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <nav aria-label={tr("Steps")} className="border-b border-[color:var(--j-DCDFE4)]">
         <ol className="flex overflow-x-auto">
           {steps.map((s, i) => {
@@ -146,7 +146,7 @@ export default function SalesCalculatorPage() {
                 <button type="button" onClick={() => setStep(s.key)} aria-current={on ? "step" : undefined}
                   className={cx("flex h-full w-full items-center gap-2.5 px-4 py-3 text-left transition-colors", on ? "bg-white" : "hover:bg-[color:var(--j-F7F8F9)]")}>
                   <span className={cx("relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px] text-xs font-bold transition",
-                    on ? "bg-[color:var(--j-0C66E4)] text-white" : s.done ? "bg-emerald-600 text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
+                    on ? "bg-[color:var(--j-0C66E4)] text-white" : s.done ? "bg-[color:var(--j-22A06B)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
                     {s.done && !on ? <Check size={14} strokeWidth={3} /> : <Icon size={14} />}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -154,7 +154,7 @@ export default function SalesCalculatorPage() {
                     <span className={cx("block truncate text-sm font-medium", on ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-172B4D)]")}>{s.label}</span>
                     <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{s.status ?? s.hint}</span>
                     {s.share !== undefined && (
-                      <span className="mt-1 block h-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", s.done ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${Math.round(s.share * 100)}%` }} /></span>
+                      <span className="mt-1 block h-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", s.done ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${Math.round(s.share * 100)}%` }} /></span>
                     )}
                   </span>
                 </button>
@@ -202,9 +202,9 @@ function cardHpp(r: Recipe, price: Map<string, number | null>, wips: Wip[], card
   const c = r.lines.map((l) => lineCost(l, price, wips, cards, seen));
   return c.every((x) => x !== null) ? c.reduce<number>((a, x) => a + (x ?? 0), 0) : null;
 }
-const KIND_DOT: Record<Kind, string> = { item: "bg-[color:var(--j-388BFF)]", wip: "bg-violet-500", other: "bg-amber-500", menu: "bg-emerald-500" };
+const KIND_DOT: Record<Kind, string> = { item: "bg-[color:var(--j-388BFF)]", wip: "bg-[color:var(--j-6E5DC6)]", other: "bg-[color:var(--j-E2B203)]", menu: "bg-[color:var(--j-22A06B)]" };
 const KIND_ICON: Record<Kind, typeof Package> = { item: Package, wip: FlaskConical, other: PenLine, menu: Gift };
-const KIND_CHIP: Record<Kind, string> = { item: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", wip: "bg-violet-50 text-violet-700", other: "bg-amber-50 text-amber-700", menu: "bg-emerald-50 text-emerald-700" };
+const KIND_CHIP: Record<Kind, string> = { item: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", wip: "bg-[color:var(--j-F3F0FF)] text-[color:var(--j-5E4DB2)]", other: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]", menu: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" };
 
 /** The list prices of a card's menus with the % HPP of each. */
 function PriceRows({ prices, hpp, compact }: { prices: ListPrice[]; hpp: number | null; compact?: boolean }) {
@@ -322,9 +322,9 @@ function AutoCards({ onClose, onDone }: { onClose: () => void; onDone: () => voi
             <ul className="max-h-72 divide-y divide-[color:var(--j-F1F2F4)] overflow-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">{plan.created.map((c) => (
               <li key={c.code} className="flex items-start justify-between gap-3 px-3 py-2"><span className="min-w-0"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{c.name}</span>
                 <span className="block truncate text-xs text-[color:var(--j-626F86)]">{c.menus.join(", ")}</span></span><span className="font-mono text-[11px] text-[color:var(--j-626F86)]">{c.code}</span></li>))}</ul></section>}
-          {plan.skipped.length > 0 && <section><p className="mb-1 text-xs font-semibold text-amber-800">{tr("Skipped: fill these by hand")}</p>
-            <ul className="max-h-60 divide-y divide-amber-100 overflow-auto rounded-[3px] border border-amber-200 bg-amber-50/50">{plan.skipped.map((x) => (
-              <li key={x.id} className="px-3 py-2"><p className="font-medium text-[color:var(--j-172B4D)]">{x.name}</p><p className="text-xs text-amber-800">{x.reason}</p></li>))}</ul></section>}
+          {plan.skipped.length > 0 && <section><p className="mb-1 text-xs font-semibold text-[color:var(--j-7F5F01)]">{tr("Skipped: fill these by hand")}</p>
+            <ul className="max-h-60 divide-y divide-[color:var(--j-F8E6A0)] overflow-auto rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)]/50">{plan.skipped.map((x) => (
+              <li key={x.id} className="px-3 py-2"><p className="font-medium text-[color:var(--j-172B4D)]">{x.name}</p><p className="text-xs text-[color:var(--j-7F5F01)]">{x.reason}</p></li>))}</ul></section>}
           {!todo && <p className="text-[color:var(--j-626F86)]">{tr("Every menu sold already has a card.")}</p>}
         </div>
       )}
@@ -338,8 +338,8 @@ function Anomalies({ rows }: { rows: Anomaly[] }) {
   const shown = all ? rows : rows.slice(0, 8);
   const total = rows.reduce((a, r) => a + r.impact, 0);
   return (
-    <section className="mx-4 mt-3 overflow-hidden rounded-[3px] border border-red-200">
-      <header className="flex flex-wrap items-center gap-2 bg-red-50 px-3 py-2.5 text-xs text-red-900">
+    <section className="mx-4 mt-3 overflow-hidden rounded-[3px] border border-[color:var(--j-FFD5D2)]">
+      <header className="flex flex-wrap items-center gap-2 bg-[color:var(--j-FFECEB)] px-3 py-2.5 text-xs text-[color:var(--j-AE2E24)]">
         <span className="font-semibold">{tr("{0} SO rows look wrong, {1} of value: check and correct them in the stock opname first", rows.length, rp(total))}</span>
       </header>
       <div className="overflow-x-auto">
@@ -348,7 +348,7 @@ function Anomalies({ rows }: { rows: Anomaly[] }) {
             <th className="py-2 pl-3 pr-2">{tr("Branch")}</th><th className="px-2 py-2">{tr("Material")}</th><th className="px-2 py-2 text-right">{tr("SO Awal")}</th>
             <th className="px-2 py-2 text-right">{tr("In − Out")}</th><th className="px-2 py-2 text-right">{tr("SO Akhir")}</th><th className="px-2 py-2 text-right">{tr("Usage")}</th>
             <th className="px-2 py-2 text-right">{tr("Impact")}</th><th className="py-2 pl-2 pr-3">{tr("Why")}</th></tr></thead>
-          <tbody className="divide-y divide-red-100 bg-white">
+          <tbody className="divide-y divide-[color:var(--j-FFD5D2)] bg-white">
             {shown.map((a) => (
               <tr key={`${a.branch}:${a.code}`}>
                 <td className="max-w-[12rem] truncate py-2 pl-3 pr-2 text-[color:var(--j-172B4D)]" title={a.branchName}>{a.branchName.replace(/^Kopi Calf (To Go )?/, "")}</td>
@@ -356,15 +356,15 @@ function Anomalies({ rows }: { rows: Anomaly[] }) {
                 <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums" title={a.refs.start.join(", ")}>{num(a.start, 0)}</td>
                 <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums">{num(a.moves, 0)}</td>
                 <td className="whitespace-nowrap px-2 py-2 text-right tabular-nums" title={a.refs.end.join(", ")}>{num(a.end, 0)}</td>
-                <td className={cx("whitespace-nowrap px-2 py-2 text-right tabular-nums", a.actual < 0 && "text-red-700")}>{num(a.actual, 0)}</td>
-                <td className="whitespace-nowrap px-2 py-2 text-right font-semibold tabular-nums text-red-700">{rp(a.impact)}</td>
+                <td className={cx("whitespace-nowrap px-2 py-2 text-right tabular-nums", a.actual < 0 && "text-[color:var(--j-AE2E24)]")}>{num(a.actual, 0)}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right font-semibold tabular-nums text-[color:var(--j-AE2E24)]">{rp(a.impact)}</td>
                 <td className="py-2 pl-2 pr-3 text-[color:var(--j-44546F)]">{a.reasons.map((r) => REASON[r]()).join(" · ")}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {rows.length > 8 && <button type="button" onClick={() => setAll(!all)} className="w-full border-t border-red-100 bg-white py-2 text-xs font-medium text-red-700 hover:bg-red-50">
+      {rows.length > 8 && <button type="button" onClick={() => setAll(!all)} className="w-full border-t border-[color:var(--j-FFD5D2)] bg-white py-2 text-xs font-medium text-[color:var(--j-AE2E24)] hover:bg-[color:var(--j-FFECEB)]">
         {all ? tr("Show less") : tr("Show all {0}", rows.length)}</button>}
     </section>
   );
@@ -406,12 +406,12 @@ function RecipeTable({ rows, hppOf, priced, onOpen }: { rows: Recipe[]; hppOf: (
               const prices = cardPrices(r.menus);
               return (
                 <tr key={r.code} className="cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => onOpen(r)}>
-                  <td className="py-2.5 pl-5 pr-3"><span className="flex items-center gap-1.5 font-medium text-[color:var(--j-172B4D)]">{r.lines.some((l) => l.type === "menu") && <Gift size={13} className="text-emerald-600" aria-label={tr("Bundling")} />}{r.name}</span>
+                  <td className="py-2.5 pl-5 pr-3"><span className="flex items-center gap-1.5 font-medium text-[color:var(--j-172B4D)]">{r.lines.some((l) => l.type === "menu") && <Gift size={13} className="text-[color:var(--j-22A06B)]" aria-label={tr("Bundling")} />}{r.name}</span>
                     <span className="font-mono text-[11px] text-[color:var(--j-626F86)]">{r.code}</span></td>
                   <td className="px-3 py-2.5 text-xs text-[color:var(--j-44546F)]">{r.category || "—"}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{r.lines.length}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{r.menus.length || <span className="text-amber-700">0</span>}</td>
-                  <td className={cx("px-3 py-2.5 text-right font-semibold tabular-nums", hpp === null && "text-amber-700")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{r.menus.length || <span className="text-[color:var(--j-7F5F01)]">0</span>}</td>
+                  <td className={cx("px-3 py-2.5 text-right font-semibold tabular-nums", hpp === null && "text-[color:var(--j-7F5F01)]")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</td>
                   {cell(prices, "dine-in", hpp)}
                   {cell(prices, "online", hpp)}
                   <td className="px-3 py-2.5 pr-5">{r.isActive ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge>}</td>
@@ -431,17 +431,17 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
   return (
    <li className="min-w-0">
       <button type="button" onClick={onOpen}
-        className={cx("group flex h-full w-full flex-col overflow-hidden rounded-[3px] border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md",
+        className={cx("group flex h-full w-full flex-col overflow-hidden rounded-[3px] border bg-white text-left transition hover:-translate-y-0.5",
           r.isActive ? "border-[color:var(--j-DCDFE4)] hover:border-[color:var(--j-85B8FF)]" : "border-[color:var(--j-DCDFE4)] opacity-75")}>
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#0b1f4d] via-[#12307a] to-brand-600 px-4 pb-4 pt-3.5 text-white">
+        <div className="relative overflow-hidden bg-[color:var(--j-0C66E4)] px-4 pb-4 pt-3.5 text-white">
           {/* eslint-disable-next-line @next/next/no-img-element -- decorative brand mark */}
           <img src="/assets/calf-logo.png" alt="" aria-hidden className="pointer-events-none absolute -bottom-6 -right-5 h-32 w-32 rotate-[-12deg] object-contain opacity-[0.13] brightness-0 invert" />
           <span className="pointer-events-none absolute -left-10 -top-12 h-28 w-28 rounded-full bg-white/5" aria-hidden />
           <div className="relative flex items-center justify-between gap-2">
             <span className="truncate rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-50">{r.category || tr("Recipe Card")}</span>
             {!r.isActive ? <span className="rounded-full bg-neutral-900/40 px-2 py-0.5 text-[10px] font-semibold">{tr("Inactive")}</span>
-              : r.menus.length ? <span className="rounded-full bg-emerald-400/90 px-2 py-0.5 text-[10px] font-semibold text-emerald-950">{tr("{0} menus", r.menus.length)}</span>
-              : <span className="rounded-full bg-amber-300 px-2 py-0.5 text-[10px] font-semibold text-amber-950">{tr("No Menu Yet")}</span>}
+              : r.menus.length ? <span className="rounded-full bg-[color:var(--j-22A06B)]/90 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--j-216E4E)]">{tr("{0} menus", r.menus.length)}</span>
+              : <span className="rounded-full bg-[color:var(--j-F5CD47)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--j-7F5F01)]">{tr("No Menu Yet")}</span>}
           </div>
           <p className="relative mt-2.5 line-clamp-2 text-base font-semibold leading-snug">{r.name}</p>
           <p className="relative mt-0.5 font-mono text-[11px] text-brand-100/80">{r.code}</p>
@@ -449,7 +449,7 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
         <div className="flex flex-1 flex-col px-4 py-3">
           <div className="grid grid-cols-3 divide-x divide-[color:var(--j-DCDFE4)] rounded-[3px] bg-[color:var(--j-F7F8F9)] py-2 text-center">
             <span><span className="block text-xs capitalize text-[color:var(--j-626F86)]">{tr("HPP")}</span>
-              <span className={cx("block text-sm font-semibold tabular-nums", hpp === null ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</span></span>
+              <span className={cx("block text-sm font-semibold tabular-nums", hpp === null ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-172B4D)]")}>{hpp !== null ? rp(hpp) : priced && r.lines.length ? tr("Price missing") : "—"}</span></span>
             <span><span className="block text-xs capitalize text-[color:var(--j-626F86)]">{tr("Components")}</span><span className="block text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{r.lines.length}</span></span>
             <span><span className="block text-xs capitalize text-[color:var(--j-626F86)]">{tr("Menus")}</span><span className="block text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{r.menus.length}</span></span>
           </div>
@@ -463,7 +463,7 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
                 <span className="min-w-0 flex-1 truncate">{l.name}</span><span className="flex-shrink-0 tabular-nums text-[color:var(--j-626F86)]">{num(l.qty)} {l.unit}</span></li>
             ))}
             {r.lines.length > 4 && <li className="pl-3.5 text-[color:var(--j-626F86)]">{tr("+{0} more", r.lines.length - 4)}</li>}
-            {!r.lines.length && <li className="text-amber-700">{tr("No component yet")}</li>}
+            {!r.lines.length && <li className="text-[color:var(--j-7F5F01)]">{tr("No component yet")}</li>}
           </ul>
           <span className="mt-3 inline-flex items-center gap-1 self-end text-[11px] font-medium text-[color:var(--j-0C66E4)] opacity-0 transition group-hover:opacity-100">{tr("Open the card")} <ChevronRight size={13} /></span>
         </div>
@@ -496,7 +496,7 @@ function FormBlock({ n, title, hint, aside, children }: { n: number; title: stri
 function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
     <button type="button" role="switch" aria-checked={on} onClick={() => onChange(!on)} className="inline-flex items-center gap-2.5 text-sm text-[color:var(--j-44546F)]">
-      <span className={cx("relative h-6 w-10 rounded-full transition", on ? "bg-[color:var(--j-0C66E4)]" : "bg-neutral-300")}>
+      <span className={cx("relative h-6 w-10 rounded-full transition", on ? "bg-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-8590A2)]")}>
         <span className={cx("absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all", on ? "left-[1.125rem]" : "left-0.5")} />
       </span>{label}
     </button>
@@ -596,12 +596,12 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
       footer={<div className="flex w-full flex-wrap items-center gap-2">
         <div className="mr-auto min-w-0">
           <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("HPP per Portion")}</p>
-          <p className="text-lg font-bold tabular-nums text-[color:var(--j-172B4D)]">{hpp === null ? <span className="text-sm font-medium text-amber-700">{lines.length ? tr("Price missing") : "—"}</span> : rp(hpp)}</p>
+          <p className="text-lg font-bold tabular-nums text-[color:var(--j-172B4D)]">{hpp === null ? <span className="text-sm font-medium text-[color:var(--j-7F5F01)]">{lines.length ? tr("Price missing") : "—"}</span> : rp(hpp)}</p>
         </div>
         {recipe && cardPrices(recipe.menus.filter((m) => ids.has(m.id))).length > 0 && (
           <div className="min-w-[11rem]"><PriceRows prices={cardPrices(recipe.menus.filter((m) => ids.has(m.id)))} hpp={hpp} compact /></div>
         )}
-        {recipe && <Button variant="ghost" className="text-red-600" onClick={() => void remove()}><Trash2 size={14} />{tr("Delete")}</Button>}
+        {recipe && <Button variant="ghost" className="text-[color:var(--j-C9372C)]" onClick={() => void remove()}><Trash2 size={14} />{tr("Delete")}</Button>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!head.code.trim() || !head.name.trim()} onClick={() => void save()}><Save size={15} />{tr("Save Card")}</Button>
       </div>}>
@@ -609,9 +609,9 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
         <FormBlock n={1} title={tr("Card Details")} hint={tr("The name the team knows the menu by; the code stays unique")}
           aside={<Switch on={head.isActive} onChange={(v) => setHead({ ...head, isActive: v })} label={head.isActive ? tr("Active") : tr("Inactive")} />}>
           <div className="grid gap-3 sm:grid-cols-6">
-            <label className={cx(fieldLabel, "sm:col-span-2")}>{tr("Code")} <span className="text-red-500">*</span>
+            <label className={cx(fieldLabel, "sm:col-span-2")}>{tr("Code")} <span className="text-[color:var(--j-C9372C)]">*</span>
               <input className={cx(inputClass, "mt-1 font-mono uppercase")} value={head.code} onChange={(e) => setHead({ ...head, code: e.target.value })} placeholder="MN-MATCHA-ICE" /></label>
-            <label className={cx(fieldLabel, "sm:col-span-4")}>{tr("Name")} <span className="text-red-500">*</span>
+            <label className={cx(fieldLabel, "sm:col-span-4")}>{tr("Name")} <span className="text-[color:var(--j-C9372C)]">*</span>
               <input className={cx(inputClass, "mt-1")} value={head.name} onChange={(e) => setHead({ ...head, name: e.target.value })} placeholder={tr("e.g. Iced Matcha Latte")} /></label>
             <label className={cx(fieldLabel, "sm:col-span-2")}>{tr("Category")}
               <input className={cx(inputClass, "mt-1")} value={head.category} onChange={(e) => setHead({ ...head, category: e.target.value })} placeholder={tr("e.g. Non Coffee")} /></label>
@@ -622,13 +622,13 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
 
         <FormBlock n={2} title={tr("Components per Portion")} hint={tr("Quantities in the unit of the item; WIP / premix in grams; a bundle in portions of other cards")}
           aside={<span className="flex flex-wrap gap-1.5 text-[11px]">{(["item", "wip", "other", "menu"] as Kind[]).filter((k) => k !== "menu" || per(k)).map((k) => <span key={k} className={cx("rounded-full px-2 py-0.5 font-medium", KIND_CHIP[k])}>{KIND[k].label()} {per(k)}</span>)}</span>}>
-          {error && <p className="mb-3 rounded-[3px] bg-red-50 px-3 py-2 text-xs text-red-700">{tr("The item list could not be loaded: {0}", error)}</p>}
+          {error && <p className="mb-3 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-xs text-[color:var(--j-AE2E24)]">{tr("The item list could not be loaded: {0}", error)}</p>}
           <ol className="space-y-2">
             {lines.map((l, i) => {
               const Icon = KIND_ICON[l.type];
               const bad = tried && (!l.code || !l.name.trim() || (parse(l.qtyText) ?? 0) <= 0);
               return (
-                <li key={i} className={cx("rounded-[3px] border p-3", bad ? "border-red-300 bg-red-50/40" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]")}>
+                <li key={i} className={cx("rounded-[3px] border p-3", bad ? "border-[color:var(--j-F87168)] bg-[color:var(--j-FFECEB)]/40" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)]")}>
                   <div className="flex items-start gap-3">
                     <span className={cx("mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[3px]", KIND_CHIP[l.type])} title={KIND[l.type].label()}><Icon size={15} /></span>
                     <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[minmax(0,1fr)_8.5rem_7rem] sm:items-center">
@@ -649,10 +649,10 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
                         <UnitInput value={l.qtyText} onChange={(v) => setLine(i, { qtyText: v })} unit={l.unit} label={`${tr("Qty")} ${i + 1}`} /></label>
                       <div className="text-right">
                         <span className="mb-1 block text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Cost")}</span>
-                        <span className="inline-block py-2 text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{costs[i] === null ? <span className="text-xs font-medium text-amber-700">{tr("No price")}</span> : rp(costs[i])}</span>
+                        <span className="inline-block py-2 text-sm font-semibold tabular-nums text-[color:var(--j-172B4D)]">{costs[i] === null ? <span className="text-xs font-medium text-[color:var(--j-7F5F01)]">{tr("No price")}</span> : rp(costs[i])}</span>
                       </div>
                     </div>
-                    <button type="button" aria-label={tr("Delete")} onClick={() => setLines((all) => all.filter((_, j) => j !== i))} className="mt-0.5 rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
+                    <button type="button" aria-label={tr("Delete")} onClick={() => setLines((all) => all.filter((_, j) => j !== i))} className="mt-0.5 rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={15} /></button>
                   </div>
                 </li>
               );
@@ -664,7 +664,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
               ["menu", tr("Bundling: portions of another card")]] as [Kind, string][]).map(([k, hint]) => {
               const Icon = KIND_ICON[k];
               return (
-                <button key={k} type="button" onClick={() => add(k)} className="flex items-center gap-2.5 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] px-3 py-2.5 text-left hover:border-brand-400 hover:bg-[color:var(--j-E9F2FF)]">
+                <button key={k} type="button" onClick={() => add(k)} className="flex items-center gap-2.5 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] px-3 py-2.5 text-left hover:border-[color:var(--j-388BFF)] hover:bg-[color:var(--j-E9F2FF)]">
                   <span className={cx("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[3px]", KIND_CHIP[k])}><Icon size={15} /></span>
                   <span className="min-w-0"><span className="flex items-center gap-1 text-sm font-medium text-[color:var(--j-172B4D)]"><Plus size={13} /> {KIND[k].label()}</span><span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{hint}</span></span>
                 </button>
@@ -767,14 +767,14 @@ function MenuAssign() {
   return (
     <Panel title={tr("Assign Menus")} description={tr("Every menu of the POS transactions of the branches and the recipe card it uses; several menus may share a card")}
       actions={menus ? <span className="flex items-center gap-2 text-xs text-[color:var(--j-626F86)]">
-        <span className="h-1.5 w-24 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-emerald-500" style={{ width: `${all.length ? ((all.length - free) / all.length) * 100 : 0}%` }} /></span>
+        <span className="h-1.5 w-24 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-22A06B)]" style={{ width: `${all.length ? ((all.length - free) / all.length) * 100 : 0}%` }} /></span>
         {tr("{0} of {1} menus have a card", all.length - free, all.length)}
-        {toCheck > 0 && <button type="button" onClick={() => setF({ ...NO_AF, status: "check" })} className="font-medium text-amber-700 hover:underline">{tr("{0} bundles to check", toCheck)}</button>}</span> : undefined}
+        {toCheck > 0 && <button type="button" onClick={() => setF({ ...NO_AF, status: "check" })} className="font-medium text-[color:var(--j-7F5F01)] hover:underline">{tr("{0} bundles to check", toCheck)}</button>}</span> : undefined}
       toolbar={<FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search menu, e.g. es kopi premium")} filters={chips} onOpen={() => setSheet(true)} onClear={() => setF(NO_AF)} />}
       footer={menus ? <><span>{tr("{0} shown", fmtNumber(shown.length))}</span><PageNav paged={paged} /></> : undefined}>
       {!menus ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : (
         <>
-          {!recipes.length && <p className="mx-4 mt-3 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No recipe card yet: make the cards in step 1, then choose them here.")}</p>}
+          {!recipes.length && <p className="mx-4 mt-3 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{tr("No recipe card yet: make the cards in step 1, then choose them here.")}</p>}
           {shown.length === 0 ? <Empty title={tr("No menu matches")} /> : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-sm">
@@ -793,7 +793,7 @@ function MenuAssign() {
                       <td className="px-3 py-2.5 text-right tabular-nums">{num(m.qty, 0)}</td>
                       <td className="w-72 px-3 py-2.5 pr-5">
                         <div className="flex items-center gap-2">
-                          <span className={cx("h-2 w-2 flex-shrink-0 self-start rounded-full", "mt-4", m.recipe || m.bundle?.auto ? "bg-emerald-500" : "bg-amber-400")} aria-hidden />
+                          <span className={cx("h-2 w-2 flex-shrink-0 self-start rounded-full", "mt-4", m.recipe || m.bundle?.auto ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-E2B203)]")} aria-hidden />
                           {/* searchable (2026-11-17): ~170 cards, typed by name or code; × takes the card off the menu */}
                           <div className="min-w-0 flex-1">
                             <SearchSelect value={m.recipe ?? ""} options={recipeOptions} placeholder={m.bundle?.auto ? tr("Bundle from ESB") : tr("— No card —")}
@@ -801,8 +801,8 @@ function MenuAssign() {
                               onChange={(v) => { if ((v ?? "") !== (m.recipe ?? "")) void assign(m, v ?? ""); }} />
                             {/* a bundle without a card (2026-11-17): its contents from the ESB master, or what to fix */}
                             {!m.recipe && m.bundle && (m.bundle.auto
-                              ? <p className="mt-1 text-[11px] leading-snug text-emerald-700">{tr("Costed from ESB: {0}", m.bundle.contents.map((c) => `${c.qty}× ${c.name}`).join(" + "))}</p>
-                              : <p className="mt-1 text-[11px] leading-snug text-amber-700">{tr("Check: {0}", m.bundle.reasons.join("; "))}</p>)}
+                              ? <p className="mt-1 text-[11px] leading-snug text-[color:var(--j-216E4E)]">{tr("Costed from ESB: {0}", m.bundle.contents.map((c) => `${c.qty}× ${c.name}`).join(" + "))}</p>
+                              : <p className="mt-1 text-[11px] leading-snug text-[color:var(--j-7F5F01)]">{tr("Check: {0}", m.bundle.reasons.join("; "))}</p>)}
                             {/* any menu without a card may be filled as a bundle ("Brownies Fudgy + Es Kopi", 2026-11-17) */}
                             {(!!m.bundle || !m.recipe || /bundl|\s\+\s/i.test(m.name) || m.recipe?.startsWith("BND-")) && (
                               <button type="button" onClick={() => setBundleFor(m)} className="mt-1 text-[11px] font-medium text-[color:var(--j-0C66E4)] hover:underline">
@@ -908,7 +908,7 @@ function Extras() {
                     <td className="px-3 py-2.5 text-xs"><span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[color:var(--j-44546F)]"><Icon size={12} /> {num(x.qty)} {x.unit} · {BASIS[x.basis]()}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{price(x) === null ? <Badge tone="amber">{tr("No price")}</Badge> : rp(price(x))}</td>
                     <td className="px-3 py-2.5">{x.isActive ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge>}</td>
-                    <td className="px-2"><button type="button" onClick={(e) => { e.stopPropagation(); void remove(x); }} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-red-600" aria-label={tr("Delete")}><Trash2 size={15} /></button></td>
+                    <td className="px-2"><button type="button" onClick={(e) => { e.stopPropagation(); void remove(x); }} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Delete")}><Trash2 size={15} /></button></td>
                   </tr>
                 );
               })}
@@ -933,7 +933,7 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
       footer={<div className="flex w-full flex-wrap items-center gap-2">
         <div className="mr-auto min-w-0">
           <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Cost")} {per}</p>
-          <p className="text-lg font-bold tabular-nums text-[color:var(--j-172B4D)]">{each === null ? <span className="text-sm font-medium text-amber-700">{unitPrice === null ? tr("No price") : "—"}</span> : rp(each)}</p>
+          <p className="text-lg font-bold tabular-nums text-[color:var(--j-172B4D)]">{each === null ? <span className="text-sm font-medium text-[color:var(--j-7F5F01)]">{unitPrice === null ? tr("No price") : "—"}</span> : rp(each)}</p>
         </div>
         <Button variant="secondary" onClick={() => setEdit(null)}>{tr("Cancel")}</Button>
         <Button disabled={!ready} onClick={onSave}><Save size={15} />{tr("Save")}</Button>
@@ -956,16 +956,16 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
           </div>
           {manual ? (
             <div className="grid gap-3 sm:grid-cols-6">
-              <label className={cx(fieldLabel, "sm:col-span-3")}>{tr("Name")} <span className="text-red-500">*</span><input className={cx(inputClass, "mt-1")} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder={tr("e.g. Cable ties")} /></label>
+              <label className={cx(fieldLabel, "sm:col-span-3")}>{tr("Name")} <span className="text-[color:var(--j-C9372C)]">*</span><input className={cx(inputClass, "mt-1")} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} placeholder={tr("e.g. Cable ties")} /></label>
               <label className={cx(fieldLabel, "sm:col-span-1")}>{tr("Unit")}<input className={cx(inputClass, "mt-1 uppercase")} value={edit.unit} onChange={(e) => setEdit({ ...edit, unit: e.target.value })} placeholder="PCS" /></label>
               <label className={cx(fieldLabel, "sm:col-span-2")}>{tr("Price per Unit")}<span className="mt-1 block"><UnitInput value={edit.priceText} onChange={(v) => setEdit({ ...edit, priceText: v })} unit="Rp" label={tr("Price per Unit (Rp)")} /></span></label>
             </div>
           ) : (
             <div>
-              <p className={cx(fieldLabel, "mb-1")}>{tr("Item")} <span className="text-red-500">*</span></p>
+              <p className={cx(fieldLabel, "mb-1")}>{tr("Item")} <span className="text-[color:var(--j-C9372C)]">*</span></p>
               <Picker value={edit.code ?? ""} options={options} placeholder={tr("Choose an item")}
                 onPick={(v) => { const it = items.find((i) => i.code === v); setEdit({ ...edit, code: v, name: it?.name ?? "", unit: it?.unit ?? edit.unit }); }} />
-              {edit.code && <p className="mt-1.5 text-xs text-[color:var(--j-626F86)]">{edit.unit} · {unitPrice === null ? <span className="text-amber-700">{tr("No price in Pricelist Items yet")}</span> : tr("{0} per {1}", rp(unitPrice), edit.unit)}</p>}
+              {edit.code && <p className="mt-1.5 text-xs text-[color:var(--j-626F86)]">{edit.unit} · {unitPrice === null ? <span className="text-[color:var(--j-7F5F01)]">{tr("No price in Pricelist Items yet")}</span> : tr("{0} per {1}", rp(unitPrice), edit.unit)}</p>}
             </div>
           )}
         </FormBlock>
@@ -986,7 +986,7 @@ function ExtraDrawer({ edit, setEdit, items, unitPrice, onSave }: { edit: ExtraD
             })}
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className={fieldLabel}>{tr("Quantity")} {per} <span className="text-red-500">*</span>
+            <label className={fieldLabel}>{tr("Quantity")} {per} <span className="text-[color:var(--j-C9372C)]">*</span>
               <span className="mt-1 block"><UnitInput value={edit.qtyText} onChange={(v) => setEdit({ ...edit, qtyText: v })} unit={edit.unit} label={tr("Quantity")} /></span></label>
             <div className="rounded-[3px] bg-[color:var(--j-F7F8F9)] px-3 py-2.5 text-xs text-[color:var(--j-44546F)]">
               <p className="font-semibold text-[color:var(--j-172B4D)]">{tr("Preview")}</p>
@@ -1070,7 +1070,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
             {t.allSales != null && <p title={tr("Subtotal − menu discounts, as Sales Transactions (bill discounts, promotions and vouchers not deducted)")}>{tr("all sales {0} · choices {1}", rp(t.allSales), rp(t.choiceSales ?? 0))}</p>}</Stat>
           <Stat label={tr("COGS Material (System)")} emphasis value={rp(t.cogs)}><p>{tr("Ratio {0}", pct(t.ratio))}{t.extraCogs ? ` · ${tr("additional items {0}", rp(t.extraCogs))}` : ""}</p>
             {!!t.nonSalesCost && <p>{tr("+ made without a sale {0}", rp(t.nonSalesCost))}</p>}
-            {(!!t.priceFallback || !!t.priceMissing) && <p className="text-amber-700" title={tr("Materials without a Pricelist price valid by the end of the period")}>
+            {(!!t.priceFallback || !!t.priceMissing) && <p className="text-[color:var(--j-7F5F01)]" title={tr("Materials without a Pricelist price valid by the end of the period")}>
               {tr("{0} materials priced with the ESB HPP · {1} without any price", t.priceFallback ?? 0, t.priceMissing ?? 0)}</p>}</Stat>
           <Stat label={tr("COGS Material (Actual)")} value={t.actualCogs == null ? "—" : rp(t.actualCogs)}>
             {t.actualCogs == null ? <p>{tr("needs SO awal & akhir of the branch")}</p> : <p>{tr("Ratio {0} · {1} branches with SO awal & akhir", pct(t.actualRatio ?? null), t.branchesCovered ?? 0)}</p>}</Stat>
@@ -1089,13 +1089,13 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
               { key: "cogs", label: tr("COGS Material"), hint: tr("Per menu: sold, sales, HPP per portion, COGS and ratio"), icon: <Calculator size={16} />, tone: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", count: data ? data.menus.length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("COGS Material"), sheet: "COGS", title: file("COGS Material"), header: ["Menu", "Kartu Resep", "Terjual", "Sales", "HPP / Porsi", "COGS", "Rasio"],
                   rows: d.menus.map((m) => [m.name, m.recipeName, m.qty, m.sales, m.hpp, m.cogs, m.ratio]) })) },
-              { key: "mrp", label: tr("Material Required Planning"), hint: tr("Materials to prepare for the planned days"), icon: <Package size={16} />, tone: "bg-violet-50 text-violet-600", count: data ? data.mrp.length : null,
+              { key: "mrp", label: tr("Material Required Planning"), hint: tr("Materials to prepare for the planned days"), icon: <Package size={16} />, tone: "bg-[color:var(--j-F3F0FF)] text-[color:var(--j-6E5DC6)]", count: data ? data.mrp.length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("Material Required Planning"), sheet: "MRP", title: file("Material Required Planning"), header: ["Kode", "Bahan", "Satuan", "Kebutuhan", "Stok SO Terakhir", "Estimasi Sekarang", "Perlu Dipesan", "Nilai Kebutuhan", "Nilai Dipesan"],
                   rows: d.mrp.map((r) => [r.code, r.name, r.unit, r.qty, r.soLatest ?? r.onHand ?? null, r.estimate ?? null, r.toOrder ?? r.qty, r.value, r.orderValue ?? null]) })) },
-              { key: "anomalies", label: tr("SO Anomalies"), hint: tr("Branch × material rows whose counts look wrong, to check and correct"), icon: <ListChecks size={16} />, tone: "bg-red-50 text-red-600", count: data ? (data.anomalies ?? []).length : null,
+              { key: "anomalies", label: tr("SO Anomalies"), hint: tr("Branch × material rows whose counts look wrong, to check and correct"), icon: <ListChecks size={16} />, tone: "bg-[color:var(--j-FFECEB)] text-[color:var(--j-C9372C)]", count: data ? (data.anomalies ?? []).length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("Anomali SO"), sheet: "Anomali", title: file("Anomali SO"), header: ["Cabang", "Kode", "Bahan", "Satuan", "SO Awal", "Masuk − Keluar", "SO Akhir", "Pemakaian", "Harga", "Dampak (Rp)", "Alasan", "SO Awal (dok)", "SO Akhir (dok)"],
                   rows: (d.anomalies ?? []).map((a) => [a.branchName, a.code, a.name, a.unit, a.start, a.moves, a.end, a.actual, a.price, a.impact, a.reasons.map((r) => REASON[r]()).join("; "), a.refs.start.join(", "), a.refs.end.join(", ")]) })) },
-              { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: SO awal, purchases, SO akhir, actual, system, difference and value"), icon: <ListChecks size={16} />, tone: "bg-emerald-50 text-emerald-600", count: data ? data.usage.length : null,
+              { key: "usage", label: tr("Usage Actual vs System"), hint: tr("Per material: SO awal, purchases, SO akhir, actual, system, difference and value"), icon: <ListChecks size={16} />, tone: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-22A06B)]", count: data ? data.usage.length : null,
                 run: guard((d) => downloadXlsx({ fileName: file("Usage Actual vs System"), sheet: "Usage", title: file("Usage Actual vs System"), header: ["Kode", "Bahan", "Satuan", "SO Awal", "IN: Good Receipt", "IN: Transfer In (TITO)", "Mutasi Lain", "OUT: Transfer Out (TITO)", "OUT: Waste", "OUT: Waste Product Sales",
                     "SO Akhir", "Usage Actual", "Usage System", "Selisih Qty", "Selisih Qty %", "Harga", "Nilai Usage System", "Nilai Usage Actual", "Selisih Nilai", "Selisih Nilai %"],
                   rows: d.usage.map((r) => [r.code, r.name, r.unit, r.soStart ?? null, r.received ?? null, r.transferIn ?? null, r.otherMoves ?? null, r.transferOut ?? null, r.waste ?? null, r.wasteProduct ?? null,
@@ -1117,17 +1117,17 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
         ) : error ? <ErrorState message={error} onRetry={() => setTick((x) => x + 1)} /> : !data ? <table className="w-full"><tbody><SkeletonRows cols={6} /></tbody></table> : (
           <div className="overflow-x-auto">
             {!!data.options?.unruled.length && (
-              <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
                 <span className="flex-1">{tr("{0} choices sold have no rule yet, so they are counted as the standard card: {1}", data.options.unruled.length, data.options.unruled.slice(0, 5).map((u) => `${u.name} (${num(u.qty, 0)})`).join(", "))}{data.options.unruled.length > 5 ? "…" : ""}</span>
                 <Button size="sm" variant="secondary" onClick={() => onGo("options")}>{tr("Set the Rules")}</Button>
               </div>
             )}
             {data.unmapped.some((m) => m.viaPackages) && (
-              <p className="mx-4 mt-3 rounded-[3px] bg-sky-50 px-3 py-2 text-xs text-sky-800">{tr("{0} bundles without a card are counted through the menus ESB records inside them: {1}",
+              <p className="mx-4 mt-3 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]">{tr("{0} bundles without a card are counted through the menus ESB records inside them: {1}",
                 data.unmapped.filter((m) => m.viaPackages).length, data.unmapped.filter((m) => m.viaPackages).slice(0, 4).map((m) => m.name).join(", "))}</p>
             )}
             {data.unmapped.some((m) => !m.viaPackages) && (
-              <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
                 <span className="flex-1">{tr("{0} menus sold have no recipe card yet and are not counted: {1}", data.unmapped.filter((m) => !m.viaPackages).length,
                   data.unmapped.filter((m) => !m.viaPackages).slice(0, 6).map((m) => m.name).join(", "))}{data.unmapped.filter((m) => !m.viaPackages).length > 6 ? "…" : ""}</span>
                 <Button size="sm" variant="secondary" onClick={() => onGo("menus")}>{tr("Assign Menus")}</Button>
@@ -1135,7 +1135,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
             )}
             {view === "mrp" && (data.stock?.onHand.branches ?? 0) > 1 && (
               // 2026-11-13: the stock of the branches together — the surplus of one hides the shortage of another
-              <p className="mx-4 mt-3 rounded-[3px] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              <p className="mx-4 mt-3 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">
                 {tr("The stock of {0} branches is added together here: the surplus of one outlet hides the shortage of another.", data.stock?.onHand.branches ?? 0)}{" "}
                 <Link href="/cost-control/purchase-plan" className="font-semibold underline">{tr("Use the Purchase Estimate per outlet")}</Link>
               </p>
@@ -1155,7 +1155,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                         <td className="px-3 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-[color:var(--j-626F86)]">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}</td>
                         <td className="px-3 py-2 text-right tabular-nums" data-label={tr("Required")}>{num(r.qty, 0)} {r.unit}</td>
                         <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-172B4D)]" data-label={tr("Stock (Latest SO)")}>{so == null ? "—" : num(so)}</td>
-                        <td className={cx("px-3 py-2 text-right tabular-nums", r.estimate != null && so != null && r.estimate < so * 0.5 ? "text-amber-700" : "text-[color:var(--j-626F86)]")} data-label={tr("Estimate Now")}
+                        <td className={cx("px-3 py-2 text-right tabular-nums", r.estimate != null && so != null && r.estimate < so * 0.5 ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]")} data-label={tr("Estimate Now")}
                           title={r.estimate != null && so != null && r.estimate < so * 0.5 ? tr("Much less than the latest SO: the stock was used since the count") : undefined}>{r.estimate == null ? "—" : num(r.estimate)}</td>
                         <td className="px-3 py-2 text-right font-semibold tabular-nums" data-label={tr("To Order")}>{num(r.toOrder ?? r.qty, 0)} {r.unit}</td>
                         <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]" data-label={tr("Order Value")}>{rp(r.orderValue ?? r.value)}</td>
@@ -1174,7 +1174,7 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                 const c = data.coverage;
                 const share = c.value ? c.countedValue / c.value : 1;
                 return (
-                  <div className={cx("mx-4 mt-3 rounded-[3px] border px-3 py-2.5 text-xs", share < 0.9 ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-900")}>
+                  <div className={cx("mx-4 mt-3 rounded-[3px] border px-3 py-2.5 text-xs", share < 0.9 ? "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" : "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]")}>
                     <p className="font-semibold">{tr("SO coverage {0}: {1} of {2} materials the cards use are counted at both ends", pct(share), c.counted, c.items)}</p>
                     {c.missing.length > 0 && <p className="mt-0.5">{tr("Not in the SO lists (no actual usage, left out of the actual COGS): {0}", c.missing.slice(0, 8).map((m) => `${m.name} (${rp(m.systemValue)})`).join(", "))}{c.missing.length > 8 ? "…" : ""}</p>}
                   </div>
@@ -1185,15 +1185,15 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                 <Segmented label={tr("SO basis")} value={soBasis} onChange={setSoBasis}
                   options={[{ value: "month", label: tr("Month-end SO") }, { value: "period", label: tr("SO of the period") }]} />
                 {data.usageWindow && <span>{tr("SO Awal {0} · SO Akhir {1}", dmy(data.usageWindow.from), dmy(data.usageWindow.to))}
-                  {data.usageWindow.basis === "month" && !data.usageWindow.closed && <span className="ml-1 text-amber-700">· {tr("the month is not closed: waiting for the month-end SO")}</span>}</span>}
+                  {data.usageWindow.basis === "month" && !data.usageWindow.closed && <span className="ml-1 text-[color:var(--j-7F5F01)]">· {tr("the month is not closed: waiting for the month-end SO")}</span>}</span>}
               </div>
               <div className="overflow-x-auto">
               <table className={cx(sheetTable, "min-w-[1700px]")}>
                 <caption className="px-4 py-2 text-left text-xs text-[color:var(--j-626F86)]">{tr("Usage Actual = SO Awal + Items In + other moves − Transfer Out − SO Akhir (the waste is inside it); Usage System = Sales + Non Sales: menus sold and ESB other-cost bills (cupping, waste, compliment …) × recipe cards. Difference % = (Actual − System) ÷ System, of the quantity and of the value.")}</caption>
                 <thead className={theadClass}>
                   <tr className="[&>th]:px-3 [&>th]:pt-2 [&>th]:text-center">
-                    <th colSpan={2} /><th colSpan={2} className="border-l border-[color:var(--j-DCDFE4)] text-emerald-700">{tr("Items In")}</th><th className="border-l border-[color:var(--j-DCDFE4)]" />
-                    <th colSpan={3} className="border-l border-[color:var(--j-DCDFE4)] text-red-700">{tr("Items Out")}</th>
+                    <th colSpan={2} /><th colSpan={2} className="border-l border-[color:var(--j-DCDFE4)] text-[color:var(--j-216E4E)]">{tr("Items In")}</th><th className="border-l border-[color:var(--j-DCDFE4)]" />
+                    <th colSpan={3} className="border-l border-[color:var(--j-DCDFE4)] text-[color:var(--j-AE2E24)]">{tr("Items Out")}</th>
                     <th colSpan={5} className="border-l border-[color:var(--j-DCDFE4)]">{tr("Quantity")}</th><th colSpan={4} className="border-l border-[color:var(--j-DCDFE4)]">{tr("Value")}</th></tr>
                   <tr>
                   <SortTh k="name" sort={useSort_.sort} onSort={useSort_.toggle}>{tr("Material")}</SortTh>
@@ -1217,20 +1217,20 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
                   {useSort_.rows.map((r) => {
                     const q = (v: number | null | undefined, sign = "", cls = "text-[color:var(--j-44546F)]") => (
                       <td className={cx("whitespace-nowrap px-3 py-2 text-right tabular-nums", v ? cls : "text-[color:var(--j-8590A2)]")}>{v == null ? "—" : v ? `${sign}${num(Math.abs(v))}` : "—"}</td>);
-                    const tone = (v: number | null | undefined) => (v == null ? "" : v > 0 ? "text-red-700" : v < 0 ? "text-emerald-700" : "");
+                    const tone = (v: number | null | undefined) => (v == null ? "" : v > 0 ? "text-[color:var(--j-AE2E24)]" : v < 0 ? "text-[color:var(--j-216E4E)]" : "");
                     const pctOf = (v: number | null | undefined) => (v == null ? "—" : `${v > 0 ? "+" : ""}${(v * 100).toFixed(1)}%`);
                     return (
                       <tr key={r.code ?? r.name} className={r.isStock ? "" : "text-[color:var(--j-626F86)]"}>
                         <td className="px-3 py-2">{r.name}{r.code && <span className="ml-1 text-[11px] text-[color:var(--j-626F86)]">{r.code}</span>}{r.extra && <Badge tone="cyan">{tr("Additional")}</Badge>}
-                          {!!r.purchasedOther?.length && <span className="block text-[11px] text-amber-700" title={tr("Bought in a unit with no conversion to {0} in the item master: not counted", r.unit)}>
+                          {!!r.purchasedOther?.length && <span className="block text-[11px] text-[color:var(--j-7F5F01)]" title={tr("Bought in a unit with no conversion to {0} in the item master: not counted", r.unit)}>
                             + {r.purchasedOther.map((o) => `${num(o.qty)} ${o.uom}`).join(", ")} {tr("not converted")}</span>}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-[color:var(--j-172B4D)]">{r.soStart == null ? "—" : num(r.soStart)}</td>
-                        {q(r.received, "+", "border-l border-[color:var(--j-F1F2F4)] text-emerald-700")}
-                        {q(r.transferIn, "+", "text-emerald-700")}
-                        {q(r.otherMoves, (r.otherMoves ?? 0) > 0 ? "+" : "−", cx("border-l border-[color:var(--j-F1F2F4)]", (r.otherMoves ?? 0) > 0 ? "text-emerald-700" : "text-red-700"))}
-                        {q(r.transferOut, "−", "border-l border-[color:var(--j-F1F2F4)] text-red-700")}
-                        {q(r.waste, "−", "text-red-700")}
-                        {q(r.wasteProduct, "−", "text-red-700")}
+                        {q(r.received, "+", "border-l border-[color:var(--j-F1F2F4)] text-[color:var(--j-216E4E)]")}
+                        {q(r.transferIn, "+", "text-[color:var(--j-216E4E)]")}
+                        {q(r.otherMoves, (r.otherMoves ?? 0) > 0 ? "+" : "−", cx("border-l border-[color:var(--j-F1F2F4)]", (r.otherMoves ?? 0) > 0 ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-AE2E24)]"))}
+                        {q(r.transferOut, "−", "border-l border-[color:var(--j-F1F2F4)] text-[color:var(--j-AE2E24)]")}
+                        {q(r.waste, "−", "text-[color:var(--j-AE2E24)]")}
+                        {q(r.wasteProduct, "−", "text-[color:var(--j-AE2E24)]")}
                         <td className="whitespace-nowrap border-l border-[color:var(--j-F1F2F4)] px-3 py-2 text-right tabular-nums text-[color:var(--j-172B4D)]">{r.soEnd == null ? "—" : num(r.soEnd)}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">{r.actual == null ? "—" : `${num(r.actual)} ${r.unit}`}</td>
                         <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{num(r.system)} {r.unit}</td>
@@ -1252,12 +1252,12 @@ function ReportView({ onGo, link }: { onGo: (s: Step) => void; link?: { from: st
             {view === "cogs" && (
               <>
                 {!!data.nonSales?.length && (
-                  <div className="mx-4 mt-3 rounded-[3px] border border-violet-200 bg-violet-50/60 px-3 py-2.5 text-xs text-violet-900">
+                  <div className="mx-4 mt-3 rounded-[3px] border border-[color:var(--j-DFD8FD)] bg-[color:var(--j-F3F0FF)]/60 px-3 py-2.5 text-xs text-[color:var(--j-5E4DB2)]">
                     <p className="font-semibold">{tr("Made without a sale (ESB bills without a bill number): {0}, counted in the system usage", rp(data.total.nonSalesCost ?? 0))}</p>
                     <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5">
                       {data.nonSales.map((r) => (
                         <li key={r.reason}><span className="font-medium">{r.reason}</span> · {tr("{0} bills · {1} portions · {2}", num(r.bills, 0), num(r.portions, 0), rp(r.cost))}
-                          {r.unmapped > 0 && <span className="text-amber-700"> · {tr("{0} portions without a card", num(r.unmapped, 0))}</span>}</li>
+                          {r.unmapped > 0 && <span className="text-[color:var(--j-7F5F01)]"> · {tr("{0} portions without a card", num(r.unmapped, 0))}</span>}</li>
                       ))}
                     </ul>
                   </div>
@@ -1313,11 +1313,11 @@ function StockCoverage({ stock, names }: { stock?: Report["stock"]; names: Branc
     <details className="mx-4 mt-3 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] px-3 py-2 text-xs text-[color:var(--j-44546F)]">
       <summary className="cursor-pointer select-none font-medium">
         {stock.covered.length ? tr("{0} branches with SO awal & akhir ({1} from the portal SO)", stock.covered.length, portal) : tr("No branch has both SO awal and SO akhir in this period")}
-        {missing.length > 0 && <span className="text-amber-700"> · {tr("{0} with one SO only (left out)", missing.length)}</span>}
+        {missing.length > 0 && <span className="text-[color:var(--j-7F5F01)]"> · {tr("{0} with one SO only (left out)", missing.length)}</span>}
       </summary>
       <ul className="mt-2 grid gap-1 sm:grid-cols-2">
         {stock.branches.map((b) => (
-          <li key={b.code} className={cx("flex flex-wrap justify-between gap-x-3", !stock.covered.includes(b.code) && "text-amber-700")}>
+          <li key={b.code} className={cx("flex flex-wrap justify-between gap-x-3", !stock.covered.includes(b.code) && "text-[color:var(--j-7F5F01)]")}>
             <span className="font-medium">{name(b.code)}</span>
             <span className="tabular-nums text-[color:var(--j-626F86)]" title={[...(b.start?.refs ?? []), ...(b.end?.refs ?? [])].join(", ")}>{label(b.start)} → {label(b.end)}</span>
           </li>

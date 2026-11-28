@@ -83,10 +83,10 @@ export function StockTab() {
               <tr key={r.code} className="cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => setOpen(r)}>
                 <td className="px-3 py-2"><span className="block font-medium text-[color:var(--j-172B4D)]">{r.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{r.code} · {r.category}</span></td>
                 <td className="px-3 py-2 text-right tabular-nums">{num(r.so)} <span className="text-[color:var(--j-626F86)]">{r.unit}</span></td>
-                <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{r.received ? `+${num(r.received)}` : "—"}</td>
+                <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-216E4E)]">{r.received ? `+${num(r.received)}` : "—"}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{r.used ? `−${num(r.used)}` : "—"}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{r.waste ? `−${num(r.waste)}` : "—"}</td>
-                <td className={cx("px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-red-700" : "text-[color:var(--j-172B4D)]")}>{num(r.estimate)}
+                <td className={cx("px-3 py-2 text-right font-semibold tabular-nums", r.estimate < -1e-6 ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-172B4D)]")}>{num(r.estimate)}
                   {r.packUnit && r.packQty ? <span className="block text-[10px] font-normal text-[color:var(--j-626F86)]">≈ {num(r.estimate / r.packQty)} {r.packUnit}</span> : null}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.value == null ? <Badge tone="amber">{tr("No cost")}</Badge> : rupiah(r.value)}</td>
               </tr>))}</tbody>
@@ -161,7 +161,7 @@ export function ReceiptsTab() {
             <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{rows.map((r) => (
               <tr key={r.id}><td className="whitespace-nowrap px-3 py-2">{r.day}</td><td className="px-3 py-2">{r.name}<span className="block text-[11px] text-[color:var(--j-626F86)]">{r.item}</span></td>
                 <td className="px-3 py-2 text-right tabular-nums">{num(r.qty)} {r.unit}</td><td className="px-3 py-2 text-xs text-[color:var(--j-44546F)]">{[r.supplier, r.docNo, r.note].filter(Boolean).join(" · ") || "—"}</td>
-                <td className="px-2"><button type="button" onClick={() => void remove(r.id)} aria-label={tr("Delete")} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button></td></tr>))}</tbody>
+                <td className="px-2"><button type="button" onClick={() => void remove(r.id)} aria-label={tr("Delete")} className="rounded-[3px] p-1.5 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={15} /></button></td></tr>))}</tbody>
           </table></div>
         )}
       </Panel>
@@ -251,7 +251,7 @@ function CountDrawer({ id, pool, onClose, onSaved }: { id: string | null; pool: 
               <li key={i.code} className="flex items-center gap-3 px-3 py-2.5">
                 <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{i.name}</span>
                   <span className="block text-[11px] text-[color:var(--j-626F86)]">{i.code} · {tr("system {0} {1}", num(expected(i.code)), i.unit)}
-                    {d !== null && Math.abs(d) > 1e-6 && <span className={cx("ml-1 font-semibold", d < 0 ? "text-red-600" : "text-emerald-700")}>{d > 0 ? "+" : ""}{num(d)}</span>}</span></span>
+                    {d !== null && Math.abs(d) > 1e-6 && <span className={cx("ml-1 font-semibold", d < 0 ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-216E4E)]")}>{d > 0 ? "+" : ""}{num(d)}</span>}</span></span>
                 <span className="relative w-32 flex-shrink-0"><input className={cx(inputClass, "h-11 pr-10 text-right text-base sm:h-10 sm:text-sm")} inputMode="decimal" placeholder="—" value={v}
                   onChange={(e) => setQty({ ...qty, [i.code]: e.target.value.replace(/[^0-9.,]/g, "") })} aria-label={i.name} />
                   <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] uppercase text-[color:var(--j-626F86)]">{i.unit}</span></span>
@@ -264,7 +264,7 @@ function CountDrawer({ id, pool, onClose, onSaved }: { id: string | null; pool: 
           <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">{detail!.lines.map((l) => (
             <tr key={l.item}><td className="px-3 py-2">{l.name}<span className="block text-[11px] text-[color:var(--j-626F86)]">{l.item}</span></td><td className="px-3 py-2 text-right tabular-nums">{l.expected == null ? "—" : num(l.expected)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{num(l.qty)} {l.unit}</td>
-              <td className={cx("px-3 py-2 text-right font-semibold tabular-nums", (l.difference ?? 0) < -1e-6 ? "text-red-600" : (l.difference ?? 0) > 1e-6 ? "text-emerald-700" : "text-[color:var(--j-626F86)]")}>{l.difference == null ? "—" : `${l.difference > 0 ? "+" : ""}${num(l.difference)}`}</td>
+              <td className={cx("px-3 py-2 text-right font-semibold tabular-nums", (l.difference ?? 0) < -1e-6 ? "text-[color:var(--j-C9372C)]" : (l.difference ?? 0) > 1e-6 ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-626F86)]")}>{l.difference == null ? "—" : `${l.difference > 0 ? "+" : ""}${num(l.difference)}`}</td>
               <td className="px-3 py-2 text-right tabular-nums">{l.value == null ? "—" : rupiah(l.value)}</td></tr>))}</tbody>
         </table></div>
       )}

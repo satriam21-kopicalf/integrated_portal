@@ -506,7 +506,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
                 aria-label={parts.map(p => `${p.label} ${fixed(((p.value / t.gross.subtotal) * 100), 1)}%`).join(', ')}>
                 {parts.map(p => (
                   <span key={p.key} title={`${p.label}: ${formatCurrency(p.value)} (${fixed(((p.value / t.gross.subtotal) * 100), 1)}%)`}
-                    className="h-full border-r border-neutral-50 last:border-r-0"
+                    className="h-full border-r border-[color:var(--j-F7F8F9)] last:border-r-0"
                     style={{ width: `${Math.max(0.5, (p.value / t.gross.subtotal) * 100)}%`, background: p.color }} />
                 ))}
               </div>
@@ -515,7 +515,7 @@ function SummaryStrip({ summary, loading }: { summary: SalesSummary | null; load
         )}
       </Stat>
       <Stat label={tr('Deductions')} icon={<CircleMinus size={13} aria-hidden />}
-        value={pending ? <StatSkeleton /> : <span className="text-rose-600">{deductions !== undefined ? <>−{money(deductions)}</> : '-'}</span>}
+        value={pending ? <StatSkeleton /> : <span className="text-[color:var(--j-C9372C)]">{deductions !== undefined ? <>−{money(deductions)}</> : '-'}</span>}
         title={deductions !== undefined ? `−${formatCurrency(deductions)}` : undefined}>
         {t && (
           <dl className="hidden space-y-0.5 sm:block">

@@ -280,3 +280,34 @@ html.dark {
 /* dark: the brand-blue buttons and badges carry dark text (ADS: text.inverse on the bold blue) */
 html.dark .bg-\[color\:var\(--j-0C66E4\)\].text-white,
 html.dark .bg-\[color\:var\(--j-C9372C\)\].text-white { color: #1D2125; }
+
+/* 2026-11-28 the Jira status colours (success / warning / danger / discovery / info) used for the old Tailwind ones */
+:root {
+  --j-4BCE97: #4BCE97;
+  --j-22A06B: #22A06B;
+  --j-E2B203: #E2B203;
+  --j-B38600: #B38600;
+  --j-F87168: #F87168;
+  --j-F3F0FF: #F3F0FF;
+  --j-B8ACF6: #B8ACF6;
+  --j-6E5DC6: #6E5DC6;
+  --j-E7F9FF: #E7F9FF;
+  --j-6CC3E0: #6CC3E0;
+  --j-2898BD: #2898BD;
+}
+html.dark {
+  --j-4BCE97: #216E4E;
+  --j-22A06B: #2ABB7F;
+  --j-E2B203: #CF9F02;
+  --j-B38600: #E2B203;
+  --j-F87168: #AE2E24;
+  --j-F3F0FF: #2B273F;
+  --j-B8ACF6: #5E4DB2;
+  --j-6E5DC6: #9F8FEF;
+  --j-E7F9FF: #1E3137;
+  --j-6CC3E0: #206A83;
+  --j-2898BD: #6CC3E0;
+}
+html.dark .bg-\[color\:var\(--j-22A06B\)\].text-white,
+html.dark .bg-\[color\:var\(--j-6E5DC6\)\].text-white,
+html.dark .bg-\[color\:var\(--j-2898BD\)\].text-white { color: #1D2125; }

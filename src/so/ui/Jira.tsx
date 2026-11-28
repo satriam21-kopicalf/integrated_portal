@@ -117,7 +117,7 @@ export function WorkCard<K extends string>({ tabs, active, onTab, left, children
   tabs: JTab<K>[]; active: K; onTab: (k: K) => void; left?: React.ReactNode; children: React.ReactNode; label?: string;
 }) {
   return (
-    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-[color:var(--j-DCDFE4)] px-4 pt-3 sm:px-5">
         {left && <div className="pb-2">{left}</div>}
         {/* phones: the tabs take the whole row and scroll sideways (2026-11-18) */}
@@ -209,15 +209,15 @@ export const jKey = "font-medium text-[color:var(--j-0C66E4)] group-hover:underl
 
 export type LozengeTone = "grey" | "blue" | "green" | "amber" | "red" | "violet" | "cyan";
 const LOZ: Record<LozengeTone, string> = {
-  grey: "bg-[color:var(--j-DCDFE4)] text-[color:var(--j-172B4D)]", blue: "bg-blue-100 text-blue-800", green: "bg-emerald-100 text-emerald-800", amber: "bg-amber-100 text-amber-900",
-  red: "bg-red-100 text-red-800", violet: "bg-violet-100 text-violet-800", cyan: "bg-cyan-100 text-cyan-900",
+  grey: "bg-[color:var(--j-DCDFE4)] text-[color:var(--j-172B4D)]", blue: "bg-[color:var(--j-CCE0FF)] text-[color:var(--j-0055CC)]", green: "bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]", amber: "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]",
+  red: "bg-[color:var(--j-FFD5D2)] text-[color:var(--j-AE2E24)]", violet: "bg-[color:var(--j-DFD8FD)] text-[color:var(--j-5E4DB2)]", cyan: "bg-[color:var(--j-C6EDFB)] text-[color:var(--j-206A83)]",
 };
 /** a Jira status lozenge: small bold caps on a soft colour */
 export function Lozenge({ tone = "grey", children, title }: { tone?: LozengeTone; children: React.ReactNode; title?: string }) {
   return <span title={title} className={cx("inline-block max-w-[12rem] truncate rounded-[3px] px-1.5 py-0.5 align-middle text-[11px] font-bold uppercase leading-4 tracking-wide", LOZ[tone])}>{children}</span>;
 }
 
-const AVATAR = ["bg-sky-600", "bg-emerald-600", "bg-violet-600", "bg-rose-600", "bg-amber-600", "bg-teal-600", "bg-indigo-600"];
+const AVATAR = ["bg-[color:var(--j-0C66E4)]", "bg-[color:var(--j-22A06B)]", "bg-[color:var(--j-6E5DC6)]", "bg-[color:var(--j-C9372C)]", "bg-[color:var(--j-E2B203)]", "bg-[color:var(--j-2898BD)]", "bg-[color:var(--j-0C66E4)]"];
 export const initialsOf = (name: string) => name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("") || "?";
 /** a person: a coloured initials avatar (same colour for the same name) and the name, an optional second line */
 export function Person({ name, sub, size = 24 }: { name: string; sub?: React.ReactNode; size?: number }) {

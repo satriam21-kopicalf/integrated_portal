@@ -58,7 +58,7 @@ export default function TransferForm() {
       <div className="mx-auto max-w-5xl space-y-4">
         <Segmented label={tr("View")} value={tab} onChange={setTab} options={tabs} />
         {!data.branches.length ? (
-          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)] shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">{tr("No outlet is assigned to your account.")}</div>
+          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)]">{tr("No outlet is assigned to your account.")}</div>
         ) : tab === "request" ? (
           <RequestForm data={data} onDone={(t) => { toast(tr("Transfer {0} sent: waiting for Cost Control", t.number)); void load(); setTab("mine"); setOpen(t.id); }} />
         ) : (
@@ -143,12 +143,12 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
                     const v = num(qty[i.code] ?? "");
                     const bad = false;
                     return (
-                      <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-[color:var(--j-E9F2FF)]" : bad ? "bg-red-50" : "")}>
+                      <li key={i.code} className={cx("flex items-center gap-3 px-3 py-2.5", v && !bad ? "bg-[color:var(--j-E9F2FF)]" : bad ? "bg-[color:var(--j-FFECEB)]" : "")}>
                         <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug text-[color:var(--j-172B4D)]">{i.name}</span>
                           <span className="block text-[11px] text-[color:var(--j-626F86)]">{i.code}{i.category ? ` · ${i.category}` : ""}{i.factor && i.factor !== 1 ? ` · 1 ${i.unit} = ${qtyText(i.factor)} ${i.base}` : ""}</span>
                           <span className="mt-1 block"><StockBadge available={i.available} unit={i.unit} taking={v} /></span></span>
                         <span className="relative w-32 flex-shrink-0 sm:w-36">
-                          <input inputMode="decimal" className={cx(inputClass, "h-11 pr-16 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-red-300")} value={qty[i.code] ?? ""} placeholder="0"
+                          <input inputMode="decimal" className={cx(inputClass, "h-11 pr-16 text-right text-base tabular-nums sm:h-10 sm:text-sm", bad && "border-[color:var(--j-F87168)]")} value={qty[i.code] ?? ""} placeholder="0"
                             onChange={(e) => setQty({ ...qty, [i.code]: e.target.value })} aria-label={`${tr("Qty")} ${i.name}`} />
                           <span className="pointer-events-none absolute right-2 top-1/2 max-w-[3.5rem] -translate-y-1/2 truncate text-[10px] text-[color:var(--j-626F86)]">{i.unit}</span>
                         </span>
@@ -173,7 +173,7 @@ function RequestForm({ data, onDone }: { data: FormData; onDone: (t: Transfer) =
         </FormCard>
       </div>
       <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-        <section className="hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 lg:block shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <section className="hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 lg:block">
           <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Summary")}</p>
           <dl className="mt-2 space-y-1.5 text-sm">
             <div className="flex justify-between gap-2"><dt className="text-[color:var(--j-626F86)]">{tr("From")}</dt><dd className="truncate text-right">{fromName ? fromName : "—"}</dd></div>
@@ -210,7 +210,7 @@ function OutletPicker({ outlets, value, onPick, onClose }: { outlets: { code: st
   const shown = outlets.filter((o) => words.every((w) => `${o.name} ${o.code}`.toLowerCase().includes(w)));
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-neutral-900/40 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Take from outlet")} onClick={onClose}>
-      <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white shadow-2xl sm:max-w-lg sm:rounded-[3px]" onClick={(e) => e.stopPropagation()}>
+      <div className="flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white sm:max-w-lg sm:rounded-[3px]" onClick={(e) => e.stopPropagation()}>
         <header className="flex items-center gap-2 border-b border-[color:var(--j-F1F2F4)] px-4 pb-3 pt-4">
           <span className="min-w-0 flex-1"><span className="block text-base font-semibold text-[color:var(--j-172B4D)]">{tr("Take from outlet")}</span>
             <span className="block text-xs text-[color:var(--j-626F86)]">{tr("{0} outlets", outlets.length)}</span></span>
@@ -248,21 +248,21 @@ function SignDialog({ busy, onSign, onClose }: { busy: boolean; onSign: (sig: st
 }
 
 function List({ rows, side, onOpen }: { rows: Transfer[]; side: "mine" | "incoming"; onOpen: (id: string) => void }) {
-  if (!rows.length) return <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No transfer out of your outlet")} /></div>;
+  if (!rows.length) return <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white"><Empty icon={<ClipboardList size={26} />} title={side === "mine" ? tr("No request yet") : tr("No transfer out of your outlet")} /></div>;
   return (
     <ul className="divide-y divide-[color:var(--j-F1F2F4)] overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       {rows.map((t) => {
         const todo = false;
         return (
           <li key={t.id}>
-            <button type="button" onClick={() => onOpen(t.id)} className={cx("flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]", todo && "bg-amber-50/40")}>
+            <button type="button" onClick={() => onOpen(t.id)} className={cx("flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-[color:var(--j-F7F8F9)]", todo && "bg-[color:var(--j-FFF7D6)]/40")}>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-1.5"><span className="font-mono text-xs font-semibold text-[color:var(--j-172B4D)]">{t.number}</span><Badge tone={STATUS[t.status].tone}>{STATUS[t.status].label()}</Badge></span>
                 <span className="mt-0.5 block truncate text-sm text-[color:var(--j-172B4D)]">{shortBranch(t.fromName)} <ArrowRight size={12} className="inline text-[color:var(--j-626F86)]" /> {shortBranch(t.toName)}</span>
                 <span className="block text-xs text-[color:var(--j-626F86)]">{tr("{0} materials", t.lines)} · {wibDateTime(t.requested.at)} · {t.requested.by}</span>
                 <MiniProgress t={t} />
               </span>
-              {todo && <span className="mt-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">{side === "mine" ? tr("Receive") : tr("Check")}</span>}
+              {todo && <span className="mt-1 rounded-full bg-[color:var(--j-F8E6A0)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--j-7F5F01)]">{side === "mine" ? tr("Receive") : tr("Check")}</span>}
             </button>
           </li>
         );
@@ -303,7 +303,7 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
   const steps = transferSteps(t, shortBranch);
   const footer = (
     <div className="flex w-full flex-wrap justify-end gap-2">
-      {!monitor && isTo && (t.status === "submitted" || t.status === "accepted") && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setAct("cancel")}><Trash2 size={14} />{tr("Cancel the request")}</Button>}
+      {!monitor && isTo && (t.status === "submitted" || t.status === "accepted") && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" onClick={() => setAct("cancel")}><Trash2 size={14} />{tr("Cancel the request")}</Button>}
       {monitor && !!t.canDecide && t.status === "approved" && <Button onClick={() => setProcessing(true)}><PackageCheck size={15} />{tr("Mark Processed in ESB")}</Button>}
       {deciding && <><Button variant="secondary" onClick={() => setAct("reject")}><XCircle size={14} />{tr("Reject")}</Button>
         <Button disabled={badAdjust} onClick={() => setAct("approve")}><CheckCircle2 size={14} />{nAdjusted ? tr("Approve with {0} adjusted", nAdjusted) : tr("Approve")}</Button></>}
@@ -323,19 +323,19 @@ export function TransferDrawer({ id, mine, monitor = false, onClose, onChanged }
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
                   {deciding ? (
                     <span className="relative inline-block w-28 sm:w-32">
-                      <input inputMode="decimal" className={cx(inputClass, "h-10 pr-10 text-right text-base tabular-nums sm:h-9 sm:text-sm", adjusted[i.code] !== undefined && "border-amber-400 bg-amber-50")}
+                      <input inputMode="decimal" className={cx(inputClass, "h-10 pr-10 text-right text-base tabular-nums sm:h-9 sm:text-sm", adjusted[i.code] !== undefined && "border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)]")}
                         value={adjust[i.code] ?? String(i.packQty).replace(".", ",")} onChange={(e) => setAdjust({ ...adjust, [i.code]: e.target.value })} aria-label={`${tr("Approved Qty")} ${i.name}`} />
                       <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[color:var(--j-626F86)]">{i.pack}</span>
                     </span>
                   ) : <>{qtyText(i.packQty)} <span className="text-[color:var(--j-626F86)]">{i.pack}</span></>}
                   {i.factor !== 1 && <span className="block text-[11px] text-[color:var(--j-626F86)]">= {qtyText(i.qty)} {i.unit}</span>}
-                  {i.requestedPack != null && Math.abs(i.requestedPack - i.packQty) > 1e-9 && <span className="block text-[11px] text-amber-700">{tr("asked {0}, adjusted by Cost Control", qtyText(i.requestedPack))}</span>}
-                  {deciding && adjusted[i.code] !== undefined && <span className="block text-[11px] text-amber-700">{tr("asked {0}", qtyText(i.requestedPack ?? i.packQty))}</span>}
+                  {i.requestedPack != null && Math.abs(i.requestedPack - i.packQty) > 1e-9 && <span className="block text-[11px] text-[color:var(--j-7F5F01)]">{tr("asked {0}, adjusted by Cost Control", qtyText(i.requestedPack))}</span>}
+                  {deciding && adjusted[i.code] !== undefined && <span className="block text-[11px] text-[color:var(--j-7F5F01)]">{tr("asked {0}", qtyText(i.requestedPack ?? i.packQty))}</span>}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{rpText(i.value)}</td></tr>))}</tbody>
           </table>
         </div>
-        <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-4">
           <p className="mb-3 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Process")}</p>
           <Tracker steps={steps} />
         </section>
@@ -375,7 +375,7 @@ function ProcessDialog({ busy, onSave, onClose }: { busy: boolean; onSave: (esbN
     <Dialog open title={tr("Processed in ESB")} description={tr("Make it in ESB as usual (PR > PO > SL > GD > GR through the virtual warehouse) with the approved quantities, then enter the GR number of the destination outlet: the portal matches it with ESB.")} onClose={onClose}
       footer={<><Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button><Button loading={busy} disabled={!no.trim()} onClick={() => onSave(no.trim(), note)}><PackageCheck size={15} />{tr("Mark Processed")}</Button></>}>
       <div className="space-y-3">
-        <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("ESB GR number at the destination")} <span className="text-red-500">*</span>
+        <label className="block text-xs font-medium text-[color:var(--j-44546F)]">{tr("ESB GR number at the destination")} <span className="text-[color:var(--j-C9372C)]">*</span>
           <input className={cx(inputClass, "mt-1 h-11 text-base uppercase sm:h-10 sm:text-sm")} value={no} maxLength={60} onChange={(e) => setNo(e.target.value)} autoCapitalize="characters" /></label>
         <textarea className={cx(inputClass, "py-2")} rows={2} maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder={tr("Note (optional)")} />
       </div>
@@ -405,8 +405,8 @@ function MiniProgress({ t }: { t: Transfer }) {
   return (
     <span className="mt-2 flex items-center gap-1" aria-label={tr("Process")}>
       {steps.map((s, i) => (
-        <span key={i} title={s.label} className={cx("h-1.5 flex-1 rounded-full", s.state === "done" ? "bg-emerald-500" : s.state === "failed" ? "bg-red-500"
-          : s.state === "current" ? "bg-brand-400" : "bg-[color:var(--j-DCDFE4)]")} />
+        <span key={i} title={s.label} className={cx("h-1.5 flex-1 rounded-full", s.state === "done" ? "bg-[color:var(--j-22A06B)]" : s.state === "failed" ? "bg-[color:var(--j-C9372C)]"
+          : s.state === "current" ? "bg-[color:var(--j-388BFF)]" : "bg-[color:var(--j-DCDFE4)]")} />
       ))}
     </span>
   );

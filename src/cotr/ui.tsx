@@ -245,8 +245,8 @@ function EditDrawer({ title, initial, fields, code, onClose, onSave, onDelete }:
   return (
     <Drawer open onClose={onClose} title={title} size="lg" icon={code ? <Pencil /> : <Plus />} description={code ?? tr('Fill the fields, then save')}
       footer={<>
-        {onDelete && <Button variant="ghost" className="mr-auto text-red-600" onClick={() => setDeleting(true)}><Trash2 size={15} /> {tr('Delete')}</Button>}
-        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-red-600">{error}</p>}
+        {onDelete && <Button variant="ghost" className="mr-auto text-[color:var(--j-C9372C)]" onClick={() => setDeleting(true)}><Trash2 size={15} /> {tr('Delete')}</Button>}
+        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-[color:var(--j-C9372C)]">{error}</p>}
         <Button variant="secondary" onClick={onClose}>{tr('Cancel')}</Button>
         <Button loading={busy} disabled={missing} onClick={() => void run(() => onSave(v, pictures), tr('Saved'))}><Save size={16} /> {tr('Save')}</Button>
       </>}>
@@ -442,7 +442,7 @@ export function ImageInput({ value, onChange, square }: { value: string | null; 
           <Camera size={14} /> {value ? tr('Change') : tr('Upload')}
           <input type="file" accept="image/*" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
         </label>
-        {value && <button type="button" onClick={() => onChange(null)} className="text-left text-xs text-red-600">{tr('Remove')}</button>}
+        {value && <button type="button" onClick={() => onChange(null)} className="text-left text-xs text-[color:var(--j-C9372C)]">{tr('Remove')}</button>}
       </span>
     </div>
   );
@@ -492,12 +492,12 @@ export function TimeInput({ value, onChange, invalid, className }: { value: stri
   return (
     <span className={cx('flex items-center gap-1', className)}>
       <NativeSelect value={h ?? ''} onChange={(e) => pick(e.target.value, m ?? '00')} aria-label={tr('Hour')}
-        className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
+        className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-[color:var(--j-F87168)]')}>
         <option value="">--</option>{hours.map((x) => <option key={x} value={x}>{x}</option>)}
       </NativeSelect>
       <span className="font-semibold text-[color:var(--j-626F86)]">:</span>
       <NativeSelect value={m ?? ''} onChange={(e) => pick(h || '00', e.target.value)} aria-label={tr('Minute')}
-        className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-red-300')}>
+        className={cx(inputClass, 'h-10 w-[4.5rem] px-2 text-center tabular-nums', invalid && 'border-[color:var(--j-F87168)]')}>
         <option value="">--</option>{mins.map((x) => <option key={x} value={x}>{x}</option>)}
       </NativeSelect>
       <span className="ml-1 text-xs text-[color:var(--j-626F86)]">WIB</span>

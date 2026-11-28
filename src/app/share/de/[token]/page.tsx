@@ -88,7 +88,7 @@ function ShareView() {
             <aside className="space-y-4 lg:sticky lg:top-4">
               <DetailsPanel r={r} />
               <RequestView r={r} urls={urls} part="tracker" numbered={false} />
-              {seen && <p className="flex items-center gap-1.5 text-[11px] text-[color:var(--j-626F86)]"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+              {seen && <p className="flex items-center gap-1.5 text-[11px] text-[color:var(--j-626F86)]"><span className="h-2 w-2 animate-pulse rounded-full bg-[color:var(--j-22A06B)]" aria-hidden />
                 {tr("Live · updated {0}", wibDateTime(seen))}</p>}
             </aside>
           </div>

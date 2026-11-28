@@ -84,9 +84,9 @@ export default function CotrRequestsPage() {
           <>
             <Toolbar>
               <QuickChips label={tr("Status")} value={show} onChange={setShow} items={[
-                { key: "sent" as Show, label: tr("Waiting"), dot: "bg-amber-500", count: data ? all.filter((r) => r.status === "sent").length : null },
-                { key: "approved" as Show, label: tr("Approved"), dot: "bg-emerald-500", count: data ? all.filter((r) => r.status === "approved").length : null },
-                { key: "rejected" as Show, label: tr("Rejected"), dot: "bg-red-500", count: data ? all.filter((r) => r.status === "rejected").length : null },
+                { key: "sent" as Show, label: tr("Waiting"), dot: "bg-[color:var(--j-E2B203)]", count: data ? all.filter((r) => r.status === "sent").length : null },
+                { key: "approved" as Show, label: tr("Approved"), dot: "bg-[color:var(--j-22A06B)]", count: data ? all.filter((r) => r.status === "approved").length : null },
+                { key: "rejected" as Show, label: tr("Rejected"), dot: "bg-[color:var(--j-C9372C)]", count: data ? all.filter((r) => r.status === "rejected").length : null },
                 { key: "" as Show, label: tr("All"), count: data ? all.length : null }]} />
               <FilterToolbar search={q} onSearch={setQ} placeholder={tr("Search driver or note")} filters={filters}
                 onOpen={() => { setDraft(pool); setSheet(true); }} onClear={() => setPool("")} />

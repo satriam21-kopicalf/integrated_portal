@@ -72,7 +72,7 @@ function Stars({ value, size = 13 }: { value: number | null; size?: number }) {
       <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
       <span className="inline-flex" aria-hidden>
         {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-amber-400 text-amber-400" : value >= i - 0.75 ? "fill-amber-200 text-amber-400" : "text-[color:var(--j-8590A2)]"} />
+          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]" : value >= i - 0.75 ? "fill-[color:var(--j-F5CD47)] text-[color:var(--j-B38600)]" : "text-[color:var(--j-8590A2)]"} />
         ))}
       </span>
     </span>
@@ -83,7 +83,7 @@ type Note = { text: string; tone: "ok" | "error" } | null;
 
 function NoteLine({ note }: { note: Note }) {
   if (!note) return null;
-  return <p role="status" className={`rounded-[3px] px-3 py-2 text-sm ${note.tone === "ok" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{note.text}</p>;
+  return <p role="status" className={`rounded-[3px] px-3 py-2 text-sm ${note.tone === "ok" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]"}`}>{note.text}</p>;
 }
 
 export default function GoogleMapsRatingPage() {
@@ -187,7 +187,7 @@ export default function GoogleMapsRatingPage() {
 
       <NoteLine note={note} />
       {res && !res.ready && (
-        <div className="flex items-start gap-2 rounded-[3px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-4 py-3 text-sm text-[color:var(--j-7F5F01)]">
           <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
           <span>{tr("The Google Places API key is not set on the server yet (GOOGLE_PLACES_API_KEY): the data appears after it is set and the first sync.")}</span>
         </div>
@@ -306,7 +306,7 @@ function OutletDrawer({ o, canEdit, onClose, onChanged }: { o: Outlet; canEdit: 
               {tr("Open in Google Maps")} <ExternalLink size={12} /></a>}
           </div>
         )}
-        {o.error && <p className="rounded-[3px] bg-red-50 px-3 py-2 text-xs text-red-700">{tr("Last sync failed")}: {o.error}</p>}
+        {o.error && <p className="rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-xs text-[color:var(--j-AE2E24)]">{tr("Last sync failed")}: {o.error}</p>}
 
         {o.weekHours.length > 0 && (
           <section>
@@ -420,7 +420,7 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
                 <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{c.name}</span>
                 <span className="block truncate text-xs text-[color:var(--j-626F86)]">{c.address}</span>
               </span>
-              {c.distanceM !== null && <span className={`text-xs tabular-nums ${c.distanceM > 300 ? "text-amber-700" : "text-[color:var(--j-626F86)]"}`}>{fmtNumber(c.distanceM)} m</span>}
+              {c.distanceM !== null && <span className={`text-xs tabular-nums ${c.distanceM > 300 ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)]"}`}>{fmtNumber(c.distanceM)} m</span>}
               <Button size="sm" variant={c.placeId === o.placeId ? "secondary" : "primary"} loading={busy === c.placeId} disabled={!!busy}
                 onClick={() => void choose(c.placeId)}>{c.placeId === o.placeId ? tr("Current") : tr("Choose")}</Button>
             </li>
@@ -428,7 +428,7 @@ function PlacePicker({ o, onChanged }: { o: Outlet; onChanged: () => void }) {
         </ul>
       )}
       {o.match !== "none" && (
-        <button type="button" disabled={!!busy} onClick={() => void choose(null)} className="mt-2 text-xs text-[color:var(--j-626F86)] hover:text-red-700 hover:underline">
+        <button type="button" disabled={!!busy} onClick={() => void choose(null)} className="mt-2 text-xs text-[color:var(--j-626F86)] hover:text-[color:var(--j-AE2E24)] hover:underline">
           {tr("Mark as not on Google Maps")}
         </button>
       )}

@@ -67,7 +67,7 @@ export function BundleDrawer({ menu, cards, current, suggested, onClose, onSaved
             <div className="mb-1.5 flex items-center justify-between">
               <span className="text-xs font-semibold text-[color:var(--j-626F86)]">{tr("Menu {0}", i + 1)}</span>
               <button type="button" onClick={() => setRows((rs) => (rs.length > 1 ? rs.filter((_, j) => j !== i) : [{ card: "", qty: "1" }]))}
-                aria-label={tr("Delete")} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>
+                aria-label={tr("Delete")} className="rounded-[3px] p-1 text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]"><Trash2 size={15} /></button>
             </div>
             <SearchSelect value={r.card} options={options} placeholder={tr("Choose the menu's recipe card")} onChange={(v) => set(i, { card: v ?? "" })} ariaLabel={tr("Recipe Card")} />
             <label className="mt-2 flex items-center gap-2 text-xs text-[color:var(--j-626F86)]">

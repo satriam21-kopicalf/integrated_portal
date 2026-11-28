@@ -33,8 +33,8 @@ type Data = {
   technicians: { name: string; kind: "INTERNAL" | "VENDOR"; jobs: number; done: number; avgHours: number | null }[];
   reasons: { number: string; status: Status; note: string; at: string }[];
 };
-const DOT: Partial<Record<Status, string>> = { PENDING: "bg-neutral-400", ORDERED: "bg-violet-500", ON_HOLD: "bg-amber-500",
-  ACCEPTED: "bg-[color:var(--j-388BFF)]", IN_PROGRESS: "bg-[color:var(--j-0C66E4)]", HANDOVER: "bg-cyan-500", DONE: "bg-emerald-500", REJECTED: "bg-red-500" };
+const DOT: Partial<Record<Status, string>> = { PENDING: "bg-[color:var(--j-8590A2)]", ORDERED: "bg-[color:var(--j-6E5DC6)]", ON_HOLD: "bg-[color:var(--j-E2B203)]",
+  ACCEPTED: "bg-[color:var(--j-388BFF)]", IN_PROGRESS: "bg-[color:var(--j-0C66E4)]", HANDOVER: "bg-[color:var(--j-2898BD)]", DONE: "bg-[color:var(--j-22A06B)]", REJECTED: "bg-[color:var(--j-C9372C)]" };
 type Range = "30" | "90" | "180" | "365";
 
 export default function DeOverview({ bgroups }: { bgroups: { id: string; code: string }[] }) {
@@ -98,7 +98,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
             <>
               <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
                 <Panel title={tr("Weekly Trend")} description={tr("Requests in vs done per week")}
-                  actions={<span className="flex items-center gap-3 text-[11px] text-[color:var(--j-626F86)]"><Legend color="bg-[color:var(--j-0C66E4)]" label={tr("In")} /><Legend color="bg-emerald-500" label={tr("Done")} /></span>}>
+                  actions={<span className="flex items-center gap-3 text-[11px] text-[color:var(--j-626F86)]"><Legend color="bg-[color:var(--j-0C66E4)]" label={tr("In")} /><Legend color="bg-[color:var(--j-22A06B)]" label={tr("Done")} /></span>}>
                   {!d ? <Skel /> : <Trend rows={d.trend} />}
                 </Panel>
                 <Panel title={tr("Where the Requests Stand")} description={tr("Current status of the requests of the period")}>
@@ -182,7 +182,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
                     <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {d.repeats.map((x) => (
                         <li key={`${x.branchCode}-${x.category}-${x.item}`} className="flex items-start gap-3 px-4 py-2.5 text-sm">
-                          <Repeat size={15} className="mt-0.5 flex-shrink-0 text-amber-600" />
+                          <Repeat size={15} className="mt-0.5 flex-shrink-0 text-[color:var(--j-B38600)]" />
                           <span className="min-w-0 flex-1"><span className="block font-medium text-[color:var(--j-172B4D)]">{x.item} <span className="font-normal text-[color:var(--j-626F86)]">· {x.category}</span></span>
                             <span className="block truncate text-[11px] text-[color:var(--j-626F86)]">{x.branchName} · {x.numbers.join(", ")}</span></span>
                           <Badge tone="amber">{tr("{0}×", x.count)}</Badge>
@@ -198,7 +198,7 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
                   <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
                     {d.reasons.map((x, i) => (
                       <li key={i} className="flex items-start gap-3 px-4 py-2.5 text-sm">
-                        {x.status === "REJECTED" ? <AlertTriangle size={15} className="mt-0.5 flex-shrink-0 text-red-500" /> : <Wrench size={15} className="mt-0.5 flex-shrink-0 text-amber-500" />}
+                        {x.status === "REJECTED" ? <AlertTriangle size={15} className="mt-0.5 flex-shrink-0 text-[color:var(--j-C9372C)]" /> : <Wrench size={15} className="mt-0.5 flex-shrink-0 text-[color:var(--j-B38600)]" />}
                         <span className="min-w-0 flex-1"><span className="block text-[color:var(--j-172B4D)]">{x.note}</span>
                           <span className="text-[11px] text-[color:var(--j-626F86)]">{x.number} · {STATUS_LABEL[x.status]()} · {wibDateTime(x.at)}</span></span>
                       </li>
@@ -221,7 +221,7 @@ function Pct({ pct }: { pct: number | null }) {
   if (pct === null) return <span className="text-xs text-[color:var(--j-626F86)]">—</span>;
   return (
     <span className="flex items-center gap-2">
-      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-400" : "bg-red-500")} style={{ width: `${pct}%` }} /></span>
+      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", pct >= 80 ? "bg-[color:var(--j-22A06B)]" : pct >= 50 ? "bg-[color:var(--j-E2B203)]" : "bg-[color:var(--j-C9372C)]")} style={{ width: `${pct}%` }} /></span>
       <span className="text-xs font-semibold tabular-nums text-[color:var(--j-172B4D)]">{pct}%</span>
     </span>
   );
@@ -295,7 +295,7 @@ function Trend({ rows }: { rows: Data["trend"] }) {
           <div key={r.week} className="flex min-w-[2.25rem] flex-1 flex-col items-center gap-1" title={`${dmy(r.week)}: ${r.in} / ${r.done}`}>
             <div className="flex h-32 w-full items-end justify-center gap-0.5">
               <span className="w-2.5 rounded-t bg-[color:var(--j-0C66E4)]" style={{ height: `${(r.in / max) * 100}%` }} />
-              <span className="w-2.5 rounded-t bg-emerald-500" style={{ height: `${(r.done / max) * 100}%` }} />
+              <span className="w-2.5 rounded-t bg-[color:var(--j-22A06B)]" style={{ height: `${(r.done / max) * 100}%` }} />
             </div>
           </div>
         ))}

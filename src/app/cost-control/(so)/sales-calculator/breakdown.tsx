@@ -80,7 +80,7 @@ export function BreakdownStep() {
           {data && <p>{tr("Pricelist, else the ESB HPP")}</p>}
         </Stat>
         <Stat label={tr("Raw Materials")} icon={<Package size={13} />} value={data ? fmtNumber(data.materials.length) : <StatSkeleton />} />
-        <Stat label={tr("Menus without a Card")} icon={<Store size={13} />} value={t ? <span className={t.noCard ? "text-amber-600" : undefined}>{fmtNumber(t.noCard)}</span> : <StatSkeleton />}>
+        <Stat label={tr("Menus without a Card")} icon={<Store size={13} />} value={t ? <span className={t.noCard ? "text-[color:var(--j-B38600)]" : undefined}>{fmtNumber(t.noCard)}</span> : <StatSkeleton />}>
           {t && t.noCard > 0 && <p>{tr("their materials are not counted")}</p>}
         </Stat>
       </StatStrip>
@@ -91,7 +91,7 @@ export function BreakdownStep() {
             onClear={() => { setPeriod(DEFAULT()); setBranch(""); }}
             extra={<div className="ml-auto"><ExcelExportMenu title={tr("Export Breakdown")} choices={[
               { key: "branch", label: tr("Per outlet"), hint: tr("One row per month × outlet × menu × additional × material, ready for a Pivot Table"), icon: <Store size={16} />, tone: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]", run: exportJob(true) },
-              { key: "all", label: tr("All outlets combined"), hint: tr("One row per month × menu × additional × material"), icon: <Layers size={16} />, tone: "bg-violet-50 text-violet-600", run: exportJob(false) },
+              { key: "all", label: tr("All outlets combined"), hint: tr("One row per month × menu × additional × material"), icon: <Layers size={16} />, tone: "bg-[color:var(--j-F3F0FF)] text-[color:var(--j-6E5DC6)]", run: exportJob(false) },
             ]} footer={<>{branchName ?? tr("All Branches")} · {dmy(period.from)} – {dmy(period.to)}</>} /></div>} />
           <Tabs label={tr("View")} value={view} onChange={(k) => setView(k as typeof view)} tabs={[
             { key: "menus", label: tr("Per Menu"), count: data ? fmtNumber(menus.length) : undefined },
@@ -146,7 +146,7 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
                         {Object.keys(m.choices).length > 0 && ` · ${Object.entries(m.choices).map(([k, v]) => `${k} ${num(v, 0)}`).join(", ")}`}</span></td>
                     <td className="px-3 py-2.5 text-right font-medium tabular-nums">{num(m.portions, 0)}</td>
                     {LEVELS.map((l) => <td key={l} className="px-3 py-2.5 text-right tabular-nums text-[color:var(--j-44546F)]">{m.levels[l] ? num(m.levels[l], 0) : <span className="text-[color:var(--j-8590A2)]">—</span>}</td>)}
-                    <td className="px-3 py-2.5 text-right tabular-nums">{rp(m.value)}{m.unpriced > 0 && <span className="block text-[11px] text-amber-600">{tr("{0} without a price", m.unpriced)}</span>}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{rp(m.value)}{m.unpriced > 0 && <span className="block text-[11px] text-[color:var(--j-B38600)]">{tr("{0} without a price", m.unpriced)}</span>}</td>
                     <td className="px-2 text-[color:var(--j-626F86)]"><ChevronRight size={15} className={cx("transition-transform", isOpen && "rotate-90")} /></td>
                   </tr>
                   {isOpen && (
@@ -158,8 +158,8 @@ function MenuTable({ rows, open, onOpen }: { rows: MenuRow[]; open: string | nul
                           <tbody className="divide-y divide-[color:var(--j-DCDFE4)]/60">
                             {m.materials.map((x) => (
                               <tr key={x.code ?? x.name}><td className="py-1 pr-3 text-[color:var(--j-172B4D)]">{x.name}<span className="ml-1.5 text-[10px] text-[color:var(--j-626F86)]">{x.code}</span></td>
-                                <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-sky-700")}>{num(x.qty)}</td><td className="py-1 pr-3 text-[color:var(--j-626F86)]">{x.unit}</td>
-                                <td className="py-1 text-right tabular-nums">{x.priced === false ? <span className="text-amber-600">{tr("No price")}</span> : rp(x.value)}</td></tr>
+                                <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-[color:var(--j-0055CC)]")}>{num(x.qty)}</td><td className="py-1 pr-3 text-[color:var(--j-626F86)]">{x.unit}</td>
+                                <td className="py-1 text-right tabular-nums">{x.priced === false ? <span className="text-[color:var(--j-B38600)]">{tr("No price")}</span> : rp(x.value)}</td></tr>
                             ))}
                           </tbody>
                         </table>
@@ -206,7 +206,7 @@ function MaterialTable({ rows }: { rows: Material[] }) {
                 <td className="px-3 py-2 text-right tabular-nums" title={m.convUom ? `1 ${m.convUom} = ${num(m.convFactor ?? 0)} ${m.baseUom ?? ""}` : tr("No pack unit in the item master")}>
                   {m.convQty == null ? <span className="text-[color:var(--j-8590A2)]">–</span> : num(m.convQty)}</td>
                 <td className="px-3 py-2 text-[color:var(--j-626F86)]">{m.convUom ? <>{m.convUom} <span className="text-[11px] text-[color:var(--j-626F86)]">({num(m.convFactor ?? 0)} {m.baseUom})</span></> : null}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{m.price == null ? <span className="text-amber-600">{tr("No price")}</span> : rp(m.price)}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{m.price == null ? <span className="text-[color:var(--j-B38600)]">{tr("No price")}</span> : rp(m.price)}</td>
                 <td className="px-3 py-2 text-right font-medium tabular-nums">{rp(m.value)}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{fmtNumber(m.menus ?? 0)}</td>
               </tr>
@@ -254,8 +254,8 @@ function OutletTable({ rows, open, onOpen, q }: { rows: Outlet[]; open: string |
                         <tbody className="divide-y divide-[color:var(--j-DCDFE4)]/60">
                           {mats.map((x) => (
                             <tr key={x.code ?? x.name}><td className="py-1 pr-3 text-[color:var(--j-172B4D)]">{x.name}<span className="ml-1.5 text-[10px] text-[color:var(--j-626F86)]">{x.code}</span></td>
-                              <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-sky-700")}>{num(x.qty)}</td><td className="py-1 pr-3 text-[color:var(--j-626F86)]">{x.unit}</td>
-                              <td className="py-1 text-right tabular-nums">{x.priced === false ? <span className="text-amber-600">{tr("No price")}</span> : rp(x.value)}</td></tr>
+                              <td className={cx("py-1 pr-3 text-right tabular-nums", x.qty < 0 && "text-[color:var(--j-0055CC)]")}>{num(x.qty)}</td><td className="py-1 pr-3 text-[color:var(--j-626F86)]">{x.unit}</td>
+                              <td className="py-1 text-right tabular-nums">{x.priced === false ? <span className="text-[color:var(--j-B38600)]">{tr("No price")}</span> : rp(x.value)}</td></tr>
                           ))}
                         </tbody>
                       </table>

@@ -48,7 +48,7 @@ export function EsbProducts({ menus, onSaved }: { menus: Menu[]; onSaved: () => 
             {rows.map((p) => {
               const byHand = menus.some((m) => (m.esb_aliases ?? []).includes(p.key));
               return (
-                <tr key={p.key} className={p.menu ? undefined : "bg-amber-50/40"}>
+                <tr key={p.key} className={p.menu ? undefined : "bg-[color:var(--j-FFF7D6)]/40"}>
                   <td className="px-4 py-2 font-medium text-[color:var(--j-172B4D)]">{p.name}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-[color:var(--j-44546F)]">{p.lines.toLocaleString("id-ID")}</td>
                   <td className="px-3 py-2 tabular-nums text-[color:var(--j-44546F)]">{p.last ? dmyOf(p.last) : "—"}</td>

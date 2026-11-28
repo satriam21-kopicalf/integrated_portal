@@ -62,7 +62,7 @@ export default function Dialog({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white shadow-xl outline-none sm:rounded-[3px] ${width}`}
+        className={`relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[8px] bg-white outline-none sm:rounded-[3px] ${width}`}
       >
         <header className="flex items-start justify-between gap-3 border-b border-[color:var(--j-DCDFE4)] px-5 py-4">
           <div className="min-w-0">
@@ -96,10 +96,10 @@ export function Field({
   return (
     <div className={className}>
       <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium text-[color:var(--j-44546F)]">
-        {tc(label)}{required && <span className="ml-0.5 text-red-500">*</span>}
+        {tc(label)}{required && <span className="ml-0.5 text-[color:var(--j-C9372C)]">*</span>}
       </label>
       {children}
-      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : hint ? <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{hint}</p> : null}
+      {error ? <p className="mt-1 text-xs text-[color:var(--j-C9372C)]">{error}</p> : hint ? <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{hint}</p> : null}
     </div>
   );
 }
@@ -117,5 +117,5 @@ export const buttonSecondary =
   'text-[color:var(--j-172B4D)] transition-colors hover:bg-[color:var(--j-F7F8F9)] disabled:opacity-60';
 
 export const buttonDanger =
-  'inline-flex h-9 items-center justify-center gap-1.5 rounded-[3px] bg-red-600 px-3.5 text-[13px] font-medium text-white ' +
-  'transition-colors hover:bg-red-700 disabled:opacity-60';
+  'inline-flex h-9 items-center justify-center gap-1.5 rounded-[3px] bg-[color:var(--j-C9372C)] px-3.5 text-[13px] font-medium text-white ' +
+  'transition-colors hover:bg-[color:var(--j-AE2E24)] disabled:opacity-60';

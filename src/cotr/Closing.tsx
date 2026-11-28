@@ -36,8 +36,8 @@ export function ClosingBar({ pool, poolName, day }: { pool: string; poolName: st
   }, [pool, day, tick]);
   return (
     <>
-      <div className={cx("flex flex-wrap items-center gap-3 rounded-[3px] px-4 py-3 ring-1", c?.closed ? "bg-emerald-50 ring-emerald-200" : "bg-white ring-[color:var(--j-DCDFE4)]")}>
-        <span className={cx("flex h-9 w-9 items-center justify-center rounded-[3px]", c?.closed ? "bg-emerald-100 text-emerald-700" : "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]")}>
+      <div className={cx("flex flex-wrap items-center gap-3 rounded-[3px] px-4 py-3 ring-1", c?.closed ? "bg-[color:var(--j-DCFFF1)] ring-[color:var(--j-BAF3DB)]" : "bg-white ring-[color:var(--j-DCDFE4)]")}>
+        <span className={cx("flex h-9 w-9 items-center justify-center rounded-[3px]", c?.closed ? "bg-[color:var(--j-BAF3DB)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]")}>
           {c?.closed ? <Lock size={17} /> : <MoonStar size={17} />}</span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Night closing")} · {poolName} · {dmyOf(day)}</p>
@@ -56,7 +56,7 @@ function Step({ n, title, done, warn, children }: { n: number; title: string; do
   return (
     <section className="relative pl-10">
       <span className={cx("absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold",
-        done ? "bg-emerald-600 text-white" : warn ? "bg-amber-100 text-amber-800" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>
+        done ? "bg-[color:var(--j-22A06B)] text-white" : warn ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>
         {done ? <CheckCircle2 size={16} /> : n}</span>
       <h3 className="pb-2 pt-1 text-sm font-semibold text-[color:var(--j-172B4D)]">{title}</h3>
       {children}
@@ -108,12 +108,12 @@ function ClosingDrawer({ initial, poolName, onClose }: { initial: Closing; poolN
       {!c ? <SkeletonList rows={4} /> : (
         <div className="space-y-6">
           {locked && (
-            <p className="flex items-start gap-2 rounded-[3px] bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-emerald-200"><Lock size={16} className="mt-0.5 flex-shrink-0" />
+            <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-DCFFF1)] px-3 py-2.5 text-sm text-[color:var(--j-216E4E)] ring-1 ring-[color:var(--j-BAF3DB)]"><Lock size={16} className="mt-0.5 flex-shrink-0" />
               <span>{tr("Closed by {0}, {1}", c.closed!.by ?? "—", wibDateTime(c.closed!.at))}{c.closed!.note && <span className="block text-xs">“{c.closed!.note}”</span>}</span></p>
           )}
           <Step n={0} title={tr("Drivers back at the pool")} done={step0} warn={!step0}>
             {step0 ? <p className="text-xs text-[color:var(--j-626F86)]">{tr("Every driver checked out and no reload waits.")}</p> : (
-              <div className="space-y-1 text-xs text-amber-800">
+              <div className="space-y-1 text-xs text-[color:var(--j-7F5F01)]">
                 {c.openShifts.length > 0 && <p className="flex items-start gap-1.5"><Truck size={13} className="mt-0.5" />{tr("Not checked out yet: {0}", c.openShifts.map((s) => s.name).join(", "))}</p>}
                 {c.reloads > 0 && <p className="flex items-start gap-1.5"><TriangleAlert size={13} className="mt-0.5" />{tr("{0} reloads wait for a decision", c.reloads)}</p>}
               </div>
@@ -151,22 +151,22 @@ function ClosingDrawer({ initial, poolName, onClose }: { initial: Closing; poolN
                       <th className="px-3 py-2 text-right">{tr("Calculated")}</th><th className="px-3 py-2 text-right">{tr("Actual")}</th><th className="px-3 py-2 text-right">{tr("Balance")}</th></tr></thead>
                     <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                       {c.menus.map((m) => (
-                        <tr key={m.menu} className={m.balance ? "bg-red-50/50" : undefined}>
+                        <tr key={m.menu} className={m.balance ? "bg-[color:var(--j-FFECEB)]/50" : undefined}>
                           <td className="px-3 py-1.5 font-medium text-[color:var(--j-172B4D)]">{m.name}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{m.opening ?? 0}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{(m.arrived ?? 0) + Math.max(0, m.transfer ?? 0)}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{(m.sold ?? 0) + (m.waste ?? 0) + (m.cupping ?? 0) + Math.max(0, -(m.transfer ?? 0))}</td>
                           <td className="px-3 py-1.5 text-right tabular-nums">{m.calculated ?? 0}</td>
                           <td className="px-3 py-1.5 text-right font-semibold tabular-nums">{m.actual ?? "—"}</td>
-                          <td className={cx("px-3 py-1.5 text-right font-semibold tabular-nums", m.balance ? "text-red-700" : "text-emerald-700")}>{m.balance ? (m.balance > 0 ? `+${m.balance}` : m.balance) : "0"}</td>
+                          <td className={cx("px-3 py-1.5 text-right font-semibold tabular-nums", m.balance ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-216E4E)]")}>{m.balance ? (m.balance > 0 ? `+${m.balance}` : m.balance) : "0"}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
                 <p className="mt-2 flex items-center gap-1.5 text-xs">{c.balance === 0
-                  ? <><Scale size={13} className="text-emerald-600" /><span className="text-emerald-700">{tr("Every menu balances.")}</span></>
-                  : <><TriangleAlert size={13} className="text-amber-600" /><span className="text-amber-800">{tr("{0} cups apart: explain it before closing.", c.balance > 0 ? `+${c.balance}` : c.balance)}</span></>}</p>
+                  ? <><Scale size={13} className="text-[color:var(--j-22A06B)]" /><span className="text-[color:var(--j-216E4E)]">{tr("Every menu balances.")}</span></>
+                  : <><TriangleAlert size={13} className="text-[color:var(--j-B38600)]" /><span className="text-[color:var(--j-7F5F01)]">{tr("{0} cups apart: explain it before closing.", c.balance > 0 ? `+${c.balance}` : c.balance)}</span></>}</p>
                 {!locked && c.balance !== 0 && (
                   <textarea value={note} maxLength={500} rows={2} onChange={(e) => setNote(e.target.value)} placeholder={tr("e.g. 2 cups broken in the cooler, counted again")}
                     className={cx(inputClass, "mt-2 py-2")} />
@@ -180,7 +180,7 @@ function ClosingDrawer({ initial, poolName, onClose }: { initial: Closing; poolN
               : step0 && step1 && step3 ? tr("Everything is ready: close the day.") : tr("Finish the steps above first.")}</p>
             {!locked && <ul className="mt-2 space-y-1 text-xs">
               {[[step0, tr("Drivers back at the pool")], [step1, tr("Waste & cupping of the pool")], [step2, tr("Physical leftover per batch code")], [step3, tr("Check the balance")]].map(([ok, label]) => (
-                <li key={label as string} className={cx("flex items-center gap-1.5", ok ? "text-emerald-700" : "text-[color:var(--j-626F86)]")}>{ok ? <CheckCircle2 size={13} /> : <Circle size={13} />}{label as string}</li>
+                <li key={label as string} className={cx("flex items-center gap-1.5", ok ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-626F86)]")}>{ok ? <CheckCircle2 size={13} /> : <Circle size={13} />}{label as string}</li>
               ))}
             </ul>}
           </Step>

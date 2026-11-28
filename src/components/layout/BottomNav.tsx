@@ -98,7 +98,7 @@ function FormSheet({ links, on, onClose }: { links: FormLink[]; on: (href: strin
       <button type="button" className="drawer-backdrop absolute inset-0 bg-neutral-900/40" onClick={onClose} aria-label={tr('Close')} />
       <div className="sheet-panel absolute inset-x-0 bottom-0 mx-auto flex max-h-[85dvh] max-w-3xl flex-col rounded-t-[8px] bg-white shadow-2xl">
         <div className="flex-shrink-0 rounded-t-[8px] border-b border-[color:var(--j-DCDFE4)] bg-white px-5 pb-3 pt-2.5">
-          <div className="mx-auto h-1 w-9 rounded-full bg-neutral-300" aria-hidden />
+          <div className="mx-auto h-1 w-9 rounded-full bg-[color:var(--j-8590A2)]" aria-hidden />
           <div className="mt-2.5 flex items-center justify-between gap-3">
             <p className="text-base font-semibold text-[color:var(--j-172B4D)]">{tr('Form')} <span className="ml-1 text-sm font-normal text-[color:var(--j-626F86)]">{links.length}</span></p>
             <button type="button" onClick={onClose} className="-mr-1.5 flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--j-626F86)] active:bg-[color:var(--j-091E420F)]" aria-label={tr('Close')}><X size={18} /></button>

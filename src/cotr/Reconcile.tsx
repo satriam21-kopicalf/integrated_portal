@@ -98,7 +98,7 @@ export function Reconcile() {
                       <td className="px-3 py-2 tabular-nums">{dmyOf(d.day)}</td>
                       <td className="px-3 py-2.5 font-medium text-[color:var(--j-172B4D)]">{d.poolName}</td>
                       <td className="px-3 py-2.5"><Badge tone={STATUS[d.status].tone}>{STATUS[d.status].label()}</Badge></td>
-                      <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${d.gap ? "text-red-700" : "text-[color:var(--j-626F86)]"}`}>{d.gap ? d.gap.toLocaleString("id-ID") : "—"}</td>
+                      <td className={`px-3 py-2.5 text-right font-semibold tabular-nums ${d.gap ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-626F86)]"}`}>{d.gap ? d.gap.toLocaleString("id-ID") : "—"}</td>
                       <td className="px-3 py-2.5 text-[color:var(--j-626F86)]"><ChevronDown size={15} className={on ? "rotate-180 transition-transform" : "transition-transform"} /></td>
                     </tr>
                     {on && (
@@ -115,7 +115,7 @@ export function Reconcile() {
                                     <td className="px-3 py-1.5 text-[color:var(--j-172B4D)]">{l.name}</td><td className="px-3 py-1.5 text-[color:var(--j-44546F)]">{KIND[l.kind]()}</td>
                                     <td className="px-3 py-1.5 text-right tabular-nums">{num(l.sheet)}</td><td className="px-3 py-1.5 text-right tabular-nums">{num(l.esb)}</td>
                                     <td className="px-3 py-1.5 text-right tabular-nums text-[color:var(--j-626F86)]">{num(l.app)}</td>
-                                    <td className={`px-3 py-1.5 text-right font-semibold tabular-nums ${l.diff ? "text-red-700" : "text-[color:var(--j-626F86)]"}`}>{l.diff === null ? "—" : l.diff > 0 ? `+${l.diff}` : l.diff}</td>
+                                    <td className={`px-3 py-1.5 text-right font-semibold tabular-nums ${l.diff ? "text-[color:var(--j-AE2E24)]" : "text-[color:var(--j-626F86)]"}`}>{l.diff === null ? "—" : l.diff > 0 ? `+${l.diff}` : l.diff}</td>
                                   </tr>
                                 ))}
                               </tbody>

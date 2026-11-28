@@ -99,7 +99,7 @@ function Stars({ value, size = 13 }: { value: number | null; size?: number }) {
       <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span>
       <span className="inline-flex" aria-hidden>
         {[1, 2, 3, 4, 5].map((i) => (
-          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-amber-400 text-amber-400" : value >= i - 0.75 ? "fill-amber-200 text-amber-400" : "text-[color:var(--j-8590A2)]"} />
+          <Star key={i} size={size} className={value >= i - 0.25 ? "fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]" : value >= i - 0.75 ? "fill-[color:var(--j-F5CD47)] text-[color:var(--j-B38600)]" : "text-[color:var(--j-8590A2)]"} />
         ))}
       </span>
     </span>
@@ -122,7 +122,7 @@ function StorePhoto({ o, size = 36 }: { o: Pick<Outlet, "photoUrl" | "branchName
   const [broken, setBroken] = useState(false);
   const style = { width: size, height: size };
   if (!o.photoUrl || broken) {
-    return <span style={style} className="flex flex-shrink-0 items-center justify-center rounded-[3px] bg-emerald-50 text-xs font-bold text-emerald-700">
+    return <span style={style} className="flex flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-DCFFF1)] text-xs font-bold text-[color:var(--j-216E4E)]">
       {(o.branchName.replace(/kopi calf( to go)?[\s-]*/i, "")[0] || "K").toUpperCase()}</span>;
   }
   // eslint-disable-next-line @next/next/no-img-element -- merchant photo from the Grab CDN
@@ -180,7 +180,7 @@ export default function GrabFood() {
     <Page eyebrow={tr("Aggregator")} title={<img src={LOGO} alt="GrabFood" width={160} height={56} className="h-6 w-auto sm:h-7" />}
       subtitle={`${tr("Status, rating, reviews and menu of the outlets on GrabFood")}${sum.last ? ` · ${tr("status checked {0}", timeAgo(sum.last))}` : ""}`}
       actions={res?.canEdit ? (
-        <button type="button" onClick={() => setSessionOpen(true)} className={cx(iconBtn, res.session && !res.session.valid && "text-amber-600")}
+        <button type="button" onClick={() => setSessionOpen(true)} className={cx(iconBtn, res.session && !res.session.valid && "text-[color:var(--j-B38600)]")}
           title={tr("Grab Session")} aria-label={tr("Grab Session")}><KeyRound size={19} /></button>
       ) : undefined}
       stats={
@@ -208,7 +208,7 @@ export default function GrabFood() {
       }>
 
       {res?.canEdit && res.session && !res.session.valid && (
-        <div className="flex items-start gap-2 rounded-[3px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-4 py-3 text-sm text-[color:var(--j-7F5F01)]">
           <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
           <span className="min-w-0 flex-1">{res.session.present ? tr("The Grab session has ended: the data stops updating until it is refreshed.") : tr("No Grab session yet: add one to start the updates.")}</span>
           <Button size="sm" onClick={() => setSessionOpen(true)}>{tr("Refresh")}</Button>
@@ -344,8 +344,8 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                       <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--j-626F86)]">
                         <Stars value={scoreOf(o)} size={12} />
                         {o.hours.week.length > 0 && <span className="tabular-nums">{rangesText(o.hours.today)}</span>}
-                        {(o.hours.closedMinutesToday ?? 0) > 0 && <span className="text-red-600">{tr("closed {0} in hours", fmtDuration(o.hours.closedMinutesToday!))}</span>}
-                        {unavailable(o) > 0 && <span className="text-amber-700">{tr("{0} menu unavailable", fmtNumber(unavailable(o)))}</span>}
+                        {(o.hours.closedMinutesToday ?? 0) > 0 && <span className="text-[color:var(--j-C9372C)]">{tr("closed {0} in hours", fmtDuration(o.hours.closedMinutesToday!))}</span>}
+                        {unavailable(o) > 0 && <span className="text-[color:var(--j-7F5F01)]">{tr("{0} menu unavailable", fmtNumber(unavailable(o)))}</span>}
                       </span>
                     </span>
                   </button>
@@ -373,7 +373,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                           <span className="min-w-0">
                             <span className="block truncate font-medium text-[color:var(--j-172B4D)]">{o.branchName}</span>
                             <span className="block truncate text-xs text-[color:var(--j-626F86)]">
-                              {o.branchCode ?? <span className="text-amber-700">{tr("not mapped to a branch")}</span>}{o.cityName ? ` · ${o.cityName}` : ""}
+                              {o.branchCode ?? <span className="text-[color:var(--j-7F5F01)]">{tr("not mapped to a branch")}</span>}{o.cityName ? ` · ${o.cityName}` : ""}
                             </span>
                           </span>
                         </span>
@@ -382,13 +382,13 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                         <Cell note={o.hours.week.length ? rangesText(o.hours.today) : undefined}><StatusBadge s={o.status} inHours={o.hours.closedInHours} /></Cell>
                       </td>
                       <td className={cx(TD, "whitespace-nowrap text-right")}>
-                        {o.hours.closedMinutesToday ? <span className="font-semibold tabular-nums text-red-600">{fmtDuration(o.hours.closedMinutesToday)}</span> : <span className="text-[color:var(--j-8590A2)]">—</span>}
+                        {o.hours.closedMinutesToday ? <span className="font-semibold tabular-nums text-[color:var(--j-C9372C)]">{fmtDuration(o.hours.closedMinutesToday)}</span> : <span className="text-[color:var(--j-8590A2)]">—</span>}
                       </td>
                       <td className={cx(TD, "whitespace-nowrap")}>
                         <Cell note={o.rating.count ? tr("{0} ratings", fmtNumber(o.rating.count)) : undefined}><Stars value={scoreOf(o)} /></Cell>
                       </td>
                       <td className={cx(TD, "whitespace-nowrap text-right")}>
-                        <Cell align="right" noteClass={o.reviews30d.low ? "font-medium text-red-600" : "text-[color:var(--j-626F86)]"}
+                        <Cell align="right" noteClass={o.reviews30d.low ? "font-medium text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]"}
                           note={o.reviews30d.low ? tr("{0} ≤2★ in 30 days", o.reviews30d.low) : o.reviews30d.count ? tr("{0} in 30 days", o.reviews30d.count) : undefined}>
                           <span className="text-[color:var(--j-172B4D)]">{fmtNumber(o.reviewsAll.count)}</span>
                         </Cell>
@@ -396,7 +396,7 @@ function OutletsPanel({ tabs, res, cities, f, setF, onOpen }: {
                       <td className={cx(TD, "whitespace-nowrap text-right")}>
                         {unavailable(o) ? (
                           <Cell align="right" note={tr("{0} out of stock · {1} off", o.menu.outOfStock, o.menu.off)}>
-                            <span className="font-semibold text-amber-700">{fmtNumber(unavailable(o))}</span>
+                            <span className="font-semibold text-[color:var(--j-7F5F01)]">{fmtNumber(unavailable(o))}</span>
                           </Cell>
                         ) : <span className="text-[color:var(--j-8590A2)]">—</span>}
                       </td>
@@ -478,7 +478,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
         {o.address && <p className="flex items-start gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3 text-sm text-[color:var(--j-44546F)]"><MapPin size={15} className="mt-0.5 flex-shrink-0 text-[color:var(--j-626F86)]" />{o.address}</p>}
 
         {(o.hours.closedInHours || (o.hours.closedMinutesToday ?? 0) > 0) && (
-          <p className="flex items-start gap-2 rounded-[3px] bg-red-50 px-3 py-2.5 text-sm text-red-800">
+          <p className="flex items-start gap-2 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2.5 text-sm text-[color:var(--j-AE2E24)]">
             <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
             <span>{o.hours.closedInHours ? tr("Not open now although its opening hours say open.") : ""} {(o.hours.closedMinutesToday ?? 0) > 0 ? tr("Closed {0} during its opening hours today.", fmtDuration(o.hours.closedMinutesToday!)) : ""}</span>
           </p>
@@ -499,7 +499,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
               })}
             </dl>
             {o.hours.closePeriodEnd && new Date(o.hours.closePeriodEnd).getTime() > now && (
-              <p className="mt-1.5 text-xs text-amber-700">{tr("Temporarily closed until {0}", fmtDateTime(o.hours.closePeriodEnd))}</p>
+              <p className="mt-1.5 text-xs text-[color:var(--j-7F5F01)]">{tr("Temporarily closed until {0}", fmtDateTime(o.hours.closePeriodEnd))}</p>
             )}
           </section>
         )}
@@ -511,7 +511,7 @@ function OutletDrawer({ o, canEdit, onClose, onReviews, onMenu, onPreview, onCha
               {dist.map((d) => (
                 <li key={d.score} className="flex items-center gap-2 text-xs text-[color:var(--j-44546F)]">
                   <span className="w-6 tabular-nums">{d.score}★</span>
-                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-amber-400" style={{ width: `${Math.min(100, d.countPercentage)}%` }} /></span>
+                  <span className="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className="block h-full rounded-full bg-[color:var(--j-E2B203)]" style={{ width: `${Math.min(100, d.countPercentage)}%` }} /></span>
                   <span className="w-10 text-right tabular-nums">{Math.round(d.countPercentage)}%</span>
                 </li>
               ))}
@@ -648,10 +648,10 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
         footer={res ? <>
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>{tr("{0} reviews", fmtNumber(res.total))}</span>
-            {res.counts.avg !== null && <span className="inline-flex items-center gap-1"><Star size={12} className="fill-amber-400 text-amber-400" />{res.counts.avg.toFixed(2)}</span>}
+            {res.counts.avg !== null && <span className="inline-flex items-center gap-1"><Star size={12} className="fill-[color:var(--j-B38600)] text-[color:var(--j-B38600)]" />{res.counts.avg.toFixed(2)}</span>}
             <span className="inline-flex items-center gap-1"><ImageIcon size={12} />{fmtNumber(res.counts.withPhoto)}</span>
             <span>{tr("{0} not replied", fmtNumber(res.counts.unreplied))}</span>
-            <span className="text-red-600">{fmtNumber(res.counts.low)} ≤2★</span>
+            <span className="text-[color:var(--j-C9372C)]">{fmtNumber(res.counts.low)} ≤2★</span>
           </span>
           <Pager page={res.page} pages={pages} total={res.total} size={res.size} onPage={setPage} />
         </> : undefined}>
@@ -680,7 +680,7 @@ function ReviewsPanel({ tabs, outlets, cities, f, setF, onPreview }: {
                 </thead>
                 <tbody className="divide-y divide-[color:var(--j-F1F2F4)]">
                   {!res ? <SkeletonRows cols={f.merchant ? 5 : 6} /> : res.data.map((r) => (
-                    <tr key={r.reviewId} onClick={() => onPreview(r)} className={cx("cursor-pointer transition-colors hover:bg-[color:var(--j-E9F2FF)]", (r.rating ?? 5) <= 2 && "bg-red-50/30")}>
+                    <tr key={r.reviewId} onClick={() => onPreview(r)} className={cx("cursor-pointer transition-colors hover:bg-[color:var(--j-E9F2FF)]", (r.rating ?? 5) <= 2 && "bg-[color:var(--j-FFECEB)]/30")}>
                       <td className={cx(TD, "align-top")}>
                         <Cell note={fmtTime(r.createdAt)}><span className="text-[color:var(--j-44546F)]">{fmtDay(r.createdAt)}</span></Cell>
                       </td>
@@ -969,7 +969,7 @@ function MenuPanel({ tabs, outlets, cities, f, setF }: { tabs: ReactNode; outlet
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-[color:var(--j-172B4D)]">{i.name}</span>
                     <span className="block truncate text-xs text-[color:var(--j-626F86)]">{[!f.merchant ? i.branchName : null, i.kind === "modifier" ? tr("Add-on") : i.category].filter(Boolean).join(" · ")}</span>
-                    {f.status === "price" && <span className="block text-xs text-amber-700">{rp(i.price)} · {tr("most: {0}", rp(i.refPrice))}</span>}
+                    {f.status === "price" && <span className="block text-xs text-[color:var(--j-7F5F01)]">{rp(i.price)} · {tr("most: {0}", rp(i.refPrice))}</span>}
                   </span>
                   <span className="flex-shrink-0 text-right">
                     <Badge tone={MENU_TONE[i.status]}>{i.status === "OUT_OF_STOCK" ? tr("Out of stock") : i.status === "OFF" ? tr("Off") : tr("Available")}</Badge>
@@ -1028,7 +1028,7 @@ function PriceCell({ i }: { i: MenuItem }) {
   if (!differs) return <>{rp(i.price)}</>;
   return (
     <span className="inline-flex flex-col items-end" title={tr("Most of the {0} outlets in the city ask {1}", fmtNumber(i.refOutlets ?? 0), rp(i.refPrice))}>
-      <span className="font-semibold text-amber-700">{rp(i.price)}</span>
+      <span className="font-semibold text-[color:var(--j-7F5F01)]">{rp(i.price)}</span>
       <span className="text-[11px] text-[color:var(--j-626F86)]">{tr("most: {0}", rp(i.refPrice))}</span>
     </span>
   );
@@ -1101,7 +1101,7 @@ function SessionDrawer({ session, onClose, onSaved }: { session: Session; onClos
         <Button loading={saving} disabled={cookie.trim().length < 20} onClick={() => void save()}>{tr("Save Session")}</Button>
       </>}>
       <div className="space-y-4">
-        <div className={cx("rounded-[3px] border px-3 py-2.5 text-sm", ok ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900")}>
+        <div className={cx("rounded-[3px] border px-3 py-2.5 text-sm", ok ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]")}>
           <p className="font-medium">{ok ? tr("Grab session active") : session?.present ? tr("Grab session ended") : tr("No Grab session yet")}</p>
           {session?.updatedAt && <p className="text-xs opacity-80">{tr("updated {0}", fmtDateTime(session.updatedAt))}{session.updatedBy ? ` · ${tr("by {0}", session.updatedBy)}` : ""}</p>}
         </div>

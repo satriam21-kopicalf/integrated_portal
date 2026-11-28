@@ -6,7 +6,7 @@
 // browser (?print=1 opens the print dialog).
 
 import { Skeleton, SkeletonList } from "@/components/kc/Skeleton";
-import { CheckCircle2, Loader2, Printer, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Printer, ShieldCheck } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { cx } from "@/so/ui";
@@ -69,7 +69,7 @@ function View() {
 
       <main className="mx-auto max-w-4xl space-y-4 px-4 py-5 sm:px-6">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Fact k={tr("Status")} v={a.status === "completed" ? <span className="text-emerald-700">{tr("Completed {0}", wibDateTime(a.completedAt))}</span> : <span className="text-amber-700">{tr("Follow-up in progress")}</span>} />
+          <Fact k={tr("Status")} v={a.status === "completed" ? <span className="text-[color:var(--j-216E4E)]">{tr("Completed {0}", wibDateTime(a.completedAt))}</span> : <span className="text-[color:var(--j-7F5F01)]">{tr("Follow-up in progress")}</span>} />
           <Fact k={tr("Sent")} v={`${wibDateTime(d.submittedAt)}${d.signedName ? ` · ${d.signedName}` : ""}`} />
           <Fact k={tr("Revisit")} v={dayLong(a.revisitOn)} />
         </div>
@@ -90,24 +90,24 @@ function View() {
               {a.actions.map((x: ActionPlan, i: number) => (
                 <tr key={x.id} className="avoid align-top">
                   <td className="py-2 pr-2 text-[color:var(--j-626F86)]">{i + 1}</td>
-                  <td className="py-2 pr-2"><span className="font-medium text-[color:var(--j-172B4D)]">{x.title}</span>{x.detail && <span className="block text-xs text-[color:var(--j-626F86)]">{x.detail}</span>}{x.doneNote && <span className="block text-xs text-emerald-700">“{x.doneNote}”</span>}</td>
+                  <td className="py-2 pr-2"><span className="font-medium text-[color:var(--j-172B4D)]">{x.title}</span>{x.detail && <span className="block text-xs text-[color:var(--j-626F86)]">{x.detail}</span>}{x.doneNote && <span className="block text-xs text-[color:var(--j-216E4E)]">“{x.doneNote}”</span>}</td>
                   <td className="py-2 pr-2 text-[color:var(--j-44546F)]">{x.assignee ?? "—"}</td>
                   <td className="whitespace-nowrap py-2 pr-2 text-[color:var(--j-44546F)]">{dayLong(x.dueOn)}</td>
-                  <td className="py-2">{x.status === "done" ? <span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 size={13} /> {tr("Done")}</span> : <span className="text-amber-700">{tr("Open")}</span>}</td>
+                  <td className="py-2">{x.status === "done" ? <span className="inline-flex items-center gap-1 text-[color:var(--j-216E4E)]"><CheckCircle2 size={13} /> {tr("Done")}</span> : <span className="text-[color:var(--j-7F5F01)]">{tr("Open")}</span>}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {a.revisitNote && <p className="mt-3 rounded-[3px] bg-emerald-50 px-3 py-2 text-xs text-emerald-900">{tr("Revisit")}: {a.revisitNote}</p>}
+          {a.revisitNote && <p className="mt-3 rounded-[3px] bg-[color:var(--j-DCFFF1)] px-3 py-2 text-xs text-[color:var(--j-216E4E)]">{tr("Revisit")}: {a.revisitNote}</p>}
         </Block>
 
         <Block title={tr("Findings (UNDER)")} subtitle={tr("{0} items", under.length)}>
-          {under.length === 0 ? <p className="text-sm text-emerald-700">{tr("No UNDER in this audit")}</p> : (
+          {under.length === 0 ? <p className="text-sm text-[color:var(--j-216E4E)]">{tr("No UNDER in this audit")}</p> : (
             <ul className="space-y-3">
               {under.map((it) => {
                 const ph = d.photos.filter((p) => p.item === it.key);
                 return (
-                  <li key={it.key} className="avoid rounded-[3px] border border-red-100 bg-red-50/40 p-3">
+                  <li key={it.key} className="avoid rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]/40 p-3">
                     <p className="text-sm font-medium text-[color:var(--j-172B4D)]">{tl(it)}</p>
                     <p className="text-[11px] text-[color:var(--j-626F86)]">{tl(it, "section")}</p>
                     {d.answers[it.key]?.note && <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{d.answers[it.key]?.note}</p>}

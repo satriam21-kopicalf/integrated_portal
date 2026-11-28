@@ -13,7 +13,7 @@ import { ExcelIcon, excelBtnClass } from '@/components/ExcelIconButton';
 
 export type ExportChoice = {
   key: string; label: string; hint: string; icon: ReactNode; count?: number | null;
-  /** icon colours of the choice, e.g. "bg-emerald-50 text-emerald-600" */ tone?: string;
+  /** icon colours of the choice, e.g. "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-22A06B)]" */ tone?: string;
   run: () => Promise<void> | void;
 };
 

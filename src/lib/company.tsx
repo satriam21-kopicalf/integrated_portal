@@ -181,7 +181,7 @@ function NoView({ unit, onClose }: { unit: UnitTab; onClose: () => void }) {
   };
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-neutral-900/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div role="alertdialog" aria-modal="true" aria-labelledby="no-view-title" className="w-full rounded-t-lg bg-white p-5 shadow-xl sm:max-w-md sm:rounded-[3px]" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+      <div role="alertdialog" aria-modal="true" aria-labelledby="no-view-title" className="w-full rounded-t-lg bg-white p-5 sm:max-w-md sm:rounded-[3px]" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {LOGOS[unit.code] && <img src={LOGOS[unit.code]} alt="" aria-hidden className="mb-3 max-h-14 max-w-36 object-contain" />}
         <p id="no-view-title" className="text-base font-semibold text-[color:var(--j-172B4D)]">{brand ? tr('Your account has no {0} branch', unit.name) : tr('No view for {0} here', unit.name)}</p>

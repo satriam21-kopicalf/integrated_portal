@@ -91,7 +91,7 @@ export default function UserMenu({ collapsed, onNavigate, placement = 'side' }: 
             <p className={group}>{tr('Profile')}</p>
             <button type="button" role="menuitem" onClick={() => { setOpen(false); openProfile(); }} className={cx(item, 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]')}>
               <UserRoundPen /> {tr('My profile')}
-              {!user.profileComplete && <span className="ml-auto rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">{tr('Incomplete')}</span>}
+              {!user.profileComplete && <span className="ml-auto rounded-full bg-[color:var(--j-FFF7D6)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--j-7F5F01)]">{tr('Incomplete')}</span>}
             </button>
             <button type="button" role="menuitem" onClick={() => { setOpen(false); openPassword(); }} className={cx(item, 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]')}>
               <KeyRound /> {tr('Change Password')}
@@ -111,7 +111,7 @@ export default function UserMenu({ collapsed, onNavigate, placement = 'side' }: 
               ]} />
             </div>
             <div className="my-1 h-px bg-[color:var(--j-DCDFE4)]" />
-            <button type="button" role="menuitem" onClick={() => { setOpen(false); logout(); }} className={cx(item, 'text-red-600 hover:bg-red-50 [&>svg]:!text-red-500')}>
+            <button type="button" role="menuitem" onClick={() => { setOpen(false); logout(); }} className={cx(item, 'text-[color:var(--j-C9372C)] hover:bg-[color:var(--j-FFECEB)] [&>svg]:!text-[color:var(--j-C9372C)]')}>
               <LogOut /> {tr('Sign Out')}
             </button>
           </div>
@@ -120,15 +120,15 @@ export default function UserMenu({ collapsed, onNavigate, placement = 'side' }: 
           <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu" aria-label={tr('Account')} title={`${user.displayName} · ${role}`}
             className={cx('relative flex rounded-full p-0.5 transition-shadow hover:ring-2 hover:ring-[color:var(--j-DCDFE4)]', open && 'ring-2 ring-[color:var(--j-388BFF)]')}>
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
-            {!user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-white" title={tr('Profile Incomplete')} />}
+            {!user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-[color:var(--j-E2B203)] ring-2 ring-white" title={tr('Profile Incomplete')} />}
           </button>
         ) : (
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="menu" title={collapsed ? `${user.displayName} · ${role}` : undefined}
           className={cx('flex w-full items-center gap-2 rounded-[4px] p-1.5 text-left transition-colors hover:bg-[color:var(--j-091E420F)]', open && 'bg-[color:var(--j-E9F2FF)]', collapsed && 'justify-center')}>
           <span className="relative flex-shrink-0">
             <UserAvatar name={user.displayName} src={user.avatarUrl} size="sm" />
-            {unread > 0 ? <UnreadBadge n={unread} className="absolute -right-1.5 -top-1.5 ring-2 ring-neutral-50" />
-              : !user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-neutral-50" title={tr('Profile Incomplete')} />}
+            {unread > 0 ? <UnreadBadge n={unread} className="absolute -right-1.5 -top-1.5 ring-2 ring-white" />
+              : !user.profileComplete && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-[color:var(--j-E2B203)] ring-2 ring-white" title={tr('Profile Incomplete')} />}
           </span>
           {!collapsed && (
             <>

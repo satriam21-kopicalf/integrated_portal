@@ -129,7 +129,7 @@ export default function TypesPage() {
   useEffect(() => { void loadCalendar(); }, [loadCalendar]);
 
   const colors = useMemo(() => new Map((rows ?? []).map((t, i) => [t.code, TYPE_COLORS[i % TYPE_COLORS.length]])), [rows]);
-  const colorOf = (code: string) => colors.get(code) ?? "bg-neutral-400";
+  const colorOf = (code: string) => colors.get(code) ?? "bg-[color:var(--j-8590A2)]";
   const labelOf = (code: string, name: string) => countTypeLabel(code, name);
   const all = rows ?? [];
   const shownTypes = all.filter((t) => (!q.trim() || `${countTypeLabel(t.code, t.name)} ${t.code}`.toLowerCase().includes(q.trim().toLowerCase()))
@@ -194,8 +194,8 @@ export default function TypesPage() {
 }
 
 const FREQ_TONE: Record<Frequency, string> = {
-  DAILY: "bg-sky-50 text-sky-700", WEEKLY: "bg-emerald-50 text-emerald-700", MONTHLY: "bg-amber-50 text-amber-700",
-  DATES: "bg-violet-50 text-violet-700", ADHOC: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]",
+  DAILY: "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]", WEEKLY: "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]", MONTHLY: "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]",
+  DATES: "bg-[color:var(--j-F3F0FF)] text-[color:var(--j-5E4DB2)]", ADHOC: "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]",
 };
 
 /** One count type: what it is, when it is due, its window and validity, the next dates, then lists / WIP / ESB. */
@@ -205,9 +205,9 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
     ? `${t.valid_from ? fmtDate(t.valid_from) : tr("now")} – ${t.valid_to ? fmtDate(t.valid_to) : tr("no end")}` : tr("Always");
   return (
     <button type="button" onClick={onOpen}
-      className={cx("group flex h-full w-full flex-col overflow-hidden rounded-[3px] border bg-white text-left transition hover:border-[color:var(--j-85B8FF)] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)]",
+      className={cx("group flex h-full w-full flex-col overflow-hidden rounded-[3px] border bg-white text-left transition hover:border-[color:var(--j-85B8FF)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)]",
         t.is_active ? "border-[color:var(--j-DCDFE4)]" : "border-dashed border-[color:var(--j-8590A2)] bg-[color:var(--j-F7F8F9)]")}>
-      <span className={cx("h-1 w-full", t.is_active ? color : "bg-neutral-300")} aria-hidden />
+      <span className={cx("h-1 w-full", t.is_active ? color : "bg-[color:var(--j-8590A2)]")} aria-hidden />
       <span className="flex items-start gap-3 px-4 pb-3 pt-3.5">
         <span className="min-w-0 flex-1">
           <span className="block truncate text-base font-semibold text-[color:var(--j-172B4D)] group-hover:text-[color:var(--j-0C66E4)]" title={countTypeLabel(t.code, t.name)}>{countTypeLabel(t.code, t.name)}</span>
@@ -234,7 +234,7 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
       </span>
       <span className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-[color:var(--j-F1F2F4)] bg-[color:var(--j-F7F8F9)] px-4 py-2.5 text-[11px] text-[color:var(--j-626F86)]">
         <span className="inline-flex items-center gap-1" title={t.overrides ? tr("{0} branch overrides", t.overrides) : undefined}><ListChecks size={12} /> {tr("{0} lists", t.lists)}</span>
-        {t.wip_enabled && <span className="inline-flex items-center gap-1 text-violet-700"><FlaskConical size={12} /> {tr("WIP form")}</span>}
+        {t.wip_enabled && <span className="inline-flex items-center gap-1 text-[color:var(--j-5E4DB2)]"><FlaskConical size={12} /> {tr("WIP form")}</span>}
         {t.date_field && <span className="inline-flex items-center gap-1 text-[color:var(--j-626F86)]" title={tr("Date Asked per Item")}><CalendarRange size={12} /> {dateFieldLabel(t.date_field)}</span>}
         <span className="ml-auto max-w-full truncate font-mono text-[color:var(--j-626F86)]" title={t.esb_purpose ?? undefined}>{t.code}</span>
         {t.esb_purpose && <span className="w-full truncate text-[color:var(--j-626F86)]" title={t.esb_purpose}>ESB: {t.esb_purpose}</span>}
@@ -342,7 +342,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
       title={creating ? tr("New Count Type") : countTypeLabel(type.code, type.name)}
       description={creating ? tr("Name it, choose when it is due and its count window") : type.code}
       footer={<>
-        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-red-600">{error}</p>}
+        {error && <p role="alert" className="mr-auto line-clamp-2 text-xs text-[color:var(--j-C9372C)]">{error}</p>}
         <Button variant="secondary" onClick={onClose}>{tr("Cancel")}</Button>
         <Button loading={busy} disabled={!d.name.trim() || (d.frequency === "DATES" && !d.dates.length)} onClick={save}>
           <Save size={16} /> {creating ? tr("Create count type") : tr("Save changes")}
@@ -353,7 +353,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
         <section className="rounded-[3px] bg-neutral-900 p-4 text-white">
           <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Summary")}</p>
           <p className="mt-1 truncate text-lg font-semibold">{d.name.trim() || tr("Untitled count type")}</p>
-          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-neutral-200">
+          <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[color:var(--j-DCDFE4)]">
             <span className="inline-flex items-center gap-1.5"><CalendarDays size={14} className="text-[color:var(--j-626F86)]" />{summary}</span>
             {d.frequency !== "ADHOC" && <span className="inline-flex items-center gap-1.5"><Clock size={14} className="text-[color:var(--j-626F86)]" />{windowText(d.window_start, d.window_end)}</span>}
           </p>
@@ -363,9 +363,9 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             </p>
           )}
           <p className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
-            <span className={cx("rounded-full px-2 py-0.5 font-semibold", d.is_active ? "bg-emerald-500/20 text-emerald-300" : "bg-white/10 text-[color:var(--j-8590A2)]")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
-            {d.wip_enabled && <span className="rounded-full bg-violet-500/20 px-2 py-0.5 font-semibold text-violet-200">{tr("WIP form")}</span>}
-            {d.date_field && <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-neutral-200">{dateFieldLabel(d.date_field)}</span>}
+            <span className={cx("rounded-full px-2 py-0.5 font-semibold", d.is_active ? "bg-[color:var(--j-22A06B)]/20 text-[color:var(--j-4BCE97)]" : "bg-white/10 text-[color:var(--j-8590A2)]")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
+            {d.wip_enabled && <span className="rounded-full bg-[color:var(--j-6E5DC6)]/20 px-2 py-0.5 font-semibold text-[color:var(--j-B8ACF6)]">{tr("WIP form")}</span>}
+            {d.date_field && <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-[color:var(--j-DCDFE4)]">{dateFieldLabel(d.date_field)}</span>}
           </p>
         </section>
 
@@ -428,8 +428,8 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               <p className="text-xs font-medium text-[color:var(--j-44546F)]">{tr("Tap the dates the count is due (tap again to remove)")}</p>
               <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-[color:var(--j-0C66E4)]"} labelOf={(_c, n) => n} highlight={marked} onPick={pickDate} compact />
               <div className="flex flex-wrap items-center gap-1.5">
-                {d.dates.length === 0 ? <span className="text-xs text-amber-700">{tr("No date chosen yet")}</span> : d.dates.map((x) => (
-                  <button key={x} type="button" onClick={() => pickDate(x)} className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-2 py-0.5 text-xs text-[color:var(--j-0055CC)] hover:bg-red-50 hover:text-red-700"
+                {d.dates.length === 0 ? <span className="text-xs text-[color:var(--j-7F5F01)]">{tr("No date chosen yet")}</span> : d.dates.map((x) => (
+                  <button key={x} type="button" onClick={() => pickDate(x)} className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-2 py-0.5 text-xs text-[color:var(--j-0055CC)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-AE2E24)]"
                     title={tr("Remove")}>{fmtDate(x)} ×</button>
                 ))}
                 {d.dates.length > 0 && <button type="button" className="text-xs font-medium text-[color:var(--j-626F86)] hover:underline" onClick={() => set("dates", [])}>{tr("Clear All")}</button>}
@@ -463,7 +463,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
 
         {d.frequency !== "ADHOC" && d.frequency !== "DATES" && (
           <FormCard n={4} title={tr("Calendar Preview")} hint={tr("Highlighted: the dates this schedule produces (not saved yet).")}>
-            {previewError ? <p className="text-sm text-red-600">{previewError}</p>
+            {previewError ? <p className="text-sm text-[color:var(--j-C9372C)]">{previewError}</p>
               : <MonthCalendar month={month} onMonth={setMonth} colorOf={() => "bg-[color:var(--j-0C66E4)]"} labelOf={(_c, n) => n} highlight={marked} compact />}
           </FormCard>
         )}
@@ -505,7 +505,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             </div>
           )}
         </section>
-        {!creating && type.lists === 0 && <p className="rounded-[3px] bg-amber-50 px-3 py-2 text-xs text-amber-800">{tr("No count list uses this type yet: add one under Count lists so branches count it.")}</p>}
+        {!creating && type.lists === 0 && <p className="rounded-[3px] bg-[color:var(--j-FFF7D6)] px-3 py-2 text-xs text-[color:var(--j-7F5F01)]">{tr("No count list uses this type yet: add one under Count lists so branches count it.")}</p>}
       </div>
     </Drawer>
   );

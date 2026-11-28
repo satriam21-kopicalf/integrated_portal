@@ -304,7 +304,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         </div>
         <div className="mt-2.5 flex items-center gap-2.5">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <div className={cx("h-full rounded-full transition-all", pct === 100 ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${pct}%` }} />
+            <div className={cx("h-full rounded-full transition-all", pct === 100 ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${pct}%` }} />
           </div>
           <span className="text-xs font-semibold tabular-nums text-[color:var(--j-44546F)]">{count.progress.counted}/{count.progress.lines} · {pct}%</span>
         </div>
@@ -329,12 +329,12 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
           const items = count.lines.filter((l) => l.flags.includes("RECOUNT")).length;
           const premixes = count.wip?.lines.filter((w) => w.flags?.includes("RECOUNT")).length ?? 0;
           return (
-            <section className="flex items-start gap-3 rounded-[3px] border border-amber-200 bg-amber-50 px-4 py-3.5 text-amber-900" role="status">
-              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-amber-100 text-amber-700"><RotateCcw size={18} /></span>
+            <section className="flex items-start gap-3 rounded-[3px] border border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] px-4 py-3.5 text-[color:var(--j-7F5F01)]" role="status">
+              <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[3px] bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]"><RotateCcw size={18} /></span>
               <div className="min-w-0 text-[13px]">
                 <p className="text-sm font-semibold">{tr("Recount requested by {0}", count.reviewed_by_name ?? tr("the reviewer"))}</p>
                 {count.review_note && <p className="mt-0.5">“{count.review_note}”</p>}
-                <p className="mt-1 text-amber-800">
+                <p className="mt-1 text-[color:var(--j-7F5F01)]">
                   {[items ? tr("{0} items to count again", items) : "", premixes ? tr("{0} premixes to count again", premixes) : ""].filter(Boolean).join(" · ")}
                   {items || premixes ? ". " : ""}{tr("Only the lines marked Recount are open; the others stay as they were sent. Sign and send again when done.")}
                 </p>
@@ -344,7 +344,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
         })()}
         {!open && (
           <p className="flex items-start gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 text-sm text-[color:var(--j-44546F)]">
-            <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+            <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
             {count.submitted_at ? tr("Submitted {0}. The count is locked.", fmtDate(count.submitted_at)) : tr("The count is locked.")}
           </p>
         )}
@@ -357,7 +357,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
               <h2 className="truncate text-xs font-semibold capitalize text-[color:var(--j-44546F)]">{a}</h2>
               {areaDone[a] && (
                 <span className="flex flex-shrink-0 items-center gap-2">
-                  <span className="h-1 w-14 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]"><span className={cx("block h-full rounded-full", areaDone[a][0] >= areaDone[a][1] ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${areaDone[a][1] ? (areaDone[a][0] / areaDone[a][1]) * 100 : 0}%` }} /></span>
+                  <span className="h-1 w-14 overflow-hidden rounded-full bg-[color:var(--j-DCDFE4)]"><span className={cx("block h-full rounded-full", areaDone[a][0] >= areaDone[a][1] ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${areaDone[a][1] ? (areaDone[a][0] / areaDone[a][1]) * 100 : 0}%` }} /></span>
                   <span className="text-[11px] font-semibold tabular-nums text-[color:var(--j-626F86)]">{areaDone[a][0]}/{areaDone[a][1]}</span>
                 </span>
               )}
@@ -369,17 +369,17 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                 const bad = invalid.has(l.id);
                 const done = (l.qty_base !== null || fromWip(l)) && !l.flags.includes("RECOUNT");
                 return (
-                  <li key={l.id} className={cx("px-3 py-2.5 sm:px-4", l.flags.includes("RECOUNT") && "bg-amber-50/50")}>
+                  <li key={l.id} className={cx("px-3 py-2.5 sm:px-4", l.flags.includes("RECOUNT") && "bg-[color:var(--j-FFF7D6)]/50")}>
                     <div className="flex items-center gap-3">
                     <span className="flex w-5 flex-shrink-0 justify-center" aria-hidden>
                       {saving.has(l.id) ? <Loader2 size={15} className="animate-spin text-[color:var(--j-0C66E4)]" />
-                        : done ? <CheckCircle2 size={16} className="text-emerald-500" /> : <span className="h-3.5 w-3.5 rounded-full border-2 border-[color:var(--j-DCDFE4)]" />}
+                        : done ? <CheckCircle2 size={16} className="text-[color:var(--j-22A06B)]" /> : <span className="h-3.5 w-3.5 rounded-full border-2 border-[color:var(--j-DCDFE4)]" />}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2 text-sm font-medium leading-snug text-[color:var(--j-172B4D)]">{l.item_name}</p>
                       <p className="mt-0.5 truncate text-[11px] text-[color:var(--j-626F86)]"><span className="font-mono">{l.item_code}</span>{l.counted_by_name ? ` · ${l.counted_by_name}` : ""}</p>
                       {l.flags.includes("CORRECTED") && (
-                        <p className="mt-1 rounded-[3px] bg-sky-50 px-2 py-1 text-[11px] text-sky-900">
+                        <p className="mt-1 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-2 py-1 text-[11px] text-[color:var(--j-0055CC)]">
                           <span className="font-semibold">{tr("Corrected by Cost Control")}</span>{(() => { const old = count.lines.find((x) => x.id === l.recount_of)?.qty_base; return old != null ? ` · ${tr("you counted {0}", fmtQty(old))}` : ""; })()}
                           {l.correction_note ? ` · ${l.correction_note}` : ""}{l.corrected_by_name ? ` (${l.corrected_by_name})` : ""}</p>
                       )}
@@ -390,20 +390,20 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                         </span>
                       )}
                       {(l.source !== "WIP_EXPLODED" || l.flags.includes("RECOUNT")) && Number(l.qty_wip ?? 0) > 0 && (
-                        <p className="mt-0.5 text-[11px] text-violet-700">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
+                        <p className="mt-0.5 text-[11px] text-[color:var(--j-5E4DB2)]">{tr("+ {0} {1} from the WIP", fmtQty(l.qty_wip ?? "0"), l.base_uom)}</p>
                       )}
-                      {unsaved.has(l.id) && <p className="mt-0.5 text-[11px] text-amber-700">{tr("Not saved yet, retrying automatically")}</p>}
-                      {bad && <p className="mt-0.5 text-[11px] text-red-600">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
+                      {unsaved.has(l.id) && <p className="mt-0.5 text-[11px] text-[color:var(--j-7F5F01)]">{tr("Not saved yet, retrying automatically")}</p>}
+                      {bad && <p className="mt-0.5 text-[11px] text-[color:var(--j-C9372C)]">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
                     </div>
                     {/* a material from the premix only is shown as its grams, unless Cost Control asked to count it by hand
                         (2026-11-04): then it is entered like any line and its premix grams stay */}
                     {l.source === "WIP_EXPLODED" && !l.flags.includes("RECOUNT") ? (
-                      <p className="flex-shrink-0 text-right text-xs font-medium text-violet-700">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>
+                      <p className="flex-shrink-0 text-right text-xs font-medium text-[color:var(--j-5E4DB2)]">{fmtQty(l.qty_wip ?? "0")} {l.base_uom}<span className="block text-[10px] font-normal">{tr("from the WIP")}</span></p>
                     ) : (
                       <div className="flex flex-shrink-0 items-start gap-1.5">
                         {edit && l.flags.includes("RECOUNT") && d.qty !== "" && !multi.has(l.id) && (l.date_batches?.length ?? 0) < 2 && (
                           <button type="button" onClick={() => void save(l)} disabled={saving.has(l.id)}
-                            className="h-11 rounded-[3px] border border-amber-300 bg-amber-50 px-2 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                            className="h-11 rounded-[3px] border border-[color:var(--j-F5CD47)] bg-[color:var(--j-FFF7D6)] px-2 text-xs font-semibold text-[color:var(--j-7F5F01)] hover:bg-[color:var(--j-F8E6A0)]"
                             aria-label={tr("{0}: the quantity is right", l.item_name)} title={tr("The quantity is right: confirm the recount")}>{tr("Same ✓")}</button>
                         )}
                         {edit && d.qty === "" && !multi.has(l.id) && (l.date_batches?.length ?? 0) < 2 && (
@@ -418,7 +418,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                               onChange={(e) => setDraft(l.id, { qty: e.target.value })} onBlur={() => save(l)}
                               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); nextField(e.currentTarget); } }}
                               onFocus={(e) => e.currentTarget.select()}
-                              className={cx(inputClass, "h-11 text-right text-base font-semibold tabular-nums", done && "border-emerald-200 bg-emerald-50/40", bad && "border-red-400")}
+                              className={cx(inputClass, "h-11 text-right text-base font-semibold tabular-nums", done && "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)]/40", bad && "border-[color:var(--j-F87168)]")}
                               aria-label={`${l.item_name} ${unitOf(l)}`} />
                           </label>
                           <p className="mt-0.5 max-w-[7rem] truncate text-right text-xs font-semibold capitalize text-[color:var(--j-626F86)] sm:max-w-[9rem]" title={unitOf(l)}>
@@ -438,11 +438,11 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
                             <div className="mt-0.5 flex items-center gap-1.5">
                               <DateField disabled={!edit} value={l[df] ?? ""} max={df === "roasted_date" ? wibDay(0) : undefined}
                                 onCommit={(v) => void saveDate(l, v || null)}
-                                className={cx(DATE_INPUT, l[df] ? "border-emerald-200 bg-emerald-50/50" : "border-[color:var(--j-DCDFE4)] bg-white")}
+                                className={cx(DATE_INPUT, l[df] ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)]/50" : "border-[color:var(--j-DCDFE4)] bg-white")}
                                 label={`${DATE_FIELD_LABEL[df]()} ${l.item_name}`} />
                               {edit && (
                                 <button type="button" onClick={() => setMulti((m) => new Set(m).add(l.id))}
-                                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] text-[color:var(--j-626F86)] hover:border-brand-400 hover:text-[color:var(--j-0055CC)]"
+                                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] text-[color:var(--j-626F86)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]"
                                   aria-label={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())} title={tr("Add another {0}", DATE_FIELD_LABEL[df]().toLowerCase())}>
                                   <Plus size={16} />
                                 </button>
@@ -473,7 +473,7 @@ export default function CountView({ countId, backHref = "/stock-opname" }: { cou
               <p className="truncate text-xs text-[color:var(--j-626F86)]">
                 {wipDirty || wipUnsaved ? tr("Save the WIP first (empty or 0 when there is none)") : todo ? (count.status === "RECOUNT_REQUESTED" ? tr("Count the lines marked Recount") : tr("Enter 0 for items that are not there")) : tr("Ready to send")}
               </p>
-              <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", pct === 100 ? "bg-emerald-500" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${pct}%` }} /></span>
+              <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-[color:var(--j-091E420F)]"><span className={cx("block h-full rounded-full", pct === 100 ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-0C66E4)]")} style={{ width: `${pct}%` }} /></span>
             </div>
             <Button className="h-11 px-4" disabled={todo > 0 || busy || wipDirty || wipUnsaved} onClick={() => setConfirming(true)}><Send size={16} /> {crew ? tr("Review & submit") : tr("Submit")}</Button>
           </div>
@@ -529,24 +529,24 @@ function DateRows({ line, field, edit, unit, qty, onSave }: {
             <span className="w-4 flex-shrink-0 text-center text-[11px] font-semibold tabular-nums text-[color:var(--j-626F86)]">{i + 1}</span>
             <DateField disabled={!edit} value={r.date} max={field === "roasted_date" ? wibDay(0) : undefined}
               onCommit={(v) => { const next = rows.map((x) => (x.key === r.key ? { ...x, date: v } : x)); setRows(next); send(next); }}
-              className={cx(DATE_INPUT, r.date ? "border-emerald-200 bg-white" : "border-[color:var(--j-DCDFE4)] bg-white")} label={`${label} ${i + 1}`} />
+              className={cx(DATE_INPUT, r.date ? "border-[color:var(--j-BAF3DB)] bg-white" : "border-[color:var(--j-DCDFE4)] bg-white")} label={`${label} ${i + 1}`} />
             <input inputMode="decimal" disabled={!edit} value={r.qty} placeholder="0" onChange={(e) => set(r.key, { qty: e.target.value })}
               onBlur={() => send(rows)} onFocus={(e) => e.currentTarget.select()}
-              className={cx(inputClass, "h-10 w-20 max-w-[5rem] flex-shrink-0 px-2 text-right text-sm font-semibold tabular-nums sm:w-24 sm:max-w-[6rem]", bad.has(r.key) && "border-red-400")}
+              className={cx(inputClass, "h-10 w-20 max-w-[5rem] flex-shrink-0 px-2 text-right text-sm font-semibold tabular-nums sm:w-24 sm:max-w-[6rem]", bad.has(r.key) && "border-[color:var(--j-F87168)]")}
               aria-label={tr("Quantity {0} ({1})", i + 1, unit)} />
             {edit && (
               <button type="button" onClick={() => { const next = rows.filter((x) => x.key !== r.key); setRows(next); send(next); }}
-                className="flex h-10 w-8 flex-shrink-0 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-red-50 hover:text-red-600" aria-label={tr("Remove date {0}", i + 1)}>
+                className="flex h-10 w-8 flex-shrink-0 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-[color:var(--j-FFECEB)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Remove date {0}", i + 1)}>
                 <Trash2 size={15} />
               </button>
             )}
           </li>
         ))}
       </ul>
-      {bad.size > 0 && <p className="mt-1 text-[11px] text-red-600">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
+      {bad.size > 0 && <p className="mt-1 text-[11px] text-[color:var(--j-C9372C)]">{tr("Numbers only, at most 2 decimals, e.g. 2 or 1.25")}</p>}
       {edit && rows.length < 20 && (
         <button type="button" onClick={() => setRows((rs) => [...rs, { key: ++rowKey, date: "", qty: "" }])}
-          className="mt-1.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] bg-white text-xs font-semibold text-[color:var(--j-44546F)] hover:border-brand-400 hover:text-[color:var(--j-0055CC)]">
+          className="mt-1.5 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] bg-white text-xs font-semibold text-[color:var(--j-44546F)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]">
           <Plus size={14} /> {tr("Add another {0}", label.toLowerCase())}
         </button>
       )}

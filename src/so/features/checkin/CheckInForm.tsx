@@ -40,8 +40,8 @@ const tr = (key: string, ...args: (string | number | null | undefined)[]) => swa
 const FRESH_MS = 3 * 60_000; // a position older than this is taken again when sending
 
 type Tone = "ok" | "warn" | "muted";
-const TONE: Record<Tone, string> = { ok: "text-emerald-700", warn: "text-amber-700", muted: "text-[color:var(--j-626F86)]" };
-const DOT: Record<Tone, string> = { ok: "bg-emerald-500", warn: "bg-amber-500", muted: "bg-neutral-300" };
+const TONE: Record<Tone, string> = { ok: "text-[color:var(--j-216E4E)]", warn: "text-[color:var(--j-7F5F01)]", muted: "text-[color:var(--j-626F86)]" };
+const DOT: Record<Tone, string> = { ok: "bg-[color:var(--j-22A06B)]", warn: "bg-[color:var(--j-E2B203)]", muted: "bg-[color:var(--j-8590A2)]" };
 
 export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   setKind(kind);
@@ -178,7 +178,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   if (error || !data) {
     return (
       <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}>
-        {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]"><ErrorState message={error} onRetry={load} /></div>
+        {error ? <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white"><ErrorState message={error} onRetry={load} /></div>
           : <div className="mx-auto max-w-5xl space-y-4"><SkeletonList rows={3} /><SkeletonList rows={5} /></div>}
       </Page>
     );
@@ -187,7 +187,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
   return (
     <Page title={tr("PIC Check In")} subtitle={subtitle} actions={clock}
       stats={
-        <div className="mx-auto max-w-5xl rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+        <div className="mx-auto max-w-5xl rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
           <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 md:flex-row md:items-center md:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <UserAvatar name={data.user.name} src={me?.avatarUrl} size="md" />
@@ -199,10 +199,10 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
             <ol className="flex items-center" aria-label={tr("Steps")}>
               {steps.map((s, i) => (
                 <li key={s.label} className="flex items-center">
-                  {i > 0 && <span className={cx("mx-2 h-px w-6 sm:w-10", steps[i - 1].ok ? "bg-emerald-400" : "bg-[color:var(--j-DCDFE4)]")} />}
+                  {i > 0 && <span className={cx("mx-2 h-px w-6 sm:w-10", steps[i - 1].ok ? "bg-[color:var(--j-22A06B)]" : "bg-[color:var(--j-DCDFE4)]")} />}
                   <span className="flex items-center gap-1.5">
                     <span className={cx("flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold",
-                      s.ok ? "bg-emerald-500 text-white" : i === current ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
+                      s.ok ? "bg-[color:var(--j-22A06B)] text-white" : i === current ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
                       {s.ok ? <Check size={13} strokeWidth={3} /> : i + 1}
                     </span>
                     <span className={cx("text-xs font-medium", s.ok ? "text-[color:var(--j-44546F)]" : i === current ? "text-[color:var(--j-172B4D)]" : "text-[color:var(--j-626F86)]")}>{s.label}</span>
@@ -226,7 +226,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
           </section>
         )}
         {kind === "surveyor" && (data.schedule?.length ?? 0) > 0 && (
-          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 text-sm text-[color:var(--j-44546F)] shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3 text-sm text-[color:var(--j-44546F)]">
             <p className="font-semibold text-[color:var(--j-172B4D)]">{tr("Today's schedule")}</p>
             <ul className="mt-1.5 flex flex-wrap gap-1.5">
               {data.schedule!.map((s) => {
@@ -235,7 +235,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                   <li key={s.code}>
                     <button type="button" disabled={outMode || done} onClick={() => setBranch(s.code)} title={s.note ?? undefined}
                       className={cx("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
-                        done ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : branch === s.code ? "bg-[color:var(--j-0C66E4)] text-white ring-[color:var(--j-388BFF)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
+                        done ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)]" : branch === s.code ? "bg-[color:var(--j-0C66E4)] text-white ring-[color:var(--j-388BFF)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
                       {done && <CheckCircle2 size={12} />}{s.name}
                     </button>
                   </li>
@@ -246,8 +246,8 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
           </section>
         )}
         {!outMode && Object.keys(data.today ?? {}).length > 0 && (
-          <section className={cx("flex items-start gap-3 rounded-[3px] border px-4 py-3 text-sm", allDone ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)]")}>
-            <CheckCircle2 size={18} className={cx("mt-0.5 flex-shrink-0", allDone ? "text-emerald-600" : "text-emerald-500")} />
+          <section className={cx("flex items-start gap-3 rounded-[3px] border px-4 py-3 text-sm", allDone ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)]")}>
+            <CheckCircle2 size={18} className={cx("mt-0.5 flex-shrink-0", allDone ? "text-[color:var(--j-22A06B)]" : "text-[color:var(--j-22A06B)]")} />
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{allDone ? tr("You have checked in today") : tr("Checked in today")}</p>
               <p className="text-xs opacity-90">{data.branches.filter((x) => data.today?.[x.code]).map((x) => `${x.name} · ${wibTime(data.today[x.code].visitedAt)}`).join(" · ")}</p>
@@ -257,7 +257,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
         )}
 
         {data.branches.length === 0 ? (
-          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)] shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+          <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-6 py-12 text-center text-sm text-[color:var(--j-626F86)]">
             {tr("No branch is assigned to your account. Ask your administrator to assign the outlets you visit.")}
           </div>
         ) : (
@@ -279,16 +279,16 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                   const d = b.checkinDeadline;
                   const late = !!now && new Date(now.getTime() + 7 * 3600e3).toISOString().slice(11, 16) > d.wib;
                   return (
-                    <p className={cx("mt-2 flex items-start gap-2 rounded-[3px] border px-3 py-2.5 text-sm", late ? "border-amber-200 bg-amber-50 text-amber-900" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]")}>
-                      <Clock size={16} className={cx("mt-0.5 flex-shrink-0", late ? "text-amber-600" : "text-[color:var(--j-626F86)]")} />
+                    <p className={cx("mt-2 flex items-start gap-2 rounded-[3px] border px-3 py-2.5 text-sm", late ? "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]" : "border-[color:var(--j-DCDFE4)] bg-[color:var(--j-F7F8F9)] text-[color:var(--j-44546F)]")}>
+                      <Clock size={16} className={cx("mt-0.5 flex-shrink-0", late ? "text-[color:var(--j-B38600)]" : "text-[color:var(--j-626F86)]")} />
                       <span>{late ? tr("Past the on-time limit of this outlet ({0}): today's first check in is counted late.", `${d.deadline} ${d.zone}${d.zone !== "WIB" ? ` = ${d.wib} WIB` : ""}`)
                         : tr("Today's first check in is on time until {0}.", `${d.deadline} ${d.zone}${d.zone !== "WIB" ? ` (${d.wib} WIB)` : ""}`)}</span>
                     </p>
                   );
                 })()}
                 {doneToday && (
-                  <p className="mt-2 flex items-start gap-2 rounded-[3px] border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
-                    <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-600" />
+                  <p className="mt-2 flex items-start gap-2 rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-3 py-2.5 text-sm text-[color:var(--j-216E4E)]">
+                    <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[color:var(--j-22A06B)]" />
                     <span>{tr("Already checked in here today at {0}. The next check in can be done tomorrow.", wibTime(doneToday.visitedAt))}</span>
                   </p>
                 )}
@@ -317,8 +317,8 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                         {where?.located && b?.radius_m != null && <span className="block text-[11px] text-[color:var(--j-626F86)]">{tr("radius {0} m", b.radius_m)}</span>}
                       </Metric>
                       <Metric label={tr("Accuracy")}>
-                        <span className={cx("text-sm font-semibold tabular-nums", fix.accuracy > 100 ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}>±{Math.round(fix.accuracy)} m</span>
-                        {fix.accuracy > 100 && <span className="block text-[11px] text-amber-700">{tr("Low")}</span>}
+                        <span className={cx("text-sm font-semibold tabular-nums", fix.accuracy > 100 ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-172B4D)]")}>±{Math.round(fix.accuracy)} m</span>
+                        {fix.accuracy > 100 && <span className="block text-[11px] text-[color:var(--j-7F5F01)]">{tr("Low")}</span>}
                       </Metric>
                     </dl>
                     <a href={mapsUrl(fix.lat, fix.lng)} target="_blank" rel="noreferrer"
@@ -326,20 +326,20 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                       {fix.lat.toFixed(5)}, {fix.lng.toFixed(5)} <ExternalLink size={11} />
                     </a>
                     {outside && b && (
-                      <div role="alert" className="mt-3 rounded-[3px] border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-800">
+                      <div role="alert" className="mt-3 rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] px-3 py-3 text-sm text-[color:var(--j-AE2E24)]">
                         <p className="flex items-center gap-2 font-semibold"><AlertTriangle size={16} className="flex-shrink-0" /> {tr("You are outside the outlet's radius")}</p>
                         <p className="mt-1 text-xs leading-relaxed">
                           {tr("{0} m from {1} (radius {2} m). Move closer to the outlet and update the location, or write the reason in the note: the check in is marked outside the radius and reviewed by management.", where?.distance ?? "?", b.name, b.radius_m ?? 100)}
                         </p>
                         <button type="button" disabled={locating} onClick={() => void findMe()}
-                          className="mt-2 inline-flex items-center gap-1.5 rounded-[3px] bg-white px-2.5 py-1.5 text-xs font-medium text-red-700 ring-1 ring-red-200 hover:bg-red-100 disabled:opacity-50">
+                          className="mt-2 inline-flex items-center gap-1.5 rounded-[3px] bg-white px-2.5 py-1.5 text-xs font-medium text-[color:var(--j-AE2E24)] ring-1 ring-[color:var(--j-FFD5D2)] hover:bg-[color:var(--j-FFD5D2)] disabled:opacity-50">
                           {locating ? <Loader2 size={13} className="animate-spin" /> : <Crosshair size={13} />} {tr("Update location")}
                         </button>
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="rounded-[3px] border border-red-100 bg-red-50 px-3 py-3 text-sm text-red-800">
+                  <div className="rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] px-3 py-3 text-sm text-[color:var(--j-AE2E24)]">
                     <p className="flex items-center gap-2 font-semibold"><MapPinOff size={16} className="flex-shrink-0" /> {locError}</p>
                     <p className="mt-1 text-xs leading-relaxed">{tr("Turn on Location (GPS) and allow it for this site (padlock in the address bar), then try again.")}</p>
                     <Button variant="secondary" size="sm" className="mt-2.5" onClick={() => void findMe()}><RotateCcw size={13} /> {tr("Try Again")}</Button>
@@ -356,12 +356,12 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                       {checking ? (
                         <p className="flex items-center gap-2 text-sm text-[color:var(--j-44546F)]"><Loader2 size={15} className="animate-spin" /> {tr("Checking the face…")}</p>
                       ) : faceOk ? (
-                        <div className="rounded-[3px] border border-emerald-100 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+                        <div className="rounded-[3px] border border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)] px-3 py-2.5 text-sm text-[color:var(--j-216E4E)]">
                           <p className="flex items-center gap-1.5 font-semibold"><CheckCircle2 size={15} /> {tr("Face detected")}</p>
                           <p className="mt-0.5 text-xs">{tr("Taken at {0}", wibDateTime(photo.takenAt))}</p>
                         </div>
                       ) : (
-                        <div className="rounded-[3px] border border-red-100 bg-red-50 px-3 py-2.5 text-sm text-red-800">
+                        <div className="rounded-[3px] border border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)] px-3 py-2.5 text-sm text-[color:var(--j-AE2E24)]">
                           <p className="flex items-center gap-1.5 font-semibold"><XCircle size={15} /> {tr("No face detected")}</p>
                           <p className="mt-0.5 text-xs leading-relaxed">{tr("Retake the photo with your face clearly visible, facing the camera, in good light.")}</p>
                         </div>
@@ -382,20 +382,20 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 )}
               </Card>
 
-              <section className={cx("rounded-[3px] border bg-white p-4 sm:p-5", outside ? "border-red-200" : "border-[color:var(--j-DCDFE4)]")}>
+              <section className={cx("rounded-[3px] border bg-white p-4 sm:p-5", outside ? "border-[color:var(--j-FFD5D2)]" : "border-[color:var(--j-DCDFE4)]")}>
                 <label htmlFor="pic-note" className="text-sm font-semibold text-[color:var(--j-172B4D)]">
-                  {outside ? <>{outMode ? tr("Reason for clocking out outside the radius") : tr("Reason for checking in outside the radius")} <span className="font-normal text-red-600">({tr("required")})</span></>
+                  {outside ? <>{outMode ? tr("Reason for clocking out outside the radius") : tr("Reason for checking in outside the radius")} <span className="font-normal text-[color:var(--j-C9372C)]">({tr("required")})</span></>
                     : <>{tr("Note")} <span className="font-normal text-[color:var(--j-626F86)]">({tr("optional")})</span></>}
                 </label>
                 <textarea id="pic-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={outside ? 3 : 2}
                   placeholder={outside ? tr("e.g. delivering stock to the warehouse next to the outlet") : outMode ? tr("e.g. what was done during the visit") : tr("e.g. the purpose of the visit")}
                   aria-invalid={reasonMissing || undefined}
-                  className={cx(inputClass, "mt-2 py-2", reasonMissing && "border-red-300 focus:border-red-500 focus:ring-red-500/20")} />
+                  className={cx(inputClass, "mt-2 py-2", reasonMissing && "border-[color:var(--j-F87168)] focus:border-[color:var(--j-C9372C)] focus:ring-[color:var(--j-C9372C)]/20")} />
               </section>
             </div>
 
             <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-              <section className="hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-5 shadow-[0_1px_2px_0_rgb(15_23_42/0.04)] lg:block">
+              <section className="hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white p-5 lg:block">
                 <p className="text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Summary")}</p>
                 <dl className="mt-3 divide-y divide-[color:var(--j-F1F2F4)] text-sm">
                   <Row k={tr("Outlet")} v={b?.name ?? "—"} />
@@ -404,10 +404,10 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                   <Row k={outMode ? tr("Clock Out Time") : tr("Visit Time")} v={tr("Server time when sent")} />
                 </dl>
                 <Button loading={sending} disabled={!ready} onClick={() => void send()} className="mt-4 w-full"><Send size={15} /> {sendLabel}</Button>
-                {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-red-600" : "text-[color:var(--j-626F86)]")}>{pending}</p>}
+                {!ready && <p className={cx("mt-2 text-center text-xs", reasonMissing ? "text-[color:var(--j-C9372C)]" : "text-[color:var(--j-626F86)]")}>{pending}</p>}
               </section>
 
-              <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+              <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
                 <p className="border-b border-[color:var(--j-F1F2F4)] px-4 py-3 text-sm font-semibold text-[color:var(--j-172B4D)] sm:px-5">{tr("My latest check-ins")}</p>
                 {data.recent.length === 0 ? <p className="px-5 py-8 text-center text-sm text-[color:var(--j-626F86)]">{tr("No check in yet")}</p> : (
                   <ul className="divide-y divide-[color:var(--j-F1F2F4)]">
@@ -500,20 +500,20 @@ function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?
   // on the body: above the app frame (a transformed ancestor would clip a fixed layer)
   return createPortal(
     <div className="fixed inset-0 z-[90] flex items-stretch justify-center bg-neutral-900/50 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Check in Sent")}>
-      <div className="flex w-full flex-col overflow-y-auto bg-white sm:max-h-[92vh] sm:max-w-md sm:rounded-[3px] sm:shadow-2xl">
-        <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", outside ? "bg-gradient-to-b from-amber-50 to-white" : "bg-gradient-to-b from-emerald-50 to-white", "sm:rounded-t-2xl")}>
-          <span className={cx("flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg", outside ? "bg-amber-500 shadow-amber-200" : "bg-emerald-500 shadow-emerald-200")}>
+      <div className="flex w-full flex-col overflow-y-auto bg-white sm:max-h-[92vh] sm:max-w-md sm:rounded-[3px]">
+        <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", outside ? "bg-[color:var(--j-FFF7D6)]" : "bg-[color:var(--j-DCFFF1)]", "sm:rounded-t-2xl")}>
+          <span className={cx("flex h-20 w-20 items-center justify-center rounded-full text-white", outside ? "bg-[color:var(--j-E2B203)] shadow-amber-200" : "bg-[color:var(--j-22A06B)] shadow-emerald-200")}>
             {outside ? <AlertTriangle size={38} /> : <Check size={42} strokeWidth={3} />}
           </span>
           <h2 className="mt-5 text-2xl font-semibold text-[color:var(--j-172B4D)]">{o ? tr("Clock Out Successful") : tr("Check in Successful")}</h2>
           <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{c.branchName}</p>
           {/* eslint-disable-next-line @next/next/no-img-element -- served by the API with the session */}
-          <img src={thumb(photoUrl(c.id, !!o), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-[3px] object-cover shadow-md ring-4 ring-white" />
+          <img src={thumb(photoUrl(c.id, !!o), 320)} decoding="async" loading="lazy" alt={tr("Face Photo")} className="mt-6 h-36 w-28 rounded-[3px] object-cover ring-4 ring-white" />
           <dl className="mt-6 grid w-full grid-cols-2 divide-x divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-left">
             <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Time")}</dt>
               <dd className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[color:var(--j-172B4D)]"><Clock size={13} className="text-[color:var(--j-626F86)]" />{wibTime(o ? o.at : c.visitedAt)} WIB</dd></div>
             <div className="px-3 py-2.5"><dt className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Location")}</dt>
-              <dd className={cx("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", outside ? "text-amber-700" : "text-[color:var(--j-172B4D)]")}><MapPin size={13} className="text-[color:var(--j-626F86)]" />
+              <dd className={cx("mt-0.5 flex items-center gap-1.5 text-sm font-semibold", outside ? "text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-172B4D)]")}><MapPin size={13} className="text-[color:var(--j-626F86)]" />
                 {distance !== null ? tr("{0} m from the outlet", distance) : tr("No coordinates")}</dd></div>
           </dl>
           {o && <p className="mt-3 text-sm font-medium text-[color:var(--j-44546F)]">{tr("{0} at the outlet (clock in {1})", duration(o.durationMin), wibTime(c.visitedAt))}</p>}
@@ -548,7 +548,7 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
           <dl className="divide-y divide-[color:var(--j-F1F2F4)] rounded-[3px] border border-[color:var(--j-DCDFE4)] text-sm">
             <Row k={tr("Outlet")} v={c.branchName} />
             <Row k={tr("Visit Time")} v={wibDateTime(c.visitedAt)} />
-            <Row k={tr("Distance")} v={<span className={c.outsideRadius ? "text-amber-700" : undefined}>{c.distanceM !== null ? `${c.distanceM} m` : "—"}{c.radiusM != null ? ` / ${tr("radius {0} m", c.radiusM)}` : ""}</span>} />
+            <Row k={tr("Distance")} v={<span className={c.outsideRadius ? "text-[color:var(--j-7F5F01)]" : undefined}>{c.distanceM !== null ? `${c.distanceM} m` : "—"}{c.radiusM != null ? ` / ${tr("radius {0} m", c.radiusM)}` : ""}</span>} />
             <Row k={tr("Accuracy")} v={c.accuracyM != null ? `±${Math.round(c.accuracyM)} m` : "—"} />
             <Row k={tr("Position")} v={<a href={mapsUrl(c.latitude, c.longitude)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[color:var(--j-0C66E4)] hover:underline">{tr("Open map")} <ExternalLink size={11} /></a>} />
           </dl>
@@ -566,7 +566,7 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
                 <dl className="divide-y divide-[color:var(--j-F1F2F4)] text-sm">
                   <Row k={tr("Time")} v={wibDateTime(c.clockOut.at)} />
                   <Row k={tr("At the Outlet")} v={duration(c.clockOut.durationMin)} />
-                  <Row k={tr("Distance")} v={<span className={c.clockOut.outsideRadius ? "text-amber-700" : undefined}>{c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"}</span>} />
+                  <Row k={tr("Distance")} v={<span className={c.clockOut.outsideRadius ? "text-[color:var(--j-7F5F01)]" : undefined}>{c.clockOut.distanceM !== null ? `${c.clockOut.distanceM} m` : "—"}</span>} />
                   {c.clockOut.note && <Row k={tr("Note")} v={c.clockOut.note} />}
                 </dl>
               </div>
@@ -574,11 +574,11 @@ function CheckInDrawer({ c, onClose }: { c: CheckIn; onClose: () => void }) {
           </section>
         )}
         <section className={cx("rounded-[3px] border px-4 py-3",
-          c.review?.status === "valid" ? "border-emerald-200 bg-emerald-50" : c.review?.status === "invalid" ? "border-red-200 bg-red-50" : "border-[color:var(--j-DCDFE4)] bg-white")}>
+          c.review?.status === "valid" ? "border-[color:var(--j-BAF3DB)] bg-[color:var(--j-DCFFF1)]" : c.review?.status === "invalid" ? "border-[color:var(--j-FFD5D2)] bg-[color:var(--j-FFECEB)]" : "border-[color:var(--j-DCDFE4)] bg-white")}>
           <p className="text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{tr("Management review")}</p>
           {c.review ? (
             <>
-              <p className={cx("mt-1 flex items-center gap-1.5 text-sm font-semibold", c.review.status === "valid" ? "text-emerald-800" : "text-red-800")}>
+              <p className={cx("mt-1 flex items-center gap-1.5 text-sm font-semibold", c.review.status === "valid" ? "text-[color:var(--j-216E4E)]" : "text-[color:var(--j-AE2E24)]")}>
                 {c.review.status === "valid" ? <ShieldCheck size={16} /> : <ShieldX size={16} />}{c.review.status === "valid" ? tr("Valid") : tr("Not valid")}</p>
               {c.review.note && <p className="mt-1 text-sm text-[color:var(--j-44546F)]">{c.review.note}</p>}
               <p className="mt-1 text-xs text-[color:var(--j-626F86)]">{[c.review.by, c.review.at ? wibDateTime(c.review.at) : null].filter(Boolean).join(" · ")}</p>
@@ -594,10 +594,10 @@ function Card({ n, ok, active, title, hint, action, children }: {
   n: number; ok: boolean; active: boolean; title: string; hint: string; action?: ReactNode; children: ReactNode;
 }) {
   return (
-    <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white shadow-[0_1px_2px_0_rgb(15_23_42/0.04)]">
+    <section className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white">
       <header className="flex items-start gap-3 border-b border-[color:var(--j-F1F2F4)] px-4 py-3 sm:px-5">
         <span className={cx("mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-          ok ? "bg-emerald-500 text-white" : active ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
+          ok ? "bg-[color:var(--j-22A06B)] text-white" : active ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-626F86)]")}>
           {ok ? <Check size={13} strokeWidth={3} /> : n}
         </span>
         <div className="min-w-0 flex-1">

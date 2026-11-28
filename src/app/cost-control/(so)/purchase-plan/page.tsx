@@ -142,7 +142,7 @@ function BufferTab({ data, onSaved, onOpen }: { data: Buffers | null; onSaved: (
                     <button type="button" onClick={() => onOpen(r.branchCode)} className="block max-w-full truncate text-left font-medium text-[color:var(--j-172B4D)] hover:text-[color:var(--j-0055CC)]">{r.branchName}</button>
                     <span className="text-[11px] text-[color:var(--j-626F86)]">{r.branchCode}</span>
                     {o ? <Badge tone="blue">{tr('Set by Cost Control')}</Badge> : <Badge tone="slate">{tr('Recommended')}</Badge>}
-                    {r.notes.map((n) => <span key={n} className="mt-1 flex items-start gap-1 text-[11px] leading-snug text-amber-700"><AlertTriangle size={11} className="mt-0.5 flex-shrink-0" aria-hidden /><span>{NOTE[n]?.() ?? n}</span></span>)}
+                    {r.notes.map((n) => <span key={n} className="mt-1 flex items-start gap-1 text-[11px] leading-snug text-[color:var(--j-7F5F01)]"><AlertTriangle size={11} className="mt-0.5 flex-shrink-0" aria-hidden /><span>{NOTE[n]?.() ?? n}</span></span>)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums"><span className="font-semibold">{r.used.coverDays}</span>{mark(!!o?.coverDays)}
                     <span className="block text-[11px] text-[color:var(--j-626F86)]">{r.basis.cover === 'gr' ? tr('{0} GR days · median {1}', r.basis.grDays.length, num(r.basis.medianGap, 1)) : tr('default')}</span></td>
@@ -207,7 +207,7 @@ function BufferDialog({ row, settings, onClose, onSaved }: { row: Buffer; settin
         </div>
         <Field label={tr('Reason')} required><Input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder={tr('e.g. delivery on Monday and Thursday')} /></Field>
         {o?.by && <p className="text-xs text-[color:var(--j-626F86)]">{tr('Last set by {0}', o.by)}{o.at ? ` · ${dmy(o.at.slice(0, 10))}` : ''}</p>}
-        {err && <p className="text-sm text-red-700">{err}</p>}
+        {err && <p className="text-sm text-[color:var(--j-AE2E24)]">{err}</p>}
         <div className="grid gap-3 text-xs text-[color:var(--j-44546F)] sm:grid-cols-3">
           <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] p-3"><p className="mb-1 font-semibold text-[color:var(--j-172B4D)]">{tr('Cover days')}</p>
             <p>{b.cover === 'gr' ? tr('Median gap {0} days between {1} receipt days from {2}.', num(b.medianGap, 1), b.grDays.length, settings.suppliers.join(', ')) : tr('Fewer than {0} receipt days in {1} days: {2} days.', settings.minGr, settings.grDays, settings.defaultCover)}</p>
@@ -301,7 +301,7 @@ function PlanTab({ branch, setBranch, outlets }: { branch: string; setBranch: (b
                 <td className="max-w-[18rem] py-2.5 pl-5 pr-3"><button type="button" onClick={() => setBranch(r.branchCode)} className="block max-w-full truncate text-left font-medium text-[color:var(--j-172B4D)] hover:text-[color:var(--j-0055CC)]">{r.branchName}</button></td>
                 <td className="px-3 py-2 text-right tabular-nums">{r.coverDays}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{pct(r.bufferPct)}</td>
-                <td className="px-3 py-2 text-right tabular-nums">{r.items}{r.unpriced > 0 && <span className="block text-[11px] text-amber-700">{tr('{0} no price', r.unpriced)}</span>}</td>
+                <td className="px-3 py-2 text-right tabular-nums">{r.items}{r.unpriced > 0 && <span className="block text-[11px] text-[color:var(--j-7F5F01)]">{tr('{0} no price', r.unpriced)}</span>}</td>
                 <td className="px-3 py-2 text-right font-semibold tabular-nums">{rp(r.value)}</td>
                 <td className="px-3 py-2 text-xs text-[color:var(--j-626F86)]">{r.so ? <>{tr('SO {0}', dmy(r.so.date))}{!r.so.final && <Badge tone="amber">{tr('SO not approved')}</Badge>}</> : <Badge tone="amber">{tr('No portal SO')}</Badge>}</td>
               </tr>))}</tbody>
@@ -351,11 +351,11 @@ function PlanTab({ branch, setBranch, outlets }: { branch: string; setBranch: (b
                   <td className="max-w-[18rem] py-2.5 pl-5 pr-3"><span className="block truncate font-medium text-[color:var(--j-172B4D)]">{r.name ?? r.code}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{r.code} · {r.unit}</span></td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{num(r.perDay)}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{num(r.required)}</td>
-                  <td className={cx('whitespace-nowrap px-4 py-2.5 text-right tabular-nums', !r.stockKnown && 'text-amber-700')}>{r.stockKnown ? num(r.stock) : tr('not in the SO')}</td>
+                  <td className={cx('whitespace-nowrap px-4 py-2.5 text-right tabular-nums', !r.stockKnown && 'text-[color:var(--j-7F5F01)]')}>{r.stockKnown ? num(r.stock) : tr('not in the SO')}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right font-semibold tabular-nums">{num(r.toOrder)}
                     {r.packs != null && r.packUom && <span className="block text-[11px] font-normal text-[color:var(--j-626F86)]">{tr('{0} × {1}', r.packs, r.packUom)}</span>}</td>
                   <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">{rp(r.value)}
-                    {r.priceSource === 'esb' && <span className="block text-[11px] text-amber-700">{tr('ESB HPP')}</span>}</td>
+                    {r.priceSource === 'esb' && <span className="block text-[11px] text-[color:var(--j-7F5F01)]">{tr('ESB HPP')}</span>}</td>
                 </tr>))}</tbody>
             </table></div>)}
         {sheetEl}
@@ -369,7 +369,7 @@ function MiniStat({ icon, label, value, hint, warn }: { icon: React.ReactNode; l
     <div className="rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-4 py-3">
       <p className="flex items-center gap-1.5 text-xs font-semibold capitalize text-[color:var(--j-626F86)]">{icon}{label}</p>
       <p className="mt-1 truncate text-lg font-semibold tabular-nums text-[color:var(--j-172B4D)]">{value}</p>
-      {hint && <p className={cx('text-xs', warn ? 'text-amber-700' : 'text-[color:var(--j-626F86)]')}>{hint}</p>}
+      {hint && <p className={cx('text-xs', warn ? 'text-[color:var(--j-7F5F01)]' : 'text-[color:var(--j-626F86)]')}>{hint}</p>}
     </div>
   );
 }

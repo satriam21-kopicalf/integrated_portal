@@ -91,7 +91,7 @@ export default function DeductionsCard({ resource }: { resource: Resource<Deduct
                 {list.map(b => (
                   <li key={b.branchCode} onClick={() => drill.open(to.branch(b.branchCode, b.branchName))} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs hover:bg-[color:var(--j-E9F2FF)]">
                     {b.status === 'review' ? (
-                      <span className="inline-flex w-[4.5rem] flex-shrink-0 items-center gap-1 font-medium text-amber-700">
+                      <span className="inline-flex w-[4.5rem] flex-shrink-0 items-center gap-1 font-medium text-[color:var(--j-7F5F01)]">
                         <AlertTriangle size={13} aria-hidden /> {tr('Review')}
                       </span>
                     ) : (
