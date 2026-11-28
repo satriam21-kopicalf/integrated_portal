@@ -4,9 +4,9 @@
 // QRIS part, the operational costs paid from the cash, the cash that should be handed in and the cash counted — the
 // difference shows at once. From Report Armada (the app shifts, else the workbooks).
 
-import { Banknote, Building2, CalendarRange, Download, Filter, Scale, TriangleAlert } from "lucide-react";
+import { Banknote, Building2, CalendarRange, Filter, Scale, TriangleAlert } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Button, ErrorState, usePaged, useToast } from "@/so/ui";
+import { ErrorState, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
@@ -17,6 +17,7 @@ import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
 import { CotrFilters } from "@/cotr/FilterBar";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type DayRow = { day: string; status: string; total: number; cash: number; qris: number; operational: number; cashActual: number | null };
 type Report = { drivers: { code: string | null; name: string; pool: string; days: DayRow[] }[] };
@@ -60,7 +61,7 @@ export function CashReconcile() {
     <>
       <CotrFilters value={{ from, to, pool, only, min: String(min) }}
         onApply={(v) => { setFrom(v.from); setTo(v.to); setPool(v.pool); setOnly(v.only as "diff" | ""); setMin(Number(v.min) || 0); }}
-        actions={<Button variant="secondary" disabled={!listed.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        actions={<ExcelIconButton disabled={!listed.length} onClick={() => void exportXlsx()} />}
         fields={[
           { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: `${todayWib().slice(0, 8)}01`, defTo: todayWib(), max: todayWib() },
           { key: "pool", kind: "combo", label: tr("Pool / HUB"), icon: <Building2 />, def: "", allLabel: tr("All pools"), placeholder: tr("Search pool"),

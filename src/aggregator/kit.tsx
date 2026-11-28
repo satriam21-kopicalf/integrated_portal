@@ -15,6 +15,7 @@ import { tr } from "@/lib/i18n";
 import { PeriodField, Row } from "./fields";
 import { ago, dayOf, daysAgo, fmtClock, fmtDayShort, nf } from "./time";
 import { type JOption, JSelect, jHeadRow, jTable, jTd, jTh, Button, EmptyState as Empty, SearchBox, cx } from "@/jira";
+import { FilterCount, filterBtnClass } from "@/jira/filters";
 
 export const PLATFORMS = ["GoFood", "GrabFood", "ShopeeFood"] as const;
 /** the artwork of Grab has a wide margin */
@@ -120,7 +121,7 @@ export function FilterBar({ a, ctx, extra = [], period = true, outlet = true, pl
   const name = PRESETS[preset]?.label() ?? `${fmtDayShort(f.from)} – ${fmtDayShort(f.to)}`;
   const info = period ? `${tr("{0} · all times in WIB", name)}${preset === FIRST ? ` · ${tr("choose a period for earlier days")}` : ""}` : note ?? tr("The situation now · all times in WIB");
   const box = q != null && onQ ? <SearchBox value={q} onChange={onQ} placeholder={placeholder ?? tr("Search")} /> : null;
-  const xl = excel && <ExcelIconButton boxed label={tr("Export to Excel")} disabled={excelOff} loading={excelBusy} onClick={excel} className="!h-11 !w-11 sm:!h-10 sm:!w-10" />;
+  const xl = excel && <ExcelIconButton boxed label={tr("Export to Excel")} disabled={excelOff} loading={excelBusy} onClick={excel} />;
   const chip = "inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-2.5 text-xs text-[color:var(--j-0055CC)]";
   return (
     <div role="group" aria-label={tr("Filter")} className="space-y-2.5 border-b border-[color:var(--j-DCDFE4)] p-4 sm:px-5">
@@ -128,8 +129,8 @@ export function FilterBar({ a, ctx, extra = [], period = true, outlet = true, pl
         {box && <div className="min-w-0 flex-1 basis-full sm:basis-64 sm:max-w-md">{box}</div>}
         {lead && <div className="min-w-0 flex-1 basis-full sm:basis-72 sm:max-w-sm">{lead}</div>}
         <div className="flex flex-1 items-center gap-2 sm:flex-none">
-          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-[3px] border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", changed ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-172B4D)] hover:border-[color:var(--j-8590A2)]")}>
-            <SlidersHorizontal size={16} /> {tr("Filter")}{count > 0 && <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold leading-[18px] text-white">{count}</span>}</button>
+          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open} className={filterBtnClass(count)}>
+            <SlidersHorizontal size={16} />{tr("Filter")}<FilterCount count={count} /></button>
           {changed && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} title={tr("Clear the filters")} className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)] sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
           {xl}
         </div>

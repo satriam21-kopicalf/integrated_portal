@@ -16,8 +16,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, Field, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
 import { dmy } from "@/so/ui/Filters";
-import { DateField, Row as FRow } from "@/aggregator/fields";
+import { DateField } from "@/aggregator/fields";
 import { JSelect } from "@/so/ui/Jira";
+import { FilterButton, FilterDrawer, FilterField } from "@/jira/filters";
 import { RotateCcw, Search } from "lucide-react";
 import { Segmented } from "@/so/ui/Simple";
 import { NativeSelect } from "@/so/ui/Jira";
@@ -69,6 +70,7 @@ export default function StockListPage() {
   // 2026-11-24: POS Sales from the material usage ESB books itself (its Stock Card) or from the recipe cards of the portal
   const [usage, setUsage] = useState<Usage>("esb");
   const [unexplained, setUnexplained] = useState(false);
+  const [filters, setFilters] = useState<{ month: string; until: string; branch: string; category: string; usage: Usage; view: View } | null>(null);
   const load = () => { setError(null); setData(null); call<Data>(`/api/monitoring/stock/list?month=${month}&usage=${usage}${until ? `&until=${until}` : ""}`).then(setData).catch((e: Error) => setError(e.message)); };
   useEffect(load, [month, usage, until]);
   const rows = useMemo(() => (data?.rows ?? []).filter((r) => (!branch || r.branch === branch) && (!category || r.category === category)
@@ -92,7 +94,6 @@ export default function StockListPage() {
   const varValue = rows.reduce((a, r) => a + (r.variance != null && r.price != null ? r.variance * r.price : 0), 0);
   const counted = heads.filter((h) => h.endDate).length;
   const changed = month !== thisMonth() || !!until || !!branch || !!category || !!q;
-  const maxDay = month === thisMonth() ? today() : lastDay(month);
   const reset = () => { setMonth(thisMonth()); setUntil(""); setBranch(""); setCategory(""); setQ(""); };
   const exportRows = () => downloadXlsx({ fileName: `Stock List ${month}`, sheet: "Stock", title: `Stock List ${month}${data ? ` (${data.from} – ${data.upto})` : ""} · POS Sales: ${usage === "esb" ? "ESB" : "Recipe"}`,
     header: ["Cabang", "Previous Balance (tgl)", "Ending Stock (tgl)", "Kode", "Material", "Kategori", "Satuan", "Previous Balance",
@@ -118,21 +119,10 @@ export default function StockListPage() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-0 flex-1 basis-60"><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--j-626F86)]" />
             <input className={cx(inputClass, "h-10 pl-9")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr("Search material or branch")} aria-label={tr("Search")} /></div>
+          <FilterButton count={[month !== thisMonth(), !!until, !!branch, !!category, usage !== "esb", view !== "branch"].filter(Boolean).length} onClick={() => setFilters({ month, until, branch, category, usage, view })} />
           <Button size="sm" variant="secondary" className="!h-10" onClick={() => setUnexplained(true)}><Package size={14} />{tr("No recipe")}</Button>
           <Button size="sm" variant="secondary" className="!h-10" onClick={() => setTransit(true)}><ArrowLeftRight size={14} />{tr("Transit")}</Button>
           <ExcelIconButton boxed label={tr("Export to Excel")} disabled={!rows.length} onClick={() => void exportRows().catch((e) => toast((e as Error).message, "error"))} />
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          <FRow label={tr("Month")}><JSelect value={month} onChange={(v) => { setMonth(v); setUntil(""); }} label={tr("Month")} placeholder={tr("Month")} options={MONTHS().map((m) => ({ value: m, label: monthName(m) }))} /></FRow>
-          <FRow label={tr("Up to date")}>
-            {until ? <span className="flex items-center gap-1"><span className="min-w-0 flex-1"><DateField label={tr("Up to date")} value={until} min={`${month}-01`} max={maxDay} quick={false} onChange={setUntil} /></span>
-              <button type="button" onClick={() => setUntil("")} aria-label={tr("Clear")} className="flex h-10 w-9 shrink-0 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]"><RotateCcw size={14} /></button></span>
-              : <button type="button" onClick={() => setUntil(maxDay)} className="flex h-11 w-full items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-left text-sm text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)] sm:h-10"><CalendarDays size={15} className="text-[color:var(--j-626F86)]" />{month === thisMonth() ? tr("Today") : tr("End of the month")}</button>}
-          </FRow>
-          <FRow label={tr("Branch")}><JSelect value={branch} onChange={setBranch} label={tr("Branch")} placeholder={tr("All Branches")} options={[{ value: "", label: tr("All Branches") }, ...heads.map((h) => ({ value: h.branch, label: h.branchName, hint: h.endDate ? tr("SO {0}", dmy(h.endDate)) : tr("no SO") }))]} /></FRow>
-          <FRow label={tr("Category")}><JSelect value={category} onChange={setCategory} label={tr("Category")} placeholder={tr("All categories")} options={[{ value: "", label: tr("All categories") }, ...categories.map((x) => ({ value: x, label: x }))]} /></FRow>
-          <FRow label={tr("POS Sales from")}><JSelect value={usage} onChange={(v) => setUsage(v as Usage)} label={tr("POS Sales from")} placeholder="" options={[{ value: "esb", label: tr("ESB usage") }, { value: "recipe", label: tr("Recipe cards") }]} /></FRow>
-          <FRow label={tr("View")}><JSelect value={view} onChange={(v) => setView(v as View)} label={tr("View")} placeholder="" options={[{ value: "branch", label: tr("Per Branch") }, { value: "material", label: tr("Per Material") }]} /></FRow>
         </div>
         <div className="flex flex-wrap items-start justify-between gap-2 text-xs text-[color:var(--j-626F86)]">
           <p className="max-w-3xl">{data ? <b className="font-semibold text-[color:var(--j-44546F)]">{dmy(data.from)} – {dmy(data.upto)} · </b> : null}{usage === "esb"
@@ -236,6 +226,20 @@ export default function StockListPage() {
       </Panel>
       {calc && <CalcDrawer r={calc} h={heads.find((x) => x.branch === calc.branch)} onClose={() => setCalc(null)} />}
       {unexplained && <UnexplainedDrawer month={month} onClose={() => setUnexplained(false)} />}
+      {filters && (
+        <FilterDrawer onClose={() => setFilters(null)} onReset={() => setFilters({ month: thisMonth(), until: "", branch: "", category: "", usage: "esb", view: "branch" })}
+          onApply={() => { setMonth(filters.month); setUntil(filters.until); setBranch(filters.branch); setCategory(filters.category); setUsage(filters.usage); setView(filters.view); setFilters(null); }}>
+          <FilterField label={tr("Month")}><JSelect value={filters.month} onChange={(v) => setFilters({ ...filters, month: v, until: "" })} label={tr("Month")} placeholder={tr("Month")} options={MONTHS().map((m) => ({ value: m, label: monthName(m) }))} /></FilterField>
+          <FilterField label={tr("Up to date")} hint={filters.until ? undefined : (filters.month === thisMonth() ? tr("Today") : tr("End of the month"))}>
+            <span className="flex items-center gap-1"><span className="min-w-0 flex-1"><DateField label={tr("Up to date")} value={filters.until || (filters.month === thisMonth() ? today() : lastDay(filters.month))} min={`${filters.month}-01`} max={filters.month === thisMonth() ? today() : lastDay(filters.month)} quick={false} onChange={(v) => setFilters({ ...filters, until: v })} /></span>
+              {filters.until && <button type="button" onClick={() => setFilters({ ...filters, until: "" })} aria-label={tr("Clear")} className="flex h-10 w-9 shrink-0 items-center justify-center rounded-[3px] text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)]"><RotateCcw size={14} /></button>}</span>
+          </FilterField>
+          <FilterField label={tr("Branch")}><JSelect value={filters.branch} onChange={(v) => setFilters({ ...filters, branch: v })} label={tr("Branch")} placeholder={tr("All Branches")} options={[{ value: "", label: tr("All Branches") }, ...heads.map((h) => ({ value: h.branch, label: h.branchName, hint: h.endDate ? tr("SO {0}", dmy(h.endDate)) : tr("no SO") }))]} /></FilterField>
+          <FilterField label={tr("Category")}><JSelect value={filters.category} onChange={(v) => setFilters({ ...filters, category: v })} label={tr("Category")} placeholder={tr("All categories")} options={[{ value: "", label: tr("All categories") }, ...categories.map((x) => ({ value: x, label: x }))]} /></FilterField>
+          <FilterField label={tr("POS Sales from")}><JSelect value={filters.usage} onChange={(v) => setFilters({ ...filters, usage: v as Usage })} label={tr("POS Sales from")} placeholder="" options={[{ value: "esb", label: tr("ESB usage") }, { value: "recipe", label: tr("Recipe cards") }]} /></FilterField>
+          <FilterField label={tr("View")}><JSelect value={filters.view} onChange={(v) => setFilters({ ...filters, view: v as View })} label={tr("View")} placeholder="" options={[{ value: "branch", label: tr("Per Branch") }, { value: "material", label: tr("Per Material") }]} /></FilterField>
+        </FilterDrawer>
+      )}
       {transit && data && <TransitDrawer month={month} data={data} onClose={() => setTransit(false)} onChanged={load} />}
     </Page>
   );

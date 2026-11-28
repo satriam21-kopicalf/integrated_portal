@@ -4,7 +4,7 @@
 // the template) is read and checked row by row, the good rows become drafts, the invoices are attached by the invoice
 // number in their file name, and every complete draft is sent at once.
 
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Paperclip, Pencil, Send, Trash2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, Paperclip, Pencil, Send, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button, cx, useToast } from "@/so/ui";
 import { ConfirmDialog } from "@/so/ui/Dialog";
@@ -12,6 +12,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { wibDay } from "@/so/lib/wib";
 import { tr } from "@/lib/i18n";
 import { type Unit, fmtRp, upload } from "./pengajuan";
+import { ExcelIcon, excelBtnClass } from "@/components/ExcelIconButton";
 
 type Row = { row: number; vendor: string; invoiceNo: string; amount: number | null; due: string | null; account: string; bank: string; unit: string | null; problems: string[]; warnings: string[] };
 type Check = { rows: Row[]; ready: number; created: number; total: number };
@@ -85,8 +86,8 @@ export default function VendorBatch({ units, unit, onEdit, onSent }: { units: Un
       <div className="flex flex-wrap items-center gap-2">
         <p className="mr-auto text-sm font-semibold text-[color:var(--j-172B4D)]">{tr("Many invoices at once")}</p>
         <a href="/api/pengajuan/vendor/template" className="inline-flex h-9 items-center gap-1.5 rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 text-xs font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]"><Download size={13} /> {tr("Template")}</a>
-        <label className={cx("inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 text-xs font-medium text-white hover:bg-[color:var(--j-0055CC)]", busy && "pointer-events-none opacity-60")}>
-          <FileSpreadsheet size={13} /> {busy === "check" ? tr("Reading …") : tr("Import Excel")}
+        <label className={cx(excelBtnClass, "cursor-pointer", busy && "pointer-events-none opacity-60")}>
+          <ExcelIcon busy={busy === "check"} /> {busy === "check" ? tr("Reading …") : tr("Import Excel")}
           <input type="file" accept=".xlsx" className="hidden" onChange={(e) => { void choose(e.target.files?.[0]); e.target.value = ""; }} /></label>
       </div>
       <p className="text-xs text-[color:var(--j-626F86)]">{tr("The Google Form recap can be used as it is. The unit follows the Departemen column, else the unit chosen above.")}</p>

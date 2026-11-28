@@ -5,9 +5,9 @@
 // T (sold) and its total at the menu price; then the QRIS, the cash, the cash counted and the operational costs (the
 // requests). Days before the app come from the imported workbooks.
 
-import { Building2, CalendarRange, ClipboardList, Download } from "lucide-react";
+import { Building2, CalendarRange, ClipboardList, } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, cx, usePaged, useToast } from "@/so/ui";
+import { Badge, ErrorState, cx, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, SearchInput, StatCard, StatGrid } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
@@ -18,6 +18,7 @@ import { COTR_PAGE, CotrPager, rupiah, useMaster } from "@/cotr/ui";
 import { CotrFilters } from "@/cotr/FilterBar";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type Line = { b: number; s: number | null; c: number; w: number; t: number; total: number };
 type DayRow = { day: string; status: string; lines: Record<string, Line>; total: number; cash: number; qris: number; operational: number;
@@ -71,7 +72,7 @@ export function ReportArmada() {
       <CotrFilters value={{ pool, from, to }}
         onApply={(v) => { setPoolSel(v.pool); setFrom(v.from); setTo(v.to); }}
         right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search driver")} />}
-        actions={<Button variant="secondary" disabled={!drivers.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>}
+        actions={<ExcelIconButton disabled={!drivers.length} onClick={exportXlsx} />}
         fields={[
           { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: `${todayWib().slice(0, 8)}01`, defTo: todayWib(), max: todayWib() },
           { key: "pool", kind: "combo", label: tr("Pool / HUB"), icon: <Building2 />, def: "", allLabel: tr("All pools"), placeholder: tr("Search pool"),

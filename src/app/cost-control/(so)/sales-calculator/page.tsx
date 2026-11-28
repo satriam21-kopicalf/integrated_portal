@@ -16,7 +16,7 @@ import { RecipeImport, exportRecipes } from "./recipe-excel";
 import { SkeletonTable } from "@/components/kc/Skeleton";
 import { SortTh, useSort } from "@/so/ui/Sort";
 import { Tabs } from "@/components/kc";
-import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Upload, Wand2, X } from "lucide-react";
+import { ArrowDownToLine, BookOpen, CalendarDays, SlidersHorizontal, Calculator, Check, ChevronRight, CupSoda, FlaskConical, Gift, Layers, LayoutGrid, ListChecks, Package, PenLine, Plus, Receipt, Rows3, Save, Search, Store, Trash2, Wand2, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, cx, Empty, ErrorState, fmtNumber, inputClass, Page, PageNav, Panel, SkeletonRows, theadClass, usePaged, useToast, searchClass } from "@/so/ui";
@@ -250,7 +250,7 @@ function Recipes() {
         {/* Excel (2026-11-18): the export is also the template of the import (recipe-excel.tsx) */}
         <ExcelIconButton label={tr("Export to Excel")} loading={exporting} disabled={!rows?.length}
           onClick={() => { setExporting(true); void exportRecipes(rows ?? []).finally(() => setExporting(false)); }} />
-        <Button size="sm" variant="secondary" onClick={() => setImp(true)}><Upload size={14} />{tr("Import Excel")}</Button>
+        <ExcelIconButton mode="import" onClick={() => setImp(true)} />
         <Button size="sm" variant="secondary" onClick={() => setAuto(true)}><Wand2 size={14} />{tr("Make Cards for Every Menu")}</Button>
         <Button size="sm" variant="secondary" onClick={() => setBom(true)}><ArrowDownToLine size={14} />{tr("Import from the ESB BOM")}</Button>
         <Button size="sm" onClick={() => setEdit("new")}><Plus size={14} />{tr("New Card")}</Button></div>}

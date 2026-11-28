@@ -34,6 +34,7 @@ import {
   PaymentsResponse, TaxResponse, channelLabel, useOverview,
 } from '@/lib/overview';
 import { locale, tr } from '@/lib/i18n';
+import { FilterCount, filterBtnClass } from "@/jira/filters";
 
 interface Filters {
   from: string; // '' = default period (last 30 complete days)
@@ -153,10 +154,8 @@ export default function OverviewPage() {
               value={cotr ? COTR : company} onChange={pickTab} />
             <div className="ml-auto flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)}
-                className={`inline-flex h-10 items-center gap-2 rounded-[3px] border px-3 text-[13px] font-medium transition-colors sm:h-9 ${
-                  activeCount ? 'border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)] hover:bg-[color:var(--j-CCE0FF)]' : 'border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)]'}`}>
-                <SlidersHorizontal size={16} /> {tr('Filters')}
-                {activeCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold tabular-nums text-white">{activeCount}</span>}
+                className={filterBtnClass(activeCount)}>
+                <SlidersHorizontal size={16} />{tr("Filter")}<FilterCount count={activeCount} />
               </button>
               {!cotr && <RealtimeIndicator className="h-10 sm:h-9" />}
             </div>

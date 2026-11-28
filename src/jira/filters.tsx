@@ -8,16 +8,19 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Check, Search, SlidersHorizontal, X } from "lucide-react";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { tr } from "@/lib/i18n";
-import { cx } from "./index";
+import Drawer, { cx } from "./index";
 import { inputClass } from "./kc";
+
+/** The look of every Filter button of the portal (also for the ones that keep their own <button>, e.g. with a ref). */
+export const filterBtnClass = (count: number) => cx("inline-flex h-10 flex-shrink-0 items-center justify-center gap-1.5 rounded-[3px] px-3 text-sm font-medium transition-colors sm:h-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)]",
+  count ? "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] ring-1 ring-inset ring-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E4224)]");
+/** The count badge of a Filter button. */
+export const FilterCount = ({ count }: { count: number }) => (count > 0 ? <span className="rounded-[2rem] bg-[color:var(--j-0C66E4)] px-1.5 text-xs font-semibold leading-4 text-white tabular-nums">{count}</span> : null);
 
 export function FilterButton({ count, onClick }: { count: number; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} aria-haspopup="dialog"
-      className={cx("inline-flex h-10 items-center gap-1.5 rounded-[3px] px-3 text-sm font-medium transition-colors sm:h-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)]",
-        count ? "bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)] ring-1 ring-inset ring-[color:var(--j-0C66E4)]" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E4224)]")}>
-      <SlidersHorizontal size={16} />{tr("Filter")}
-      {count > 0 && <span className="rounded-[2rem] bg-[color:var(--j-0C66E4)] px-1.5 text-xs font-semibold leading-4 text-white tabular-nums">{count}</span>}
+    <button type="button" onClick={onClick} aria-haspopup="dialog" className={filterBtnClass(count)}>
+      <SlidersHorizontal size={16} />{tr("Filter")}<FilterCount count={count} />
     </button>
   );
 }
@@ -98,5 +101,39 @@ export function ActiveFilters({ filters, onClear }: { filters: ActiveFilter[]; o
       ))}
       <button type="button" onClick={onClear} className="px-1 text-xs font-medium text-[color:var(--j-0C66E4)] hover:underline">{tr("Clear All")}</button>
     </div>
+  );
+}
+
+/**
+ * The one filter drawer of the portal (2026-11-28): every filter of a page in one place, applied together on
+ * "Show results"; Reset as a quiet link. Children are the sections (FilterField).
+ */
+export function FilterDrawer({ title, onClose, onApply, onReset, children }: {
+  title?: string; onClose: () => void; onApply: () => void; onReset?: () => void; children: ReactNode;
+}) {
+  return (
+    <Drawer open onClose={onClose} size="sm" icon={<SlidersHorizontal size={18} />} title={title ?? tr("Filter")}
+      footer={
+        <div className="flex w-full items-center gap-2">
+          {onReset && <button type="button" onClick={onReset} className="inline-flex h-10 items-center px-1 text-sm font-medium text-[color:var(--j-0C66E4)] hover:underline sm:h-8">{tr("Reset")}</button>}
+          <span className="flex-1" />
+          <button type="button" onClick={onClose} className={cx(BTN2, "max-sm:flex-1")}>{tr("Cancel")}</button>
+          <button type="button" onClick={onApply} className={cx(BTN1, "max-sm:flex-1")}>{tr("Apply Filters")}</button>
+        </div>}>
+      <div className="divide-y divide-[color:var(--j-F1F2F4)]">{children}</div>
+    </Drawer>
+  );
+}
+const BTN1 = "inline-flex h-10 items-center justify-center rounded-[3px] bg-[color:var(--j-0C66E4)] px-3 text-sm font-medium text-white hover:bg-[color:var(--j-0055CC)] sm:h-8";
+const BTN2 = "inline-flex h-10 items-center justify-center rounded-[3px] bg-[color:var(--j-091E420F)] px-3 text-sm font-medium text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E4224)] sm:h-8";
+
+/** A section of the filter drawer: its title and the control. */
+export function FilterField({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <section className="py-4 first:pt-0 last:pb-0">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{label}</p>
+      {hint && <p className="mt-0.5 text-xs text-[color:var(--j-626F86)]">{hint}</p>}
+      <div className="mt-2">{children}</div>
+    </section>
   );
 }

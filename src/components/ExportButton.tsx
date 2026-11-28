@@ -1,11 +1,10 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { Popover, PopoverButton } from '@/components/kc/Popover';
+import { Popover } from '@/components/kc/Popover';
+import { ExcelIcon, excelBtnClass } from '@/components/ExcelIconButton';
 import { btn } from '@/components/kc';
-import Image from 'next/image';
-import { AlertTriangle, FileSpreadsheet, Loader2, Sheet } from 'lucide-react';
-import { assetUrl } from '@/lib/assets';
+import { AlertTriangle, FileSpreadsheet, Sheet } from 'lucide-react';
 import { ExportFormat, GSHEET_MAX_CELLS, MENU_MAX_DAYS, REPORTS, ReportKind, useExports } from '@/lib/exports';
 // rows of the detail report that fit in one Google Sheet: larger exports are split into parts
 const ROWS_PER_SHEET = Math.floor(GSHEET_MAX_CELLS / 46);
@@ -95,9 +94,8 @@ export default function ExportButton({
   return (
     <>
       <div className="relative" ref={menuRef}>
-        <PopoverButton label={tr('Export')} value={running ? tr('Exporting…') : tr('Export')} open={menuOpen} disabled={running}
-          title={running ? tr('Export in progress') : tr('Export to Excel or Google Sheets')} onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}
-          icon={running ? <Loader2 className="animate-spin text-[color:var(--j-44546F)]" /> : <span className="relative block h-[18px] w-[18px]"><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes="18px" className="object-contain" /></span>} />
+        <button type="button" className={excelBtnClass} aria-expanded={menuOpen} disabled={running} title={running ? tr('Export in progress') : tr('Export to Excel or Google Sheets')}
+          onClick={() => (menuOpen ? closeMenu() : setMenuOpen(true))}><ExcelIcon busy={running} />{running ? tr('Exporting…') : tr('Export Excel')}</button>
 
         <Popover open={menuOpen} onClose={closeMenu} title={confirmReport ? (splitInParts ? tr('Split into several Google Sheets') : tr('Large export')) : tr('Export')} width="sm:w-[22rem]"
           subtitle={`${typeLabel} · ${branchLabel} · ${dateFrom ? `${formatDate(dateFrom)} – ${formatDate(dateTo || dateFrom)}` : tr('Last 65 days')}`}>

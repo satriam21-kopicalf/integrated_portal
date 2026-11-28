@@ -4,9 +4,9 @@
 // against ESB COTR, and the app, per pool, day and menu: arrived, transfer, sold, waste and cupping of each source and
 // the difference workbook − ESB. A pool-day matches, differs, or has only one source; differences first.
 
-import { Building2, CalendarRange, ChevronDown, CircleDot, Download, GitCompareArrows, Scale, TriangleAlert, CheckCircle2, FileSpreadsheet } from "lucide-react";
+import { Building2, CalendarRange, ChevronDown, CircleDot, GitCompareArrows, Scale, TriangleAlert, CheckCircle2, FileSpreadsheet } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Badge, Button, ErrorState, usePaged, useToast } from "@/so/ui";
+import { Badge, ErrorState, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { EmptyState, StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
@@ -17,6 +17,7 @@ import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { CotrFilters } from "@/cotr/FilterBar";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type Kind = "arrived" | "transfer" | "sold" | "waste" | "cupping";
 type Line = { menu: string; name: string; kind: Kind; sheet: number | null; esb: number | null; app: number | null; diff: number | null };
@@ -64,7 +65,7 @@ export function Reconcile() {
     <>
       <CotrFilters value={{ from, to, pool, status }}
         onApply={(v) => { setFrom(v.from); setTo(v.to); setPool(v.pool); setStatus(v.status as "" | Status); }}
-        actions={<Button variant="secondary" disabled={!listed.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        actions={<ExcelIconButton disabled={!listed.length} onClick={() => void exportXlsx()} />}
         fields={[
           { key: "period", kind: "period", label: tr("Period"), icon: <CalendarRange />, def: `${todayWib().slice(0, 8)}01`, defTo: todayWib(), max: todayWib() },
           { key: "pool", kind: "combo", label: tr("Pool / HUB"), icon: <Building2 />, def: "", allLabel: tr("All pools"), placeholder: tr("Search pool"),

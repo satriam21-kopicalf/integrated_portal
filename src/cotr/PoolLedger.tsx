@@ -10,7 +10,7 @@
 // first expiry) and the batches of a day in a table of their own (code, cups, expiry, state) opened on demand; a workbook
 // day whose Product Arrived comes from ESB says so.
 
-import { AlertTriangle, Boxes, Building2, CalendarDays, CalendarRange, ChevronDown, Download, FileSpreadsheet, PackageOpen, Plus, Save, Trash2, Truck } from "lucide-react";
+import { AlertTriangle, Boxes, Building2, CalendarDays, CalendarRange, ChevronDown, FileSpreadsheet, PackageOpen, Plus, Save, Trash2, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Select, cx, usePaged, useToast } from "@/so/ui";
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
@@ -25,6 +25,7 @@ import { Pool } from "@/cotr/types";
 import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type Lot = { batchNo: string | null; qty: number; expiresOn: string | null };
 type Cell = { opening?: number; transfer?: number; arrived?: number; sold?: number; waste?: number; cupping?: number; calculated?: number;
@@ -110,7 +111,7 @@ export function PoolLedger({ pool: fixed, day: fixedDay, embedded }: { pool?: st
           ]} />
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => setImporting(true)}><FileSpreadsheet size={15} /> {tr("Import workbook")}</Button>
-            <Button variant="secondary" disabled={!days.length} onClick={exportXlsx}><Download size={15} /> {tr("Export Excel")}</Button>
+            <ExcelIconButton disabled={!days.length} onClick={exportXlsx} />
           </div>
         </div>
       )}

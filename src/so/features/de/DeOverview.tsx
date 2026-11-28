@@ -5,12 +5,11 @@
 // and categories, internal vs vendor and the technicians, the outlets with most requests, repeated damage and the
 // reasons of reject / on hold.
 
-import { JSelect } from "@/so/ui/Jira";
+import { ChoiceGroup, FilterButton, FilterDrawer } from "@/jira/filters";
 import { AlertTriangle, BarChart3, CheckCircle2, Clock, Repeat, Wallet, Wrench } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, cx, Empty, ErrorState, fmtNumber, Panel, theadClass } from "@/so/ui";
 import { Stat, StatSkeleton, StatStrip } from "@/so/ui/StatStrip";
-import { Segmented } from "@/so/ui/Simple";
 import { dmy, wibDay } from "@/so/ui/Filters";
 import { call } from "@/so/features/checkin/checkin";
 import { wibDateTime } from "@/so/lib/wib";
@@ -41,6 +40,7 @@ type Range = "30" | "90" | "180" | "365";
 export default function DeOverview({ bgroups }: { bgroups: { id: string; code: string }[] }) {
   const [range, setRange] = useState<Range>("90");
   const [group, setGroup] = useState("");
+  const [draft, setDraft] = useState<{ range: Range; group: string } | null>(null);
   const [d, setD] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -57,16 +57,24 @@ export default function DeOverview({ bgroups }: { bgroups: { id: string; code: s
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-[color:var(--j-626F86)]">{d ? tr("Requests sent {0} – {1}", dmy(d.period.from), dmy(d.period.to)) : tr("Loading…")}</p>
-        <div className="flex flex-wrap items-center gap-2">
-          {bgroups.length > 0 && (
-            <JSelect value={group} onChange={setGroup} label={tr("Branch Group")} placeholder={tr("All Branch Groups")} className="w-48"
-              options={[{ value: "", label: tr("All Branch Groups") }, ...bgroups.map((g) => ({ value: g.id, label: g.code }))]} />
-          )}
-          <Segmented label={tr("Period")} value={range} onChange={setRange}
-            options={[{ value: "30", label: tr("30 days") }, { value: "90", label: tr("90 Days") }, { value: "180", label: tr("6 Months") }, { value: "365", label: tr("1 Year") }]} />
-        </div>
+        {/* 2026-11-28 one Filter: branch group and period in one drawer */}
+        <FilterButton count={(group ? 1 : 0) + (range !== "90" ? 1 : 0)} onClick={() => setDraft({ range, group })} />
       </div>
 
+      {draft && (
+        <FilterDrawer onClose={() => setDraft(null)} onReset={() => setDraft({ range: "90", group: "" })} onApply={() => { setRange(draft.range); setGroup(draft.group); setDraft(null); }}>
+          <section className="py-4 first:pt-0 last:pb-0">
+            <ChoiceGroup label={tr("Period")} value={draft.range} onChange={(v) => setDraft({ ...draft, range: v as Range })}
+              choices={[{ value: "30", label: tr("30 days") }, { value: "90", label: tr("90 Days") }, { value: "180", label: tr("6 Months") }, { value: "365", label: tr("1 Year") }]} />
+          </section>
+          {bgroups.length > 0 && (
+            <section className="py-4 first:pt-0 last:pb-0">
+              <ChoiceGroup label={tr("Branch Group")} value={draft.group} onChange={(v) => setDraft({ ...draft, group: v })}
+                choices={[{ value: "", label: tr("All Branch Groups") }, ...bgroups.map((g) => ({ value: g.id, label: g.code }))]} />
+            </section>
+          )}
+        </FilterDrawer>
+      )}
       {error ? <Panel><ErrorState message={error} onRetry={load} /></Panel> : (
         <>
           <StatStrip label={tr("Summary")} columns={4} gridClassName="grid-cols-2 xl:grid-cols-4">

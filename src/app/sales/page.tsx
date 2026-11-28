@@ -7,8 +7,10 @@ import { CompanySwitch, useCompany, withCompany } from '@/lib/company';
 import TransactionDetail from '@/components/TransactionDetail';
 import ExportButton from '@/components/ExportButton';
 import { useFilterLog } from '@/lib/activity';
-import DateRangePicker, { DatePreset } from '@/components/DateRangePicker';
-import BranchFilter, { Branch, branchesLabel, splitBranches } from '@/components/BranchFilter';
+import type { DatePreset } from '@/components/DateRangePicker';
+import { FilterButton, FilterDrawer, FilterField } from '@/jira/filters';
+import { PeriodField } from '@/aggregator/fields';
+import { Branch, branchesLabel, splitBranches } from '@/components/BranchFilter';
 import { ArrowUpCircle, ChevronRight, CircleMinus, Info, Layers, Loader2, Receipt, Tag, Wallet, X } from 'lucide-react';
 import { TransactionCombined } from '@/types/transactions';
 import { formatCurrency, formatDate, formatNumber, formatTime, toIsoDate, fixed } from '@/lib/format';
@@ -97,6 +99,7 @@ export default function SalesPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [branch, setBranch] = useState(''); // branch codes separated by commas, '' = all
+  const [draft, setDraft] = useState<SalesDraft | null>(null);
   const [txType, setTxType] = useState<TxType>('sales');
   const [summary, setSummary] = useState<SalesSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
@@ -299,6 +302,10 @@ export default function SalesPage() {
         <div className="space-y-4 px-4 py-4 sm:p-6">
           <SummaryStrip summary={summary} loading={summaryLoading} />
 
+          {draft && <SalesFilterDrawer draft={draft} setDraft={setDraft} branches={branches} loading={branchesLoading}
+            onApply={() => { handleDateChange(draft.from, draft.to); setBranch(draft.branch); setDraft(null); }}
+            onReset={() => setDraft({ from: defaultDay(), to: defaultDay(), branch: '' })} onClose={() => setDraft(null)} />}
+
           {/* Transactions card */}
           <section className="overflow-hidden rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white ">
             {/* Transaction type tabs */}
@@ -332,8 +339,8 @@ export default function SalesPage() {
             <div className="flex flex-wrap items-center gap-2 border-b border-[color:var(--j-DCDFE4)] p-3 sm:px-5 sm:py-3.5">
               <SearchInput value={search} onChange={(v) => (v ? handleSearchChange(v) : clearSearch())} placeholder={tr('Search sales no., bill no. or branch')} />
               <div className="flex min-w-0 items-center gap-2 sm:ml-auto">
-                <DateRangePicker dateFrom={dateFrom} dateTo={dateTo} onChange={handleDateChange} presets={salesPresets} defaultLabel={tr('today')} />
-                <BranchFilter branches={branches} loading={branchesLoading} value={branch} onChange={setBranch} />
+                {/* 2026-11-28 one Filter: period and branches together in one drawer */}
+                <FilterButton count={(dateFrom !== defaultDay() || dateTo !== defaultDay() ? 1 : 0) + (branch ? 1 : 0)} onClick={() => setDraft({ from: dateFrom, to: dateTo, branch })} />
                 <ExportButton
                   dateFrom={dateFrom}
                   dateTo={dateTo}
@@ -703,5 +710,39 @@ function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
         <X size={12} />
       </button>
     </span>
+  );
+}
+
+type SalesDraft = { from: string; to: string; branch: string };
+
+/** The filters of Sales Transactions in one drawer (2026-11-28): the period (presets or dates) and the branches. */
+function SalesFilterDrawer({ draft, setDraft, branches, loading, onApply, onReset, onClose }: {
+  draft: SalesDraft; setDraft: (d: SalesDraft) => void; branches: Branch[]; loading: boolean; onApply: () => void; onReset: () => void; onClose: () => void;
+}) {
+  const [q, setQ] = useState('');
+  const presets = salesPresets().map((p, i) => ({ value: String(i), ...p }));
+  const preset = presets.find(p => p.from === draft.from && p.to === draft.to)?.value ?? 'custom';
+  const chosen = splitBranches(draft.branch);
+  const toggle = (code: string) => setDraft({ ...draft, branch: (chosen.includes(code) ? chosen.filter(c => c !== code) : [...chosen, code]).join(',') });
+  const shown = branches.filter(b => !q || `${b.branch_name} ${b.branch_code}`.toLowerCase().includes(q.toLowerCase()));
+  return (
+    <FilterDrawer onClose={onClose} onApply={onApply} onReset={onReset}>
+      <FilterField label={tr('Period')}>
+        <PeriodField label={tr('Period')} from={draft.from} to={draft.to} preset={preset} presets={presets} maxDays={366} onChange={(from, to) => setDraft({ ...draft, from, to })} />
+      </FilterField>
+      <FilterField label={tr('Branch')} hint={chosen.length ? tr('{0} chosen', chosen.length) : tr('All Branches')}>
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder={tr('Search branch')} aria-label={tr('Search branch')}
+          className="mb-2 h-10 w-full rounded-[3px] border-2 border-[color:var(--j-DCDFE4)] bg-white px-3 text-sm text-[color:var(--j-172B4D)] placeholder:text-[color:var(--j-626F86)] focus:border-[color:var(--j-388BFF)] focus:outline-none sm:h-9" />
+        <ul className="max-h-[45vh] divide-y divide-[color:var(--j-F1F2F4)] overflow-y-auto rounded-[3px] border border-[color:var(--j-DCDFE4)]">
+          <li><label className="flex min-h-11 cursor-pointer items-center gap-3 px-3 py-2 text-sm font-medium text-[color:var(--j-172B4D)] hover:bg-[color:var(--j-F7F8F9)]">
+            <input type="checkbox" checked={!chosen.length} onChange={() => setDraft({ ...draft, branch: '' })} className="h-4 w-4 accent-[color:var(--j-0C66E4)]" />{tr('All Branches')}</label></li>
+          {loading ? <li className="px-3 py-3 text-sm text-[color:var(--j-626F86)]">{tr('Loading…')}</li> : shown.map(b => (
+            <li key={b.branch_code}><label className="flex min-h-11 cursor-pointer items-center gap-3 px-3 py-2 text-sm text-[color:var(--j-172B4D)] hover:bg-[color:var(--j-F7F8F9)]">
+              <input type="checkbox" checked={chosen.includes(b.branch_code)} onChange={() => toggle(b.branch_code)} className="h-4 w-4 accent-[color:var(--j-0C66E4)]" />
+              <span className="min-w-0 flex-1 truncate">{b.branch_name}</span><span className="text-xs text-[color:var(--j-626F86)]">{b.branch_code}</span></label></li>
+          ))}
+        </ul>
+      </FilterField>
+    </FilterDrawer>
   );
 }

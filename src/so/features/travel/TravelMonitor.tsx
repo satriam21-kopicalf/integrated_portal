@@ -19,6 +19,7 @@ import { tl } from "@/so/features/visit/visit";
 import { thumb } from "@/lib/assets";
 import { tr } from "@/lib/i18n";
 import { type Band, type Finding, type FullReport, type Report, bandClass, bandText, categoryClass, categoryText, photoUrl, ratingText, sessionName } from "./travel";
+import { FilterButton } from "@/jira/filters";
 
 type CellState = "done" | "late" | "missing" | "waiting" | "none";
 type Cell = { session: string; state: CellState; id: string | null; score: number | null; critical: number };
@@ -110,7 +111,7 @@ export default function TravelMonitor() {
           <WorkCard<Tab> active={tab} onTab={setTab} label={tr("Views")} tabs={[{ key: "compliance", label: tr("Compliance"), icon: <CalendarCheck size={15} /> }, { key: "reports", label: tr("Reports"), icon: <FileText size={15} />, count: s?.reports },
             { key: "findings", label: tr("Findings"), icon: <AlertTriangle size={15} />, count: s?.openFindings }, { key: "analysis", label: tr("Analysis"), icon: <BarChart3 size={15} /> }]}
             left={<div className="flex flex-wrap items-center gap-2">
-              <Button variant="secondary" size="sm" className="!h-9" onClick={() => setFiltering(true)}><SlidersHorizontal size={14} /> {tr("Filter")}{group ? <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[10px] font-bold text-white">1</span> : null}</Button>
+              <FilterButton count={group ? 1 : 0} onClick={() => setFiltering(true)} />
               <button type="button" onClick={() => setFiltering(true)} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[color:var(--j-091E420F)] px-3 text-xs font-medium text-[color:var(--j-44546F)]"><CalendarDays size={13} />{from === to ? dmy(from) : `${dmy(from)} – ${dmy(to)}`}</button>
               {group && <button type="button" onClick={() => setGroup("")} className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-3 text-xs font-medium text-[color:var(--j-0055CC)]">{tr("Group")}: {groups.find((g) => g.id === group)?.code ?? group}<X size={13} /></button>}
             </div>}>

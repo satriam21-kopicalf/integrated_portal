@@ -37,7 +37,7 @@ export default function SheetTools({ count, open, onImported }: { count: Count; 
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {open ? <>
           <Button size="sm" variant="secondary" loading={downloading} onClick={() => void download()}><Download size={14} /> {tr("Import Format")}</Button>
-          <Button size="sm" variant="secondary" onClick={() => setImporting(true)}><Upload size={14} /> {tr("Import Excel")}</Button>
+          <ExcelIconButton mode="import" onClick={() => setImporting(true)} />
         </> : <ExcelIconButton label={tr("Export Excel")} loading={downloading} onClick={() => void download()} />}
       </div>
       {importing && <ImportDrawer count={count} onClose={() => setImporting(false)} onDownload={() => void download()}

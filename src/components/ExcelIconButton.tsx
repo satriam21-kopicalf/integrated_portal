@@ -1,34 +1,45 @@
 'use client';
 
-// The Excel icon button of the downloads (same look as the export button of Sales Transactions): an icon only, the
-// label in the tooltip and for screen readers. A button (onClick, with a spinner while busy) or a plain link (href).
+// The one Excel button of the portal (2026-11-28, the Jira look): the real Excel icon and the text "Export Excel" or
+// "Import Excel", the same on every page. `label` says what the file holds (tooltip / screen readers). A button
+// (onClick, a spinner while busy) or a plain link (href).
 
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { assetUrl } from '@/lib/assets';
+import { tr } from '@/lib/i18n';
 
-const cls = 'inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] transition-colors hover:bg-[color:var(--j-091E420F)] aria-disabled:pointer-events-none aria-disabled:opacity-50 disabled:cursor-not-allowed disabled:opacity-50';
+export const excelBtnClass = 'inline-flex h-10 flex-shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3 text-[13px] font-medium text-[color:var(--j-172B4D)] transition-colors hover:bg-[color:var(--j-F7F8F9)] active:bg-[color:var(--j-091E420F)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--j-388BFF)] disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 sm:h-9';
 
-const boxedCls = 'inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white transition-colors hover:bg-[color:var(--j-F7F8F9)] disabled:cursor-not-allowed disabled:opacity-60 sm:h-9 sm:w-9';
+/** The real Excel icon (or a spinner while busy). */
+export function ExcelIcon({ busy, size = 18 }: { busy?: boolean; size?: number }) {
+  return busy
+    ? <Loader2 size={size} className="animate-spin text-[color:var(--j-44546F)]" />
+    : <span className="relative block flex-shrink-0" style={{ width: size, height: size }}><Image src={assetUrl('assets/xlsx.png')} alt="" fill sizes={`${size}px`} className="object-contain" /></span>;
+}
 
-export default function ExcelIconButton({ label, onClick, href, loading, disabled, boxed, className }: {
-  /** bordered, for a filter toolbar */ boxed?: boolean;
+/** "Export Excel" / "Import Excel" text. */
+export const excelText = (mode: 'export' | 'import' = 'export') => (mode === 'import' ? tr('Import Excel') : tr('Export Excel'));
+
+export default function ExcelIconButton({ label, onClick, href, loading, disabled, className, mode = 'export', text }: {
+  /** kept for older callers; every Excel button now has the same frame */ boxed?: boolean;
   className?: string;
-  label: string;
+  label?: string;
   onClick?: () => void;
   href?: string;
   loading?: boolean;
   disabled?: boolean;
+  mode?: 'export' | 'import';
+  /** a different text (e.g. "Reading …" while busy) */ text?: string;
 }) {
-  const icon = loading
-    ? <Loader2 size={18} className="animate-spin text-[color:var(--j-44546F)]" />
-    : <span className="relative h-6 w-6"><Image src={assetUrl("assets/xlsx.png")} alt="" fill sizes="24px" className="object-contain" /></span>;
+  const body = <><ExcelIcon busy={loading} /><span>{text ?? excelText(mode)}</span></>;
+  const title = label ?? excelText(mode);
   if (href) {
-    return <a href={href} className={cls} title={label} aria-label={label} aria-disabled={disabled || undefined}>{icon}</a>;
+    return <a href={href} className={`${excelBtnClass} ${className ?? ''}`} title={title} aria-disabled={disabled || undefined}>{body}</a>;
   }
   return (
-    <button type="button" onClick={onClick} disabled={disabled || loading} className={`${boxed ? boxedCls : cls} ${className ?? ''}`} title={label} aria-label={label} aria-busy={loading || undefined}>
-      {icon}
+    <button type="button" onClick={onClick} disabled={disabled || loading} className={`${excelBtnClass} ${className ?? ''}`} title={title} aria-busy={loading || undefined}>
+      {body}
     </button>
   );
 }

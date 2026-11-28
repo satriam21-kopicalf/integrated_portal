@@ -22,6 +22,7 @@ import { call } from '@/so/features/checkin/checkin';
 import { downloadXlsx } from '@/lib/xlsx';
 import { numberLocale, tr } from '@/lib/i18n';
 import { DataSources } from '@/so/features/health/DataHealth';
+import { FilterCount, filterBtnClass } from "@/jira/filters";
 
 type Parts = { coverDays: number; lossPct: number | null; safetyPct: number | null; bufferPct: number };
 type Buffer = {
@@ -280,8 +281,8 @@ function PlanTab({ branch, setBranch, outlets }: { branch: string; setBranch: (b
     header: ['Kode', 'Bahan', 'Satuan', 'Pemakaian / hari', 'Kebutuhan', 'Stok', 'Pesan', 'Kemasan', 'Jumlah kemasan', 'Harga', 'Sumber harga', 'Nilai'],
     rows: sorted.map((r) => [r.code, r.name, r.unit, r.perDay, r.required, r.stock, r.toOrder, r.packUom, r.packs, r.price, r.priceSource, r.value]) });
   const chips = (
-    <button type="button" onClick={() => setSheet(true)} className="inline-flex h-10 items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3.5 text-[13px] font-semibold text-[color:var(--j-172B4D)] hover:bg-[color:var(--j-F7F8F9)] sm:h-9">
-      <SlidersHorizontal size={15} /> {tr('Filters')}
+    <button type="button" onClick={() => setSheet(true)} className={filterBtnClass((branch ? 1 : 0))}>
+      <SlidersHorizontal size={16} />{tr("Filter")}<FilterCount count={(branch ? 1 : 0)} />
       {branch && <span className="max-w-[14rem] truncate font-normal text-[color:var(--j-626F86)]">· {outlets.find((o) => o.value === branch)?.label ?? branch}</span>}
     </button>
   );
@@ -393,8 +394,8 @@ function AccuracyTab({ branch, setBranch, outlets }: { branch: string; setBranch
       <Note tone="info" icon={<Info />} className="mb-4">
         {tr('The estimate of 4 weeks ago (its average of the 4 weeks before) against what the outlet then used. "Off" = the difference in value ÷ what was used; below 10 % is good, above 20 % the average does not fit the outlet (promotions, a new menu, a closed day).')}
       </Note>
-      <Panel toolbar={<button type="button" onClick={() => setSheet(true)} className="inline-flex h-10 items-center gap-2 rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white px-3.5 text-[13px] font-semibold text-[color:var(--j-172B4D)] hover:bg-[color:var(--j-F7F8F9)] sm:h-9">
-        <SlidersHorizontal size={15} /> {tr('Filters')}{branch && <span className="max-w-[14rem] truncate font-normal text-[color:var(--j-626F86)]">· {outlets.find((o) => o.value === branch)?.label ?? branch}</span>}</button>}
+      <Panel toolbar={<button type="button" onClick={() => setSheet(true)} className={filterBtnClass((branch ? 1 : 0))}>
+        <SlidersHorizontal size={16} />{tr("Filter")}<FilterCount count={(branch ? 1 : 0)} />{branch && <span className="max-w-[14rem] truncate font-normal text-[color:var(--j-626F86)]">· {outlets.find((o) => o.value === branch)?.label ?? branch}</span>}</button>}
         footer={res ? <><span>{tr('base {0} – {1} · test {2} – {3}', dmy(res.base.from), dmy(res.base.to), dmy(res.test.from), dmy(res.test.to))}</span><PageNav paged={paged} /></> : undefined}>
         {!branch ? <Empty icon={<Target size={26} />} title={tr('Choose an outlet in Filters')} />
           : error ? <ErrorState message={error} /> : !res ? <table className="w-full"><tbody><SkeletonRows cols={5} /></tbody></table> : (

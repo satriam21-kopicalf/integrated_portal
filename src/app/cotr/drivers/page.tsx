@@ -9,15 +9,14 @@ import { Bike, Building2, KeyRound, ShieldCheck, UserRound } from "lucide-react"
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/so/ui";
 import { Page } from "@/components/kc/compat";
-import { IconButton } from "@/components/kc";
-import { assetUrl, thumb } from "@/lib/assets";
-import Image from "next/image";
+import { thumb } from "@/lib/assets";
 import { call } from "@/so/features/checkin/checkin";
 import { Driver, DriverAccount, Fleet, Pool } from "@/cotr/types";
 import { MasterTable, imageUrl, rupiah, useMaster } from "@/cotr/ui";
 import ImportDrivers from "@/cotr/ImportDrivers";
 import { hasPage, useAuth } from "@/lib/auth";
 import { tr } from "@/lib/i18n";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 const STATUS: Record<Driver["status"], { label: () => string; tone: "green" | "amber" | "slate" }> = {
   active: { label: () => tr("Active"), tone: "green" },
@@ -45,9 +44,7 @@ export default function CotrDriversPage() {
     <Page eyebrow="Calf On The Road" media={<Bike size={19} />} title={tr("Master Driver")} subtitle={tr("COTR drivers: profile, assignment, employment, payroll and bank account")}
       actions={<>
         {/* icons only (2026-11-02): the real Excel icon for the import, a key for the driver accounts (User Accounts) */}
-        <IconButton label={tr("Import Excel")} onClick={() => setImporting(true)}>
-          <span className="relative h-5 w-5"><Image src={assetUrl("assets/xlsx.png")} alt="" fill sizes="20px" className="object-contain" /></span>
-        </IconButton>
+        <ExcelIconButton mode="import" onClick={() => setImporting(true)} />
         <Link href="/users" title={tr("Driver Accounts")} aria-label={tr("Driver Accounts")}
           className="inline-flex h-9 w-9 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] transition-colors hover:bg-[color:var(--j-F7F8F9)] hover:text-[color:var(--j-172B4D)]"><KeyRound size={17} /></Link>
       </>}>

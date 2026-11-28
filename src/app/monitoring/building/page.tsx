@@ -19,6 +19,7 @@ import { DateField, Facts, Group, Row, ctl } from "@/aggregator/fields";
 import { dmy } from "@/so/ui/Filters";
 import { useRouter } from "next/navigation";
 import { ProjectForm, ProjectList } from "@/building/Projects";
+import { FilterCount, filterBtnClass } from "@/jira/filters";
 
 type Material = { id: number; group: string; category: string; spec: string | null; detail: string | null; unit: string | null; price: number | null;
   priceOn: string | null; priceAge: number | null; stale: boolean; vendorId: number | null; vendor: string | null; vendorPhone: string | null; note: string | null;
@@ -49,10 +50,10 @@ function Filters({ fields, q, onQ, placeholder, excel, add }: { fields: { key: s
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-0 flex-1 basis-full sm:basis-64 sm:max-w-md"><SearchBox value={q} onChange={onQ} placeholder={placeholder} /></div>
         <div className="flex flex-1 items-center gap-2 sm:flex-none">
-          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-[3px] border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", chosen.length ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-172B4D)] hover:border-[color:var(--j-8590A2)]")}>
-            <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
+          <button ref={btn} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" className={filterBtnClass(chosen.length)}>
+            <SlidersHorizontal size={16} />{tr("Filter")}<FilterCount count={chosen.length} /></button>
           {chosen.length > 0 && <button type="button" onClick={clear} aria-label={tr("Clear the filters")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-F7F8F9)] sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
-          <ExcelIconButton boxed label={tr("Export to Excel")} onClick={excel} className="!h-11 !w-11 sm:!h-10 sm:!w-10" />
+          <ExcelIconButton boxed label={tr("Export to Excel")} onClick={excel} />
           <Button className="!h-11 sm:!h-10" onClick={add}><Plus size={15} /><span className="hidden sm:inline">{tr("Add")}</span></Button>
         </div>
       </div>

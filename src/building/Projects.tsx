@@ -15,6 +15,7 @@ import { tr } from "@/lib/i18n";
 import { DateField, Group, Row, ctl } from "@/aggregator/fields";
 import { dmy } from "@/so/ui/Filters";
 import { type Full, type Kind, type Project, type Status, KIND_LABEL, RAB_LABEL, RAB_TONE, STATUS_LABEL, STATUS_TONE, placeOf, rp, today } from "./types";
+import { FilterCount, filterBtnClass } from "@/jira/filters";
 
 type BranchOpt = { branch_code: string; branch_name: string };
 type Approver = { id: string; name: string; jobTitle: string | null; department?: string | null };
@@ -79,8 +80,8 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
         <div className="flex flex-wrap items-center gap-2">
           <div className="min-w-0 flex-1 basis-full sm:basis-64 sm:max-w-md"><SearchBox value={q} onChange={setQ} placeholder={tr("Search number, project, outlet, PIC or contractor")} /></div>
           <div className="flex flex-1 items-center gap-2 sm:flex-none">
-            <button ref={btn} type="button" onClick={() => setOpen(true)} className={cx("flex h-11 flex-1 items-center justify-center gap-2 rounded-[3px] border px-4 text-[15px] font-medium sm:h-10 sm:flex-none sm:text-sm", chosen.length ? "border-[color:var(--j-85B8FF)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-172B4D)]")}>
-              <SlidersHorizontal size={16} /> {tr("Filter")}{chosen.length > 0 && <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 text-[11px] font-semibold leading-[18px] text-white">{chosen.length}</span>}</button>
+            <button ref={btn} type="button" onClick={() => setOpen(true)} className={filterBtnClass(chosen.length)}>
+              <SlidersHorizontal size={16} />{tr("Filter")}<FilterCount count={chosen.length} /></button>
             {chosen.length > 0 && <button type="button" onClick={() => { setKind(""); setStatus(""); }} aria-label={tr("Clear the filters")} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] sm:h-10 sm:w-10"><RotateCcw size={16} /></button>}
             <Button variant="secondary" className="!h-11 sm:!h-10" onClick={() => setApprOpen(true)} title={tr("RAB approvers")}><ShieldCheck size={15} /><span className="hidden sm:inline">{tr("RAB approvers")}</span></Button>
             <Button className="!h-11 sm:!h-10" onClick={onAdd}><Plus size={15} />{tr("New project")}</Button>

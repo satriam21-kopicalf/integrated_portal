@@ -166,7 +166,7 @@ function Rab({ p, busy, act }: { p: Full; busy: boolean; act: Act }) {
         <span className="mr-auto flex flex-wrap items-center gap-2 text-sm"><Badge tone={RAB_TONE[p.rabStatus]}>{RAB_LABEL[p.rabStatus]()}</Badge>
           <span className="font-semibold tabular-nums text-[color:var(--j-172B4D)]">{rp(p.rabTotal)}</span>
           {p.rabStatus === "DRAFT" && p.rabVersion > 0 && <span className="text-xs text-amber-700">{tr("Changed after v{0}: approve again", p.rabVersion)}</span>}</span>
-        <ExcelIconButton boxed label={tr("Export to Excel")} onClick={exportXlsx} className="!h-10 !w-10" />
+        <ExcelIconButton boxed label={tr("Export to Excel")} onClick={exportXlsx} />
         {!locked && <Button variant="secondary" onClick={() => setSection({ name: "" })}><Plus size={14} />{tr("Section")}</Button>}
         {p.rabStatus === "DRAFT" && !locked && <Button disabled={busy || !p.lines.length} onClick={() => void act("/rab/submit", {}, tr("RAB sent for approval"))}><Send size={14} />{tr("Send for approval")}</Button>}
         {p.rabStatus === "SUBMITTED" && p.canApprove && <><Button variant="secondary" disabled={busy} onClick={() => setDecide(false)}><Undo2 size={14} />{tr("Return")}</Button><Button disabled={busy} onClick={() => setDecide(true)}><CheckCircle2 size={14} />{tr("Approve")}</Button></>}

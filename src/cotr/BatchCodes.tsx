@@ -4,7 +4,7 @@
 // day it was made, 0808 = batch 8 of the 8th) counted in the physical leftover of the pools, per menu: the day it was
 // made, its expiry (the shelf life of the menu), the days it was counted and the cups of its last count per pool.
 
-import { Building2, CalendarRange, CircleDot, Coffee, Download, PencilLine, Save, Tags } from "lucide-react";
+import { Building2, CalendarRange, CircleDot, Coffee, PencilLine, Save, Tags } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, usePaged, useToast } from "@/so/ui";
 import { ComboFilter, FilterRow, MonitorFilterSheet, Segments } from "@/so/ui/MonitorFilters";
@@ -20,6 +20,7 @@ import { Pool } from "@/cotr/types";
 import { COTR_PAGE, CotrPager, useMaster } from "@/cotr/ui";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type PoolQty = { pool: string; poolName: string; day: string; qty: number; counts: number };
 type Code = { menu: string; menuName: string; batchNo: string; sequence: number | null; producedOn: string | null; expiresOn: string | null;
@@ -74,7 +75,7 @@ export function BatchCodes() {
             { key: "menu", icon: <Coffee />, label: tr("Menu"), value: menu ? menuName(menu) : tr("All menus"), active: !!menu },
             { key: "status", icon: <CircleDot />, label: tr("Status"), value: statusLabel(status), active: !!status },
           ]} />
-        <Button variant="secondary" disabled={!listed.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>
+        <ExcelIconButton disabled={!listed.length} onClick={() => void exportXlsx()} />
       </div>
       {sheet && (
         <MonitorFilterSheet active={[draft.pool, draft.menu, draft.status, draft.from !== monthStart || draft.to !== todayWib()].filter(Boolean).length}

@@ -5,10 +5,11 @@
 // what is chosen (day, pool, …) — a tap on it opens the same drawer. Same props as components/kc/ScopeBar, so a page
 // swaps one for the other; the drawer (so/ui MonitorFilters) stays the page's own.
 
-import { RefreshCw, SlidersHorizontal } from "lucide-react";
+import { RefreshCw, } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cx } from "@/components/kc";
-import { DayField, dmyOf, type Scope } from "@/components/kc/ScopeBar";
+import { DayField, dmyOf, ScopeLine, type Scope } from "@/components/kc/ScopeBar";
+import { FilterButton } from "@/jira/filters";
 import { Field, Input } from "@/so/ui";
 import { ComboFilter, FilterRow, MonitorFilterSheet, OptionList, Segments } from "@/so/ui/MonitorFilters";
 import { tr } from "@/lib/i18n";
@@ -116,34 +117,18 @@ export function CotrFilterBar({ scopes, onOpen, onRefresh, refreshing, right, ch
   return (
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center gap-2">
-        {onOpen && <button type="button" onClick={onOpen} aria-label={count ? tr("Filters, {0} active", count) : tr("Filters")}
-          className={cx("inline-flex h-10 items-center gap-2 rounded-[3px] border px-3.5 text-[13px] font-semibold transition-colors sm:h-9",
-            count ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white hover:bg-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-172B4D)] hover:bg-[color:var(--j-F7F8F9)]")}>
-          <SlidersHorizontal size={15} /> {tr("Filters")}
-          {count > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1.5 text-[11px] font-bold tabular-nums text-[color:var(--j-0C66E4)]">{count}</span>}
-        </button>}
+        {onOpen && <FilterButton count={count} onClick={onOpen} />}
         {right && <div className="min-w-0 flex-1 sm:max-w-xs">{right}</div>}
         {chips && <div className="flex max-w-full flex-wrap items-center gap-1">{chips}</div>}
         {onRefresh && (
           <button type="button" onClick={onRefresh} title={tr("Refresh")} aria-label={tr("Refresh")}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-[3px] border border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-626F86)] hover:bg-[color:var(--j-F7F8F9)] hover:text-[color:var(--j-172B4D)] sm:h-9 sm:w-9">
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[3px] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)] sm:h-8 sm:w-8">
             <RefreshCw size={15} className={refreshing ? "animate-spin" : undefined} />
           </button>
         )}
         {actions && <div className="flex w-full flex-wrap items-center gap-2 sm:ml-auto sm:w-auto [&>*]:max-sm:flex-1">{actions}</div>}
       </div>
-      {scopes.length > 0 && (
-        <button type="button" onClick={onOpen} disabled={!onOpen} className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 text-left text-xs text-[color:var(--j-626F86)] hover:text-[color:var(--j-172B4D)]">
-          {scopes.map((s, i) => (
-            <span key={s.key} className="inline-flex min-w-0 items-center gap-1">
-              {i > 0 && <span className="text-[color:var(--j-8590A2)]" aria-hidden>·</span>}
-              <span className={cx("flex-shrink-0 [&>svg]:h-3.5 [&>svg]:w-3.5", s.active ? "text-[color:var(--j-0C66E4)]" : "text-[color:var(--j-626F86)]")}>{s.icon}</span>
-              <span className="sr-only">{s.label}:</span>
-              <span className={cx("truncate", s.active && "font-semibold text-[color:var(--j-0C66E4)]")}>{s.value}</span>
-            </span>
-          ))}
-        </button>
-      )}
+      <ScopeLine scopes={scopes} onOpen={onOpen} />
     </div>
   );
 }

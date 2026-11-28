@@ -4,7 +4,7 @@
 // driver (cups sold per segment of the tiers, product bonus, late / absent deductions of Master Schedule, minimum
 // attendance), the schemes the COTR team adjusts (versioned by the month they start) and a simulator.
 
-import { Building2, CalendarDays, Calculator, Coffee, Download, Layers, Plus, Trash2, TriangleAlert, Users, Wallet } from "lucide-react";
+import { Building2, CalendarDays, Calculator, Coffee, Layers, Plus, Trash2, TriangleAlert, Users, Wallet } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Badge, Button, ErrorState, Field, Input, Select, cx, usePaged, useToast } from "@/so/ui";
 import { SearchInput, StatCard, StatGrid, Tabs, ValueSkeleton, kcTable } from "@/components/kc";
@@ -19,6 +19,7 @@ import { locale, tr } from "@/lib/i18n";
 import { SkeletonList } from "@/components/kc/Skeleton";
 import { PAY_LABEL, PayPanel, PayslipDrawer, type PayKind } from "@/cotr/Payslip";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type Tier = { from: number; to: number | null; rate: number };
 type Bonus = { menu: string; rate: number };
@@ -144,7 +145,7 @@ function RecapView() {
         {data?.published ? <Badge tone="green">{tr("Payslips published")}</Badge> : null}
         <Button size="sm" variant={data?.published ? "ghost" : "primary"} loading={publishing} disabled={!data} onClick={() => void publish(!data?.published)}>
           {data?.published ? tr("Withdraw payslips") : tr("Publish payslips")}</Button>
-        <Button size="sm" variant="secondary" disabled={!rows.length} onClick={exportCsv}><Download size={14} /> {tr("Export Excel")}</Button></div>}>
+        <ExcelIconButton disabled={!rows.length} onClick={exportCsv} /></div>}>
       {error ? <ErrorState message={error} onRetry={() => setTick((t) => t + 1)} /> : !data ? <SkeletonList rows={4} /> : (
         <div className="overflow-x-auto">
           <table className="m-cards w-full min-w-[820px] text-sm">

@@ -5,9 +5,9 @@
 // still has that is good that day (its last leftover without the lots expiring before). The total per menu is what the
 // HUB production prepares.
 
-import { CalendarDays, Download, History, Percent, Send, Truck } from "lucide-react";
+import { CalendarDays, History, Percent, Send, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button, ErrorState, useToast } from "@/so/ui";
+import { ErrorState, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
 import { StatCard, StatGrid, kcTable } from "@/components/kc";
 import { SkeletonTable } from "@/components/kc/Skeleton";
@@ -16,6 +16,7 @@ import { call } from "@/so/features/checkin/checkin";
 import { locale, tr } from "@/lib/i18n";
 import { CotrFilters } from "@/cotr/FilterBar";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type Row = { menu: string; name: string; avgSold: number; avgUsed: number; need: number; have: number; expiring: number; send: number };
 type Plan = { day: string; days: number; buffer: number; pools: { pool: string; name: string; counted: string | null; days: number; rows: Row[]; send: number }[];
@@ -46,7 +47,7 @@ export function ShipmentPlan() {
     <>
       <CotrFilters value={{ day, days: String(days), buffer: String(buffer) }}
         onApply={(v) => { setDay(v.day || tomorrow()); setDays(Number(v.days) || 7); setBuffer(Number(v.buffer) || 0); }}
-        actions={<Button variant="secondary" disabled={!plan} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        actions={<ExcelIconButton disabled={!plan} onClick={() => void exportXlsx()} />}
         fields={[
           { key: "day", kind: "day", label: tr("For the day"), icon: <CalendarDays />, def: tomorrow(), future: true },
           { key: "days", kind: "segments", label: tr("Days of sales"), icon: <History />, def: "7", options: [3, 7, 14].map((d) => ({ value: String(d), label: tr("Last {0} days", d) })) },

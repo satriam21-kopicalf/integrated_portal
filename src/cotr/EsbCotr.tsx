@@ -5,7 +5,7 @@
 // waste journals, the manufacturing of the storage, purchases, sales to the outlets, receipts and journals. Listed per
 // module with the branch and period, a document opens with its lines, and every line goes to Excel.
 
-import { Building2, CalendarRange, Database, Download, FileText } from "lucide-react";
+import { Building2, CalendarRange, Database, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge, Button, ErrorState, usePaged, useToast } from "@/so/ui";
 import { Panel } from "@/components/kc/compat";
@@ -21,6 +21,7 @@ import { SearchInput } from "@/components/kc";
 import { Freshness } from "@/cotr/Freshness";
 import { tr } from "@/lib/i18n";
 import { downloadXlsx } from "@/lib/xlsx";
+import ExcelIconButton from "@/components/ExcelIconButton";
 
 type Mod = { module: string; name: string; docs: number; first: string | null; last: string | null; synced: string | null };
 type Summary = { modules: Mod[]; branches: { code: string; name: string; pool: string | null }[] };
@@ -86,7 +87,7 @@ export function EsbCotr() {
       <CotrFilters value={{ module, branch, from, to }}
         onApply={(v) => { setModule(v.module); setBranch(v.branch); setFrom(v.from); setTo(v.to); }}
         right={<SearchInput value={q} onChange={setQ} placeholder={tr("Search number, note, counterparty")} />}
-        actions={<Button variant="secondary" loading={exporting} disabled={!rows?.length} onClick={() => void exportXlsx()}><Download size={15} /> {tr("Export Excel")}</Button>}
+        actions={<ExcelIconButton loading={exporting} disabled={!rows?.length} onClick={() => void exportXlsx()} />}
         fields={[
           { key: "module", kind: "list", label: tr("Module"), icon: <Database />, def: "simple_sales",
             options: (summary?.modules ?? [{ module: "simple_sales", name: "Simple Sales", docs: 0 } as Mod]).map((m) => ({ value: m.module, label: m.docs ? `${m.name} (${m.docs.toLocaleString("id-ID")})` : m.name })) },
