@@ -42,7 +42,7 @@ const NO_F = (): F => ({ period: { from: wibDay(-89), to: wibDay(0) }, kind: "",
 type GroupOpt = { id: string; code: string; name: string };
 const DOT: Partial<Record<Status, string>> = { PENDING: "bg-[color:var(--j-8590A2)]", ORDERED: "bg-[color:var(--j-6E5DC6)]", ON_HOLD: "bg-[color:var(--j-E2B203)]",
   ACCEPTED: "bg-[color:var(--j-388BFF)]", IN_PROGRESS: "bg-[color:var(--j-0C66E4)]", HANDOVER: "bg-[color:var(--j-2898BD)]", DONE: "bg-[color:var(--j-22A06B)]", REJECTED: "bg-[color:var(--j-C9372C)]" };
-const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-red-500", HIGH: "border-l-amber-400", NORMAL: "border-l-brand-400", LOW: "border-l-neutral-300", PLANNED: "border-l-violet-400" };
+const STRIPE: Record<Urgency, string> = { CRITICAL: "border-l-[color:var(--j-C9372C)]", HIGH: "border-l-[color:var(--j-E2B203)]", NORMAL: "border-l-[color:var(--j-0C66E4)]", LOW: "border-l-[color:var(--j-8590A2)]", PLANNED: "border-l-[color:var(--j-6E5DC6)]" };
 const TABS: (Status | "" | "OPEN")[] = ["OPEN", "", "PENDING", "ON_HOLD", "ACCEPTED", "IN_PROGRESS", "ORDERED", "HANDOVER", "DONE", "REJECTED"];
 const OPEN_SET = new Set<Status>(OPEN);
 const urgRank = (u: Urgency) => URGENCIES.indexOf(u);
@@ -1005,7 +1005,7 @@ function ChoiceGroupMulti({ options, value, onChange }: { options: string[]; val
       {options.map((o) => {
         const on = value.includes(o);
         return <button key={o} type="button" aria-pressed={on} onClick={() => onChange(on ? value.filter((x) => x !== o) : [...value, o])}
-          className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{o}</button>;
+          className={cx("rounded-[3px] border px-3 py-1 text-xs font-medium", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{o}</button>;
       })}
     </div>
   );
@@ -1052,7 +1052,7 @@ function CategoriesDrawer({ kind, bgroups, onClose }: { kind: Kind; bgroups: Gro
               {bgroups.map((g) => {
                 const on = (edit.branchGroups ?? []).includes(g.id);
                 return <button key={g.id} type="button" aria-pressed={on} onClick={() => setEdit({ ...edit, branchGroups: on ? (edit.branchGroups ?? []).filter((x) => x !== g.id) : [...(edit.branchGroups ?? []), g.id] })}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-semibold", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{g.code}</button>;
+                  className={cx("rounded-[3px] border px-3 py-1 text-xs font-semibold", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{g.code}</button>;
               })}
               {!(edit.branchGroups ?? []).length && <span className="self-center text-xs text-[color:var(--j-626F86)]">· {tr("every outlet")}</span>}
             </div>

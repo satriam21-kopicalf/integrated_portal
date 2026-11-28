@@ -168,7 +168,7 @@ function SplitTable({ rows, kind, onOpen }: { rows: GrowthSplit[]; kind: 'branch
           render: r => (kind === 'channel'
             ? <span className="flex items-center gap-2"><SeriesKey color={channelColor(r.key)} /><ChannelLogo channel={r.key} height={14} /></span>
             : <span title={r.label}>{short(r.label)}</span>) },
-        { key: 'status', label: tr('Status'), value: r => r.status, render: r => (r.status ? <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span> : '-') },
+        { key: 'status', label: tr('Status'), value: r => r.status, render: r => (r.status ? <span className={`rounded-[3px] px-2 py-0.5 text-[10px] font-semibold ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span> : '-') },
         { key: 'sales', label: tr('Gross sales'), align: 'right', value: r => r.subtotal, render: r => rp(r.subtotal) },
         { key: 'cmp', label: tr('Comparison'), align: 'right', value: r => r.compareSubtotal, render: r => rp(r.compareSubtotal) },
         { key: 'abs', label: tr('Growth'), align: 'right', value: r => r.growthAbs, render: r => <GrowthText v={r.growthPct} abs={r.growthAbs} absOnly /> },

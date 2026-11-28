@@ -212,7 +212,7 @@ function TypeCard({ t, color, onOpen }: { t: CountType; color: string; onOpen: (
         <span className="min-w-0 flex-1">
           <span className="block truncate text-base font-semibold text-[color:var(--j-172B4D)] group-hover:text-[color:var(--j-0C66E4)]" title={countTypeLabel(t.code, t.name)}>{countTypeLabel(t.code, t.name)}</span>
           <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <span className={cx("rounded-full px-2 py-0.5 text-[11px] font-semibold", FREQ_TONE[t.frequency])}>{FREQUENCIES.find((f) => f.key === t.frequency)?.label()}</span>
+            <span className={cx("rounded-[3px] px-2 py-0.5 text-[11px] font-semibold", FREQ_TONE[t.frequency])}>{FREQUENCIES.find((f) => f.key === t.frequency)?.label()}</span>
             {t.is_active ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge>{tr("Inactive")}</Badge>}
           </span>
         </span>
@@ -363,9 +363,9 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
             </p>
           )}
           <p className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
-            <span className={cx("rounded-full px-2 py-0.5 font-semibold", d.is_active ? "bg-[color:var(--j-22A06B)]/20 text-[color:var(--j-4BCE97)]" : "bg-white/10 text-[color:var(--j-8590A2)]")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
-            {d.wip_enabled && <span className="rounded-full bg-[color:var(--j-6E5DC6)]/20 px-2 py-0.5 font-semibold text-[color:var(--j-B8ACF6)]">{tr("WIP form")}</span>}
-            {d.date_field && <span className="rounded-full bg-white/10 px-2 py-0.5 font-semibold text-[color:var(--j-DCDFE4)]">{dateFieldLabel(d.date_field)}</span>}
+            <span className={cx("rounded-[3px] px-2 py-0.5 font-semibold", d.is_active ? "bg-[color:var(--j-22A06B)]/20 text-[color:var(--j-4BCE97)]" : "bg-white/10 text-[color:var(--j-8590A2)]")}>{d.is_active ? tr("Active") : tr("Inactive")}</span>
+            {d.wip_enabled && <span className="rounded-[3px] bg-[color:var(--j-6E5DC6)]/20 px-2 py-0.5 font-semibold text-[color:var(--j-B8ACF6)]">{tr("WIP form")}</span>}
+            {d.date_field && <span className="rounded-[3px] bg-white/10 px-2 py-0.5 font-semibold text-[color:var(--j-DCDFE4)]">{dateFieldLabel(d.date_field)}</span>}
           </p>
         </section>
 
@@ -449,7 +449,7 @@ function TypeDrawer({ type, onClose, onSaved }: { type: CountType | null; onClos
               <span className="text-xs text-[color:var(--j-626F86)]">{tr("Common")}:</span>
               {WINDOWS.map(([a, b], i) => (
                 <button key={a + b} type="button" onClick={() => setD((o) => ({ ...o, window_start: a, window_end: b }))}
-                  className={cx("rounded-full border px-2.5 py-0.5 text-xs font-medium", windowPreset === i ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{a}–{b}</button>
+                  className={cx("rounded-[3px] border px-2.5 py-0.5 text-xs font-medium", windowPreset === i ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{a}–{b}</button>
               ))}
             </div>
             <div>

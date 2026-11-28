@@ -218,7 +218,7 @@ export function HourMovers({ rows }: { rows: HourGrowthRow[] }) {
   const down = ranked.filter(r => r.growthAbs < 0).slice(-3).reverse();
   if (!up.length && !down.length) return null;
   const chip = (r: HourGrowthRow) => (
-    <span key={r.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${r.growthAbs >= 0 ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>
+    <span key={r.hour} className={`inline-flex items-center gap-1 rounded-[3px] px-2 py-0.5 text-[11px] font-medium ${r.growthAbs >= 0 ? 'bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>
       {r.growthAbs >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(r.hour)} {signedRp(r.growthAbs)}{tr('/day')}
     </span>
   );

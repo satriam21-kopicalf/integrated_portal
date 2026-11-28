@@ -74,7 +74,7 @@ export default function BranchAssign({ branches, loading, value, onChange, inval
       <div role="tablist" aria-label={tr('Branch category')} className="flex gap-1 overflow-x-auto px-2 pt-2">
         {KINDS.filter(k => k.key === 'all' || counts[k.key] > 0).map(k => (
           <button key={k.key} type="button" role="tab" aria-selected={kind === k.key} onClick={() => setKind(k.key)}
-            className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${kind === k.key ? 'bg-[color:var(--j-0C66E4)] text-white' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-DCDFE4)]'}`}>
+            className={`flex flex-shrink-0 items-center gap-1.5 rounded-[3px] px-3 py-1 text-xs font-medium ${kind === k.key ? 'bg-[color:var(--j-0C66E4)] text-white' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)] hover:bg-[color:var(--j-DCDFE4)]'}`}>
             {k.label()} <span className="tabular-nums opacity-80">{counts[k.key]}</span>
           </button>
         ))}

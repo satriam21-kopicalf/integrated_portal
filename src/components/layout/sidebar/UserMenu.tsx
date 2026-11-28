@@ -91,7 +91,7 @@ export default function UserMenu({ collapsed, onNavigate, placement = 'side' }: 
             <p className={group}>{tr('Profile')}</p>
             <button type="button" role="menuitem" onClick={() => { setOpen(false); openProfile(); }} className={cx(item, 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]')}>
               <UserRoundPen /> {tr('My profile')}
-              {!user.profileComplete && <span className="ml-auto rounded-full bg-[color:var(--j-FFF7D6)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--j-7F5F01)]">{tr('Incomplete')}</span>}
+              {!user.profileComplete && <span className="ml-auto rounded-[3px] bg-[color:var(--j-FFF7D6)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--j-7F5F01)]">{tr('Incomplete')}</span>}
             </button>
             <button type="button" role="menuitem" onClick={() => { setOpen(false); openPassword(); }} className={cx(item, 'text-[color:var(--j-44546F)] hover:bg-[color:var(--j-091E420F)]')}>
               <KeyRound /> {tr('Change Password')}

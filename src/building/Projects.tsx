@@ -87,7 +87,7 @@ export function ProjectList({ onAdd }: { onAdd: () => void }) {
             <Button className="!h-11 sm:!h-10" onClick={onAdd}><Plus size={15} />{tr("New project")}</Button>
           </div>
         </div>
-        {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((c) => <li key={c.k}><button type="button" onClick={c.clear} className="inline-flex min-h-8 items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-2.5 text-xs text-[color:var(--j-0055CC)]"><span className="text-[color:var(--j-0C66E4)]/70">{c.label}:</span><span className="font-semibold">{c.v}</span><X size={13} /></button></li>)}</ul>}
+        {chosen.length > 0 && <ul className="flex flex-wrap gap-1.5">{chosen.map((c) => <li key={c.k}><button type="button" onClick={c.clear} className="inline-flex min-h-8 items-center gap-1.5 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-2.5 text-xs text-[color:var(--j-0055CC)]"><span className="text-[color:var(--j-0C66E4)]/70">{c.label}:</span><span className="font-semibold">{c.v}</span><X size={13} /></button></li>)}</ul>}
         {apprOpen && appr && <ApproversDrawer list={appr.list} can={appr.can} onClose={() => setApprOpen(false)} onSaved={(list) => { setAppr({ ...appr, list }); setApprOpen(false); }} />}
         <Floating open={open} onClose={() => setOpen(false)} title={tr("Filter")} anchor={btn}
           footer={<><Button variant="secondary" className="flex-1" disabled={!chosen.length} onClick={() => { setKind(""); setStatus(""); }}>{tr("Clear")}</Button><Button className="flex-1" onClick={() => setOpen(false)}>{tr("Show")}</Button></>}>

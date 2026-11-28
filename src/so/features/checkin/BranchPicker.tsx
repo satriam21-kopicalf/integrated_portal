@@ -64,7 +64,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
             const n = g ? rows.filter((r) => r.group === g).length : rows.length;
             return (
               <button key={g || "all"} type="button" role="radio" aria-checked={grp === g} onClick={() => setGrp(g)}
-                className={cx("rounded-full border px-3 py-1 text-xs font-medium", grp === g ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
+                className={cx("rounded-[3px] border px-3 py-1 text-xs font-medium", grp === g ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
                 {g || tr("All")} <span className="tabular-nums opacity-70">{n}</span></button>
             );
           })}
@@ -89,7 +89,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-1.5">
                     <span className={cx("truncate text-sm font-semibold", on ? "text-[color:var(--j-0055CC)]" : "text-[color:var(--j-172B4D)]")}>{r.name}</span>
-                    {r.code === nearest && <span className="rounded-full bg-[color:var(--j-BAF3DB)] px-1.5 py-px text-[10px] font-semibold uppercase text-[color:var(--j-216E4E)]">{tr("Nearest")}</span>}
+                    {r.code === nearest && <span className="rounded-[3px] bg-[color:var(--j-BAF3DB)] px-1.5 py-px text-[10px] font-semibold uppercase text-[color:var(--j-216E4E)]">{tr("Nearest")}</span>}
                   </span>
                   <span className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-[color:var(--j-626F86)]">
                     <span className="font-mono">{r.code}</span>
@@ -99,7 +99,7 @@ export default function BranchPicker({ branches, value, onChange, fix, stateOf }
                   </span>
                 </span>
                 {r.state && (
-                  <span className={cx("flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                  <span className={cx("flex-shrink-0 rounded-[3px] px-2 py-0.5 text-[11px] font-semibold",
                     r.state.tone === "done" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-1 ring-[color:var(--j-BAF3DB)]" : "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] ring-1 ring-[color:var(--j-F8E6A0)]")}>{r.state.label}</span>
                 )}
               </button>

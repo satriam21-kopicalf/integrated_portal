@@ -1070,12 +1070,12 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           {PAGES.filter(p => user.role === 'superadmin' || (user.pages ?? []).includes(p.key)).map(p => {
             const extra = user.pageOverrides?.[p.key] === true;
             return (
-              <li key={p.key} className={`rounded-full px-2.5 py-1 text-xs ${extra ? 'bg-[color:var(--j-DCFFF1)] font-medium text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]'}`}
+              <li key={p.key} className={`rounded-[3px] px-2.5 py-1 text-xs ${extra ? 'bg-[color:var(--j-DCFFF1)] font-medium text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]'}`}
                 title={extra ? tr('Added for this user') : p.group}>{p.label}</li>
             );
           })}
           {Object.entries(user.pageOverrides ?? {}).filter(([, on]) => !on).map(([key]) => (
-            <li key={key} className="rounded-full bg-[color:var(--j-FFECEB)] px-2.5 py-1 text-xs text-[color:var(--j-AE2E24)] line-through" title={tr('Removed for This User')}>
+            <li key={key} className="rounded-[3px] bg-[color:var(--j-FFECEB)] px-2.5 py-1 text-xs text-[color:var(--j-AE2E24)] line-through" title={tr('Removed for This User')}>
               {PAGES.find(p => p.key === key)?.label ?? key}
             </li>
           ))}
@@ -1088,7 +1088,7 @@ function UserDetailDrawer({ user, isMe, branchName, onClose, onEdit, onDelete, o
           [tr('Phone'), user.phoneNumber ? (
             <span key="p" className="flex flex-wrap items-center gap-2">
               <a href={`tel:${user.phoneNumber}`} className="text-[color:var(--j-0C66E4)] hover:underline">{user.phoneNumber}</a>
-              <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-full bg-[color:var(--j-DCFFF1)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--j-216E4E)] hover:bg-[color:var(--j-BAF3DB)]">{tr('WhatsApp')}</a>
+              <a href={whatsApp(user.phoneNumber)} target="_blank" rel="noreferrer" className="rounded-[3px] bg-[color:var(--j-DCFFF1)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--j-216E4E)] hover:bg-[color:var(--j-BAF3DB)]">{tr('WhatsApp')}</a>
             </span>
           ) : null],
           [tr('Address'), user.address],

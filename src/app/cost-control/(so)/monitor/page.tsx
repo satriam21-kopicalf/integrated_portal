@@ -302,7 +302,7 @@ function DayOverview({ total, tabCount, status, onStatus, byType, type, onType, 
         <div className="flex flex-wrap gap-1.5">
           {ALERTS.filter((a) => a.n > 0).map((a) => (
             <button key={a.key} type="button" onClick={() => onLoc(a.key)} aria-pressed={loc === a.key}
-              className={cx("inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+              className={cx("inline-flex items-center gap-1 rounded-[3px] border px-2.5 py-1 text-[11px] font-medium transition-colors",
                 loc === a.key ? "border-[color:var(--j-E2B203)] bg-[color:var(--j-E2B203)] text-white" : "border-[color:var(--j-F8E6A0)] bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)] hover:border-[color:var(--j-F5CD47)]")}>
               <a.icon size={12} /> {a.label(a.n)}
             </button>

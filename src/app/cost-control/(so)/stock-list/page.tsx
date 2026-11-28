@@ -219,7 +219,7 @@ export default function StockListPage() {
                   <span className="text-xs tabular-nums text-[color:var(--j-44546F)]">{tr("{0} {1} at {2} outlets · {3}", qtyText(m.estimate), m.unit, m.outlets.length, rpText(m.value))}</span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap gap-1">{m.outlets.sort((a, b) => b.estimate - a.estimate).slice(0, 12).map((o) => (
-                  <span key={o.branch} className="rounded-full bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[11px] text-[color:var(--j-44546F)]">{o.branchName} · {qtyText(o.estimate)}</span>))}
+                  <span key={o.branch} className="rounded-[3px] bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[11px] text-[color:var(--j-44546F)]">{o.branchName} · {qtyText(o.estimate)}</span>))}
                   {m.outlets.length > 12 && <span className="px-1 text-[11px] text-[color:var(--j-626F86)]">{tr("+{0} more", m.outlets.length - 12)}</span>}</div>
               </li>))}</ul>
           )}

@@ -634,7 +634,7 @@ function WasteFilterSheet({ value, branches, categories, onApply, onClose, onRes
             const on = picked.includes(c);
             return (
               <button key={c} type="button" aria-pressed={on} onClick={() => setD({ ...d, category: (on ? picked.filter((x) => x !== c) : [...picked, c]).join("|") })}
-                className={cx("inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition-colors",
+                className={cx("inline-flex items-center gap-1 rounded-[3px] px-3 py-1.5 text-xs font-medium ring-1 transition-colors",
                   on ? "bg-[color:var(--j-0C66E4)] text-white ring-[color:var(--j-388BFF)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
                 {on && <Check size={12} />}{c}
               </button>

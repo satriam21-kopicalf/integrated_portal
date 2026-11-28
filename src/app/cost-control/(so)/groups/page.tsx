@@ -129,7 +129,7 @@ export default function GroupsPage() {
                   <tr key={g.id} className="group cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => setOpen(g.id)}>
                     <td className="px-3 py-2">
                       <span className="block font-medium text-[color:var(--j-172B4D)] group-hover:text-[color:var(--j-0C66E4)]">{g.name} {!g.is_active && <Badge>{tr("Inactive")}</Badge>}
-                        {g.date_field && <span className="ml-1 rounded-full bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--j-44546F)]">{GROUP_DATE_OPTIONS.find((x) => x.value === g.date_field)?.label()}</span>}</span>
+                        {g.date_field && <span className="ml-1 rounded-[3px] bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--j-44546F)]">{GROUP_DATE_OPTIONS.find((x) => x.value === g.date_field)?.label()}</span>}</span>
                       <span className="block font-mono text-[11px] text-[color:var(--j-626F86)]">{g.code}{g.source_ref ? ` · ${g.source_ref}` : ""}</span>
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">
@@ -203,7 +203,7 @@ function BranchPicker({ facilities, types, usedBy, countTypes, setCountTypes, pi
     && (!s || f.name.toLowerCase().includes(s) || f.code.toLowerCase().includes(s)));
   const allPicked = shown.length > 0 && shown.every((f) => picked.has(f.id));
   const toggle = (id: string) => { const n = new Set(picked); if (n.has(id)) n.delete(id); else n.add(id); setPicked(n); };
-  const chip = (on: boolean) => cx("rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+  const chip = (on: boolean) => cx("rounded-[3px] border px-3 py-1 text-xs font-medium transition-colors",
     on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]");
 
   return (

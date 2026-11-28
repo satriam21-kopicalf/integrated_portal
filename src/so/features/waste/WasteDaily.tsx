@@ -83,7 +83,7 @@ export function DailyReport({ period, branch, onBranch }: { period: Period; bran
             <div className="mt-1.5 flex flex-wrap gap-1">
               {missing.map((b) => (
                 <button key={b.code} type="button" onClick={() => onBranch(b.code)}
-                  className="rounded-full bg-white px-2 py-0.5 text-xs text-[color:var(--j-7F5F01)] ring-1 ring-[color:var(--j-F8E6A0)] hover:bg-[color:var(--j-F8E6A0)]">{shortName(b.name)}</button>
+                  className="rounded-[3px] bg-white px-2 py-0.5 text-xs text-[color:var(--j-7F5F01)] ring-1 ring-[color:var(--j-F8E6A0)] hover:bg-[color:var(--j-F8E6A0)]">{shortName(b.name)}</button>
               ))}
               {data.missingLast.length > 10 && (
                 <button type="button" onClick={() => setAllMissing(!allMissing)} className="px-1 text-xs font-medium text-[color:var(--j-7F5F01)] underline">

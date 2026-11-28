@@ -251,7 +251,7 @@ function ListDrawer({ listId, onClose, onChanged }: { listId: string; onClose: (
                   const on = groupIds.includes(g.id);
                   return (
                     <button key={g.id} type="button" onClick={() => toggleGroup(g.id)} aria-pressed={on}
-                      className={cx("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
+                      className={cx("inline-flex items-center gap-1.5 rounded-[3px] border px-3 py-1.5 text-sm", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
                       <Boxes size={14} /> {g.name} <span className="text-xs text-[color:var(--j-626F86)]">{g.items}</span>
                     </button>
                   );

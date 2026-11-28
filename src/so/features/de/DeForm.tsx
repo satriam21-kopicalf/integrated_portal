@@ -606,7 +606,7 @@ function Editor({ data, initial, onClose, onSent }: { data: FormState; initial: 
             <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label={tr("Cause")}>
               {CAUSES.map((c) => (
                 <button key={c.value} type="button" role="radio" aria-checked={cause === c.value} onClick={() => { const v = cause === c.value ? "" : c.value; setCause(v); save({ cause: v || null }, true); }}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", cause === c.value ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{c.label()}</button>
+                  className={cx("rounded-[3px] border px-3 py-1 text-xs font-medium", cause === c.value ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{c.label()}</button>
               ))}
             </div>
           )}

@@ -155,7 +155,7 @@ function PeriodCompare({ current, compare, measure, size }: { current: HoursProf
         <div className="flex flex-wrap gap-1.5">
           <span className="text-[11px] text-[color:var(--j-626F86)]">{tr('Biggest changes:')}</span>
           {movers.map(m => (
-            <span key={m.hour} className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${m.d! >= 0 ? 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>
+            <span key={m.hour} className={`inline-flex items-center gap-1 rounded-[3px] px-2 py-0.5 text-[11px] font-medium ${m.d! >= 0 ? 'bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]' : 'bg-[color:var(--j-FFECEB)] text-[color:var(--j-AE2E24)]'}`}>
               {m.d! >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{hourLabel(m.hour)} {m.d! >= 0 ? '+' : '−'}{fixed(Math.abs(m.d!), 0)}%
             </span>
           ))}

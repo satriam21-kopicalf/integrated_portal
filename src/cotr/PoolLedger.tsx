@@ -388,7 +388,7 @@ function MovesDrawer({ pool: p0, day: first, kind: k0, ledger, pools, onClose, o
           ? <Field label={tr("Came from (optional)")}>{poolSelect(peer, setPeer, true, pool)}</Field>
           : <Field label={tr("To pool (destination)")}>{poolSelect(peer, setPeer, false, pool)}</Field>}
         {kind === "transfer" && pool && peer && (
-          <p className="flex items-center gap-2 rounded-[3px] border-l-[3px] border-l-blue-600 bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]">
+          <p className="flex items-center gap-2 rounded-[3px] border-l-[3px] border-l-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] px-3 py-2 text-xs text-[color:var(--j-0055CC)]">
             <Truck size={14} /><b>{name(pool)}</b> → <b>{name(peer)}</b> · {tr("{0} cups", total)}</p>
         )}
       </DrawerSection>

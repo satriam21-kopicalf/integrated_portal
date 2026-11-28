@@ -77,7 +77,7 @@ export function InvestigationList({ onOpen }: { onOpen: (id: string) => void }) 
       <div className="flex gap-2 px-4 py-3">
         {(["", "open", "closed"] as const).map((s) => (
           <button key={s} type="button" onClick={() => setStatus(s)}
-            className={cx("rounded-full px-3 py-1 text-xs font-medium", status === s ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>
+            className={cx("rounded-[3px] px-3 py-1 text-xs font-medium", status === s ? "bg-[color:var(--j-0C66E4)] text-white" : "bg-[color:var(--j-091E420F)] text-[color:var(--j-44546F)]")}>
             {s === "" ? tr("All") : s === "open" ? tr("Open") : tr("Closed")}
           </button>
         ))}
@@ -197,7 +197,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
               <div className="flex flex-wrap gap-2">
                 {SOURCES.map((s) => (
                   <button key={s} type="button" onClick={() => set("source", report.source === s ? null : s)}
-                    className={cx("rounded-full border px-3 py-1 text-xs", report.source === s ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)]")}>{s}</button>
+                    className={cx("rounded-[3px] border px-3 py-1 text-xs", report.source === s ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)]")}>{s}</button>
                 ))}
               </div>
             )}
@@ -207,7 +207,7 @@ export function InvestigationDrawer({ id, onClose, onChanged }: { id: string; on
                   const on = report.wasteKinds.includes(k);
                   return (
                     <button key={k} type="button" onClick={() => set("wasteKinds", on ? report.wasteKinds.filter((x) => x !== k) : [...report.wasteKinds, k])}
-                      className={cx("rounded-full border px-3 py-1 text-xs", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)]")}>{k}</button>
+                      className={cx("rounded-[3px] border px-3 py-1 text-xs", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0055CC)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)]")}>{k}</button>
                   );
                 })}
               </div>

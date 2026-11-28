@@ -262,7 +262,7 @@ function List({ rows, side, onOpen }: { rows: Transfer[]; side: "mine" | "incomi
                 <span className="block text-xs text-[color:var(--j-626F86)]">{tr("{0} materials", t.lines)} · {wibDateTime(t.requested.at)} · {t.requested.by}</span>
                 <MiniProgress t={t} />
               </span>
-              {todo && <span className="mt-1 rounded-full bg-[color:var(--j-F8E6A0)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--j-7F5F01)]">{side === "mine" ? tr("Receive") : tr("Check")}</span>}
+              {todo && <span className="mt-1 rounded-[3px] bg-[color:var(--j-F8E6A0)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--j-7F5F01)]">{side === "mine" ? tr("Receive") : tr("Check")}</span>}
             </button>
           </li>
         );

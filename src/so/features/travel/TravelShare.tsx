@@ -72,8 +72,8 @@ function View() {
               <p className="text-xs text-[color:var(--j-626F86)]">{[d.crew, d.supervisor].filter(Boolean).join(" & ")}</p></div>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
-            {d.late && <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--j-FFF7D6)] px-2 py-1 font-medium text-[color:var(--j-7F5F01)]"><Clock size={12} /> {tr("Sent late")}</span>}
-            {d.outsideRadius && <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--j-FFF7D6)] px-2 py-1 font-medium text-[color:var(--j-7F5F01)]"><MapPin size={12} /> {tr("Outside the outlet radius")}</span>}
+            {d.late && <span className="inline-flex items-center gap-1 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-2 py-1 font-medium text-[color:var(--j-7F5F01)]"><Clock size={12} /> {tr("Sent late")}</span>}
+            {d.outsideRadius && <span className="inline-flex items-center gap-1 rounded-[3px] bg-[color:var(--j-FFF7D6)] px-2 py-1 font-medium text-[color:var(--j-7F5F01)]"><MapPin size={12} /> {tr("Outside the outlet radius")}</span>}
           </div>
         </section>
         {!!d.evaluation?.length && (

@@ -164,7 +164,7 @@ function AuditDrawer({ audit, team, branches, onClose, onSaved }: { audit: Audit
                     <span className="min-w-0 flex-1"><span className="block truncate text-sm text-[color:var(--j-172B4D)]">{t.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">@{t.username}{t.jobTitle ? ` · ${t.jobTitle}` : ""}</span></span>
                     {isSwat(t) && <span className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-1.5 py-0.5 text-[10px] font-semibold text-[color:var(--j-0C66E4)]">SWAT</span>}
                     <button type="button" onClick={() => { setLead(t.id); setMembers((s) => new Set(s).add(t.id)); }} aria-pressed={lead === t.id}
-                      className={cx("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium", lead === t.id ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>
+                      className={cx("inline-flex items-center gap-1 rounded-[3px] px-2 py-0.5 text-[11px] font-medium", lead === t.id ? "bg-[color:var(--j-F8E6A0)] text-[color:var(--j-7F5F01)]" : "text-[color:var(--j-626F86)] hover:bg-[color:var(--j-091E420F)] hover:text-[color:var(--j-172B4D)]")}>
                       <Crown size={12} /> {lead === t.id ? tr("Lead") : tr("Make lead")}
                     </button>
                   </li>

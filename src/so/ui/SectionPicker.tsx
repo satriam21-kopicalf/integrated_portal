@@ -56,7 +56,7 @@ export default function SectionPicker({ options, value, onChange, allLabel, titl
       <div className="hidden flex-wrap gap-1.5 lg:flex">
         {all.map((o) => (
           <button key={o.key || "all"} type="button" onClick={() => onChange(o.key)} aria-pressed={value === o.key}
-            className={cx("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium",
+            className={cx("inline-flex items-center gap-1.5 whitespace-nowrap rounded-[3px] border px-3 py-1 text-xs font-medium",
               value === o.key ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] bg-white text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
             {o.label}
             <span className={cx("tabular-nums", o.total && o.done >= o.total ? "text-[color:var(--j-22A06B)]" : "text-[color:var(--j-626F86)]")}>{o.total && o.done >= o.total ? "✓" : `${o.done}/${o.total}`}</span>

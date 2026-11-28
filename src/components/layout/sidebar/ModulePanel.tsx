@@ -84,7 +84,7 @@ export default function ModulePanel({ config, sections, pathname, collapsed, onN
           <p className="truncate text-xs text-[color:var(--j-626F86)]">{config.subtitle}</p>
         </div>
         {waiting !== null && waiting > 0 && (
-          <Link href="/cost-control/reviews" onClick={go} className="hidden flex-shrink-0 items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-3 py-1 text-xs font-semibold text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-CCE0FF)] sm:inline-flex">
+          <Link href="/cost-control/reviews" onClick={go} className="hidden flex-shrink-0 items-center gap-1.5 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-3 py-1 text-xs font-semibold text-[color:var(--j-0C66E4)] hover:bg-[color:var(--j-CCE0FF)] sm:inline-flex">
             {tr('{0} waiting for review', waiting)}
           </Link>
         )}

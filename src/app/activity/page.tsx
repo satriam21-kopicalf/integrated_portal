@@ -501,7 +501,7 @@ function TimelineRow({ entry, isNew, onOpen }: { entry: Entry; isNew: boolean; o
   const action = ACTIONS[entry.action];
   const tone = TONES[entry.category] ?? TONES.page;
   const verb = action?.verb ?? entry.action;
-  const accent = entry.status === 'denied' ? 'border-l-red-500' : entry.status === 'failed' ? 'border-l-amber-500' : 'border-l-transparent';
+  const accent = entry.status === 'denied' ? 'border-l-[color:var(--j-C9372C)]' : entry.status === 'failed' ? 'border-l-[color:var(--j-E2B203)]' : 'border-l-transparent';
   return (
     <li>
       <button type="button" onClick={onOpen}
@@ -514,7 +514,7 @@ function TimelineRow({ entry, isNew, onOpen }: { entry: Entry; isNew: boolean; o
             <span className="text-[color:var(--j-44546F)]">{verb.startsWith("'") ? verb.slice(1) : verb}</span>
             {entry.action === 'page.view' && <span className="font-medium text-[color:var(--j-172B4D)]">{pageLabel(entry.page)}</span>}
             <StatusBadge status={entry.status} />
-            {isNew && <span className="rounded-full bg-[color:var(--j-0C66E4)] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
+            {isNew && <span className="rounded-[3px] bg-[color:var(--j-0C66E4)] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">{tr('New')}</span>}
           </span>
           {entry.summary && entry.action !== 'page.view' && <span className="mt-0.5 block truncate text-sm text-[color:var(--j-44546F)]">{entry.summary}</span>}
           <span className="mt-0.5 block truncate text-[11px] text-[color:var(--j-626F86)]">

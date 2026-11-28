@@ -80,7 +80,7 @@ export default function FleetSharePage() {
               <div className="relative flex aspect-[16/9] items-center justify-center bg-[color:var(--j-091E420F)] text-[color:var(--j-8590A2)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 {f.has_photo ? <img src={thumb(`${base}/photo?v=${encodeURIComponent(f.updated_at ?? "")}`, 640)} decoding="async" loading="lazy" alt="" className="h-full w-full object-cover" /> : <Bike size={56} />}
-                <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${f.is_active === false ? "bg-neutral-800 text-white" : f.condition === "service" ? "bg-[color:var(--j-E2B203)] text-white" : "bg-[color:var(--j-22A06B)] text-white"}`}>
+                <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-[3px] px-2.5 py-1 text-[11px] font-semibold ${f.is_active === false ? "bg-neutral-800 text-white" : f.condition === "service" ? "bg-[color:var(--j-E2B203)] text-white" : "bg-[color:var(--j-22A06B)] text-white"}`}>
                   {f.is_active === false ? tr("Not in use") : f.condition === "service" ? <><Wrench size={12} /> {tr("In Service")}</> : <><CheckCircle2 size={12} /> {tr("Ready to sell")}</>}
                 </span>
               </div>
@@ -140,8 +140,8 @@ export default function FleetSharePage() {
                         <p className="font-semibold text-[color:var(--j-172B4D)]">{d.name}{d.nickname ? <span className="font-normal text-[color:var(--j-626F86)]"> ({d.nickname})</span> : null}</p>
                         <p className="text-xs text-[color:var(--j-626F86)]">{[d.employee_id, d.position ?? d.department, d.pool_name].filter(Boolean).join(" · ")}</p>
                         <p className="mt-1 flex flex-wrap gap-1.5 text-[11px]">
-                          <span className={`rounded-full px-2 py-0.5 font-medium ${d.status === "active" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]"}`}>{d.status === "active" ? tr("Active") : tr("On Leave")}</span>
-                          {d.joined_on && <span className="rounded-full bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[color:var(--j-44546F)]">{tr("Joined {0}", day(d.joined_on) ?? "")}</span>}
+                          <span className={`rounded-[3px] px-2 py-0.5 font-medium ${d.status === "active" ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)]" : "bg-[color:var(--j-FFF7D6)] text-[color:var(--j-7F5F01)]"}`}>{d.status === "active" ? tr("Active") : tr("On Leave")}</span>
+                          {d.joined_on && <span className="rounded-[3px] bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[color:var(--j-44546F)]">{tr("Joined {0}", day(d.joined_on) ?? "")}</span>}
                         </p>
                         {card.full && d.phone && <a href={`tel:${d.phone}`} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--j-0C66E4)]"><Phone size={12} /> {d.phone}</a>}
                       </div>

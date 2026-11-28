@@ -754,7 +754,7 @@ function ReviewFilters({ outlets, cities, value, onApply, onClose }: { outlets: 
         <div className="mb-2 flex flex-wrap gap-1.5">
           {[[1, tr("Today")], [7, tr("7 days")], [30, tr("30 days")], [90, tr("90 Days")]].map(([n, l]) => (
             <button key={String(n)} type="button" onClick={() => preset(Number(n))}
-              className="rounded-full border border-[color:var(--j-DCDFE4)] px-3 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-85B8FF)] hover:text-[color:var(--j-0055CC)]">{l}</button>
+              className="rounded-[3px] border border-[color:var(--j-DCDFE4)] px-3 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-85B8FF)] hover:text-[color:var(--j-0055CC)]">{l}</button>
           ))}
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -894,7 +894,7 @@ function Lightbox({ urls, index, onIndex, onClose }: { urls: string[]; index: nu
       {urls.length > 1 && <>
         <button type="button" disabled={index === 0} onClick={(e) => { e.stopPropagation(); onIndex(index - 1); }} aria-label={tr("Previous Photo")} className={cx(nav, "left-3")}><ChevronLeft size={22} /></button>
         <button type="button" disabled={index === urls.length - 1} onClick={(e) => { e.stopPropagation(); onIndex(index + 1); }} aria-label={tr("Next Photo")} className={cx(nav, "right-3")}><ChevronRight size={22} /></button>
-        <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/15 px-3 py-1 text-xs text-white">{index + 1} / {urls.length}</span>
+        <span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-[3px] bg-white/15 px-3 py-1 text-xs text-white">{index + 1} / {urls.length}</span>
       </>}
     </div>
   );

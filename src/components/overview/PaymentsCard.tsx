@@ -21,7 +21,7 @@ export default function PaymentsCard({ resource }: { resource: Resource<Payments
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2">
               {data.types.map(t => (
-                <span key={t.type} className="rounded-full bg-[color:var(--j-091E420F)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--j-44546F)]">
+                <span key={t.type} className="rounded-[3px] bg-[color:var(--j-091E420F)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--j-44546F)]">
                   {t.type} <span className="text-[color:var(--j-172B4D)]">{t.share === null ? '-' : `${fixed(t.share, 1)}%`}</span>
                   {t.deltaPct !== undefined && t.deltaPct !== null && <span className={t.deltaPct >= 0 ? ' text-[color:var(--j-216E4E)]' : ' text-[color:var(--j-AE2E24)]'}> {deltaText(t.deltaPct)}</span>}
                 </span>

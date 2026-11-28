@@ -120,7 +120,7 @@ function LabelRow({ u, drivers, busy, onTie }: { u: Unmatched; drivers: Driver[]
         <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--j-626F86)]">{tr("Suggested")}</span>
         {u.suggestions.map((s) => (
           <button key={s.code} type="button" disabled={busy} onClick={() => onTie(s.code, s.name)} title={[s.pool, s.fleet].filter(Boolean).join(" · ")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 transition-colors disabled:opacity-50 ${s.score >= 0.9 ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)] hover:bg-[color:var(--j-BAF3DB)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]"}`}>
+            className={`inline-flex items-center gap-1.5 rounded-[3px] px-3 py-1 text-xs font-medium ring-1 transition-colors disabled:opacity-50 ${s.score >= 0.9 ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)] hover:bg-[color:var(--j-BAF3DB)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]"}`}>
             <Users size={12} />{s.name}{s.fleet && <span className="text-[color:var(--j-626F86)]">{s.fleet}</span>}<span className="tabular-nums text-[color:var(--j-626F86)]">{Math.round(s.score * 100)}%</span>
           </button>
         ))}
@@ -134,7 +134,7 @@ function LabelRow({ u, drivers, busy, onTie }: { u: Unmatched; drivers: Driver[]
         <div className="flex flex-wrap gap-1.5">
           {found.map((d) => (
             <button key={d.code} type="button" disabled={busy} onClick={() => { onTie(d.code, d.name); setQ(""); }}
-              className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--j-E9F2FF)] px-3 py-1 text-xs font-medium text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-388BFF)] hover:bg-[color:var(--j-CCE0FF)] disabled:opacity-50">
+              className="inline-flex items-center gap-1.5 rounded-[3px] bg-[color:var(--j-E9F2FF)] px-3 py-1 text-xs font-medium text-[color:var(--j-0055CC)] ring-1 ring-[color:var(--j-388BFF)] hover:bg-[color:var(--j-CCE0FF)] disabled:opacity-50">
               {d.name}<span className="text-[color:var(--j-0C66E4)]">{d.fleet_code ?? d.code}</span>
             </button>
           ))}

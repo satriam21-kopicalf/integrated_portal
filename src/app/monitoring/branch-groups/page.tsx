@@ -177,7 +177,7 @@ function GroupDrawer({ group, data, onClose, onSaved }: { group: Group | null; d
               <Input value={maxCheckin} onChange={(e) => setMaxCheckin(e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="1" className="w-24 text-right tabular-nums" />
               {[1, 2, 3].map((n) => (
                 <button key={n} type="button" onClick={() => setMaxCheckin(String(n))}
-                  className={cx("rounded-full border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{tr("{0}× a day", n)}</button>
+                  className={cx("rounded-[3px] border px-3 py-1 text-xs font-medium", Number(maxCheckin || 1) === n ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{tr("{0}× a day", n)}</button>
               ))}
             </div>
           </Field>

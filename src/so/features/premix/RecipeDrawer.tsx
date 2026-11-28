@@ -145,7 +145,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
                   const on = head.facility_types.includes(t);
                   return (
                     <button key={t} type="button" aria-pressed={on} onClick={() => setHead({ ...head, facility_types: on ? head.facility_types.filter(x => x !== t) : [...head.facility_types, t] })}
-                      className={cx("rounded-full border px-3 py-1 text-xs font-medium", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{t}</button>
+                      className={cx("rounded-[3px] border px-3 py-1 text-xs font-medium", on ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-0C66E4)] text-white" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>{t}</button>
                   );
                 })}
               </div>
@@ -197,7 +197,7 @@ export default function RecipeDrawer({ recipeId, onClose, onChanged }: { recipeI
               {([["Porsi", { uom: "Porsi", qty_base: "", per_batch: null }], ["Pcs", { uom: "Pcs", qty_base: "", per_batch: null }],
                 ["Pail & Teko", null], ["Gram", { uom: "Gram", qty_base: 1, per_batch: null }]] as [string, Unit | null][]).map(([label, u]) => (
                 <button key={label} type="button" onClick={() => (u ? addUnit(u) : (addUnit({ uom: "Pail", qty_base: null, per_batch: 1 }), addUnit({ uom: "Teko", qty_base: null, per_batch: 3 })))}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed border-[color:var(--j-8590A2)] px-3 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]">
+                  className="inline-flex items-center gap-1 rounded-[3px] border border-dashed border-[color:var(--j-8590A2)] px-3 py-1 text-xs font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-388BFF)] hover:text-[color:var(--j-0055CC)]">
                   <Plus size={12} /> {label}
                 </button>
               ))}

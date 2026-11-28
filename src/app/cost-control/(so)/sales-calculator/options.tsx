@@ -234,7 +234,7 @@ function RuleDrawer({ choice, onClose, onSaved }: { choice: Choice; onClose: () 
               <span className="text-xs text-[color:var(--j-626F86)]">{tr("Quick:")}</span>
               {PRESETS.map((p) => (
                 <button key={p.label()} type="button" onClick={() => setLines(p.lines.map((l) => ({ ...l, text: String(l.value) })))}
-                  className="rounded-full border border-[color:var(--j-DCDFE4)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-85B8FF)]">{p.label()}</button>
+                  className="rounded-[3px] border border-[color:var(--j-DCDFE4)] px-2.5 py-1 text-[11px] font-medium text-[color:var(--j-44546F)] hover:border-[color:var(--j-85B8FF)]">{p.label()}</button>
               ))}
             </div>
             {lines.map((l, i) => (

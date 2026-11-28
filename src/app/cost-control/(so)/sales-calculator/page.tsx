@@ -438,10 +438,10 @@ function RecipeCard({ r, hpp, priced, onOpen }: { r: Recipe; hpp: number | null;
           <img src="/assets/calf-logo.png" alt="" aria-hidden className="pointer-events-none absolute -bottom-6 -right-5 h-32 w-32 rotate-[-12deg] object-contain opacity-[0.13] brightness-0 invert" />
           <span className="pointer-events-none absolute -left-10 -top-12 h-28 w-28 rounded-full bg-white/5" aria-hidden />
           <div className="relative flex items-center justify-between gap-2">
-            <span className="truncate rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-50">{r.category || tr("Recipe Card")}</span>
-            {!r.isActive ? <span className="rounded-full bg-neutral-900/40 px-2 py-0.5 text-[10px] font-semibold">{tr("Inactive")}</span>
-              : r.menus.length ? <span className="rounded-full bg-[color:var(--j-22A06B)]/90 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--j-216E4E)]">{tr("{0} menus", r.menus.length)}</span>
-              : <span className="rounded-full bg-[color:var(--j-F5CD47)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--j-7F5F01)]">{tr("No Menu Yet")}</span>}
+            <span className="truncate rounded-[3px] bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-50">{r.category || tr("Recipe Card")}</span>
+            {!r.isActive ? <span className="rounded-[3px] bg-neutral-900/40 px-2 py-0.5 text-[10px] font-semibold">{tr("Inactive")}</span>
+              : r.menus.length ? <span className="rounded-[3px] bg-[color:var(--j-22A06B)]/90 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--j-216E4E)]">{tr("{0} menus", r.menus.length)}</span>
+              : <span className="rounded-[3px] bg-[color:var(--j-F5CD47)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--j-7F5F01)]">{tr("No Menu Yet")}</span>}
           </div>
           <p className="relative mt-2.5 line-clamp-2 text-base font-semibold leading-snug">{r.name}</p>
           <p className="relative mt-0.5 font-mono text-[11px] text-brand-100/80">{r.code}</p>
@@ -621,7 +621,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
         </FormBlock>
 
         <FormBlock n={2} title={tr("Components per Portion")} hint={tr("Quantities in the unit of the item; WIP / premix in grams; a bundle in portions of other cards")}
-          aside={<span className="flex flex-wrap gap-1.5 text-[11px]">{(["item", "wip", "other", "menu"] as Kind[]).filter((k) => k !== "menu" || per(k)).map((k) => <span key={k} className={cx("rounded-full px-2 py-0.5 font-medium", KIND_CHIP[k])}>{KIND[k].label()} {per(k)}</span>)}</span>}>
+          aside={<span className="flex flex-wrap gap-1.5 text-[11px]">{(["item", "wip", "other", "menu"] as Kind[]).filter((k) => k !== "menu" || per(k)).map((k) => <span key={k} className={cx("rounded-[3px] px-2 py-0.5 font-medium", KIND_CHIP[k])}>{KIND[k].label()} {per(k)}</span>)}</span>}>
           {error && <p className="mb-3 rounded-[3px] bg-[color:var(--j-FFECEB)] px-3 py-2 text-xs text-[color:var(--j-AE2E24)]">{tr("The item list could not be loaded: {0}", error)}</p>}
           <ol className="space-y-2">
             {lines.map((l, i) => {
@@ -678,7 +678,7 @@ function RecipeDrawer({ recipe, cards: allCards, onClose, onSaved }: { recipe: R
         </FormBlock>
 
         <FormBlock n={3} title={tr("ESB Menus with This Card")} hint={tr("Every menu of the POS transactions; a menu on another card moves here when ticked")}
-          aside={<span className="rounded-full bg-[color:var(--j-E9F2FF)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--j-0C66E4)]">{tr("{0} ticked", assigned.length)}</span>}>
+          aside={<span className="rounded-[3px] bg-[color:var(--j-E9F2FF)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--j-0C66E4)]">{tr("{0} ticked", assigned.length)}</span>}>
           {assigned.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-1.5">
               {assigned.slice(0, 12).map((m) => (
@@ -905,7 +905,7 @@ function Extras() {
                 return (
                   <tr key={x.id} className="cursor-pointer hover:bg-[color:var(--j-F7F8F9)]" onClick={() => open(x)}>
                     <td className="py-2.5 pl-5 pr-3"><span className="block font-medium text-[color:var(--j-172B4D)]">{x.name}</span><span className="text-[11px] text-[color:var(--j-626F86)]">{x.code ?? tr("Typed by hand")}</span></td>
-                    <td className="px-3 py-2.5 text-xs"><span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[color:var(--j-44546F)]"><Icon size={12} /> {num(x.qty)} {x.unit} · {BASIS[x.basis]()}</span></td>
+                    <td className="px-3 py-2.5 text-xs"><span className="inline-flex items-center gap-1.5 rounded-[3px] bg-[color:var(--j-091E420F)] px-2 py-0.5 text-[color:var(--j-44546F)]"><Icon size={12} /> {num(x.qty)} {x.unit} · {BASIS[x.basis]()}</span></td>
                     <td className="px-3 py-2.5 text-right tabular-nums">{price(x) === null ? <Badge tone="amber">{tr("No price")}</Badge> : rp(price(x))}</td>
                     <td className="px-3 py-2.5">{x.isActive ? <Badge tone="green" dot>{tr("Active")}</Badge> : <Badge tone="slate">{tr("Inactive")}</Badge>}</td>
                     <td className="px-2"><button type="button" onClick={(e) => { e.stopPropagation(); void remove(x); }} className="rounded p-1.5 text-[color:var(--j-626F86)] hover:text-[color:var(--j-C9372C)]" aria-label={tr("Delete")}><Trash2 size={15} /></button></td>
@@ -1362,7 +1362,7 @@ function CalcFilterSheet({ value, branches, onApply, onClose }: { value: CalcFil
         <div className="mt-2 flex flex-wrap gap-1.5">
           {[[7, 10], [14, 10], [30, 15]].map(([dd, bb]) => (
             <button key={dd} type="button" onClick={() => setD({ ...d, horizon: String(dd), buffer: String(bb) })}
-              className={cx("rounded-full border px-2.5 py-1 text-[11px] font-medium", h === dd && b === bb ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
+              className={cx("rounded-[3px] border px-2.5 py-1 text-[11px] font-medium", h === dd && b === bb ? "border-[color:var(--j-0C66E4)] bg-[color:var(--j-E9F2FF)] text-[color:var(--j-0C66E4)]" : "border-[color:var(--j-DCDFE4)] text-[color:var(--j-44546F)] hover:border-[color:var(--j-8590A2)]")}>
               {tr("{0} days + {1}%", dd, bb)}</button>
           ))}
         </div>

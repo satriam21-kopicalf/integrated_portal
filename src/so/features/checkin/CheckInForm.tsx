@@ -234,7 +234,7 @@ export default function CheckInForm({ kind = "pic" }: { kind?: Kind }) {
                 return (
                   <li key={s.code}>
                     <button type="button" disabled={outMode || done} onClick={() => setBranch(s.code)} title={s.note ?? undefined}
-                      className={cx("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
+                      className={cx("inline-flex items-center gap-1 rounded-[3px] px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
                         done ? "bg-[color:var(--j-DCFFF1)] text-[color:var(--j-216E4E)] ring-[color:var(--j-BAF3DB)]" : branch === s.code ? "bg-[color:var(--j-0C66E4)] text-white ring-[color:var(--j-388BFF)]" : "bg-white text-[color:var(--j-44546F)] ring-[color:var(--j-DCDFE4)] hover:bg-[color:var(--j-F7F8F9)]")}>
                       {done && <CheckCircle2 size={12} />}{s.name}
                     </button>
@@ -501,7 +501,7 @@ function SuccessScreen({ c, out = false, onClose, onDetail }: { c: CheckIn; out?
   return createPortal(
     <div className="fixed inset-0 z-[90] flex items-stretch justify-center bg-neutral-900/50 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={tr("Check in Sent")}>
       <div className="flex w-full flex-col overflow-y-auto bg-white sm:max-h-[92vh] sm:max-w-md sm:rounded-[3px]">
-        <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", outside ? "bg-[color:var(--j-FFF7D6)]" : "bg-[color:var(--j-DCFFF1)]", "sm:rounded-t-2xl")}>
+        <div className={cx("flex flex-1 flex-col items-center justify-center px-6 pb-6 pt-10 text-center", outside ? "bg-[color:var(--j-FFF7D6)]" : "bg-[color:var(--j-DCFFF1)]", "sm:rounded-t-[8px]")}>
           <span className={cx("flex h-20 w-20 items-center justify-center rounded-full text-white", outside ? "bg-[color:var(--j-E2B203)] shadow-amber-200" : "bg-[color:var(--j-22A06B)] shadow-emerald-200")}>
             {outside ? <AlertTriangle size={38} /> : <Check size={42} strokeWidth={3} />}
           </span>
